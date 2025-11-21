@@ -7,6 +7,7 @@ import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:intl/intl.dart';
 
 class Customer {
@@ -1597,32 +1598,7 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
     Customer(id: '3', name: 'فاطمة علي', balance: 0, creditLimit: 5000),
   ];
 
-  final List<InvoiceItem> _availableItems = [
-    InvoiceItem(
-      id: '1',
-      name: 'لابتوب HP',
-      barcode: '123456',
-      price: 3500,
-      unit: 'جهاز',
-      stock: 15,
-    ),
-    InvoiceItem(
-      id: '2',
-      name: 'ماوس لاسلكي',
-      barcode: '123457',
-      price: 85,
-      unit: 'قطعة',
-      stock: 50,
-    ),
-    InvoiceItem(
-      id: '3',
-      name: 'كيبورد ميكانيكي',
-      barcode: '123458',
-      price: 450,
-      unit: 'قطعة',
-      stock: 30,
-    ),
-  ];
+  List<InvoiceItem> _availableItems = [];
 
   @override
   void initState() {
@@ -1634,6 +1610,12 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
       discount: Discount(type: DiscountType.amount, value: 0),
       payments: [],
     );
+    _loadProducts();
+  }
+
+  Future<void> _loadProducts() async {
+    // Load products from database
+    context.read<ProductsCubit>().loadProducts();
   }
 
   void _updateInvoice(Invoice invoice) {
@@ -1685,12 +1667,30 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
                     onNext: _nextStep,
                     onShowCustomerSheet: _showCustomerBottomSheet,
                   ),
-                  Step2Items(
-                    invoice: _invoice,
-                    availableItems: _availableItems,
-                    onInvoiceUpdate: _updateInvoice,
-                    onNext: _nextStep,
-                    onPrevious: _previousStep,
+                  BlocBuilder<ProductsCubit, ProductsState>(
+                    builder: (context, state) {
+                      if (state is ProductsLoaded) {
+                        // Convert ProductEntity to InvoiceItem
+                        _availableItems = state.products.where((p) => p.isActive).map((product) {
+                          return InvoiceItem(
+                            id: product.id?.toString() ?? '',
+                            name: product.name,
+                            barcode: product.barcodeNo,
+                            price: product.sellAmount ?? product.sellLocalAmount ?? 0,
+                            unit: 'قطعة', // Default unit, you can fetch from unit entity
+                            stock: product.quantity.toInt(),
+                          );
+                        }).toList();
+                      }
+                      
+                      return Step2Items(
+                        invoice: _invoice,
+                        availableItems: _availableItems,
+                        onInvoiceUpdate: _updateInvoice,
+                        onNext: _nextStep,
+                        onPrevious: _previousStep,
+                      );
+                    },
                   ),
                   Step3Payment(
                     invoice: _invoice,
@@ -1963,9 +1963,7 @@ class _Step1CustomerState extends State<Step1Customer> {
                     builder: (context, state) {
                       if (state is WarehousesLoaded) {
                         _warehouses = state.warehouses;
-                        // Set default warehouse if not selected
                         if (_selectedWarehouseId == null && _warehouses.isNotEmpty) {
-                          // Find main warehouse or use first one
                           WarehouseEntity? mainWarehouse;
                           try {
                             mainWarehouse = _warehouses.firstWhere((w) => w.isMainStock == true);

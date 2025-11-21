@@ -5,6 +5,7 @@ import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
+import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 
 class ProductFormPage extends StatefulWidget {
   final ProductEntity? product;
@@ -28,7 +29,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
   int? _selectedGroupId;
   int? _selectedUnitId;
-  int _selectedStockId = 1; // Default stock
+  int? _selectedStockId; // Will be set from actual warehouses
   bool _isActive = true;
   bool _isTaxable = true;
   bool _isLoading = false;
@@ -57,7 +58,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
     _selectedGroupId = widget.product?.groupId;
     _selectedUnitId = widget.product?.unitId;
-    _selectedStockId = widget.product?.stockId ?? 1;
+    _selectedStockId = widget.product?.stockId;
     _isActive = widget.product?.isActive ?? true;
     _isTaxable = widget.product?.isTaxable ?? true;
   }
@@ -84,6 +85,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
         ),
         BlocProvider(
           create: (context) => getIt<ProductUnitsCubit>()..loadAllUnits(),
+        ),
+        BlocProvider(
+          create: (context) => getIt<WarehousesCubit>()..loadActiveWarehouses(),
         ),
       ],
       child: BlocListener<ProductsCubit, ProductsState>(
@@ -231,6 +235,47 @@ class _ProductFormPageState extends State<ProductFormPage> {
                               ],
                               onChanged: (value) {
                                 setState(() => _selectedUnitId = value);
+                              },
+                            );
+                          }
+                          return const LinearProgressIndicator();
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      BlocBuilder<WarehousesCubit, WarehousesState>(
+                        builder: (context, state) {
+                          if (state is WarehousesLoaded && state.warehouses.isNotEmpty) {
+                            // Set default warehouse if not selected
+                            if (_selectedStockId == null) {
+                              final mainWarehouse = state.warehouses.firstWhere(
+                                (w) => w.isMainStock == true,
+                                orElse: () => state.warehouses.first,
+                              );
+                              _selectedStockId = mainWarehouse.id;
+                            }
+                            
+                            return DropdownButtonFormField<int>(
+                              value: _selectedStockId,
+                              decoration: const InputDecoration(
+                                labelText: 'المخزن *',
+                                prefixIcon: Icon(Icons.store),
+                                border: OutlineInputBorder(),
+                              ),
+                              validator: (value) {
+                                if (value == null) {
+                                  return 'يرجى اختيار المخزن';
+                                }
+                                return null;
+                              },
+                              items: state.warehouses.map((warehouse) {
+                                return DropdownMenuItem(
+                                  value: warehouse.id,
+                                  child: Text(warehouse.name + 
+                                    (warehouse.isMainStock == true ? ' (الرئيسي)' : '')),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() => _selectedStockId = value);
                               },
                             );
                           }
@@ -424,6 +469,17 @@ class _ProductFormPageState extends State<ProductFormPage> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    
+    // Ensure stockId is set
+    if (_selectedStockId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يرجى اختيار المخزن'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isLoading = true);
 
@@ -445,7 +501,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
           : null,
       groupId: _selectedGroupId,
       unitId: _selectedUnitId,
-      stockId: _selectedStockId,
+      stockId: _selectedStockId ?? 1, // Ensure stockId is never null
       isActive: _isActive,
       isTaxable: _isTaxable,
       creationTime: widget.product?.creationTime,
