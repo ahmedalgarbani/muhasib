@@ -50,7 +50,8 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
   }
 
   void _nextStep() {
-    if (_currentStep < 4) setState(() => _currentStep++);
+    final maxStep = widget.invoiceType.isQuotation ? 3 : 4;
+    if (_currentStep < maxStep) setState(() => _currentStep++);
   }
 
   void _previousStep() {
@@ -91,6 +92,7 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
     final finalAmount = totalAfterDiscount + taxAmount;
 
     // Derive safe foreign keys and statuses
+    final isQuotation = widget.invoiceType.isQuotation;
     final selectedCustomerId = int.tryParse(_invoice.customer!.id);
     final derivedCustomerId =
         (selectedCustomerId == 1 || selectedCustomerId == 2)
@@ -98,12 +100,14 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
         : (_invoice.payments.any((p) => p.method == PaymentMethod.deferred)
               ? 2
               : 1);
-    final derivedTransType = _invoice.remaining > 0
-        ? 1
-        : 0; // 0=cash, 1=deferred
-    final derivedPaymentStatus = _invoice.paid >= _invoice.total
-        ? 2 // fully paid
-        : (_invoice.paid > 0 ? 1 : 0); // 1=partial, 0=unpaid
+    final derivedTransType = isQuotation
+        ? 0
+        : (_invoice.remaining > 0 ? 1 : 0); // 0=cash, 1=deferred
+    final derivedPaymentStatus = isQuotation
+        ? 0
+        : (_invoice.paid >= _invoice.total
+            ? 2 // fully paid
+            : (_invoice.paid > 0 ? 1 : 0)); // 1=partial, 0=unpaid
 
     // Map local Invoice to InvoiceEntity with all required fields
     final invoiceEntity = InvoiceEntity(
@@ -234,14 +238,17 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
 
                   return Column(
                     children: [
-                      StickyInvoiceHeader(
-                        invoice: _invoice,
-                        onCustomerTap: () =>
-                            _showCustomerBottomSheet(customers),
-                      ),
+                      if (_currentStep <= 2)
+                        StickyInvoiceHeader(
+                          invoice: _invoice,
+                          onCustomerTap: () =>
+                              _showCustomerBottomSheet(customers),
+                        ),
                       StepIndicator(
                         currentStep: _currentStep,
-                        steps: const ['العميل', 'الأصناف', 'الدفع', 'المراجعة'],
+                        steps: widget.invoiceType.isQuotation
+                            ? const ['العميل', 'الأصناف', 'المراجعة']
+                            : const ['العميل', 'الأصناف', 'الدفع', 'المراجعة'],
                       ),
                       Expanded(
                         child: IndexedStack(
@@ -262,16 +269,18 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
                               onNext: _nextStep,
                               onPrevious: _previousStep,
                             ),
-                            Step3Payment(
-                              invoice: _invoice,
-                              onInvoiceUpdate: _updateInvoice,
-                              onNext: _nextStep,
-                              onPrevious: _previousStep,
-                            ),
+                            if (!widget.invoiceType.isQuotation)
+                              Step3Payment(
+                                invoice: _invoice,
+                                onInvoiceUpdate: _updateInvoice,
+                                onNext: _nextStep,
+                                onPrevious: _previousStep,
+                              ),
                             Step4Review(
                               invoice: _invoice,
                               onPrevious: _previousStep,
                               onSave: _saveInvoice,
+                              isQuotation: widget.invoiceType.isQuotation,
                             ),
                           ],
                         ),

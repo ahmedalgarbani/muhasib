@@ -3,6 +3,11 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_connect_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/journal_local_datasource.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/opening_balance_registration.dart';
+import 'package:muhasib/features/accounts/domain/services/account_limit_service.dart';
+import 'package:muhasib/features/accounts/data/services/account_limit_service_impl.dart';
+import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
+import 'package:muhasib/features/accounts/domain/services/account_connect_validator.dart';
 import 'package:muhasib/features/accounts/data/repositories/account_connect_repository_impl.dart';
 import 'package:muhasib/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:muhasib/features/accounts/data/repositories/journal_repository_impl.dart';
@@ -105,6 +110,7 @@ class GetItHelper {
     final database = await databaseService.database;
 
     getIt.registerLazySingleton<IDatabaseService>(() => databaseService);
+    getIt.registerLazySingleton<DatabaseService>(() => databaseService);
 
     // ==================== Accounts Feature ====================
 
@@ -215,6 +221,24 @@ class GetItHelper {
     );
     getIt.registerLazySingleton(
       () => DeleteJournalEntry(getIt<JournalRepository>()),
+    );
+
+    // Register Opening Balance dependencies
+    registerOpeningBalanceDependencies(getIt, databaseService);
+
+    // Register Account Limit Service
+    getIt.registerLazySingleton<AccountLimitService>(
+      () => AccountLimitServiceImpl(databaseService: databaseService),
+    );
+    
+    // Register Account Limit Interceptor
+    getIt.registerLazySingleton<AccountLimitInterceptor>(
+      () => AccountLimitInterceptor(limitService: getIt<AccountLimitService>()),
+    );
+    
+    // Register Account Connect Validator
+    getIt.registerLazySingleton<AccountConnectValidator>(
+      () => AccountConnectValidator(repository: getIt<AccountConnectRepository>()),
     );
 
     // ==================== Sales Feature ====================

@@ -38,8 +38,12 @@ class _ProductFormPageState extends State<ProductFormPage> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.product?.name ?? '');
-    _statementController = TextEditingController(text: widget.product?.statement ?? '');
-    _barcodeController = TextEditingController(text: widget.product?.barcodeNo ?? '');
+    _statementController = TextEditingController(
+      text: widget.product?.statement ?? '',
+    );
+    _barcodeController = TextEditingController(
+      text: widget.product?.barcodeNo ?? '',
+    );
     _costPriceController = TextEditingController(
       text: widget.product?.costAmount?.toString() ?? '',
     );
@@ -96,7 +100,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  widget.product == null ? 'تم إضافة المنتج بنجاح' : 'تم تحديث المنتج بنجاح',
+                  widget.product == null
+                      ? 'تم إضافة المنتج بنجاح'
+                      : 'تم تحديث المنتج بنجاح',
                 ),
                 backgroundColor: Colors.green,
               ),
@@ -117,7 +123,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
           child: Scaffold(
             backgroundColor: const Color(0xFFF9FAFB),
             appBar: AppBar(
-              title: Text(widget.product == null ? 'منتج جديد' : 'تعديل المنتج'),
+              title: Text(
+                widget.product == null ? 'منتج جديد' : 'تعديل المنتج',
+              ),
               backgroundColor: Colors.white,
               foregroundColor: Colors.black,
               elevation: 0,
@@ -244,16 +252,21 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       const SizedBox(height: 16),
                       BlocBuilder<WarehousesCubit, WarehousesState>(
                         builder: (context, state) {
-                          if (state is WarehousesLoaded && state.warehouses.isNotEmpty) {
+                          if (state is WarehousesLoaded &&
+                              state.warehouses.isNotEmpty) {
                             // Set default warehouse if not selected
                             if (_selectedStockId == null) {
-                              final mainWarehouse = state.warehouses.firstWhere(
-                                (w) => w.isMainStock == true,
-                                orElse: () => state.warehouses.first,
-                              );
-                              _selectedStockId = mainWarehouse.id;
+                              var mainW;
+                              for (final w in state.warehouses) {
+                                if (w.isMainStock == true) {
+                                  mainW = w;
+                                  break;
+                                }
+                              }
+                              _selectedStockId =
+                                  (mainW ?? state.warehouses.first).id;
                             }
-                            
+
                             return DropdownButtonFormField<int>(
                               value: _selectedStockId,
                               decoration: const InputDecoration(
@@ -270,8 +283,12 @@ class _ProductFormPageState extends State<ProductFormPage> {
                               items: state.warehouses.map((warehouse) {
                                 return DropdownMenuItem(
                                   value: warehouse.id,
-                                  child: Text(warehouse.name + 
-                                    (warehouse.isMainStock == true ? ' (الرئيسي)' : '')),
+                                  child: Text(
+                                    warehouse.name +
+                                        (warehouse.isMainStock == true
+                                            ? ' (الرئيسي)'
+                                            : ''),
+                                  ),
                                 );
                               }).toList(),
                               onChanged: (value) {
@@ -361,7 +378,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       ),
                       SwitchListTile(
                         title: const Text('خاضع للضريبة'),
-                        subtitle: const Text('سيتم حساب الضريبة على هذا المنتج'),
+                        subtitle: const Text(
+                          'سيتم حساب الضريبة على هذا المنتج',
+                        ),
                         value: _isTaxable,
                         onChanged: (value) {
                           setState(() => _isTaxable = value);
@@ -390,7 +409,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
                               ),
                             )
                           : Text(
-                              widget.product == null ? 'إضافة المنتج' : 'تحديث المنتج',
+                              widget.product == null
+                                  ? 'إضافة المنتج'
+                                  : 'تحديث المنتج',
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
@@ -413,9 +434,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     required List<Widget> children,
   }) {
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -469,7 +488,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-    
+
     // Ensure stockId is set
     if (_selectedStockId == null) {
       ScaffoldMessenger.of(context).showSnackBar(

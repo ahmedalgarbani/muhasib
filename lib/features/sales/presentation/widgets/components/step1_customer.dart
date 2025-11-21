@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 
 class Step1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -95,8 +98,29 @@ class _Step1CustomerState extends State<Step1Customer> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: IconButton(
-                  onPressed: () {},
+                  onPressed: () async {
+                    final newCustomer = await showDialog<Customer>(
+                      context: context,
+                      builder: (context) => BlocProvider.value(
+                        value: BlocProvider.of<AccountsCubit>(this.context),
+                        child: const AddCustomerDialog(),
+                      ),
+                    );
+                    
+                    if (newCustomer != null) {
+                      // Update the invoice with the new customer
+                      widget.onInvoiceUpdate(
+                        widget.invoice.copyWith(customer: newCustomer),
+                      );
+                      
+                      // Add the new customer to the customers list if needed
+                      if (!widget.customers.any((c) => c.id == newCustomer.id)) {
+                        widget.customers.add(newCustomer);
+                      }
+                    }
+                  },
                   icon: const Icon(Icons.add, color: Colors.white, size: 28),
+                  tooltip: 'إضافة عميل جديد',
                 ),
               ),
             ],

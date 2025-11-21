@@ -21,52 +21,81 @@ class QuotationDetailPage extends StatelessWidget {
     final isConverted = quotation.nextInvoiceId != null && quotation.nextInvoiceId! > 0;
     final status = isConverted ? InvoiceStatus.converted : InvoiceStatus.open;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: Text(quotation.number),
-        elevation: 0,
-        backgroundColor: Colors.white,
-        actions: [
-          if (!isConverted)
+    return BlocListener<SalesCubit, SalesState>(
+      listener: (context, state) {
+        if (state is QuotationConverted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('تم تحويل عرض السعر إلى فاتورة مبيعات بنجاح'),
+              backgroundColor: Colors.green,
+              action: SnackBarAction(
+                label: 'عرض الفاتورة',
+                textColor: Colors.white,
+                onPressed: () {
+                  // Navigate to the new invoice
+                  // You can implement navigation to invoice detail page here
+                },
+              ),
+            ),
+          );
+          // Pop back to the list after successful conversion
+          Navigator.of(context).pop();
+        } else if (state is SalesError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('خطأ: ${state.message}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF9FAFB),
+        appBar: AppBar(
+          title: Text(quotation.number),
+          elevation: 0,
+          backgroundColor: Colors.white,
+          actions: [
+            if (!isConverted)
+              IconButton(
+                onPressed: () {
+                  // Navigate to edit form
+                },
+                icon: const Icon(Icons.edit),
+                tooltip: 'تعديل',
+              ),
             IconButton(
               onPressed: () {
-                // Navigate to edit form
+                _showPrintOptions(context);
               },
-              icon: const Icon(Icons.edit),
-              tooltip: 'تعديل',
+              icon: const Icon(Icons.print),
+              tooltip: 'طباعة',
             ),
-          IconButton(
-            onPressed: () {
-              _showPrintOptions(context);
-            },
-            icon: const Icon(Icons.print),
-            tooltip: 'طباعة',
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeaderCard(status, isConverted),
-            const SizedBox(height: 16),
-            _buildCustomerCard(),
-            const SizedBox(height: 16),
-            _buildProductsCard(),
-            const SizedBox(height: 16),
-            _buildTotalsCard(),
-            if (isConverted) ...[
-              const SizedBox(height: 16),
-              _buildConvertedInfoCard(),
-            ],
           ],
         ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeaderCard(status, isConverted),
+              const SizedBox(height: 16),
+              _buildCustomerCard(),
+              const SizedBox(height: 16),
+              _buildProductsCard(),
+              const SizedBox(height: 16),
+              _buildTotalsCard(),
+              if (isConverted) ...[
+                const SizedBox(height: 16),
+                _buildConvertedInfoCard(),
+              ],
+            ],
+          ),
+        ),
+        bottomNavigationBar: !isConverted
+            ? _buildBottomActions(context)
+            : null,
       ),
-      bottomNavigationBar: !isConverted
-          ? _buildBottomActions(context)
-          : null,
     );
   }
 
@@ -461,34 +490,83 @@ class QuotationDetailPage extends StatelessWidget {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('تحويل عرض السعر'),
-        content: Text(
-          'هل تريد تحويل عرض السعر ${quotation.number} إلى فاتورة مبيعات؟',
+        title: const Row(
+          children: [
+            Icon(Icons.transform, color: Color(0xFF10B981)),
+            SizedBox(width: 8),
+            Text('تحويل عرض السعر'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'هل تريد تحويل عرض السعر ${quotation.number} إلى فاتورة مبيعات؟',
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'سيتم إنشاء فاتورة مبيعات جديدة بنفس البيانات',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(dialogContext);
+              
+              // Generate proper invoice number with timestamp
+              final now = DateTime.now();
+              final invoiceNumber = 'INV-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch % 10000}';
+              
+              // Create the sales invoice with all necessary data
               final salesInvoice = quotation.copyWith(
+                id: null, // Clear ID so a new one is generated
                 invoiceType: InvoiceType.salesInvoice.value,
-                number: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+                number: invoiceNumber,
+                date: now.millisecondsSinceEpoch ~/ 1000,
                 parentInvoiceId: quotation.id,
                 parentInvoiceNumber: quotation.number,
+                paymentStatus: 0, // Reset payment status
+                nextInvoiceId: null,
+                nextInvoiceType: null,
+                nextInvoiceNumber: null,
               );
+              
+              // Trigger the conversion
               context.read<SalesCubit>().convertQuotation(
-                    quotation.id!,
-                    salesInvoice,
-                  );
-              Navigator.pop(context); // Return to list
+                quotation.id!,
+                salesInvoice,
+              );
+              
+              // Don't pop here, let the BlocListener handle navigation
             },
+            icon: const Icon(Icons.check),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF10B981),
             ),
-            child: const Text('تحويل'),
+            label: const Text('تأكيد التحويل'),
           ),
         ],
       ),
@@ -550,6 +628,10 @@ extension InvoiceEntityCopyWith on InvoiceEntity {
     int? invoiceTransType,
     int? parentInvoiceId,
     String? parentInvoiceNumber,
+    int? paymentStatus,
+    int? nextInvoiceId,
+    int? nextInvoiceType,
+    String? nextInvoiceNumber,
     List<InvoiceLineEntity>? lines,
   }) {
     return InvoiceEntity(
@@ -577,14 +659,14 @@ extension InvoiceEntityCopyWith on InvoiceEntity {
       invoiceTransType: invoiceTransType ?? this.invoiceTransType,
       parentInvoiceId: parentInvoiceId ?? this.parentInvoiceId,
       parentInvoiceNumber: parentInvoiceNumber ?? this.parentInvoiceNumber,
-      nextInvoiceType: nextInvoiceType,
-      nextInvoiceId: nextInvoiceId,
-      nextInvoiceNumber: nextInvoiceNumber,
+      nextInvoiceType: nextInvoiceType ?? this.nextInvoiceType,
+      nextInvoiceId: nextInvoiceId ?? this.nextInvoiceId,
+      nextInvoiceNumber: nextInvoiceNumber ?? this.nextInvoiceNumber,
       uNo: uNo,
       currencyCode: currencyCode,
       exchangeRate: exchangeRate,
       imagePath: imagePath,
-      paymentStatus: paymentStatus,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
       shippingAddress: shippingAddress,
       dueDate: dueDate,
       lines: lines ?? this.lines,

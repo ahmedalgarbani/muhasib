@@ -406,34 +406,80 @@ class _QuotationsPageState extends State<QuotationsPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('تحويل عرض السعر'),
-        content: Text(
-          'هل تريد تحويل عرض السعر ${quotation.number} إلى فاتورة مبيعات؟',
+        title: const Row(
+          children: [
+            Icon(Icons.transform, color: Color(0xFF10B981)),
+            SizedBox(width: 8),
+            Text('تحويل عرض السعر'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'هل تريد تحويل عرض السعر ${quotation.number} إلى فاتورة مبيعات؟',
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.blue.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'سيتم إنشاء فاتورة مبيعات جديدة بنفس البيانات',
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(dialogContext);
+              
+              // Generate proper invoice number with timestamp
+              final now = DateTime.now();
+              final invoiceNumber = 'INV-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch % 10000}';
+              
               // Create sales invoice from quotation
               final salesInvoice = quotation.copyWith(
+                id: null, // Clear ID so a new one is generated
                 invoiceType: InvoiceType.salesInvoice.value,
-                number: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+                number: invoiceNumber,
+                date: now.millisecondsSinceEpoch ~/ 1000,
                 parentInvoiceId: quotation.id,
                 parentInvoiceNumber: quotation.number,
+                paymentStatus: 0, // Reset payment status
+                nextInvoiceId: null,
+                nextInvoiceType: null,
+                nextInvoiceNumber: null,
               );
+              
               context.read<SalesCubit>().convertQuotation(
-                    quotation.id!,
-                    salesInvoice,
-                  );
+                quotation.id!,
+                salesInvoice,
+              );
             },
+            icon: const Icon(Icons.check),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF10B981),
             ),
-            child: const Text('تحويل'),
+            label: const Text('تأكيد التحويل'),
           ),
         ],
       ),
@@ -466,6 +512,10 @@ extension InvoiceEntityExtension on InvoiceEntity {
     int? invoiceTransType,
     int? parentInvoiceId,
     String? parentInvoiceNumber,
+    int? paymentStatus,
+    int? nextInvoiceId,
+    int? nextInvoiceType,
+    String? nextInvoiceNumber,
     List<InvoiceLineEntity>? lines,
   }) {
     return InvoiceEntity(
@@ -493,14 +543,14 @@ extension InvoiceEntityExtension on InvoiceEntity {
       invoiceTransType: invoiceTransType ?? this.invoiceTransType,
       parentInvoiceId: parentInvoiceId ?? this.parentInvoiceId,
       parentInvoiceNumber: parentInvoiceNumber ?? this.parentInvoiceNumber,
-      nextInvoiceType: nextInvoiceType,
-      nextInvoiceId: nextInvoiceId,
-      nextInvoiceNumber: nextInvoiceNumber,
+      nextInvoiceType: nextInvoiceType ?? this.nextInvoiceType,
+      nextInvoiceId: nextInvoiceId ?? this.nextInvoiceId,
+      nextInvoiceNumber: nextInvoiceNumber ?? this.nextInvoiceNumber,
       uNo: uNo,
       currencyCode: currencyCode,
       exchangeRate: exchangeRate,
       imagePath: imagePath,
-      paymentStatus: paymentStatus,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
       shippingAddress: shippingAddress,
       dueDate: dueDate,
       lines: lines ?? this.lines,

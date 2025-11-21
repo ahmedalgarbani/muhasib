@@ -467,7 +467,8 @@ class _Step3PaymentState extends State<Step3Payment> {
                   }),
                 ],
 
-                if (widget.invoice.remaining > 0) ...[
+                if (widget.invoice.remaining > 0 &&
+                    _selectedMethod == PaymentMethod.deferred) ...[
                   const SizedBox(height: AppSpacing.md),
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),

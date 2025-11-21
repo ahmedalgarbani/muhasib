@@ -18,3 +18,7 @@ class UnknownFailure extends Failure {
 class CacheFailure extends Failure {
   CacheFailure(super.message);
 }
+
+class DatabaseFailure extends Failure {
+  DatabaseFailure({required String message}) : super(message);
+}

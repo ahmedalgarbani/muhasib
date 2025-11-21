@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
-import 'package:muhasib/features/accounts/presentation/pages/account_detail_old.dart';
+import 'package:muhasib/features/accounts/presentation/pages/account_transactions_page.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_balance_row.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_card_divider.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_card_header.dart';
@@ -11,8 +11,9 @@ class SubCardAccount extends StatelessWidget {
   final Color backgroundColor;
   final Color borderColor;
   final Color iconColor;
-  final VoidCallback? onEdit;
-  final VoidCallback? onDelete;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback? onTap;
 
   const SubCardAccount({
     Key? key,
@@ -20,18 +21,19 @@ class SubCardAccount extends StatelessWidget {
     required this.backgroundColor,
     required this.borderColor,
     required this.iconColor,
-    this.onEdit,
-    this.onDelete,
+    required this.onEdit,
+    required this.onDelete,
+    this.onTap,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
+      onTap: onTap ?? () {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => const AccountTransactionPage(),
+            builder: (context) => AccountTransactionsPage(account: account),
           ),
         );
       },

@@ -88,6 +88,58 @@ Future<void> seedDefaultAccounts(Database db) async {
   await _seedLiabilitiesAndEquity(db);
   await _seedExpenses(db);
   await _seedRevenues(db);
+  
+  // Seed account connections after accounts are created
+  await seedDefaultAccountConnects(db);
+}
+
+Future<void> seedDefaultAccountConnects(Database db) async {
+  final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  
+  // Check if account connects already exist
+  final connects = await db.query('account_connects');
+  if (connects.isNotEmpty) return;
+  
+  // Default account connections based on common accounting setup
+  final defaultConnections = [
+    {'type': 0, 'cId': 1100, 'name': 'البنوك'},         // Banks -> النقدية في البنوك
+    {'type': 1, 'cId': 1101, 'name': 'الصناديق'},       // Cash -> الصندوق
+    {'type': 2, 'cId': 1200, 'name': 'العملاء'},        // Customers -> العملاء
+    {'type': 3, 'cId': 2100, 'name': 'الموردون'},       // Suppliers -> الموردون
+    {'type': 4, 'cId': 2200, 'name': 'الضرائب'},        // Taxes -> ضرائب مستحقة
+    {'type': 5, 'cId': 1300, 'name': 'المخزون'},        // Inventory -> المخزون
+    {'type': 6, 'cId': 1300, 'name': 'البضاعة'},        // Goods -> المخزون (same as inventory)
+    {'type': 7, 'cId': 4100, 'name': 'المبيعات'},       // Sales -> المبيعات
+    {'type': 8, 'cId': 3200, 'name': 'الخصم المسموح به'}, // Discount Allowed -> خصومات ممنوحة
+    {'type': 9, 'cId': 4200, 'name': 'الخصم المكتسب'},   // Discount Received -> خصومات مكتسبة
+    {'type': 10, 'cId': 3100, 'name': 'المشتريات'},     // Purchases -> المشتريات
+  ];
+  
+  for (final connection in defaultConnections) {
+    // Check if the account exists before creating connection
+    final accounts = await db.query(
+      'accounts',
+      where: 'c_id = ?',
+      whereArgs: [connection['cId']],
+      limit: 1,
+    );
+    
+    if (accounts.isNotEmpty) {
+      await db.insert('account_connects', {
+        'account_connect_type': connection['type'],
+        'c_id': connection['cId'],
+        'creation_time': now,
+        'last_modification_time': now,
+        'creator_id': 1,
+      });
+      
+      print('Created account connection: ${connection['name']} -> cId: ${connection['cId']}');
+    } else {
+      print('Warning: Account with cId ${connection['cId']} not found for ${connection['name']}');
+    }
+  }
+  
+  print('Default account connections seeded successfully');
 }
 
 // أصول (Assets)

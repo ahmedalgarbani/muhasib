@@ -18,6 +18,8 @@ import 'package:muhasib/features/sales/presentation/widgets/sale_page_body.dart'
 import 'package:muhasib/features/sales/presentation/pages/quotations_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/returns_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/return_invoice_form_page.dart';
+import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchases_list_page.dart';
 import 'package:muhasib/features/products/presentation/pages/product_groups_page.dart';
 import 'package:muhasib/features/products/presentation/pages/product_units_page.dart';
@@ -154,27 +156,45 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.salesAddInvoice,
       name: AppRoutes.salesAddInvoice,
-      builder: (context, state) => const SalesInvoiceScreen(),
+      builder: (context, state) => MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => getIt<SalesCubit>()),
+          BlocProvider(create: (context) => getIt<AccountsCubit>()),
+        ],
+        child: const SalesInvoiceScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.salesList,
       name: AppRoutes.salesList,
-      builder: (context, state) => const SalePageBody(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => getIt<SalesCubit>(),
+        child: const SalePageBody(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.salesQuotes,
       name: AppRoutes.salesQuotes,
-      builder: (context, state) => const QuotationsPage(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => getIt<SalesCubit>(),
+        child: const QuotationsPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.salesReturns,
       name: AppRoutes.salesReturns,
-      builder: (context, state) => const ReturnsPage(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => getIt<SalesCubit>(),
+        child: const ReturnsPage(),
+      ),
     ),
     GoRoute(
       path: '/sales-returns-form',
       name: 'sales-returns-form',
-      builder: (context, state) => const ReturnInvoiceFormPage(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => getIt<SalesCubit>(),
+        child: const ReturnInvoiceFormPage(),
+      ),
     ),
 
     // ======= المشتريات =======

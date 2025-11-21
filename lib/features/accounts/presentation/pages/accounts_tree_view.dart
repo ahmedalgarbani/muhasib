@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/pages/account_form_page.dart';
-import 'package:muhasib/features/accounts/presentation/pages/account_detail_old.dart';
+import 'package:muhasib/features/accounts/presentation/pages/account_transactions_page.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_color_helper.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/add_account_bottom_sheet.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/main_card_account.dart';
@@ -55,7 +55,9 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
     } else {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const AccountTransactionPage()),
+        MaterialPageRoute(
+          builder: (_) => AccountTransactionsPage(account: account),
+        ),
       );
     }
   }
@@ -307,6 +309,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                 iconColor: colors.icon,
                 onEdit: () => _showEditAccountDialog(account),
                 onDelete: () => _confirmDeleteAccount(account.id!),
+                onTap: () => _handleAccountClick(account),
               );
       },
     );
@@ -444,6 +447,7 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
                 iconColor: colors.icon,
                 onEdit: () => _showEditAccountDialog(account),
                 onDelete: () => _confirmDeleteAccount(account.id!),
+                onTap: () => _handleAccountClick(account),
               );
             },
           );
@@ -473,7 +477,9 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
     } else {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const AccountTransactionPage()),
+        MaterialPageRoute(
+          builder: (_) => AccountTransactionsPage(account: account),
+        ),
       );
     }
   }

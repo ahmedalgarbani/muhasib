@@ -2925,12 +2925,14 @@ class Step4Review extends StatelessWidget {
   final Invoice invoice;
   final VoidCallback onPrevious;
   final VoidCallback onSave;
+  final bool isQuotation;
 
   const Step4Review({
     Key? key,
     required this.invoice,
     required this.onPrevious,
     required this.onSave,
+    this.isQuotation = false,
   }) : super(key: key);
 
   String _getPaymentMethodLabel(PaymentMethod method) {
@@ -3043,7 +3045,8 @@ class Step4Review extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.md),
 
-                // Payment Summary
+                // Payment Summary (hidden for quotations)
+                if (!isQuotation)
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
@@ -3110,7 +3113,9 @@ class Step4Review extends StatelessWidget {
                   ),
                 ),
 
-                if (invoice.remaining > 0) ...[
+                if (!isQuotation && 
+                    invoice.remaining > 0 && 
+                    invoice.payments.any((p) => p.method == PaymentMethod.deferred)) ...[
                   const SizedBox(height: AppSpacing.md),
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),

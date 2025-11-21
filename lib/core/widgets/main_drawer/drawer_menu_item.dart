@@ -45,7 +45,7 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
         }
       });
     } else {
-      GoRouter.of(context).pushNamed(widget.item.route);
+      GoRouter.of(context).push(widget.item.route);
     }
   }
 
