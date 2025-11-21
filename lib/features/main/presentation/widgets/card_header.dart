@@ -1,0 +1,39 @@
+import 'package:flutter/material.dart';
+
+class CardHeader extends StatelessWidget {
+  final String title;
+
+  const CardHeader({Key? key, required this.title}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      spacing: 5,
+      children: [
+        Expanded(
+          flex: 5,
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+        Expanded(
+          child: Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.description, color: Colors.white, size: 26),
+          ),
+        ),
+      ],
+    );
+  }
+}

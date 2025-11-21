@@ -1,0 +1,1347 @@
+-- Enable foreign keys and other PRAGMAs
+PRAGMA foreign_keys = ON;
+PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
+
+-- 1. Core System Tables
+CREATE TABLE "currencies" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "code" TEXT NOT NULL UNIQUE,
+    "symbol" TEXT NULL,
+    "min_exchange_rate" REAL NOT NULL,
+    "max_exchange_rate" REAL NOT NULL,
+    "exchange_rate" REAL NOT NULL,
+    "is_local_currency" INTEGER NOT NULL DEFAULT 0 CHECK ("is_local_currency" IN (0, 1)),
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "decimal_places" INTEGER NOT NULL DEFAULT 2
+);
+
+CREATE TABLE "app_users" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "email" TEXT NULL UNIQUE,
+    "dial_code" TEXT NOT NULL,
+    "phone" TEXT NOT NULL UNIQUE,
+    "device_id" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "role" INTEGER NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "last_login" INTEGER NULL,
+    "profile_image" TEXT NULL
+);
+
+CREATE TABLE "user_permissions" (
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "user_id" INTEGER NOT NULL REFERENCES app_users (id) ON DELETE CASCADE,
+    "feature_id" INTEGER NOT NULL,
+    "can_view" INTEGER NOT NULL DEFAULT 0 CHECK ("can_view" IN (0, 1)),
+    "can_add" INTEGER NOT NULL DEFAULT 0 CHECK ("can_add" IN (0, 1)),
+    "can_edit" INTEGER NOT NULL DEFAULT 0 CHECK ("can_edit" IN (0, 1)),
+    "can_delete" INTEGER NOT NULL DEFAULT 0 CHECK ("can_delete" IN (0, 1)),
+    "can_export" INTEGER NOT NULL DEFAULT 0 CHECK ("can_export" IN (0, 1)),
+    PRIMARY KEY ("user_id", "feature_id")
+);
+
+CREATE TABLE "user_data_permissions" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "user_id" INTEGER NOT NULL REFERENCES app_users (id) ON DELETE CASCADE,
+    "resource_type" INTEGER NOT NULL,
+    "resource_id" TEXT NOT NULL
+);
+
+CREATE TABLE "settings" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "setting_key" TEXT NOT NULL UNIQUE,
+    "setting_value" TEXT NOT NULL,
+    "setting_type" TEXT NOT NULL DEFAULT 'STRING',
+    "description" TEXT NULL,
+    "category" TEXT NOT NULL DEFAULT 'General'
+);
+
+-- 2. Accounting Module
+CREATE TABLE "accounts" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "c_id" INTEGER NOT NULL UNIQUE,
+    "code" TEXT NOT NULL UNIQUE,
+    "name" TEXT NOT NULL,
+    "is_master" INTEGER NOT NULL DEFAULT 0 CHECK ("is_master" IN (0, 1)),
+    "master_id" INTEGER NULL,
+    "master_c_id" INTEGER NULL,
+    "type" INTEGER NOT NULL,
+    "national" INTEGER NOT NULL,
+    "statement" TEXT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "allow_update_delete" INTEGER NOT NULL DEFAULT 1 CHECK ("allow_update_delete" IN (0, 1)),
+    "balance" REAL NOT NULL DEFAULT 0.0,
+    "local_balance" REAL NOT NULL DEFAULT 0.0,
+    FOREIGN KEY ("master_id") REFERENCES accounts ("id")
+);
+
+CREATE TABLE "account_limits" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "debt_limit_amount" REAL NULL,
+    "local_debt_limit_amount" REAL NULL,
+    "credit_limit_amount" REAL NULL,
+    "local_credit_limit_amount" REAL NULL,
+    "limit_currency_code" TEXT NOT NULL,
+    "limit_exchange_rate" REAL NULL,
+    "account_id" INTEGER NULL REFERENCES accounts (id) ON DELETE CASCADE,
+    "currency_id" INTEGER NULL REFERENCES currencies (id)
+);
+
+CREATE TABLE "account_currencies" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "account_id" INTEGER NULL REFERENCES accounts (id) ON DELETE CASCADE,
+    "currency_id" INTEGER NULL REFERENCES currencies (id) ON DELETE CASCADE,
+    "statement" TEXT NULL,
+    UNIQUE("account_id", "currency_id")
+);
+
+CREATE TABLE "account_connects" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "account_connect_type" INTEGER NOT NULL,
+    "c_id" INTEGER NULL
+);
+
+-- 3. Document Management (Legacy)
+CREATE TABLE "old_docs" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" INTEGER NOT NULL,
+    "type" INTEGER NOT NULL,
+    "serial" TEXT NOT NULL,
+    "reference_number" TEXT NOT NULL,
+    "date" INTEGER NOT NULL,
+    "description" TEXT NOT NULL,
+    "u_no" TEXT NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "total_amount" REAL NULL DEFAULT 0.0,
+    "total_local_amount" REAL NULL DEFAULT 0.0
+);
+
+CREATE TABLE "old_doc_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" TEXT NOT NULL,
+    "type" INTEGER NOT NULL,
+    "sub_type" INTEGER NOT NULL,
+    "serial" TEXT NOT NULL,
+    "reference_number" TEXT NOT NULL,
+    "date" INTEGER NOT NULL,
+    "description" TEXT NOT NULL,
+    "statement" TEXT NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "account_c_id" INTEGER NOT NULL,
+    "pay_type" INTEGER NOT NULL,
+    "amount" REAL NULL,
+    "local_amount" REAL NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "account_amount" REAL NULL,
+    "account_local_amount" REAL NULL,
+    "account_limit_code" TEXT NULL,
+    "account_exchange_rate" REAL NULL,
+    "account_limit_id" INTEGER NULL REFERENCES currencies (id),
+    "credit_amount" REAL NULL,
+    "credit_local_amount" REAL NULL,
+    "credit_currency_code" TEXT NULL,
+    "credit_exchange_rate" REAL NULL,
+    "credit_currency_id" INTEGER NULL REFERENCES currencies (id),
+    "debit_amount" REAL NULL,
+    "debit_local_amount" REAL NULL,
+    "debit_currency_code" TEXT NULL,
+    "debit_exchange_rate" REAL NULL,
+    "debit_currency_id" INTEGER NULL REFERENCES currencies (id),
+    "doc_id" INTEGER NULL REFERENCES old_docs (id) ON DELETE CASCADE,
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "u_no" TEXT NULL,
+    "order" INTEGER NOT NULL
+);
+
+-- 3. Journal Entries
+CREATE TABLE "journal_entries" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL,
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" TEXT NOT NULL UNIQUE,
+    "entry_date" INTEGER NOT NULL,
+    "description" TEXT NULL,
+    "reference_number" TEXT NULL,
+    "notes" TEXT NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "is_posted" INTEGER NOT NULL DEFAULT 0 CHECK ("is_posted" IN (0, 1)),
+    "total_debit" REAL NOT NULL DEFAULT 0.0,
+    "total_credit" REAL NOT NULL DEFAULT 0.0,
+    "difference" REAL NOT NULL DEFAULT 0.0
+);
+
+CREATE TABLE "journal_entry_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "journal_entry_id" INTEGER NOT NULL REFERENCES journal_entries (id) ON DELETE CASCADE,
+    "line_number" INTEGER NOT NULL,
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "account_code" TEXT NULL,
+    "account_name" TEXT NOT NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "currency_code" TEXT NOT NULL,
+    "debit" REAL NOT NULL DEFAULT 0.0,
+    "credit" REAL NOT NULL DEFAULT 0.0,
+    "notes" TEXT NULL
+);
+
+
+-- 4. Voucher System
+CREATE TABLE "vouchers" (
+    "other_creator_id" INTEGER NULL,
+    "other_id" INTEGER NULL,
+    "other_number" INTEGER NULL,
+    "other_creation_time" INTEGER NULL,
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "type" INTEGER NOT NULL,
+    "number" INTEGER NOT NULL,
+    "date" INTEGER NOT NULL,
+    "statement" TEXT NOT NULL,
+    "is_posted" INTEGER NOT NULL CHECK ("is_posted" IN (0, 1)),
+    "reference_number" TEXT NOT NULL,
+    "amount" REAL NULL,
+    "local_amount" REAL NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "account_id" INTEGER NOT NULL REFERENCES accounts (id),
+    "u_no" TEXT NULL,
+    "parent_number" TEXT NULL,
+    "parent_id" INTEGER NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "image_path" TEXT NULL
+);
+
+CREATE TABLE "voucher_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "amount" REAL NULL,
+    "local_amount" REAL NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "statement" TEXT NOT NULL,
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "vouchers_id" INTEGER NULL REFERENCES vouchers (id) ON DELETE CASCADE
+);
+
+-- 5. Opening Entries
+CREATE TABLE "opening_entries" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" INTEGER NOT NULL,
+    "credit_amount" REAL NULL,
+    "credit_local_amount" REAL NULL,
+    "debit_amount" REAL NULL,
+    "debit_local_amount" REAL NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "date" INTEGER NOT NULL,
+    "statement" TEXT NOT NULL,
+    "parent_number" TEXT NULL,
+    "parent_id" INTEGER NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "u_no" TEXT NULL,
+    "opening_entry_show_type" INTEGER NULL
+);
+
+CREATE TABLE "opening_entry_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "amount" REAL NULL,
+    "local_amount" REAL NULL,
+    "type" INTEGER NOT NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "statement" TEXT NULL,
+    "image_path" TEXT NULL,
+    "account_id" INTEGER NOT NULL REFERENCES accounts (id),
+    "opening_entry_id" INTEGER NULL REFERENCES opening_entries (id) ON DELETE CASCADE
+);
+
+-- 6. Currency Exchange
+CREATE TABLE "currency_exchanges" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" INTEGER NOT NULL,
+    "credit_amount" REAL NOT NULL,
+    "credit_local_amount" REAL NOT NULL,
+    "credit_currency_code" TEXT NOT NULL,
+    "credit_exchange_rate" REAL NOT NULL,
+    "credit_currency_id" INTEGER NOT NULL REFERENCES currencies (id),
+    "credit_account_id" INTEGER NOT NULL REFERENCES accounts (id),
+    "debit_amount" REAL NOT NULL,
+    "debit_local_amount" REAL NOT NULL,
+    "debit_currency_code" TEXT NOT NULL,
+    "debit_exchange_rate" REAL NOT NULL,
+    "debit_currency_id" INTEGER NOT NULL REFERENCES currencies (id),
+    "debit_account_id" INTEGER NOT NULL REFERENCES accounts (id),
+    "date" INTEGER NOT NULL,
+    "statement" TEXT NOT NULL,
+    "parent_number" TEXT NULL,
+    "parent_id" INTEGER NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "u_no" TEXT NULL
+);
+
+CREATE TABLE "exchange_rate_differences" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" INTEGER NOT NULL,
+    "from_doc_id" INTEGER NOT NULL,
+    "to_doc_id" INTEGER NOT NULL,
+    "from_date" INTEGER NOT NULL,
+    "to_date" INTEGER NOT NULL,
+    "date" INTEGER NOT NULL,
+    "u_no" TEXT NULL,
+    "status" INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE "exchange_rate_difference_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "proccess_number" TEXT NOT NULL,
+    "type" INTEGER NOT NULL,
+    "sub_type" INTEGER NOT NULL,
+    "doc_id" INTEGER NULL REFERENCES old_docs (id),
+    "doc_line_id" INTEGER NULL REFERENCES old_doc_lines (id),
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "account_c_id" INTEGER NOT NULL,
+    "u_no" TEXT NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "currency_code" TEXT NULL,
+    "debit_local_amount" REAL NULL,
+    "credit_local_amount" REAL NULL,
+    "exchange_rate" REAL NULL,
+    "new_debit_local_amount" REAL NULL,
+    "new_credit_local_amount" REAL NULL,
+    "new_exchange_rate" REAL NULL,
+    "difference_amount" REAL NULL,
+    "difference_local_amount" REAL NULL,
+    "difference_exchange_rate" REAL NULL,
+    "exchange_rate_difference_id" INTEGER NOT NULL REFERENCES exchange_rate_differences (id) ON DELETE CASCADE
+);
+
+CREATE TABLE "currencies_histories" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "currency_id" INTEGER NOT NULL REFERENCES currencies (id) ON DELETE CASCADE,
+    "name" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
+    "min_exchange_rate" REAL NOT NULL,
+    "max_exchange_rate" REAL NOT NULL,
+    "exchange_rate" REAL NOT NULL,
+    "is_local_currency" INTEGER NOT NULL DEFAULT 0 CHECK ("is_local_currency" IN (0, 1)),
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1))
+);
+
+-- 7. Customer Management
+CREATE TABLE "cities" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "country" TEXT NULL DEFAULT 'Unknown'
+);
+
+CREATE TABLE "classifications" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "singler_name" TEXT NOT NULL,
+    "order" INTEGER NOT NULL,
+    "description" TEXT NULL,
+    "icon" TEXT NULL,
+    "type" INTEGER NOT NULL
+);
+
+CREATE TABLE "customers" (
+    "other_creator_id" INTEGER NULL,
+    "other_id" INTEGER NULL,
+    "other_number" INTEGER NULL,
+    "other_creation_time" INTEGER NULL,
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "type" INTEGER NOT NULL,
+    "classification" INTEGER NOT NULL,
+    "contact" TEXT NULL,
+    "contact_type" INTEGER NULL,
+    "send_message_method" INTEGER NULL,
+    "identity" TEXT NULL,
+    "identity_type" INTEGER NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "city_id" INTEGER NULL REFERENCES cities (id),
+    "classification_id" INTEGER NOT NULL REFERENCES classifications (id),
+    "credit_limit" REAL NULL DEFAULT 0.0,
+    "current_balance" REAL NULL DEFAULT 0.0,
+    "loyalty_points" REAL NULL DEFAULT 0.0,
+    "last_purchase_date" INTEGER NULL
+);
+
+-- 8. Supplier Management
+CREATE TABLE "suppliers" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "type" INTEGER NOT NULL,
+    "contact" TEXT NULL,
+    "contact_type" INTEGER NULL,
+    "identity" TEXT NULL,
+    "identity_type" INTEGER NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "payment_terms" INTEGER NULL DEFAULT 30,
+    "current_balance" REAL NULL DEFAULT 0.0
+);
+
+-- 9. Banking & Payment
+CREATE TABLE "banks" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "contact" TEXT NOT NULL,
+    "contact_type" INTEGER NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "bank_code" TEXT NULL,
+    "branch_name" TEXT NULL,
+    "account_number" TEXT NULL
+);
+
+CREATE TABLE "payment_methods" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "amount" REAL NOT NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "payment_method_type" INTEGER NOT NULL,
+    "statement" TEXT NULL,
+    "due_date" INTEGER NULL,
+    "transfers_number" TEXT NULL,
+    "check_number" TEXT NULL,
+    "pay_for" INTEGER NOT NULL,
+    "reference_number" TEXT NULL,
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "bank_id" INTEGER NULL REFERENCES banks (id),
+    "sender_name" TEXT NULL,
+    "reciver_name" TEXT NULL,
+    "transfer_commission_amount" REAL NULL,
+    "transfer_commission_currency_code" TEXT NULL,
+    "transfer_commission_exchange_rate" REAL NULL,
+    "transfer_commission_currency_id" INTEGER NULL REFERENCES currencies (id),
+    "customer_id" INTEGER NULL REFERENCES customers (id),
+    "status" INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE "credit_cards" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "statement" TEXT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "has_commission" INTEGER NOT NULL DEFAULT 1 CHECK ("has_commission" IN (0, 1)),
+    "commission_ratio" REAL NULL,
+    "commission_bearing_method" INTEGER NOT NULL,
+    "commission_account_id" INTEGER NULL REFERENCES accounts (id),
+    "bank_tax_ratio" REAL NULL,
+    "bank_id" INTEGER NOT NULL REFERENCES banks (id) ON DELETE CASCADE,
+    "card_type" TEXT NULL
+);
+
+CREATE TABLE "credit_card_payment_methods" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "credit_card_ratio" INTEGER NULL,
+    "credit_card_amount" REAL NULL,
+    "credit_card_id" INTEGER NULL REFERENCES credit_cards (id),
+    "bank_tax_ratio" INTEGER NULL,
+    "bank_tax_amount" REAL NULL,
+    "amount" REAL NULL,
+    "statement" TEXT NOT NULL,
+    "payment_method_id" INTEGER NULL REFERENCES payment_methods (id) ON DELETE CASCADE
+);
+
+-- 10. Tax System
+CREATE TABLE "taxes" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "ratio" REAL NOT NULL,
+    "is_default" INTEGER NOT NULL DEFAULT 0 CHECK ("is_default" IN (0, 1)),
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "tax_type" INTEGER NOT NULL DEFAULT 0,
+    "description" TEXT NULL
+);
+
+CREATE TABLE "other_tools" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "tool_type" INTEGER NOT NULL DEFAULT 0
+);
+
+-- 11. Inventory & Stock Management
+CREATE TABLE "stocks" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "address" TEXT NOT NULL,
+    "contact" TEXT NULL,
+    "contact_type" INTEGER NULL,
+    "is_main_stock" INTEGER NOT NULL DEFAULT 0 CHECK ("is_main_stock" IN (0, 1)),
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "manager_name" TEXT NULL,
+    "capacity" REAL NULL
+);
+
+CREATE TABLE "categories_groups" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "description" TEXT NULL,
+    "parent_group_id" INTEGER NULL REFERENCES categories_groups (id)
+);
+
+CREATE TABLE "categories_units" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "short" TEXT NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "conversion_factor" REAL NULL DEFAULT 1.0
+);
+
+CREATE TABLE "categories" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "statement" TEXT NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "cost_amount" REAL NULL,
+    "cost_local_amount" REAL NULL,
+    "cost_currency_code" TEXT NULL,
+    "cost_exchange_rate" REAL NULL,
+    "cost_currency_id" INTEGER NULL REFERENCES currencies (id),
+    "group_id" INTEGER NULL REFERENCES categories_groups (id),
+    "unit_id" INTEGER NULL REFERENCES categories_units (id),
+    "sell_amount" REAL NULL,
+    "sell_local_amount" REAL NULL,
+    "sell_exchange_rate" REAL NULL,
+    "quantity" REAL NOT NULL DEFAULT 0.0,
+    "image_path" TEXT NULL,
+    "barcode_no" TEXT NOT NULL UNIQUE,
+    "expire_date" INTEGER NULL,
+    "stock_id" INTEGER NOT NULL REFERENCES stocks (id),
+    "u_no" TEXT NULL,
+    "min_stock_level" REAL NULL DEFAULT 0.0,
+    "max_stock_level" REAL NULL,
+    "reorder_point" REAL NULL,
+    "is_taxable" INTEGER NOT NULL DEFAULT 1 CHECK ("is_taxable" IN (0, 1)),
+    "tax_id" INTEGER NULL REFERENCES taxes (id)
+);
+
+CREATE TABLE "category_sub_units" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "packaging" INTEGER NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "is_main_unit" INTEGER NOT NULL DEFAULT 0 CHECK ("is_main_unit" IN (0, 1)),
+    "category_id" INTEGER NULL REFERENCES categories (id) ON DELETE CASCADE,
+    "unit_id" INTEGER NULL REFERENCES categories_units (id),
+    "conversion_rate" REAL NOT NULL DEFAULT 1.0
+);
+
+CREATE TABLE "categories_prices" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "bid_amount" REAL NULL,
+    "bid_local_amount" REAL NULL,
+    "bid_currency_code" TEXT NULL,
+    "bid_exchange_rate" REAL NULL,
+    "bid_currency_id" INTEGER NULL REFERENCES currencies (id),
+    "category_sub_unit_id" INTEGER NULL REFERENCES category_sub_units (id) ON DELETE CASCADE,
+    "price_level" INTEGER NOT NULL DEFAULT 1,
+    "min_quantity" REAL NULL DEFAULT 1.0
+);
+
+-- 12. Inventory Operations
+CREATE TABLE "inventories" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" TEXT NOT NULL,
+    "date" INTEGER NOT NULL,
+    "statement" TEXT NOT NULL,
+    "parent_number" TEXT NULL,
+    "parent_id" INTEGER NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "stock_id" INTEGER NULL REFERENCES stocks (id),
+    "inventory_type" INTEGER NOT NULL DEFAULT 0,
+    "total_difference" REAL NULL DEFAULT 0.0,
+    "total_value" REAL NULL DEFAULT 0.0
+);
+
+CREATE TABLE "inventory_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "statement" TEXT NOT NULL,
+    "quantity" REAL NOT NULL,
+    "actual_quantity" REAL NOT NULL,
+    "difference" REAL NOT NULL DEFAULT 0.0,
+    "cost_amount" REAL NULL,
+    "category_id" INTEGER NULL REFERENCES categories (id),
+    "group_id" INTEGER NOT NULL REFERENCES categories_groups (id),
+    "unit_id" INTEGER NOT NULL REFERENCES categories_units (id),
+    "category_sub_unit_id" INTEGER NOT NULL REFERENCES category_sub_units (id),
+    "inventory_id" INTEGER NULL REFERENCES inventories (id) ON DELETE CASCADE
+);
+
+CREATE TABLE "stock_transfers" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" TEXT NOT NULL,
+    "date" INTEGER NOT NULL,
+    "statement" TEXT NOT NULL,
+    "parent_number" TEXT NULL,
+    "parent_id" INTEGER NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "from_stock_id" INTEGER NULL REFERENCES stocks (id),
+    "to_stock_id" INTEGER NULL REFERENCES stocks (id),
+    "u_no" TEXT NULL,
+    "transfer_type" INTEGER NOT NULL DEFAULT 0,
+    "total_value" REAL NULL DEFAULT 0.0
+);
+
+CREATE TABLE "stock_transfer_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "quantity" REAL NOT NULL,
+    "statement" TEXT NOT NULL,
+    "cost_amount" REAL NULL,
+    "category_id" INTEGER NULL REFERENCES categories (id),
+    "group_id" INTEGER NOT NULL REFERENCES categories_groups (id),
+    "unit_id" INTEGER NOT NULL REFERENCES categories_units (id),
+    "category_sub_unit_id" INTEGER NOT NULL REFERENCES category_sub_units (id),
+    "stock_transfer_id" INTEGER NULL REFERENCES stock_transfers (id) ON DELETE CASCADE
+);
+
+-- 13. Sales & Invoicing
+CREATE TABLE "invoices" (
+    "other_creator_id" INTEGER NULL,
+    "other_id" INTEGER NULL,
+    "other_number" INTEGER NULL,
+    "other_creation_time" INTEGER NULL,
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "invoice_type" INTEGER NOT NULL,
+    "number" TEXT NOT NULL,
+    "date" INTEGER NOT NULL,
+    "statement" TEXT NULL,
+    "amount" REAL NOT NULL,
+    "total_amount" REAL NULL,
+    "tax_amt" REAL NULL,
+    "tax_ratio" REAL NULL,
+    "discount_amt" REAL NULL,
+    "discount_ratio" REAL NULL,
+    "other_fee_amt" REAL NULL,
+    "other_fee_net_ratio" REAL NULL,
+    "net_revenue_amt" REAL NULL,
+    "total_amount_after_discount" REAL NULL,
+    "final_amt" REAL NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "stock_id" INTEGER NOT NULL REFERENCES stocks (id),
+    "customer_id" INTEGER NOT NULL REFERENCES customers (id),
+    "tax_id" INTEGER NULL REFERENCES taxes (id),
+    "other_fee_account_id" INTEGER NULL REFERENCES accounts (id),
+    "invoice_trans_type" INTEGER NOT NULL DEFAULT 0,
+    "parent_invoice_type" INTEGER NULL,
+    "parent_invoice_id" INTEGER NULL,
+    "parent_invoice_number" TEXT NULL,
+    "next_invoice_type" INTEGER NULL,
+    "next_invoice_id" INTEGER NULL,
+    "next_invoice_number" TEXT NULL,
+    "u_no" TEXT NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "image_path" TEXT NULL,
+    "payment_status" INTEGER NOT NULL DEFAULT 0,
+    "shipping_address" TEXT NULL,
+    "due_date" INTEGER NULL
+);
+
+CREATE TABLE "invoice_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "invoice_type" INTEGER NOT NULL,
+    "amount" REAL NOT NULL,
+    "total_amount" REAL NOT NULL,
+    "tax_amt" REAL NULL,
+    "tax_ratio" INTEGER NULL,
+    "discount_amt" REAL NULL,
+    "discount_ratio" INTEGER NULL,
+    "other_fee_amt" REAL NULL,
+    "other_fee_net_ratio" INTEGER NULL,
+    "net_revenue_amt" REAL NOT NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NULL REFERENCES currencies (id),
+    "quantity" REAL NOT NULL,
+    "category_id" INTEGER NULL REFERENCES categories (id),
+    "group_id" INTEGER NOT NULL REFERENCES categories_groups (id),
+    "unit_id" INTEGER NOT NULL REFERENCES categories_units (id),
+    "category_sub_unit_id" INTEGER NOT NULL REFERENCES category_sub_units (id),
+    "stock_id" INTEGER NOT NULL REFERENCES stocks (id),
+    "invoice_id" INTEGER NOT NULL REFERENCES invoices (id) ON DELETE CASCADE,
+    "customer_id" INTEGER NOT NULL REFERENCES customers (id),
+    "date" INTEGER NOT NULL,
+    "expire_date" INTEGER NULL,
+    "invoice_trans_type" INTEGER NOT NULL DEFAULT 0,
+    "line_discount" REAL NULL DEFAULT 0.0
+);
+
+-- 14. Category Movements
+CREATE TABLE "category_movs" (
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "doc_no" INTEGER NOT NULL,
+    "trans_doc_type" INTEGER NOT NULL,
+    "trans_in_out" INTEGER NOT NULL DEFAULT 1 CHECK ("trans_in_out" IN (0, 1)),
+    "trans_date" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "category_id" INTEGER NOT NULL REFERENCES categories (id),
+    "unit_id" INTEGER NOT NULL REFERENCES categories_units (id),
+    "group_id" INTEGER NOT NULL REFERENCES categories_groups (id),
+    "category_sub_unit_id" INTEGER NOT NULL REFERENCES category_sub_units (id),
+    "stock_id" INTEGER NOT NULL REFERENCES stocks (id),
+    "quantity" REAL NULL,
+    "quantity_in" REAL NOT NULL,
+    "quantity_out" REAL NOT NULL,
+    "cost_amount" REAL NULL,
+    "cost_local_amount" REAL NULL,
+    "currency_id" INTEGER NOT NULL REFERENCES currencies (id),
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "sell_amount" REAL NULL,
+    "sell_local_amount" REAL NULL,
+    "refrenc_no" TEXT NOT NULL,
+    "statement" TEXT NOT NULL,
+    "reference_number" TEXT NULL,
+    "u_no" TEXT NULL,
+    "barcode_no" TEXT NULL,
+    "expire_date" INTEGER NULL,
+    "customer_id" INTEGER NULL REFERENCES customers (id),
+    PRIMARY KEY ("doc_no", "trans_doc_type", "trans_in_out", "category_id")
+);
+
+-- 15. Funds & Cash Management
+CREATE TABLE "funds" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "is_main_fund" INTEGER NOT NULL DEFAULT 0 CHECK ("is_main_fund" IN (0, 1)),
+    "account_id" INTEGER NULL REFERENCES accounts (id),
+    "current_balance" REAL NULL DEFAULT 0.0,
+    "currency_id" INTEGER NULL REFERENCES currencies (id)
+);
+
+-- 16. Daily Constraints
+CREATE TABLE "daily_constraints" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" INTEGER NOT NULL,
+    "date" INTEGER NOT NULL,
+    "statement" TEXT NULL,
+    "total_amount" REAL NOT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_code" TEXT NULL,
+    "currency_id" INTEGER NOT NULL REFERENCES currencies (id),
+    "parent_number" INTEGER NULL,
+    "parent_id" INTEGER NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "u_no" TEXT NULL,
+    "constraint_type" INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE "daily_constraint_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "amount" REAL NOT NULL,
+    "local_amount" REAL NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NOT NULL REFERENCES currencies (id),
+    "statement" TEXT NOT NULL,
+    "image_path" TEXT NULL,
+    "credit_account_id" INTEGER NOT NULL REFERENCES accounts (id),
+    "debit_account_id" INTEGER NOT NULL REFERENCES accounts (id),
+    "daily_constraint_id" INTEGER NULL REFERENCES daily_constraints (id) ON DELETE CASCADE
+);
+
+-- 17. Stock Settlements
+CREATE TABLE "stock_settlements" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "number" TEXT NOT NULL,
+    "date" INTEGER NOT NULL,
+    "type" INTEGER NOT NULL,
+    "total_amount" REAL NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NOT NULL REFERENCES currencies (id),
+    "statement" TEXT NOT NULL,
+    "parent_number" TEXT NULL,
+    "parent_id" INTEGER NULL,
+    "status" INTEGER NOT NULL DEFAULT 0,
+    "stock_id" INTEGER NULL REFERENCES stocks (id),
+    "u_no" TEXT NULL,
+    "settlement_reason" TEXT NULL
+);
+
+CREATE TABLE "stock_settlement_lines" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "category_id" INTEGER NOT NULL REFERENCES categories (id),
+    "group_id" INTEGER NOT NULL REFERENCES categories_groups (id),
+    "unit_id" INTEGER NOT NULL REFERENCES categories_units (id),
+    "category_sub_unit_id" INTEGER NOT NULL REFERENCES category_sub_units (id),
+    "quantity" REAL NOT NULL,
+    "statement" TEXT NOT NULL,
+    "amount" REAL NOT NULL,
+    "total_amount" REAL NOT NULL,
+    "currency_code" TEXT NULL,
+    "exchange_rate" REAL NULL,
+    "currency_id" INTEGER NOT NULL REFERENCES currencies (id),
+    "stock_id" INTEGER NOT NULL REFERENCES stocks (id),
+    "stock_settlement_id" INTEGER NULL REFERENCES stock_settlements (id) ON DELETE CASCADE,
+    "expire_date" INTEGER NULL,
+    "reason" TEXT NULL
+);
+
+-- 18. Search & Audit
+CREATE TABLE "search_histories" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "search_query" TEXT NOT NULL,
+    "is_pin" INTEGER NOT NULL DEFAULT 0 CHECK ("is_pin" IN (0, 1)),
+    "search_type" INTEGER NOT NULL DEFAULT 0,
+    "result_count" INTEGER NULL
+);
+
+CREATE TABLE "audit_logs" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "user_id" INTEGER NULL REFERENCES app_users (id),
+    "action_type" TEXT NOT NULL,
+    "table_name" TEXT NOT NULL,
+    "record_id" INTEGER NOT NULL,
+    "old_values" TEXT NULL,
+    "new_values" TEXT NULL,
+    "ip_address" TEXT NULL,
+    "user_agent" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)),
+    "description" TEXT NULL
+);
+
+-- 19. Promotions & Loyalty
+CREATE TABLE "promotions" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "description" TEXT NULL,
+    "discount_type" INTEGER NOT NULL,
+    "discount_value" REAL NOT NULL,
+    "start_date" INTEGER NOT NULL,
+    "end_date" INTEGER NOT NULL,
+    "min_purchase_amount" REAL,
+    "max_discount_amount" REAL,
+    "usage_limit" INTEGER NULL,
+    "used_count" INTEGER NOT NULL DEFAULT 0,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "promotion_type" INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE "promotion_categories" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "promotion_id" INTEGER NOT NULL REFERENCES promotions (id) ON DELETE CASCADE,
+    "category_id" INTEGER NOT NULL REFERENCES categories (id) ON DELETE CASCADE,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)),
+    UNIQUE("promotion_id", "category_id")
+);
+
+CREATE TABLE "loyalty_programs" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "creator_id" INTEGER NULL DEFAULT 1,
+    "last_modifier_id" INTEGER NULL DEFAULT 1,
+    "concurrency_stamp" TEXT NULL DEFAULT 'Instance of ''GeneratedColumn<DateTime>''',
+    "extra_properties" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("creation_time" > 946674000),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK("last_modification_time" > 946674000),
+    "name" TEXT NOT NULL,
+    "points_per_amount" REAL NOT NULL,
+    "redemption_ratio" REAL NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "min_redemption_points" REAL NULL,
+    "description" TEXT NULL
+);
+
+CREATE TABLE "customer_points" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "customer_id" INTEGER NOT NULL REFERENCES customers (id) ON DELETE CASCADE,
+    "points_balance" REAL NOT NULL DEFAULT 0,
+    "total_earned" REAL NOT NULL DEFAULT 0,
+    "total_redeemed" REAL NOT NULL DEFAULT 0,
+    "last_activity_time" INTEGER NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER))
+);
+
+CREATE TABLE "point_transactions" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "customer_id" INTEGER NOT NULL REFERENCES customers (id) ON DELETE CASCADE,
+    "transaction_type" INTEGER NOT NULL,
+    "points" REAL NOT NULL,
+    "remaining_balance" REAL NOT NULL,
+    "reference_type" TEXT NULL,
+    "reference_id" INTEGER NULL,
+    "description" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER))
+);
+
+-- 20. Price Management
+CREATE TABLE "price_history" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "category_id" INTEGER NOT NULL REFERENCES categories (id) ON DELETE CASCADE,
+    "old_price" REAL NOT NULL,
+    "new_price" REAL NOT NULL,
+    "change_type" TEXT NOT NULL,
+    "reason" TEXT NULL,
+    "creator_id" INTEGER REFERENCES app_users (id),
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER))
+);
+
+CREATE TABLE "stock_alerts" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "category_id" INTEGER NOT NULL REFERENCES categories (id) ON DELETE CASCADE,
+    "min_quantity" REAL NOT NULL,
+    "max_quantity" REAL NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)),
+    "last_notification_time" INTEGER NULL
+);
+
+-- 21. Contact Management
+CREATE TABLE "contact_methods" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "contact_type" INTEGER NOT NULL,
+    "value" TEXT NOT NULL,
+    "entity_type" TEXT NOT NULL,
+    "entity_id" INTEGER NOT NULL,
+    "is_primary" INTEGER NOT NULL DEFAULT 0 CHECK ("is_primary" IN (0, 1)),
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER))
+);
+
+-- 22. System Sequences
+CREATE TABLE "system_sequences" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "sequence_type" TEXT NOT NULL UNIQUE,
+    "last_number" INTEGER NOT NULL DEFAULT 0,
+    "prefix" TEXT NULL,
+    "suffix" TEXT NULL,
+    "padding" INTEGER NULL DEFAULT 0,
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER))
+);
+
+-- 23. Reports Configuration
+CREATE TABLE "report_templates" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "template_type" TEXT NOT NULL,
+    "content" TEXT NOT NULL,
+    "is_active" INTEGER NOT NULL DEFAULT 1 CHECK ("is_active" IN (0, 1)),
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)),
+    "last_modification_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER))
+);
+
+-- 24. System Logs
+CREATE TABLE "system_logs" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "log_level" TEXT NOT NULL,
+    "message" TEXT NOT NULL,
+    "exception" TEXT NULL,
+    "source" TEXT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER))
+);
+
+-- 25. Backup Management
+CREATE TABLE "backup_history" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "file_name" TEXT NOT NULL,
+    "file_size" INTEGER NOT NULL,
+    "backup_type" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "creation_time" INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)),
+    "completed_time" INTEGER NULL
+);
+
+-- Create essential indexes for performance
+CREATE INDEX idx_accounts_code ON accounts(code);
+CREATE INDEX idx_accounts_name ON accounts(name);
+CREATE INDEX idx_categories_barcode ON categories(barcode_no);
+CREATE INDEX idx_categories_name ON categories(name);
+CREATE INDEX idx_customers_name ON customers(name);
+CREATE INDEX idx_invoices_number ON invoices(number);
+CREATE INDEX idx_invoices_date ON invoices(date);
+CREATE INDEX idx_invoices_customer ON invoices(customer_id);
+CREATE INDEX idx_old_docs_date ON old_docs(date);
+CREATE INDEX idx_old_doc_lines_doc ON old_doc_lines(doc_id);
+
+CREATE INDEX idx_journal_entries_number ON journal_entries(number);
+CREATE INDEX idx_journal_entries_date ON journal_entries(entry_date);
+CREATE INDEX idx_journal_entry_lines_entry ON journal_entry_lines(journal_entry_id);
+CREATE INDEX idx_journal_entry_lines_account ON journal_entry_lines(account_id);
+CREATE INDEX idx_invoice_lines_invoice ON invoice_lines(invoice_id);
+CREATE INDEX idx_category_movs_date ON category_movs(trans_date);
+CREATE INDEX idx_category_movs_category ON category_movs(category_id);
+CREATE INDEX idx_audit_logs_time ON audit_logs(creation_time);
+CREATE INDEX idx_audit_logs_user ON audit_logs(user_id);
+CREATE INDEX idx_search_history_query ON search_histories(search_query);
+
+-- Create views for common queries
+CREATE VIEW current_stock AS
+SELECT 
+    c.id,
+    c.name,
+    c.barcode_no,
+    c.quantity,
+    s.name as stock_name,
+    c.cost_amount,
+    c.sell_amount,
+    c.min_stock_level,
+    c.max_stock_level
+FROM categories c
+JOIN stocks s ON c.stock_id = s.id
+WHERE c.is_active = 1;
+
+CREATE VIEW customer_balances AS
+SELECT 
+    cust.id,
+    cust.name,
+    acc.code as account_code,
+    SUM(CASE WHEN jel.credit IS NOT NULL THEN jel.credit ELSE 0 END) as total_credit,
+    SUM(CASE WHEN jel.debit IS NOT NULL THEN jel.debit ELSE 0 END) as total_debit,
+    (SUM(CASE WHEN jel.debit IS NOT NULL THEN jel.debit ELSE 0 END) - 
+     SUM(CASE WHEN jel.credit IS NOT NULL THEN jel.credit ELSE 0 END)) as balance
+FROM customers cust
+JOIN accounts acc ON cust.account_id = acc.id
+LEFT JOIN journal_entry_lines jel ON jel.account_id = acc.id
+LEFT JOIN journal_entries je ON je.id = jel.journal_entry_id
+WHERE cust.is_active = 1
+GROUP BY cust.id, cust.name, acc.code;
+
+CREATE VIEW low_stock_alerts AS
+SELECT 
+    c.id,
+    c.name,
+    c.barcode_no,
+    c.quantity,
+    c.min_stock_level,
+    s.name as stock_name
+FROM categories c
+JOIN stocks s ON c.stock_id = s.id
+WHERE c.is_active = 1 
+AND c.quantity <= c.min_stock_level
+AND c.min_stock_level > 0;
+
+-- Insert essential default data
+INSERT INTO currencies (name, code, symbol, min_exchange_rate, max_exchange_rate, exchange_rate, is_local_currency, decimal_places)
+VALUES 
+('US Dollar', 'USD', '$', 1.0, 1.0, 1.0, 1, 2),
+('Euro', 'EUR', '€', 0.8, 1.2, 1.0, 0, 2);
+
+INSERT INTO system_sequences (sequence_type, last_number, prefix, padding)
+VALUES
+('INVOICE', 1000, 'INV-', 6),
+('CUSTOMER', 100, 'CUST-', 4),
+('SUPPLIER', 100, 'SUPP-', 4),
+('STOCK_TRANSFER', 100, 'ST-', 4),
+('VOUCHER', 1000, 'VCH-', 6),
+('JOURNAL_ENTRY', 1, 'JRNL-', 6);
+
+-- Insert default settings
+INSERT INTO settings (setting_key, setting_value, setting_type, description, category)
+VALUES
+('company_name', 'My POS System', 'STRING', 'Company Name', 'General'),
+('company_address', '', 'STRING', 'Company Address', 'General'),
+('company_phone', '', 'STRING', 'Company Phone', 'General'),
+('default_currency', 'USD', 'STRING', 'Default Currency Code', 'Financial'),
+('tax_enabled', 'true', 'BOOLEAN', 'Enable Tax System', 'Financial'),
+('low_stock_alert', 'true', 'BOOLEAN', 'Enable Low Stock Alerts', 'Inventory'),
+('backup_auto', 'false', 'BOOLEAN', 'Auto Backup', 'System'),
+('backup_interval', '7', 'NUMBER', 'Backup Interval in Days', 'System');

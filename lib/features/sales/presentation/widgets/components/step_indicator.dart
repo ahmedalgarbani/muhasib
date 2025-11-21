@@ -1,0 +1,84 @@
+import 'package:flutter/material.dart';
+import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+
+class StepIndicator extends StatelessWidget {
+  final int currentStep;
+  final List<String> steps;
+
+  const StepIndicator({
+    Key? key,
+    required this.currentStep,
+    required this.steps,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: List.generate(steps.length * 2 - 1, (index) {
+          if (index.isEven) {
+            final stepIndex = index ~/ 2;
+            final isActive = currentStep >= stepIndex + 1;
+            final isCompleted = currentStep > stepIndex + 1;
+
+            return Expanded(
+              child: Column(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: isActive ? AppColors.primary : AppColors.grey200,
+                    ),
+                    child: Center(
+                      child: isCompleted
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 20,
+                            )
+                          : Text(
+                              '${stepIndex + 1}',
+                              style: TextStyle(
+                                color: isActive
+                                    ? Colors.white
+                                    : AppColors.grey600,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    steps[stepIndex],
+                    style: AppTextStyles.small.copyWith(
+                      color: isActive ? AppColors.primary : AppColors.grey600,
+                      fontWeight: isActive
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            final isActive = currentStep > (index ~/ 2) + 1;
+            return Expanded(
+              child: Container(
+                height: 2,
+                margin: const EdgeInsets.only(bottom: 28),
+                color: isActive ? AppColors.primary : AppColors.grey200,
+              ),
+            );
+          }
+        }),
+      ),
+    );
+  }
+}

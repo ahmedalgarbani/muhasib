@@ -1,0 +1,340 @@
+import 'package:flutter/material.dart';
+import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+
+class Step2Items extends StatefulWidget {
+  final Invoice invoice;
+  final List<InvoiceItem> availableItems;
+  final Function(Invoice) onInvoiceUpdate;
+  final VoidCallback onNext;
+  final VoidCallback onPrevious;
+
+  const Step2Items({
+    Key? key,
+    required this.invoice,
+    required this.availableItems,
+    required this.onInvoiceUpdate,
+    required this.onNext,
+    required this.onPrevious,
+  }) : super(key: key);
+
+  @override
+  State<Step2Items> createState() => _Step2ItemsState();
+}
+
+class _Step2ItemsState extends State<Step2Items> {
+  final _searchController = TextEditingController();
+  bool _isScanning = false;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _addItem(InvoiceItem item) {
+    final existingIndex = widget.invoice.items.indexWhere(
+      (i) => i.id == item.id,
+    );
+    List<InvoiceItem> updatedItems;
+
+    if (existingIndex >= 0) {
+      updatedItems = List.from(widget.invoice.items);
+      updatedItems[existingIndex] = updatedItems[existingIndex].copyWith(
+        quantity: updatedItems[existingIndex].quantity + item.quantity,
+      );
+    } else {
+      updatedItems = [...widget.invoice.items, item];
+    }
+
+    widget.onInvoiceUpdate(widget.invoice.copyWith(items: updatedItems));
+    _searchController.clear();
+  }
+
+  void _updateItemQuantity(int index, int delta) {
+    final updatedItems = List<InvoiceItem>.from(widget.invoice.items);
+    updatedItems[index] = updatedItems[index].copyWith(
+      quantity: (updatedItems[index].quantity + delta).clamp(1, 999),
+    );
+    widget.onInvoiceUpdate(widget.invoice.copyWith(items: updatedItems));
+  }
+
+  void _removeItem(int index) {
+    final updatedItems = List<InvoiceItem>.from(widget.invoice.items);
+    updatedItems.removeAt(index);
+    widget.onInvoiceUpdate(widget.invoice.copyWith(items: updatedItems));
+  }
+
+  void _simulateScan() {
+    setState(() => _isScanning = true);
+    Future.delayed(const Duration(seconds: 1), () {
+      final randomItem =
+          widget.availableItems[DateTime.now().millisecond %
+              widget.availableItems.length];
+      _addItem(randomItem);
+      setState(() => _isScanning = false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final filteredItems = widget.availableItems
+        .where(
+          (item) =>
+              item.name.contains(_searchController.text) ||
+              item.barcode.contains(_searchController.text),
+        )
+        .toList();
+
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          color: Colors.white,
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'ابحث عن صنف أو امسح الباركود...',
+                    prefixIcon: const Icon(Icons.search),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: _isScanning ? AppColors.warning : AppColors.success,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  onPressed: _isScanning ? null : _simulateScan,
+                  icon: Icon(
+                    _isScanning ? Icons.hourglass_empty : Icons.qr_code_scanner,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_searchController.text.isNotEmpty && filteredItems.isNotEmpty)
+          Container(
+            color: Colors.white,
+            constraints: const BoxConstraints(maxHeight: 200),
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: filteredItems.length,
+              itemBuilder: (context, index) {
+                final item = filteredItems[index];
+                return ListTile(
+                  title: Text(item.name),
+                  subtitle: Text(
+                    '${NumberFormatter.formatCurrency(item.price)} | متوفر: ${item.stock}',
+                  ),
+                  onTap: () {
+                    AddItemBottomSheet.show(
+                      context,
+                      item: item,
+                      onAdd: _addItem,
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        Expanded(
+          child: widget.invoice.items.isEmpty
+              ? const EmptyState(
+                  emoji: '📦',
+                  title: 'لم تتم إضافة أصناف بعد',
+                  subtitle: 'ابحث أو امسح باركود لإضافة صنف',
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Column(
+                    children: [
+                      ...List.generate(widget.invoice.items.length, (index) {
+                        final item = widget.invoice.items[index];
+                        return ItemCard(
+                          item: item,
+                          onIncrement: () => _updateItemQuantity(index, 1),
+                          onDecrement: () => _updateItemQuantity(index, -1),
+                          onDelete: () => _removeItem(index),
+                        );
+                      }),
+                      Container(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        decoration: BoxDecoration(
+                          color: AppColors.grey50,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'المجموع الفرعي:',
+                                  style: AppTextStyles.title,
+                                ),
+                                Text(
+                                  NumberFormatter.formatCurrency(
+                                    widget.invoice.subtotal,
+                                  ),
+                                  style: AppTextStyles.title.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            ExpandableSection(
+                              title: 'خصومات ورسوم',
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: AppSpacing.md),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child:
+                                            DropdownButtonFormField<
+                                              DiscountType
+                                            >(
+                                              value:
+                                                  widget.invoice.discount.type,
+                                              items: const [
+                                                DropdownMenuItem(
+                                                  value: DiscountType.amount,
+                                                  child: Text('مبلغ'),
+                                                ),
+                                                DropdownMenuItem(
+                                                  value: DiscountType.percent,
+                                                  child: Text('نسبة %'),
+                                                ),
+                                              ],
+                                              onChanged: (type) {
+                                                if (type != null) {
+                                                  widget.onInvoiceUpdate(
+                                                    widget.invoice.copyWith(
+                                                      discount: widget
+                                                          .invoice
+                                                          .discount
+                                                          .copyWith(type: type),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                            ),
+                                      ),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Expanded(
+                                        flex: 2,
+                                        child: TextField(
+                                          keyboardType: TextInputType.number,
+                                          decoration: const InputDecoration(
+                                            hintText: 'الخصم',
+                                          ),
+                                          onChanged: (value) {
+                                            widget.onInvoiceUpdate(
+                                              widget.invoice.copyWith(
+                                                discount: widget
+                                                    .invoice
+                                                    .discount
+                                                    .copyWith(
+                                                      value:
+                                                          double.tryParse(
+                                                            value,
+                                                          ) ??
+                                                          0,
+                                                    ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  TextField(
+                                    keyboardType: TextInputType.number,
+                                    decoration: const InputDecoration(
+                                      hintText: 'رسوم أخرى',
+                                    ),
+                                    onChanged: (value) {
+                                      widget.onInvoiceUpdate(
+                                        widget.invoice.copyWith(
+                                          otherCharges:
+                                              double.tryParse(value) ?? 0,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (widget.invoice.discountAmount > 0 ||
+                                widget.invoice.otherCharges > 0) ...[
+                              const Divider(height: AppSpacing.lg),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  const Text(
+                                    'الإجمالي النهائي:',
+                                    style: AppTextStyles.headline3,
+                                  ),
+                                  Text(
+                                    NumberFormatter.formatCurrency(
+                                      widget.invoice.total,
+                                    ),
+                                    style: AppTextStyles.headline3.copyWith(
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          color: Colors.white,
+          child: Row(
+            children: [
+              Expanded(
+                child: SecondaryButton(
+                  text: 'رجوع',
+                  onPressed: widget.onPrevious,
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                flex: 2,
+                child: PrimaryButton(
+                  text: 'التالي: الدفع',
+                  onPressed: widget.invoice.items.isNotEmpty
+                      ? widget.onNext
+                      : null,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+// lib/screens/sales_invoice/steps/step_3_payment.dart

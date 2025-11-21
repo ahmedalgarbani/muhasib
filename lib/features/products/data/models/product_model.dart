@@ -1,0 +1,153 @@
+import 'package:muhasib/features/products/domain/entities/product_entity.dart';
+
+class ProductModel extends ProductEntity {
+  const ProductModel({
+    super.id,
+    required super.name,
+    required super.statement,
+    required super.barcodeNo,
+    super.costAmount,
+    super.costLocalAmount,
+    super.costCurrencyCode,
+    super.costExchangeRate,
+    super.costCurrencyId,
+    super.sellAmount,
+    super.sellLocalAmount,
+    super.sellExchangeRate,
+    super.quantity = 0,
+    super.groupId,
+    super.unitId,
+    required super.stockId,
+    super.imagePath,
+    super.minStockLevel = 0,
+    super.maxStockLevel,
+    super.reorderPoint,
+    super.isActive = true,
+    super.isTaxable = true,
+    super.taxId,
+    super.expireDate,
+    super.uNo,
+    super.creatorId,
+    super.lastModifierId,
+    super.concurrencyStamp,
+    super.extraProperties,
+    super.creationTime,
+    super.lastModificationTime,
+  });
+
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
+    return ProductModel(
+      id: json['id'] as int?,
+      name: json['name'] as String,
+      statement: json['statement'] as String,
+      barcodeNo: json['barcode_no'] as String,
+      costAmount: (json['cost_amount'] as num?)?.toDouble(),
+      costLocalAmount: (json['cost_local_amount'] as num?)?.toDouble(),
+      costCurrencyCode: json['cost_currency_code'] as String?,
+      costExchangeRate: (json['cost_exchange_rate'] as num?)?.toDouble(),
+      costCurrencyId: json['cost_currency_id'] as int?,
+      sellAmount: (json['sell_amount'] as num?)?.toDouble(),
+      sellLocalAmount: (json['sell_local_amount'] as num?)?.toDouble(),
+      sellExchangeRate: (json['sell_exchange_rate'] as num?)?.toDouble(),
+      quantity: (json['quantity'] as num?)?.toDouble() ?? 0,
+      groupId: json['group_id'] as int?,
+      unitId: json['unit_id'] as int?,
+      stockId: json['stock_id'] as int,
+      imagePath: json['image_path'] as String?,
+      minStockLevel: (json['min_stock_level'] as num?)?.toDouble() ?? 0,
+      maxStockLevel: (json['max_stock_level'] as num?)?.toDouble(),
+      reorderPoint: (json['reorder_point'] as num?)?.toDouble(),
+      isActive: (json['is_active'] as int? ?? 1) == 1,
+      isTaxable: (json['is_taxable'] as int? ?? 1) == 1,
+      taxId: json['tax_id'] as int?,
+      expireDate: json['expire_date'] as int?,
+      uNo: json['u_no'] as String?,
+      creatorId: json['creator_id'] as int?,
+      lastModifierId: json['last_modifier_id'] as int?,
+      concurrencyStamp: json['concurrency_stamp'] as String?,
+      extraProperties: json['extra_properties'] as String?,
+      creationTime: json['creation_time'] as int?,
+      lastModificationTime: json['last_modification_time'] as int?,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    final map = <String, dynamic>{
+      'id': id,
+      'name': name,
+      'statement': statement,
+      'barcode_no': barcodeNo,
+      'cost_amount': costAmount,
+      'cost_local_amount': costLocalAmount,
+      'cost_currency_code': costCurrencyCode,
+      'cost_exchange_rate': costExchangeRate,
+      'cost_currency_id': costCurrencyId,
+      'sell_amount': sellAmount,
+      'sell_local_amount': sellLocalAmount,
+      'sell_exchange_rate': sellExchangeRate,
+      'quantity': quantity,
+      'group_id': groupId,
+      'unit_id': unitId,
+      'stock_id': stockId,
+      'image_path': imagePath,
+      'min_stock_level': minStockLevel,
+      'max_stock_level': maxStockLevel,
+      'reorder_point': reorderPoint,
+      'is_active': isActive ? 1 : 0,
+      'is_taxable': isTaxable ? 1 : 0,
+      'tax_id': taxId,
+      'expire_date': expireDate,
+      'u_no': uNo,
+      'creator_id': creatorId ?? 1,
+      'last_modifier_id': lastModifierId ?? 1,
+      'concurrency_stamp': concurrencyStamp,
+      'extra_properties': extraProperties,
+    };
+    
+    // Omit timestamps if null to use database defaults
+    if (creationTime != null) {
+      map['creation_time'] = creationTime;
+    }
+    if (lastModificationTime != null) {
+      map['last_modification_time'] = lastModificationTime;
+    }
+    
+    return map;
+  }
+
+  factory ProductModel.fromEntity(ProductEntity entity) {
+    return ProductModel(
+      id: entity.id,
+      name: entity.name,
+      statement: entity.statement,
+      barcodeNo: entity.barcodeNo,
+      costAmount: entity.costAmount,
+      costLocalAmount: entity.costLocalAmount,
+      costCurrencyCode: entity.costCurrencyCode,
+      costExchangeRate: entity.costExchangeRate,
+      costCurrencyId: entity.costCurrencyId,
+      sellAmount: entity.sellAmount,
+      sellLocalAmount: entity.sellLocalAmount,
+      sellExchangeRate: entity.sellExchangeRate,
+      quantity: entity.quantity,
+      groupId: entity.groupId,
+      unitId: entity.unitId,
+      stockId: entity.stockId,
+      imagePath: entity.imagePath,
+      minStockLevel: entity.minStockLevel,
+      maxStockLevel: entity.maxStockLevel,
+      reorderPoint: entity.reorderPoint,
+      isActive: entity.isActive,
+      isTaxable: entity.isTaxable,
+      taxId: entity.taxId,
+      expireDate: entity.expireDate,
+      uNo: entity.uNo,
+      creatorId: entity.creatorId,
+      lastModifierId: entity.lastModifierId,
+      concurrencyStamp: entity.concurrencyStamp,
+      extraProperties: entity.extraProperties,
+      creationTime: entity.creationTime,
+      lastModificationTime: entity.lastModificationTime,
+    );
+  }
+}

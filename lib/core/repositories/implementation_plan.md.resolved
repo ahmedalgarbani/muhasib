@@ -1,0 +1,70 @@
+# Done Purchases Feature Implementation Plan
+
+## Goal Description
+Implement the "Done Purchases" feature to allow users to record completed purchase transactions. This includes:
+1.  **Database Integration**: Storing purchase invoices in the existing `invoices` table with `invoice_type = 2`.
+2.  **Clean Architecture**: Implementing Domain, Data, and Presentation layers for Purchases.
+3.  **Accountant Functionality**: Automatically generating journal entries for purchases (Inventory vs Accounts Payable/Cash) and updating Supplier balances.
+
+## User Review Required
+> [!IMPORTANT]
+> I will be reusing [InvoiceEntity](file:///d:/Flutter/projects/muhasib/lib/features/sales/domain/entities/invoice_entity.dart#4-141) and [InvoiceModel](file:///d:/Flutter/projects/muhasib/lib/features/sales/data/models/invoice_model.dart#4-244) from the Sales feature as the underlying data structure, since the database schema is shared.
+> I will create a separate `PurchaseLocalDataSource` to handle purchase-specific logic (e.g., updating Suppliers instead of Customers, increasing Inventory on purchase instead of decreasing).
+
+## Proposed Changes
+
+### Core
+#### [MODIFY] [get_it.dart](file:///d:/Flutter/projects/muhasib/lib/core/helpers/get_it.dart)
+- Register `PurchaseLocalDataSource`, `PurchaseRepository`, and `PurchasesCubit`.
+
+### Features: Purchases
+
+#### [NEW] [purchases_accounting_template.dart](file:///d:/Flutter/projects/muhasib/lib/features/purchases/domain/templates/purchases_accounting_template.dart)
+- Create a template for generating journal entries for purchases.
+- **Debit**: Inventory (Asset)
+- **Credit**: Cash (Asset) or Accounts Payable/Suppliers (Liability)
+- Handle Tax if applicable.
+
+#### [NEW] [purchase_repository.dart](file:///d:/Flutter/projects/muhasib/lib/features/purchases/domain/repositories/purchase_repository.dart)
+- Define interface for purchase operations.
+
+#### [NEW] [purchase_local_datasource.dart](file:///d:/Flutter/projects/muhasib/lib/features/purchases/data/datasources/purchase_local_datasource.dart)
+- Implement CRUD operations for purchases.
+- `insertPurchase`:
+    - Insert into `invoices` and `invoice_lines`.
+    - **Update Inventory**: Increase quantity.
+    - **Update Supplier**: Increase balance (Payable).
+- `getPurchases`: Filter by `invoice_type = 2`.
+
+#### [NEW] [purchase_repository_impl.dart](file:///d:/Flutter/projects/muhasib/lib/features/purchases/data/repositories/purchase_repository_impl.dart)
+- Implement `PurchaseRepository`.
+
+#### [NEW] [usecases](file:///d:/Flutter/projects/muhasib/lib/features/purchases/domain/usecases)
+- `GetPurchases`, `CreatePurchase`, `GetPurchaseById`, `UpdatePurchase`, `DeletePurchase`.
+
+#### [NEW] [purchases_cubit.dart](file:///d:/Flutter/projects/muhasib/lib/features/purchases/presentation/cubit/purchases_cubit.dart)
+- Manage state for the purchases list and form.
+
+#### [NEW] [purchases_page.dart](file:///d:/Flutter/projects/muhasib/lib/features/purchases/presentation/pages/purchases_page.dart)
+- Display list of completed purchases.
+
+#### [NEW] [purchase_form_page.dart](file:///d:/Flutter/projects/muhasib/lib/features/purchases/presentation/pages/purchase_form_page.dart)
+- Form to add/edit a purchase invoice.
+
+## Verification Plan
+
+### Automated Tests
+- None planned for this iteration (User requested feature implementation).
+
+### Manual Verification
+1.  **Create Purchase**:
+    - Go to Purchases screen.
+    - Click "Add Purchase".
+    - Select Supplier, add Items (Products).
+    - Save.
+    - Verify Purchase appears in the list.
+    - Verify Inventory quantity increased for the items.
+    - Verify Supplier balance increased.
+    - Verify Journal Entries are created (if accounting is enabled).
+2.  **View Purchase**:
+    - Click on a purchase to view details.
