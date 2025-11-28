@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
+import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 
@@ -146,9 +146,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
         creditLimit: double.tryParse(_creditLimitController.text) ?? 0.0,
       );
       
-      // Reload accounts in the AccountsCubit
+      // Reload customers in the CustomersCubit
       if (context.mounted) {
-        context.read<AccountsCubit>().loadAllAccounts();
+        context.read<CustomersCubit>().loadCustomers();
         Navigator.of(context).pop(newCustomer);
         
         ScaffoldMessenger.of(context).showSnackBar(

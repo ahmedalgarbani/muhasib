@@ -15,22 +15,32 @@ class Customer {
   final String name;
   final double balance;
   final double creditLimit;
+  final String? phone;
+  final int type; // 1=cash, 2=credit
+  final String? address;
 
   Customer({
     required this.id,
     required this.name,
-    required this.balance,
-    required this.creditLimit,
+    this.balance = 0,
+    this.creditLimit = 0,
+    this.phone,
+    this.type = 1,
+    this.address,
   });
 
   bool get hasDebt => balance < 0;
+  bool get isCredit => type == 2;
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
       id: json['id'],
       name: json['name'],
-      balance: json['balance'].toDouble(),
-      creditLimit: json['creditLimit'].toDouble(),
+      balance: json['balance']?.toDouble() ?? 0,
+      creditLimit: json['creditLimit']?.toDouble() ?? 0,
+      phone: json['phone'],
+      type: json['type'] ?? 1,
+      address: json['address'],
     );
   }
 
@@ -40,6 +50,9 @@ class Customer {
       'name': name,
       'balance': balance,
       'creditLimit': creditLimit,
+      'phone': phone,
+      'type': type,
+      'address': address,
     };
   }
 
@@ -48,12 +61,18 @@ class Customer {
     String? name,
     double? balance,
     double? creditLimit,
+    String? phone,
+    int? type,
+    String? address,
   }) {
     return Customer(
       id: id ?? this.id,
       name: name ?? this.name,
       balance: balance ?? this.balance,
       creditLimit: creditLimit ?? this.creditLimit,
+      phone: phone ?? this.phone,
+      type: type ?? this.type,
+      address: address ?? this.address,
     );
   }
 }

@@ -9,14 +9,15 @@ class JournalEntryLinesTable implements TableSchema {
     CREATE TABLE journal_entry_lines (
       id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       journal_entry_id INTEGER NOT NULL REFERENCES journal_entries (id) ON DELETE CASCADE,
-      line_number INTEGER NOT NULL,
-      account_id INTEGER NULL REFERENCES accounts (id),
+      line_number INTEGER NULL,
+      account_id INTEGER NOT NULL REFERENCES accounts (id),
       account_code TEXT NULL,
-      account_name TEXT NOT NULL,
+      account_name TEXT NULL,
       currency_id INTEGER NULL REFERENCES currencies (id),
-      currency_code TEXT NOT NULL,
-      debit REAL NOT NULL DEFAULT 0.0,
-      credit REAL NOT NULL DEFAULT 0.0,
+      currency_code TEXT NULL,
+      debit_amount REAL NOT NULL DEFAULT 0.0,
+      credit_amount REAL NOT NULL DEFAULT 0.0,
+      description TEXT NULL,
       notes TEXT NULL
     );
   ''';

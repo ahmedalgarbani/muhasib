@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/widgets/app_bar_icon.dart';
 
 class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -6,7 +8,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? title;
   final List<Widget>? actions;
 
-  const CustomAppBar({Key? key,  this.onMenuPressed,  this.title, this.actions}) : super(key: key);
+  const CustomAppBar({Key? key, this.onMenuPressed, this.title, this.actions})
+    : super(key: key);
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -20,7 +23,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         onPressed: onMenuPressed,
       ),
       title: Text(
-        title??'محاسب',
+        title ?? 'محاسب',
         style: const TextStyle(
           color: Color(0xFF4A90E2),
           fontSize: 18,
@@ -28,10 +31,17 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
         ),
       ),
       centerTitle: true,
-      actions:actions??  [
-        AppBarIcon(icon: Icons.cloud_outlined),
-        AppBarIcon(icon: Icons.settings_outlined),
-      ],
+      actions:
+          actions ??
+          [
+            AppBarIcon(icon: Icons.cloud_outlined),
+            GestureDetector(
+              child: AppBarIcon(icon: Icons.settings_outlined),
+              onTap: () {
+                GoRouter.of(context).go(AppRoutes.settings);
+              },
+            ),
+          ],
     );
   }
 }

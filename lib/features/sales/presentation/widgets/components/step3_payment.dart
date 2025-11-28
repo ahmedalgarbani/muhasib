@@ -22,6 +22,15 @@ class Step3Payment extends StatefulWidget {
 class _Step3PaymentState extends State<Step3Payment> {
   PaymentMethod _selectedMethod = PaymentMethod.cash;
   late TextEditingController _amountController;
+  String? _selectedCashBox = 'الصندوق الرئيسي';
+  String? _selectedBank = 'الراجحي';
+  String? _transferNumber;
+  String? _senderName;
+  DateTime? _deferredDate;
+  bool _showOverpaymentWarning = false;
+  bool _showUnderpaymentWarning = false;
+  double _overpaymentAmount = 0;
+  double _underpaymentAmount = 0;
 
   @override
   void initState() {
@@ -29,25 +38,103 @@ class _Step3PaymentState extends State<Step3Payment> {
     _amountController = TextEditingController(
       text: widget.invoice.remaining.toStringAsFixed(0),
     );
+    _amountController.addListener(_onAmountChanged);
+    _deferredDate = DateTime.now().add(const Duration(days: 30));
   }
 
   @override
   void dispose() {
+    _amountController.removeListener(_onAmountChanged);
     _amountController.dispose();
     super.dispose();
   }
 
+  void _onAmountChanged() {
+    final amount = double.tryParse(_amountController.text) ?? 0;
+    final remaining = widget.invoice.remaining;
+    
+    setState(() {
+      if (amount > remaining) {
+        _showOverpaymentWarning = true;
+        _showUnderpaymentWarning = false;
+        _overpaymentAmount = amount - remaining;
+        _underpaymentAmount = 0;
+      } else if (amount < remaining && amount > 0) {
+        _showUnderpaymentWarning = true;
+        _showOverpaymentWarning = false;
+        _underpaymentAmount = remaining - amount;
+        _overpaymentAmount = 0;
+      } else {
+        _showOverpaymentWarning = false;
+        _showUnderpaymentWarning = false;
+        _overpaymentAmount = 0;
+        _underpaymentAmount = 0;
+      }
+    });
+  }
+
+  void _updateAmountForNewMethod() {
+    // Update amount controller when switching payment methods
+    final currentRemaining = widget.invoice.remaining;
+    if (currentRemaining > 0) {
+      _amountController.text = currentRemaining.toStringAsFixed(0);
+    }
+  }
+
   void _addPayment() {
     final amount = double.tryParse(_amountController.text) ?? 0;
-    if (amount > 0 && amount <= widget.invoice.remaining) {
+    if (amount > 0) {
+      Map<String, dynamic>? details;
+      
+      // Collect payment method specific details
+      if (_selectedMethod == PaymentMethod.cash) {
+        details = {'cashBox': _selectedCashBox};
+      } else if (_selectedMethod == PaymentMethod.bank) {
+        details = {
+          'bank': _selectedBank,
+          'transferNumber': _transferNumber,
+          'senderName': _senderName,
+        };
+      } else if (_selectedMethod == PaymentMethod.deferred) {
+        details = {
+          'dueDate': _deferredDate?.toIso8601String(),
+        };
+      }
+      
       final updatedPayments = [
         ...widget.invoice.payments,
-        Payment(method: _selectedMethod, amount: amount),
+        Payment(
+          method: _selectedMethod,
+          amount: amount,
+          details: details,
+        ),
       ];
+      
       widget.onInvoiceUpdate(
         widget.invoice.copyWith(payments: updatedPayments),
       );
-      _amountController.text = widget.invoice.remaining.toStringAsFixed(0);
+      
+      // Update amount for next payment
+      final newRemaining = widget.invoice.total - 
+          updatedPayments.fold(0.0, (sum, p) => sum + p.amount);
+      
+      if (newRemaining > 0) {
+        _amountController.text = newRemaining.toStringAsFixed(0);
+      } else {
+        _amountController.text = '0';
+      }
+      
+      // Show appropriate message
+      if (amount > widget.invoice.remaining) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'تم إضافة دفعة ${NumberFormatter.formatCurrency(amount)} - المبلغ الزائد ${NumberFormatter.formatCurrency(_overpaymentAmount)} سيضاف لرصيد العميل',
+            ),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
     }
   }
 
@@ -180,7 +267,12 @@ class _Step3PaymentState extends State<Step3Payment> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
                         child: InkWell(
-                          onTap: () => setState(() => _selectedMethod = method),
+                          onTap: () {
+                            setState(() {
+                              _selectedMethod = method;
+                              _updateAmountForNewMethod();
+                            });
+                          },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                               vertical: AppSpacing.md,
@@ -246,7 +338,16 @@ class _Step3PaymentState extends State<Step3Payment> {
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(
+                              color: _showOverpaymentWarning
+                                  ? Colors.orange
+                                  : (_showUnderpaymentWarning
+                                      ? Colors.blue
+                                      : AppColors.grey300),
+                              width: 2,
+                            ),
                           ),
+                          suffixText: 'ريال',
                         ),
                       ),
                       const SizedBox(height: AppSpacing.md),
@@ -263,7 +364,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          value: 'الصندوق الرئيسي',
+                          value: _selectedCashBox,
                           items: const [
                             DropdownMenuItem(
                               value: 'الصندوق الرئيسي',
@@ -274,7 +375,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                               child: Text('صندوق فرع الشمال'),
                             ),
                           ],
-                          onChanged: (_) {},
+                          onChanged: (value) {
+                            setState(() => _selectedCashBox = value);
+                          },
                         ),
                       ],
 
@@ -289,7 +392,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          value: 'الراجحي',
+                          value: _selectedBank,
                           items: const [
                             DropdownMenuItem(
                               value: 'الراجحي',
@@ -304,7 +407,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                               child: Text('الإنماء'),
                             ),
                           ],
-                          onChanged: (_) {},
+                          onChanged: (value) {
+                            setState(() => _selectedBank = value);
+                          },
                         ),
                         const SizedBox(height: AppSpacing.md),
                         ExpandableSection(
@@ -313,6 +418,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                             children: [
                               const SizedBox(height: AppSpacing.md),
                               TextField(
+                                onChanged: (value) => _transferNumber = value,
                                 decoration: InputDecoration(
                                   labelText: 'رقم الحوالة',
                                   filled: true,
@@ -324,6 +430,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                               ),
                               const SizedBox(height: AppSpacing.sm),
                               TextField(
+                                onChanged: (value) => _senderName = value,
                                 decoration: InputDecoration(
                                   labelText: 'اسم المرسل',
                                   filled: true,
@@ -346,9 +453,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                         const SizedBox(height: AppSpacing.sm),
                         InkWell(
                           onTap: () async {
-                            await showDatePicker(
+                            final selectedDate = await showDatePicker(
                               context: context,
-                              initialDate: DateTime.now().add(
+                              initialDate: _deferredDate ?? DateTime.now().add(
                                 const Duration(days: 30),
                               ),
                               firstDate: DateTime.now(),
@@ -356,6 +463,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 const Duration(days: 365),
                               ),
                             );
+                            if (selectedDate != null) {
+                              setState(() => _deferredDate = selectedDate);
+                            }
                           },
                           child: Container(
                             padding: const EdgeInsets.all(AppSpacing.md),
@@ -372,10 +482,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 const Icon(Icons.calendar_today, size: 20),
                                 const SizedBox(width: AppSpacing.sm),
                                 Text(
-                                  DateTime.now()
-                                      .add(const Duration(days: 30))
-                                      .toString()
-                                      .split(' ')[0],
+                                  _deferredDate != null
+                                      ? '${_deferredDate!.year}-${_deferredDate!.month.toString().padLeft(2, '0')}-${_deferredDate!.day.toString().padLeft(2, '0')}'
+                                      : 'اختر التاريخ',
                                   style: AppTextStyles.body,
                                 ),
                               ],
@@ -387,8 +496,80 @@ class _Step3PaymentState extends State<Step3Payment> {
                   ),
                 ),
 
-                if (widget.invoice.remaining > 0 &&
-                    widget.invoice.remaining != widget.invoice.total) ...[
+                // Show warnings for overpayment or underpayment
+                if (_showOverpaymentWarning) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.1),
+                      border: Border.all(color: Colors.orange),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info, color: Colors.orange),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'مبلغ زائد',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange,
+                                ),
+                              ),
+                              Text(
+                                'المبلغ الزائد ${NumberFormatter.formatCurrency(_overpaymentAmount)} سيتم إضافته لرصيد العميل',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                
+                if (_showUnderpaymentWarning) ...[
+                  const SizedBox(height: AppSpacing.md),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      border: Border.all(color: Colors.blue),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info, color: Colors.blue),
+                        const SizedBox(width: AppSpacing.sm),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'دفعة جزئية',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue,
+                                ),
+                              ),
+                              Text(
+                                'المبلغ المتبقي ${NumberFormatter.formatCurrency(_underpaymentAmount)} سيتم تسجيله كدين على العميل',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                
+                if (widget.invoice.remaining > 0) ...[
                   const SizedBox(height: AppSpacing.md),
                   SizedBox(
                     width: double.infinity,
@@ -404,7 +585,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                         ),
                       ),
                       child: Text(
-                        'إضافة دفعة (${NumberFormatter.formatCurrency(double.tryParse(_amountController.text) ?? 0)})',
+                        widget.invoice.remaining == widget.invoice.total
+                            ? 'إضافة دفعة (${NumberFormatter.formatCurrency(double.tryParse(_amountController.text) ?? 0)})'
+                            : 'إضافة باقي المبلغ (${NumberFormatter.formatCurrency(widget.invoice.remaining)})',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,

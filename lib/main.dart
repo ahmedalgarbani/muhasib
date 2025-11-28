@@ -20,6 +20,7 @@ import 'package:muhasib/features/initial/presentation/cubit/initial_cubit.dart';
 import 'package:muhasib/features/main/presentation/cubit/main_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/reports_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/setting_cubit.dart';
+import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/stores_cubit.dart';
 
 import 'package:muhasib/features/main/presentation/pages/home_page_view.dart';
@@ -59,7 +60,7 @@ void main() async {
         BlocProvider(create: (context) => getIt<ProductSubUnitsCubit>()),
         BlocProvider(create: (context) => getIt<ItemMovementsCubit>()),
         // Global simple cubits (no external deps)
-        BlocProvider(create: (context) => InitialCubit()),
+        BlocProvider(create: (context) => getIt<InitialCubit>()),
         BlocProvider(create: (context) => MainCubit()),
         BlocProvider(create: (context) => ReportsCubit()),
         BlocProvider(create: (context) => SettingCubit()),
@@ -67,7 +68,7 @@ void main() async {
         BlocProvider(create: (context) => ThemeCubit()),
         BlocProvider(create: (context) => LocaleCubit()),
         BlocProvider(create: (context) => getIt<PurchasesCubit>()),
-
+        BlocProvider(create: (context) => getIt<SettingsCubit>()),
         // WarehousesCubit
         BlocProvider(create: (context) => getIt<WarehousesCubit>()),
       ],

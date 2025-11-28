@@ -1,5 +1,6 @@
 import 'package:muhasib/core/database/database_config.dart';
 import 'package:muhasib/core/database/tables/seeders.dart';
+import 'package:muhasib/core/database/seeders/settings_seeder.dart';
 import 'package:muhasib/core/database/tables/accounts_table.dart';
 import 'package:muhasib/core/database/tables/account_connects_table.dart';
 import 'package:muhasib/core/database/tables/journal_entries_table.dart';
@@ -64,6 +65,13 @@ import 'package:muhasib/core/database/tables/system_sequences_table.dart';
 import 'package:muhasib/core/database/tables/report_templates_table.dart';
 import 'package:muhasib/core/database/tables/system_logs_table.dart';
 import 'package:muhasib/core/database/tables/backup_history_table.dart';
+import 'package:muhasib/core/database/tables/purchase_invoices_table.dart';
+import 'package:muhasib/core/database/tables/purchase_invoice_items_table.dart';
+import 'package:muhasib/core/database/tables/purchase_payments_table.dart';
+import 'package:muhasib/core/database/tables/sales_invoices_table.dart';
+import 'package:muhasib/core/database/tables/sales_invoice_items_table.dart';
+import 'package:muhasib/core/database/tables/payments_table.dart';
+import 'package:muhasib/core/database/tables/inventory_transactions_table.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -197,6 +205,17 @@ class DatabaseService implements IDatabaseService {
     // Sales & invoicing
     InvoicesTable(),
     InvoiceLinesTable(),
+    SalesInvoicesTable(),
+    SalesInvoiceItemsTable(),
+    PaymentsTable(),
+    
+    // Purchases
+    PurchaseInvoicesTable(),
+    PurchaseInvoiceItemsTable(),
+    PurchasePaymentsTable(),
+    
+    // Inventory
+    InventoryTransactionsTable(),
 
     // Category movements
     CategoryMovsTable(),
@@ -234,6 +253,7 @@ class DatabaseService implements IDatabaseService {
   ];
 
   final List<Future<void> Function(Database)> _seeders = [
+    SettingsSeeder.seed,
     seedDefaultStocks,
     seedDefaultCustomers,
     seedDefaultAccounts,

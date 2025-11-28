@@ -79,8 +79,8 @@ class _ReturnsPageState extends State<ReturnsPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // Navigate to return form using GoRouter
-          context.pushNamed('sales-returns-form');
+          // Navigate to select invoice page first
+          context.pushNamed('select-invoice-for-return');
         },
         backgroundColor: const Color(0xFFEF4444),
         icon: const Icon(Icons.assignment_return),
@@ -93,9 +93,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -118,7 +116,10 @@ class _ReturnsPageState extends State<ReturnsPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
+                  borderSide: const BorderSide(
+                    color: Color(0xFFEF4444),
+                    width: 2,
+                  ),
                 ),
               ),
               onChanged: (value) {
@@ -190,7 +191,9 @@ class _ReturnsPageState extends State<ReturnsPage> {
                             Icon(
                               InvoiceTypeUI.getIcon(InvoiceType.salesReturn),
                               size: 20,
-                              color: InvoiceTypeUI.getColor(InvoiceType.salesReturn),
+                              color: InvoiceTypeUI.getColor(
+                                InvoiceType.salesReturn,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -264,14 +267,15 @@ class _ReturnsPageState extends State<ReturnsPage> {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.person_outline, size: 16, color: Colors.grey.shade600),
+                  Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: Colors.grey.shade600,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'عميل #${returnInvoice.customerId}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade700,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                   ),
                 ],
               ),
@@ -291,7 +295,9 @@ class _ReturnsPageState extends State<ReturnsPage> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatCurrency(returnInvoice.finalAmt ?? returnInvoice.amount),
+                        _formatCurrency(
+                          returnInvoice.finalAmt ?? returnInvoice.amount,
+                        ),
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
@@ -345,10 +351,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
           const SizedBox(height: 8),
           Text(
             'ستظهر مرتجعات المبيعات هنا',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),

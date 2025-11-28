@@ -21,7 +21,7 @@ class QuickAccessItem extends StatelessWidget {
     return InkWell(
       onTap: () {
         if (route != null) {
-          context.pushNamed(route!);
+          GoRouter.of(context).push(route!);
         }
       },
       borderRadius: BorderRadius.circular(16),
@@ -54,11 +54,10 @@ class QuickAccessItem extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 }
-
