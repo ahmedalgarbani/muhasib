@@ -7,10 +7,14 @@ import 'package:muhasib/core/services/database_service.dart';
 
 class InitialRepositoryImpl implements InitialRepository {
   final InitialLocalDataSource localDataSource;
+  final DatabaseService databaseService;
   late final OpeningBalanceAccountingTemplate _accountingTemplate;
 
-  InitialRepositoryImpl({required this.localDataSource}) {
-    _accountingTemplate = OpeningBalanceAccountingTemplate(DatabaseService());
+  InitialRepositoryImpl({
+    required this.localDataSource,
+    required this.databaseService,
+  }) {
+    _accountingTemplate = OpeningBalanceAccountingTemplate(databaseService);
   }
 
   @override
@@ -30,22 +34,22 @@ class InitialRepositoryImpl implements InitialRepository {
     
     await _accountingTemplate.createOpeningBalanceEntries(
       openingBalances: balances,
-      date: DateTime.now(),
+      date: balances.first.date,
       statement: 'الأرصدة الافتتاحية للنظام',
     );
   }
 
   @override
   Future<List<OpeningBalanceEntity>> getOpeningBalances() async {
-    final db = await DatabaseService().database;
+    final db = await databaseService.database;
     final result = await db.rawQuery('''
       SELECT 
         oel.id,
         oel.account_id,
         a.name as account_name,
         a.code as account_code,
-        CASE WHEN oel.type = 0 THEN oel.amount ELSE 0 END as debit_amount,
-        CASE WHEN oel.type = 1 THEN oel.amount ELSE 0 END as credit_amount,
+        CASE WHEN oel.type = 1 THEN oel.amount ELSE 0 END as debit_amount,
+        CASE WHEN oel.type = 2 THEN oel.amount ELSE 0 END as credit_amount,
         a.balance,
         oel.currency_code,
         oel.exchange_rate,
@@ -74,7 +78,7 @@ class InitialRepositoryImpl implements InitialRepository {
 
   @override
   Future<bool> hasOpeningBalances() async {
-    final db = await DatabaseService().database;
+    final db = await databaseService.database;
     final result = await db.query('opening_entries', limit: 1);
     return result.isNotEmpty;
   }
@@ -86,7 +90,7 @@ class InitialRepositoryImpl implements InitialRepository {
 
   @override
   Future<void> deleteOpeningBalances() async {
-    final db = await DatabaseService().database;
+    final db = await databaseService.database;
     await db.transaction((txn) async {
       // Delete opening entries (will cascade delete lines)
       await txn.delete('opening_entries');

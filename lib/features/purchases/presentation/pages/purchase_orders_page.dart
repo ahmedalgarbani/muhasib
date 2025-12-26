@@ -5,6 +5,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
+import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
@@ -84,9 +85,11 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
-              // Navigate to create purchase order
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('سيتم إضافة صفحة إنشاء طلب شراء قريباً')),
+              Navigator.push(
+                innerContext,
+                MaterialPageRoute(
+                  builder: (_) => const PurchaseFormPage(invoiceType: 3),
+                ),
               );
             },
             backgroundColor: const Color(0xFF3B82F6),

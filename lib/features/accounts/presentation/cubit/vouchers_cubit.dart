@@ -1,0 +1,108 @@
+import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entities/voucher_entity.dart';
+import '../../domain/usecases/add_voucher.dart';
+import '../../domain/usecases/delete_voucher.dart';
+import '../../domain/usecases/generate_voucher_number.dart';
+import '../../domain/usecases/get_voucher_by_id.dart';
+import '../../domain/usecases/get_vouchers.dart';
+import '../../domain/usecases/update_voucher.dart';
+
+part 'vouchers_state.dart';
+
+class VouchersCubit extends Cubit<VouchersState> {
+  VouchersCubit({
+    required this.getVouchersUseCase,
+    required this.getVoucherByIdUseCase,
+    required this.addVoucherUseCase,
+    required this.updateVoucherUseCase,
+    required this.deleteVoucherUseCase,
+    required this.generateVoucherNumberUseCase,
+  }) : super(const VouchersInitial());
+
+  final GetVouchersUseCase getVouchersUseCase;
+  final GetVoucherByIdUseCase getVoucherByIdUseCase;
+  final AddVoucherUseCase addVoucherUseCase;
+  final UpdateVoucherUseCase updateVoucherUseCase;
+  final DeleteVoucherUseCase deleteVoucherUseCase;
+  final GenerateVoucherNumberUseCase generateVoucherNumberUseCase;
+
+  VoucherType? _currentFilter;
+
+  Future<void> loadVouchers({VoucherType? type}) async {
+    _currentFilter = type;
+    emit(const VouchersLoading());
+    final result = await getVouchersUseCase(
+      params: VoucherFilterParams(type: type),
+    );
+
+    result.fold(
+      (failure) => emit(VouchersFailure(failure.message)),
+      (vouchers) => emit(VouchersLoaded(vouchers, filter: type)),
+    );
+  }
+
+  Future<void> fetchVoucher(int id) async {
+    emit(const VouchersLoading());
+    final result = await getVoucherByIdUseCase(params: id);
+
+    result.fold(
+      (failure) => emit(VouchersFailure(failure.message)),
+      (voucher) => emit(VoucherLoaded(voucher)),
+    );
+  }
+
+  Future<void> saveVoucher(VoucherEntity voucher) async {
+    emit(const VoucherActionInProgress());
+    final isNew = voucher.id == null;
+
+    final result = isNew
+        ? await addVoucherUseCase(params: voucher)
+        : await updateVoucherUseCase(params: voucher);
+
+    await result.fold<Future<void>>(
+      (failure) async => emit(VouchersFailure(failure.message)),
+      (value) async {
+        final voucherId = isNew ? value as int : voucher.id!;
+        final fetchResult = await getVoucherByIdUseCase(params: voucherId);
+
+        fetchResult.fold(
+          (failure) async => emit(
+            VoucherActionSuccess(
+              message: isNew ? 'تم حفظ السند بنجاح' : 'تم تحديث السند بنجاح',
+            ),
+          ),
+          (savedVoucher) async => emit(
+            VoucherActionSuccess(
+              voucher: savedVoucher,
+              message: isNew ? 'تم حفظ السند بنجاح' : 'تم تحديث السند بنجاح',
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> removeVoucher(int id) async {
+    emit(const VoucherActionInProgress());
+    final result = await deleteVoucherUseCase(params: id);
+
+    await result.fold<Future<void>>(
+      (failure) async => emit(VouchersFailure(failure.message)),
+      (_) async {
+        emit(VoucherDeleted(id: id, message: 'تم حذف السند بنجاح'));
+        await loadVouchers(type: _currentFilter);
+      },
+    );
+  }
+
+  Future<void> refreshNumber(VoucherType type) async {
+    final result = await generateVoucherNumberUseCase(params: type);
+
+    result.fold(
+      (failure) => emit(VouchersFailure(failure.message)),
+      (number) => emit(VoucherNumberGenerated(type: type, number: number)),
+    );
+  }
+}
+

@@ -13,6 +13,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart'
 import 'package:muhasib/features/sales/presentation/widgets/components/improved_step1_customer.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_dialog.dart';
 import 'package:muhasib/features/sales/domain/templates/improved_sales_accounting_template.dart';
+import 'package:muhasib/core/services/account_config_service.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 
@@ -93,6 +94,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
       final hasDeferred = _payments.any((p) => p.method == PaymentMethod.deferred);
       final totalPaid = _payments.fold(0.0, (sum, p) => sum + p.amount);
       final isFullyPaid = totalPaid >= finalAmount;
+      final transType = isQuotation ? 0 : (hasDeferred || !isFullyPaid ? 1 : 0);
 
       // Create invoice lines
       final invoiceLines = _invoice.items.map((item) {
@@ -107,7 +109,8 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
           stockId: 1, // Will be set from warehouse
           customerId: int.parse(_invoice.customer!.id),
           date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
-          invoiceTransType: hasDeferred || !isFullyPaid ? 1 : 0, // 1=credit, 0=cash
+          // For quotations: keep trans type = 0 to avoid mixing with purchase orders
+          invoiceTransType: transType, // 1=credit, 0=cash
           netRevenueAmt: item.total,
           invoiceId: 0, // Will be set after creation
         );
@@ -125,8 +128,8 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
         totalAmount: _invoice.subtotal,
         finalAmt: finalAmount,
         invoiceType: isQuotation ? 3 : 1,
-        invoiceTransType: hasDeferred || !isFullyPaid ? 1 : 0,
-        paymentStatus: isFullyPaid ? 1 : 0,
+        invoiceTransType: transType,
+        paymentStatus: isQuotation ? 0 : (isFullyPaid ? 1 : 0),
         lines: invoiceLines,
         statement: _invoice.notes,
       );
@@ -136,10 +139,15 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
 
       // Create accounting entries if not quotation
       if (!isQuotation) {
+        // Fetch account config
+        final accountConfigService = getIt<AccountConfigService>();
+        final salesConfig = await accountConfigService.getSalesAccountConfig();
+
         final entries = ImprovedSalesAccountingTemplate.createSalesInvoiceEntries(
           invoice: invoiceEntity,
           payments: _payments,
           customer: _invoice.customer!,
+          config: salesConfig,
           inventoryCost: _calculateInventoryCost(),
         );
 

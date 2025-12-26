@@ -15,22 +15,6 @@ class MainDrawerHeaderSection extends StatelessWidget {
       child: SafeArea(
         child: Column(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-                Row(
-                  children: const [
-                    MainDrawerHeaderIcon(icon: Icons.nightlight_round),
-                    MainDrawerHeaderIcon(icon: Icons.language),
-                    MainDrawerHeaderIcon(icon: Icons.palette),
-                  ],
-                ),
-              ],
-            ),
             const SizedBox(height: 16),
             const Text(
               'محاسب',

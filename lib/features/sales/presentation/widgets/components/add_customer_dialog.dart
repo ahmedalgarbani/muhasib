@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
-import 'package:muhasib/core/services/database_service.dart';
-import 'package:muhasib/core/helpers/get_it.dart';
 
 class AddCustomerDialog extends StatefulWidget {
-  const AddCustomerDialog({Key? key}) : super(key: key);
+  /// partyType: 1 = customer, 2 = supplier
+  final int partyType;
+
+  const AddCustomerDialog({
+    super.key,
+    this.partyType = 1,
+  });
 
   @override
   State<AddCustomerDialog> createState() => _AddCustomerDialogState();
@@ -20,8 +23,6 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
   final _creditLimitController = TextEditingController(text: '0');
   final _openingBalanceController = TextEditingController(text: '0');
   
-  int _customerType = 1; // 1 = نقدي, 2 = آجل
-  bool _isActive = true;
   bool _isLoading = false;
 
   @override
@@ -42,118 +43,27 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
     setState(() => _isLoading = true);
 
     try {
-      final databaseService = getIt<DatabaseService>();
-      final db = await databaseService.database;
-      
-      // First, find or create the "العملاء" parent account
-      final customersParentAccount = await db.query(
-        'accounts',
-        where: 'name = ? AND is_master = 1',
-        whereArgs: ['العملاء'],
-        limit: 1,
-      );
-      
-      int customersParentId;
-      int customersParentCId;
-      
-      if (customersParentAccount.isEmpty) {
-        // Create العملاء parent account if it doesn't exist
-        customersParentId = await db.insert('accounts', {
-          'c_id': 120, // Standard code for customers accounts
-          'code': '120',
-          'name': 'العملاء',
-          'is_master': 1,
-          'type': 1, // Assets type
-          'national': 1,
-          'is_active': 1,
-          'allow_update_delete': 0,
-          'balance': 0.0,
-          'local_balance': 0.0,
-          'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        });
-        customersParentCId = 120;
-      } else {
-        customersParentId = customersParentAccount.first['id'] as int;
-        customersParentCId = customersParentAccount.first['c_id'] as int;
-      }
-      
-      // Generate a unique code for the customer account
-      final lastCustomerAccount = await db.rawQuery(
-        'SELECT MAX(CAST(code AS INTEGER)) as max_code FROM accounts WHERE master_id = ?',
-        [customersParentId],
-      );
-      
-      int nextCode = 12001; // Start from 12001 for customer accounts
-      if (lastCustomerAccount.isNotEmpty && lastCustomerAccount.first['max_code'] != null) {
-        nextCode = (lastCustomerAccount.first['max_code'] as int) + 1;
-      }
-      
-      // Create account for the customer
-      final accountId = await db.insert('accounts', {
-        'c_id': nextCode,
-        'code': nextCode.toString(),
-        'name': _nameController.text.trim(),
-        'is_master': 0,
-        'master_id': customersParentId,
-        'master_c_id': customersParentCId,
-        'type': 1, // Assets type
-        'national': 1,
-        'statement': 'حساب العميل: ${_nameController.text.trim()}',
-        'is_active': _isActive ? 1 : 0,
-        'allow_update_delete': 1,
-        'balance': double.tryParse(_openingBalanceController.text) ?? 0.0,
-        'local_balance': double.tryParse(_openingBalanceController.text) ?? 0.0,
-        'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      });
-      
-      // Check if classifications table has data, if not, seed it
-      final classificationsCount = await db.rawQuery('SELECT COUNT(*) as count FROM classifications');
-      if ((classificationsCount.first['count'] as int) == 0) {
-        await db.insert('classifications', {
-          'id': 1,
-          'name': 'عملاء عاديين',
-          'singler_name': 'عميل',
-          'order': 1,
-          'type': 1,
-          'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        });
-      }
-      
-      // Create the customer record
-      final customerId = await db.insert('customers', {
-        'name': _nameController.text.trim(),
-        'type': _customerType,
-        'classification': 1,
-        'classification_id': 1,
-        'contact': _phoneController.text.trim(),
-        'contact_type': 1, // Phone
-        'is_active': _isActive ? 1 : 0,
-        'account_id': accountId,
-        'credit_limit': double.tryParse(_creditLimitController.text) ?? 0.0,
-        'current_balance': double.tryParse(_openingBalanceController.text) ?? 0.0,
-        'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      });
-      
-      // Create Customer object to return
-      final newCustomer = Customer(
-        id: customerId.toString(),
+      // Use CustomersCubit to add customer - this handles dynamic account linking
+      final cubit = context.read<CustomersCubit>();
+      final customer = await cubit.addCustomer(
         name: _nameController.text.trim(),
-        balance: double.tryParse(_openingBalanceController.text) ?? 0.0,
+        phone: _phoneController.text.trim().isEmpty ? null : _phoneController.text.trim(),
+        address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+        type: widget.partyType, // 1=customer, 2=supplier
         creditLimit: double.tryParse(_creditLimitController.text) ?? 0.0,
+        openingBalance: double.tryParse(_openingBalanceController.text) ?? 0.0,
       );
       
-      // Reload customers in the CustomersCubit
-      if (context.mounted) {
-        context.read<CustomersCubit>().loadCustomers();
-        Navigator.of(context).pop(newCustomer);
+      if (customer != null && context.mounted) {
+        Navigator.of(context).pop(customer);
         
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('تم إضافة العميل "${_nameController.text.trim()}" بنجاح'),
+            content: Text(
+              widget.partyType == 2
+                  ? 'تم إضافة المورد "${customer.name}" بنجاح'
+                  : 'تم إضافة العميل "${customer.name}" بنجاح',
+            ),
             backgroundColor: Colors.green,
           ),
         );
@@ -176,6 +86,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final isSupplier = widget.partyType == 2;
     return Dialog(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -195,8 +106,8 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
-                        'إضافة عميل جديد',
+                      Text(
+                        isSupplier ? 'إضافة مورد جديد' : 'إضافة عميل جديد',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -214,14 +125,14 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   // Customer Name
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'اسم العميل *',
-                      prefixIcon: Icon(Icons.person),
+                    decoration: InputDecoration(
+                      labelText: isSupplier ? 'اسم المورد *' : 'اسم العميل *',
+                      prefixIcon: Icon(isSupplier ? Icons.business : Icons.person),
                       border: OutlineInputBorder(),
                     ),
                     validator: (value) {
                       if (value == null || value.trim().isEmpty) {
-                        return 'يرجى إدخال اسم العميل';
+                        return isSupplier ? 'يرجى إدخال اسم المورد' : 'يرجى إدخال اسم العميل';
                       }
                       return null;
                     },
@@ -252,60 +163,26 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   ),
                   const SizedBox(height: 16),
                   
-                  // Customer Type
-                  const Text(
-                    'نوع العميل',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: RadioListTile<int>(
-                          title: const Text('نقدي'),
-                          value: 1,
-                          groupValue: _customerType,
-                          onChanged: (value) {
-                            setState(() => _customerType = value!);
-                          },
-                        ),
-                      ),
-                      Expanded(
-                        child: RadioListTile<int>(
-                          title: const Text('آجل'),
-                          value: 2,
-                          groupValue: _customerType,
-                          onChanged: (value) {
-                            setState(() => _customerType = value!);
-                          },
-                        ),
-                      ),
-                    ],
+                  // Credit Limit (optional)
+                  TextFormField(
+                    controller: _creditLimitController,
+                    decoration: const InputDecoration(
+                      labelText: 'حد الائتمان (اختياري)',
+                      prefixIcon: Icon(Icons.credit_card),
+                      border: OutlineInputBorder(),
+                      suffixText: 'ريال',
+                    ),
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (double.tryParse(value) == null) {
+                          return 'يرجى إدخال رقم صحيح';
+                        }
+                      }
+                      return null;
+                    },
                   ),
                   const SizedBox(height: 16),
-                  
-                  // Credit Limit (only for credit customers)
-                  if (_customerType == 2) ...[
-                    TextFormField(
-                      controller: _creditLimitController,
-                      decoration: const InputDecoration(
-                        labelText: 'حد الائتمان',
-                        prefixIcon: Icon(Icons.credit_card),
-                        border: OutlineInputBorder(),
-                        suffixText: 'ريال',
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty) {
-                          if (double.tryParse(value) == null) {
-                            return 'يرجى إدخال رقم صحيح';
-                          }
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                  ],
                   
                   // Opening Balance
                   TextFormField(
@@ -327,17 +204,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  
-                  // Active Status
-                  SwitchListTile(
-                    title: const Text('نشط'),
-                    subtitle: const Text('يمكن استخدام العميل في الفواتير'),
-                    value: _isActive,
-                    onChanged: (value) {
-                      setState(() => _isActive = value);
-                    },
-                  ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 8),
                   
                   // Action Buttons
                   Row(

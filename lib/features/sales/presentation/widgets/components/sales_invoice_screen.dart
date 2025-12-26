@@ -4,12 +4,10 @@ import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart'
     hide SalesInvoiceScreen;
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
-import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:go_router/go_router.dart';
 
 class SalesInvoiceScreen extends StatefulWidget {
@@ -40,8 +38,8 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
       payments: [],
     );
 
-    // Load accounts and products
-    context.read<AccountsCubit>().loadAllAccounts();
+    // Load customers (from customers table) and products
+    context.read<CustomersCubit>().loadCustomers();
     context.read<ProductsCubit>().loadProducts();
   }
 
@@ -202,21 +200,11 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
           ),
         ),
         body: SafeArea(
-          child: BlocBuilder<AccountsCubit, AccountsState>(
-            builder: (context, accountsState) {
-              List<Customer> customers = [];
-              if (accountsState is AccountsLoaded) {
-                customers = accountsState.accounts
-                    .map(
-                      (a) => Customer(
-                        id: a.id.toString(),
-                        name: a.name,
-                        balance: a.balance,
-                        creditLimit: 0,
-                      ),
-                    )
-                    .toList();
-              }
+          child: BlocBuilder<CustomersCubit, CustomersState>(
+            builder: (context, customersState) {
+              final customers = customersState is CustomersLoaded
+                  ? customersState.customers
+                  : <Customer>[];
 
               return BlocBuilder<ProductsCubit, ProductsState>(
                 builder: (context, productsState) {

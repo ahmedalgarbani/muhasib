@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
+import 'package:muhasib/features/reports/domain/entities/sales_summary_entity.dart';
+import 'package:muhasib/features/reports/presentation/cubit/sales_summary_cubit.dart';
+import 'package:muhasib/features/reports/presentation/cubit/sales_summary_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
 
@@ -8,196 +13,270 @@ class SalesSummaryReportPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReportBasePage(
-      title: 'ملخص المبيعات',
-      icon: Icons.summarize,
-      color: const Color(0xFF388E3C),
-      reportBuilder: (filter) => _SalesSummaryContent(filter: filter),
+    return BlocProvider(
+      create: (context) => getIt<SalesSummaryCubit>()..loadSalesSummary(),
+      child: ReportBasePage(
+        title: 'ملخص المبيعات',
+        icon: Icons.summarize,
+        color: const Color(0xFF388E3C),
+        reportBuilder: (filter) => _SalesSummaryContent(filter: filter),
+      ),
     );
   }
 }
 
-class _SalesSummaryContent extends StatelessWidget {
+class _SalesSummaryContent extends StatefulWidget {
   final ReportFilter filter;
 
   const _SalesSummaryContent({required this.filter});
 
   @override
+  State<_SalesSummaryContent> createState() => _SalesSummaryContentState();
+}
+
+class _SalesSummaryContentState extends State<_SalesSummaryContent> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SalesSummaryCubit>().updateDateRange(widget.filter);
+    });
+  }
+
+  @override
+  void didUpdateWidget(_SalesSummaryContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      context.read<SalesSummaryCubit>().updateDateRange(widget.filter);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Summary cards
-          ReportSummaryRow(
-            cards: const [
-              ReportSummaryCard(
-                title: 'إجمالي المبيعات',
-                value: '125,500 ر.س',
-                icon: Icons.attach_money,
-                color: Colors.green,
-                change: 12.5,
-              ),
-              ReportSummaryCard(
-                title: 'عدد الفواتير',
-                value: '45',
-                icon: Icons.receipt,
-                color: Colors.blue,
-                change: 8.2,
-              ),
-              ReportSummaryCard(
-                title: 'الخصومات',
-                value: '3,200 ر.س',
-                icon: Icons.discount,
-                color: Colors.orange,
-                change: -5.0,
-              ),
-              ReportSummaryCard(
-                title: 'الضرائب',
-                value: '18,825 ر.س',
-                icon: Icons.percent,
-                color: Colors.purple,
-              ),
-            ],
-          ),
+    return BlocBuilder<SalesSummaryCubit, SalesSummaryState>(
+      builder: (context, state) {
+        if (state is SalesSummaryLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          const SizedBox(height: 16),
+        if (state is SalesSummaryError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'خطأ: ${state.message}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<SalesSummaryCubit>().refresh();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('إعادة المحاولة'),
+                ),
+              ],
+            ),
+          );
+        }
 
-          // Charts section
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'المبيعات حسب الفترة',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        if (state is SalesSummaryLoaded) {
+          final summary = state.summary;
+
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Summary cards
+                ReportSummaryRow(
+                  cards: [
+                    ReportSummaryCard(
+                      title: 'إجمالي المبيعات',
+                      value: '${summary.totalSales.toStringAsFixed(0)} ر.س',
+                      icon: Icons.attach_money,
+                      color: Colors.green,
                     ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      height: 200,
-                      child: _buildSimpleBarChart(),
+                    ReportSummaryCard(
+                      title: 'عدد الفواتير',
+                      value: '${summary.invoiceCount}',
+                      icon: Icons.receipt,
+                      color: Colors.blue,
+                    ),
+                    ReportSummaryCard(
+                      title: 'الخصومات',
+                      value: '${summary.totalDiscounts.toStringAsFixed(0)} ر.س',
+                      icon: Icons.discount,
+                      color: Colors.orange,
+                    ),
+                    ReportSummaryCard(
+                      title: 'صافي المبيعات',
+                      value: '${summary.netSales.toStringAsFixed(0)} ر.س',
+                      icon: Icons.account_balance_wallet,
+                      color: Colors.purple,
                     ),
                   ],
                 ),
-              ),
-            ),
-          ),
 
-          const SizedBox(height: 16),
+                const SizedBox(height: 16),
 
-          // Top products
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'أكثر المنتجات مبيعاً',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // Daily Sales Chart
+                if (summary.dailySales.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'المبيعات اليومية',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            SizedBox(
+                              height: 200,
+                              child: _buildDailySalesChart(summary.dailySales),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildTopProductsList(),
-                  ],
-                ),
-              ),
-            ),
-          ),
+                  ),
 
-          const SizedBox(height: 16),
+                if (summary.dailySales.isNotEmpty)
+                  const SizedBox(height: 16),
 
-          // Top customers
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'أكثر العملاء شراءً',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                // Top products
+                if (summary.topProducts.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'أكثر المنتجات مبيعاً',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildTopProductsList(summary.topProducts),
+                          ],
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    _buildTopCustomersList(),
-                  ],
-                ),
-              ),
-            ),
-          ),
+                  ),
 
-          const SizedBox(height: 32),
-        ],
-      ),
+                if (summary.topProducts.isNotEmpty)
+                  const SizedBox(height: 16),
+
+                // Top customers
+                if (summary.topCustomers.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Card(
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'أكثر العملاء شراءً',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 16),
+                            _buildTopCustomersList(summary.topCustomers),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+
+                const SizedBox(height: 32),
+              ],
+            ),
+          );
+        }
+
+        return const Center(child: Text('لا توجد بيانات'));
+      },
     );
   }
 
-  Widget _buildSimpleBarChart() {
-    final data = [
-      _ChartData('السبت', 15000),
-      _ChartData('الأحد', 22000),
-      _ChartData('الاثنين', 18500),
-      _ChartData('الثلاثاء', 25000),
-      _ChartData('الأربعاء', 20000),
-      _ChartData('الخميس', 28000),
-      _ChartData('الجمعة', 12000),
-    ];
+  Widget _buildDailySalesChart(Map<String, double> dailySales) {
+    if (dailySales.isEmpty) {
+      return const Center(
+        child: Text('لا توجد بيانات', style: TextStyle(color: Colors.grey)),
+      );
+    }
 
-    final maxValue = data.map((e) => e.value).reduce((a, b) => a > b ? a : b);
+    final entries = dailySales.entries.toList();
+    if (entries.length > 7) {
+      entries.removeRange(0, entries.length - 7);
+    }
+
+    final maxValue = entries.isEmpty ? 1.0 : entries.map((e) => e.value).reduce((a, b) => a > b ? a : b);
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       crossAxisAlignment: CrossAxisAlignment.end,
-      children: data.map((item) {
-        final heightPercent = item.value / maxValue;
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Text(
-              '${(item.value / 1000).toStringAsFixed(0)}k',
-              style: const TextStyle(fontSize: 10, color: Colors.grey),
-            ),
-            const SizedBox(height: 4),
-            Container(
-              width: 32,
-              height: 140 * heightPercent,
-              decoration: BoxDecoration(
-                color: const Color(0xFF388E3C),
-                borderRadius: BorderRadius.circular(4),
+      children: entries.map((entry) {
+        final heightPercent = maxValue > 0 ? entry.value / maxValue : 0.0;
+        final date = DateTime.tryParse(entry.key);
+        final dayName = _getDayName(date);
+        
+        return Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Text(
+                '${(entry.value / 1000).toStringAsFixed(0)}k',
+                style: const TextStyle(fontSize: 10, color: Colors.grey),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              item.label,
-              style: const TextStyle(fontSize: 10),
-            ),
-          ],
+              const SizedBox(height: 4),
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                height: 140 * heightPercent,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF388E3C),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                dayName,
+                style: const TextStyle(fontSize: 10),
+              ),
+            ],
+          ),
         );
       }).toList(),
     );
   }
 
-  Widget _buildTopProductsList() {
-    final products = [
-      _ProductSale('هاتف آيفون 15', 25, 45000),
-      _ProductSale('سماعات أيربودز', 40, 28000),
-      _ProductSale('شاحن سريع', 85, 12750),
-      _ProductSale('كفر حماية', 120, 9600),
-      _ProductSale('واقي شاشة', 200, 8000),
-    ];
+  String _getDayName(DateTime? date) {
+    if (date == null) return '';
+    final days = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    return days[date.weekday % 7];
+  }
+
+  Widget _buildTopProductsList(List<TopProductEntity> products) {
+    if (products.isEmpty) {
+      return const Center(
+        child: Text('لا توجد منتجات', style: TextStyle(color: Colors.grey)),
+      );
+    }
 
     return Column(
-      children: products.asMap().entries.map((entry) {
+      children: products.take(5).toList().asMap().entries.map((entry) {
         final index = entry.key;
         final product = entry.value;
         return Container(
@@ -231,13 +310,13 @@ class _SalesSummaryContent extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(product.name, style: const TextStyle(fontWeight: FontWeight.w500)),
-                    Text('${product.quantity} وحدة', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                    Text(product.productName, style: const TextStyle(fontWeight: FontWeight.w500)),
+                    Text('${product.quantity.toStringAsFixed(0)} وحدة', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                   ],
                 ),
               ),
               Text(
-                '${product.total.toStringAsFixed(0)} ر.س',
+                '${product.totalAmount.toStringAsFixed(0)} ر.س',
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C)),
               ),
             ],
@@ -247,17 +326,15 @@ class _SalesSummaryContent extends StatelessWidget {
     );
   }
 
-  Widget _buildTopCustomersList() {
-    final customers = [
-      _CustomerSale('شركة التقنية المتقدمة', 12, 35000),
-      _CustomerSale('مؤسسة الأمل', 8, 22500),
-      _CustomerSale('محمد أحمد', 15, 18000),
-      _CustomerSale('سارة خالد', 6, 12000),
-      _CustomerSale('عبدالله محمد', 10, 9500),
-    ];
+  Widget _buildTopCustomersList(List<TopCustomerEntity> customers) {
+    if (customers.isEmpty) {
+      return const Center(
+        child: Text('لا يوجد عملاء', style: TextStyle(color: Colors.grey)),
+      );
+    }
 
     return Column(
-      children: customers.asMap().entries.map((entry) {
+      children: customers.take(5).toList().asMap().entries.map((entry) {
         final index = entry.key;
         final customer = entry.value;
         return Container(
@@ -273,7 +350,7 @@ class _SalesSummaryContent extends StatelessWidget {
                 radius: 20,
                 backgroundColor: const Color(0xFF388E3C).withOpacity(0.1),
                 child: Text(
-                  customer.name.substring(0, 1),
+                  customer.customerName.isNotEmpty ? customer.customerName.substring(0, 1) : '',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF388E3C),
@@ -285,13 +362,13 @@ class _SalesSummaryContent extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(customer.name, style: const TextStyle(fontWeight: FontWeight.w500)),
+                    Text(customer.customerName, style: const TextStyle(fontWeight: FontWeight.w500)),
                     Text('${customer.invoiceCount} فاتورة', style: TextStyle(fontSize: 12, color: Colors.grey[600])),
                   ],
                 ),
               ),
               Text(
-                '${customer.total.toStringAsFixed(0)} ر.س',
+                '${customer.totalPurchases.toStringAsFixed(0)} ر.س',
                 style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF388E3C)),
               ),
             ],
@@ -300,25 +377,5 @@ class _SalesSummaryContent extends StatelessWidget {
       }).toList(),
     );
   }
-}
-
-class _ChartData {
-  final String label;
-  final double value;
-  _ChartData(this.label, this.value);
-}
-
-class _ProductSale {
-  final String name;
-  final int quantity;
-  final double total;
-  _ProductSale(this.name, this.quantity, this.total);
-}
-
-class _CustomerSale {
-  final String name;
-  final int invoiceCount;
-  final double total;
-  _CustomerSale(this.name, this.invoiceCount, this.total);
 }
 

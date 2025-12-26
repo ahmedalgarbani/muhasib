@@ -2,26 +2,18 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/journal_entry_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/journal_line_entity.dart';
 import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/core/services/account_config_service.dart';
 
 /// قالب محاسبي محسّن للمبيعات
 /// يدعم جميع سيناريوهات الدفع والترحيل المحاسبي
 class ImprovedSalesAccountingTemplate {
-  // معرفات الحسابات الافتراضية
-  static const int salesAccountId = 401; // حساب المبيعات
-  static const int cashAccountId = 121; // حساب الصندوق
-  static const int bankAccountId = 122; // حساب البنك
-  static const int customersAccountId = 120; // حساب العملاء
-  static const int taxAccountId = 222; // حساب ضريبة المبيعات
-  static const int salesReturnsAccountId = 402; // حساب مردودات المبيعات
-  static const int discountAllowedAccountId = 403; // حساب الخصم المسموح
-  static const int inventoryAccountId = 141; // حساب المخزون
-  static const int costOfGoodsSoldAccountId = 501; // حساب تكلفة البضاعة المباعة
-
+  
   /// إنشاء قيود محاسبية لفاتورة مبيعات مع دفعات متعددة
   static List<JournalEntryEntity> createSalesInvoiceEntries({
     required InvoiceEntity invoice,
     required List<Payment> payments,
     required Customer customer,
+    required SalesAccountConfig config,
     double? inventoryCost,
   }) {
     final entries = <JournalEntryEntity>[];
@@ -60,7 +52,7 @@ class ImprovedSalesAccountingTemplate {
     // الجانب المدين - النقد والبنك والعملاء
     if (cashPayments > 0) {
       lines.add(JournalLineEntity(
-        accountId: cashAccountId,
+        accountId: config.cashAccountId,
         debit: cashPayments,
         credit: 0,
         description: 'مبيعات نقدية - فاتورة ${invoice.number}',
@@ -71,7 +63,7 @@ class ImprovedSalesAccountingTemplate {
     
     if (bankPayments > 0) {
       lines.add(JournalLineEntity(
-        accountId: bankAccountId,
+        accountId: config.bankAccountId,
         debit: bankPayments,
         credit: 0,
         description: 'مبيعات بنكية - فاتورة ${invoice.number}',
@@ -84,7 +76,7 @@ class ImprovedSalesAccountingTemplate {
       // مبلغ آجل أو متبقي
       final deferredAmount = remainingAmount > 0 ? remainingAmount : deferredPayments;
       lines.add(JournalLineEntity(
-        accountId: customersAccountId,
+        accountId: config.customersAccountId,
         debit: deferredAmount,
         credit: 0,
         description: 'ذمة مدينة للعميل ${customer.name}',
@@ -97,7 +89,7 @@ class ImprovedSalesAccountingTemplate {
     
     // الجانب الدائن - المبيعات والضريبة
     lines.add(JournalLineEntity(
-      accountId: salesAccountId,
+      accountId: config.salesAccountId,
       debit: 0,
       credit: subtotal,
       description: 'إيراد مبيعات - فاتورة ${invoice.number}',
@@ -107,7 +99,7 @@ class ImprovedSalesAccountingTemplate {
     
     if (taxAmount > 0) {
       lines.add(JournalLineEntity(
-        accountId: taxAccountId,
+        accountId: config.taxAccountId,
         debit: 0,
         credit: taxAmount,
         description: 'ضريبة مبيعات ${invoice.taxRatio ?? 15}%',
@@ -119,7 +111,7 @@ class ImprovedSalesAccountingTemplate {
     // الخصم المسموح (إن وجد)
     if (discountAmount > 0) {
       lines.add(JournalLineEntity(
-        accountId: discountAllowedAccountId,
+        accountId: config.discountAllowedAccountId,
         debit: discountAmount,
         credit: 0,
         description: 'خصم مسموح به على المبيعات',
@@ -147,7 +139,7 @@ class ImprovedSalesAccountingTemplate {
         referenceId: invoice.id,
         lines: [
           JournalLineEntity(
-            accountId: costOfGoodsSoldAccountId,
+            accountId: config.costOfGoodsSoldAccountId,
             debit: inventoryCost,
             credit: 0,
             description: 'تكلفة البضاعة المباعة',
@@ -155,7 +147,7 @@ class ImprovedSalesAccountingTemplate {
             referenceId: invoice.id,
           ),
           JournalLineEntity(
-            accountId: inventoryAccountId,
+            accountId: config.inventoryAccountId,
             debit: 0,
             credit: inventoryCost,
             description: 'تخفيض المخزون',
@@ -178,7 +170,7 @@ class ImprovedSalesAccountingTemplate {
         referenceId: invoice.id,
         lines: [
           JournalLineEntity(
-            accountId: customersAccountId,
+            accountId: config.customersAccountId,
             debit: 0,
             credit: overpayment,
             description: 'رصيد دائن للعميل ${customer.name}',
@@ -188,7 +180,7 @@ class ImprovedSalesAccountingTemplate {
             partnerType: 'customer',
           ),
           JournalLineEntity(
-            accountId: cashPayments > totalAmount ? cashAccountId : bankAccountId,
+            accountId: cashPayments > totalAmount ? config.cashAccountId : config.bankAccountId,
             debit: overpayment,
             credit: 0,
             description: 'دفعة زائدة مرحلة لرصيد العميل',
@@ -208,13 +200,14 @@ class ImprovedSalesAccountingTemplate {
   static JournalEntryEntity createSalesReturnEntry({
     required InvoiceEntity returnInvoice,
     required Customer customer,
+    required SalesAccountConfig config,
     double? inventoryCost,
   }) {
     final lines = <JournalLineEntity>[];
     
     // مدين: حساب مردودات المبيعات
     lines.add(JournalLineEntity(
-      accountId: salesReturnsAccountId,
+      accountId: config.salesReturnsAccountId,
       debit: returnInvoice.amount,
       credit: 0,
       description: 'مردودات مبيعات - فاتورة ${returnInvoice.number}',
@@ -225,7 +218,7 @@ class ImprovedSalesAccountingTemplate {
     // مدين: حساب الضريبة (عكس الضريبة)
     if (returnInvoice.taxAmt != null && returnInvoice.taxAmt! > 0) {
       lines.add(JournalLineEntity(
-        accountId: taxAccountId,
+        accountId: config.taxAccountId,
         debit: returnInvoice.taxAmt!,
         credit: 0,
         description: 'عكس ضريبة مبيعات',
@@ -238,7 +231,7 @@ class ImprovedSalesAccountingTemplate {
     final isCredit = returnInvoice.invoiceTransType == 1;
     if (isCredit) {
       lines.add(JournalLineEntity(
-        accountId: customersAccountId,
+        accountId: config.customersAccountId,
         debit: 0,
         credit: returnInvoice.finalAmt ?? returnInvoice.amount,
         description: 'تخفيض ذمة العميل ${customer.name}',
@@ -249,7 +242,7 @@ class ImprovedSalesAccountingTemplate {
       ));
     } else {
       lines.add(JournalLineEntity(
-        accountId: cashAccountId,
+        accountId: config.cashAccountId,
         debit: 0,
         credit: returnInvoice.finalAmt ?? returnInvoice.amount,
         description: 'إرجاع نقدي للعميل',
@@ -261,7 +254,7 @@ class ImprovedSalesAccountingTemplate {
     // دائن: حساب الخصم المسموح (عكس الخصم)
     if (returnInvoice.discountAmt != null && returnInvoice.discountAmt! > 0) {
       lines.add(JournalLineEntity(
-        accountId: discountAllowedAccountId,
+        accountId: config.discountAllowedAccountId,
         debit: 0,
         credit: returnInvoice.discountAmt!,
         description: 'عكس خصم مسموح',
@@ -288,13 +281,14 @@ class ImprovedSalesAccountingTemplate {
     required double amount,
     required int date,
     required PaymentMethod paymentMethod,
+    required SalesAccountConfig config,
     String? referenceNumber,
     String? notes,
   }) {
     final lines = <JournalLineEntity>[];
     
     // مدين: حساب النقد/البنك
-    final paymentAccountId = paymentMethod == PaymentMethod.bank ? bankAccountId : cashAccountId;
+    final paymentAccountId = paymentMethod == PaymentMethod.bank ? config.bankAccountId : config.cashAccountId;
     lines.add(JournalLineEntity(
       accountId: paymentAccountId,
       debit: amount,
@@ -307,7 +301,7 @@ class ImprovedSalesAccountingTemplate {
     
     // دائن: حساب العملاء
     lines.add(JournalLineEntity(
-      accountId: customersAccountId,
+      accountId: config.customersAccountId,
       debit: 0,
       credit: amount,
       description: 'سداد من العميل $customerName',
@@ -331,6 +325,7 @@ class ImprovedSalesAccountingTemplate {
     required List<InvoiceEntity> invoices,
     required List<JournalEntryEntity> payments,
     required int customerId,
+    required SalesAccountConfig config,
   }) {
     double balance = 0;
     
@@ -352,7 +347,7 @@ class ImprovedSalesAccountingTemplate {
       for (final line in payment.lines) {
         if (line.partnerId == customerId && 
             line.partnerType == 'customer' &&
-            line.accountId == customersAccountId) {
+            line.accountId == config.customersAccountId) {
           if (line.credit > 0) {
             balance -= line.credit; // سداد من العميل
           } else if (line.debit > 0) {

@@ -138,7 +138,7 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
 
     // Date filter
     if (filter.startDate != null && filter.endDate != null) {
-      whereClause = 'invoice_date >= ? AND invoice_date <= ?';
+      whereClause = 'date >= ? AND date <= ?';
       whereArgs = [
         filter.startDate!.millisecondsSinceEpoch ~/ 1000,
         filter.endDate!.millisecondsSinceEpoch ~/ 1000,
@@ -157,7 +157,7 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
     // Search query
     if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
       if (whereClause.isNotEmpty) whereClause += ' AND ';
-      whereClause += '(invoice_number LIKE ? OR description LIKE ?)';
+      whereClause += '(number LIKE ? OR statement LIKE ?)';
       final searchPattern = '%${filter.searchQuery}%';
       whereArgs.addAll([searchPattern, searchPattern]);
     }
@@ -166,45 +166,107 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
       'invoices',
       where: whereClause.isEmpty ? null : whereClause,
       whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: orderBy.replaceAll('entry_date', 'invoice_date')
-                     .replaceAll('total_debit', 'invoice_amount'),
+      orderBy: orderBy
+          .replaceAll('entry_date', 'date')
+          .replaceAll('total_debit', 'final_amt'),
     );
 
     for (final invoice in invoices) {
-      final lines = await db.query(
-        'invoice_lines',
-        where: 'invoice_id = ?',
-        whereArgs: [invoice['invoice_id']],
-      );
+      final invoiceId = invoice['id'] as int;
+      final invoiceDate = (invoice['date'] as int?) ?? 0;
+      final invoiceNumber = (invoice['number'] ?? '') as String;
+      final invoiceType = (invoice['invoice_type'] as int?) ?? 0;
+      final invoiceAmount = (invoice['final_amt'] as num?)?.toDouble() ??
+          (invoice['total_amount'] as num?)?.toDouble() ??
+          (invoice['amount'] as num?)?.toDouble() ??
+          0.0;
 
       // Convert invoice to transaction format
       final transactionData = {
-        'id': invoice['invoice_id'],
-        'entry_date': invoice['invoice_date'],
-        'description': invoice['description'] ?? 
-            (invoice['invoice_type'] == 1 ? 'فاتورة مبيعات' : 'فاتورة مشتريات'),
-        'number': invoice['invoice_number'],
+        'id': invoiceId,
+        'entry_date': invoiceDate,
+        'description': invoice['statement'] ??
+            (invoiceType == 1 ? 'فاتورة مبيعات' : 'فاتورة مشتريات'),
+        'number': invoiceNumber,
         'reference_type': invoice['invoice_type'] == 1 ? 'sales' : 'purchase',
-        'total_debit': invoice['invoice_amount'],
-        'total_credit': invoice['invoice_amount'],
-        'reference_id': invoice['invoice_id'],
+        'total_debit': invoiceAmount,
+        'total_credit': invoiceAmount,
+        'reference_id': invoiceId,
         'creator_id': invoice['creator_id'],
         'creation_time': invoice['creation_time'],
       };
 
-      // Convert invoice lines to journal entry lines format
-      final journalLines = lines.map((line) => {
-        'id': line['invoice_line_id'],
-        'account_id': line['account_id'] ?? 1,
-        'account_name': line['item_name'] ?? '',
-        'account_code': line['item_code'] ?? '',
-        'debit_amount': invoice['invoice_type'] == 1 ? 0.0 : (line['amount'] ?? 0.0),
-        'credit_amount': invoice['invoice_type'] == 1 ? (line['amount'] ?? 0.0) : 0.0,
-        'notes': line['notes'],
-      }).toList();
+      // Build accounting-correct two-line entry using account_connects mapping:
+      // - Sales: Dr Customers, Cr Sales
+      // - Purchase: Dr Purchases, Cr Suppliers
+      final debitAccount = await _getConnectedAccount(db, invoiceType == 1 ? 2 : 10);
+      final creditAccount = await _getConnectedAccount(db, invoiceType == 1 ? 7 : 3);
+
+      final journalLines = <Map<String, dynamic>>[
+        {
+          'id': invoiceId * 10 + 1,
+          'account_id': debitAccount['id'],
+          'account_code': debitAccount['code'],
+          'account_name': debitAccount['name'],
+          'debit_amount': invoiceAmount,
+          'credit_amount': 0.0,
+          'notes': invoice['statement'],
+        },
+        {
+          'id': invoiceId * 10 + 2,
+          'account_id': creditAccount['id'],
+          'account_code': creditAccount['code'],
+          'account_name': creditAccount['name'],
+          'debit_amount': 0.0,
+          'credit_amount': invoiceAmount,
+          'notes': invoice['statement'],
+        },
+      ];
 
       transactions.add(TransactionModel.fromDatabase(transactionData, journalLines));
     }
+  }
+
+  /// Resolve connected account for a given connect type using:
+  /// account_connects(account_connect_type -> accounts.c_id) -> accounts(id, code, name)
+  Future<Map<String, dynamic>> _getConnectedAccount(Database db, int connectType) async {
+    final connect = await db.query(
+      'account_connects',
+      columns: ['c_id'],
+      where: 'account_connect_type = ?',
+      whereArgs: [connectType],
+      limit: 1,
+    );
+
+    final cId = (connect.isNotEmpty ? connect.first['c_id'] : null) as int?;
+    if (cId == null) {
+      // Fallback to a safe default (first active account)
+      final fallback = await db.query(
+        'accounts',
+        columns: ['id', 'code', 'name'],
+        where: 'is_active = 1',
+        orderBy: 'code',
+        limit: 1,
+      );
+      if (fallback.isEmpty) {
+        return {'id': 1, 'code': '', 'name': ''};
+      }
+      return fallback.first;
+    }
+
+    final account = await db.query(
+      'accounts',
+      columns: ['id', 'code', 'name'],
+      where: 'c_id = ?',
+      whereArgs: [cId],
+      limit: 1,
+    );
+
+    if (account.isEmpty) {
+      return {'id': 1, 'code': '', 'name': ''};
+    }
+
+    return account.first;
   }
 
   @override

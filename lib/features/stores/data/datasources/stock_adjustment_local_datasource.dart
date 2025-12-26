@@ -99,7 +99,7 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
         whereArgs: [id],
       );
 
-      // Process stock movements and accounting entries
+      // Process stock movements
       if (adjustment.lines.isNotEmpty) {
         for (var line in adjustment.lines) {
           // Update stock movement
@@ -110,9 +110,9 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
             'trans_in_out': isIncrease ? 1 : 0,
             'trans_date': adjustment.date,
             'category_id': line.categoryId,
-            'unit_id': line.unitId ?? 1,
-            'group_id': line.groupId ?? 1,
-            'category_sub_unit_id': line.categorySubUnitId ?? 1,
+            'unit_id': line.unitId,
+            'group_id': line.groupId,
+            'category_sub_unit_id': line.categorySubUnitId,
             'stock_id': adjustment.stockId,
             'quantity': line.quantity,
             'quantity_in': isIncrease ? line.quantity : 0,
@@ -125,7 +125,7 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
             'sell_amount': 0,
             'sell_local_amount': 0,
             'refrenc_no': adjustment.number,
-            'statement': line.statement ?? adjustment.statement,
+            'statement': line.statement,
             'reference_number': adjustment.parentNumber,
             'u_no': adjustment.uNo,
             'barcode_no': '',
@@ -134,33 +134,6 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
             'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
             'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
           });
-
-          // Create accounting entries
-          if (adjustment.type == AdjustmentType.increase) {
-            // Dr. Inventory Account
-            // Cr. Adjustment Revenue Account
-            await _createAccountingEntry(txn, {
-              'journal_date': adjustment.date,
-              'document_type': 'adjustment',
-              'document_id': id,
-              'debit_account': 'inventory', // Should get actual account ID
-              'credit_account': 'adjustment_revenue', // Should get actual account ID
-              'amount': line.amount,
-              'description': 'تسوية مخزنية - زيادة',
-            });
-          } else {
-            // Dr. Adjustment Expense Account
-            // Cr. Inventory Account
-            await _createAccountingEntry(txn, {
-              'journal_date': adjustment.date,
-              'document_type': 'adjustment',
-              'document_id': id,
-              'debit_account': 'adjustment_expense', // Should get actual account ID
-              'credit_account': 'inventory', // Should get actual account ID
-              'amount': line.amount,
-              'description': 'تسوية مخزنية - نقص',
-            });
-          }
         }
       }
     });
@@ -202,16 +175,10 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
     return maps.map((map) => StockAdjustmentLineModel.fromMap(map)).toList();
   }
 
-  Future<void> _createAccountingEntry(DatabaseExecutor txn, Map<String, dynamic> entry) async {
-    // This is a simplified version - should integrate with actual accounting system
-    await txn.insert('journal_entries', {
-      'journal_date': entry['journal_date'],
-      'document_type': entry['document_type'],
-      'document_id': entry['document_id'],
-      'description': entry['description'],
-      'total_amount': entry['amount'],
-      'status': 'posted',
-      'created_at': DateTime.now().toIso8601String(),
-    });
-  }
+  // NOTE:
+  // We intentionally do not auto-create accounting journal entries here.
+  // In this codebase, inventory accounting requires a clear mapping for:
+  // - Inventory control account (per warehouse or global)
+  // - Adjustment gain/loss accounts
+  // Those mappings are not defined for adjustments yet, so creating entries would be incorrect.
 }

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
+import 'package:muhasib/features/reports/presentation/cubit/income_statement_cubit.dart';
+import 'package:muhasib/features/reports/presentation/cubit/income_statement_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
 
@@ -8,140 +12,224 @@ class IncomeStatementReportPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReportBasePage(
-      title: 'قائمة الدخل',
-      icon: Icons.trending_up,
-      color: const Color(0xFF388E3C),
-      reportBuilder: (filter) => _IncomeStatementContent(filter: filter),
+    return BlocProvider(
+      create: (context) => getIt<IncomeStatementCubit>()..loadIncomeStatement(),
+      child: ReportBasePage(
+        title: 'قائمة الدخل',
+        icon: Icons.trending_up,
+        color: const Color(0xFF388E3C),
+        reportBuilder: (filter) => _IncomeStatementContent(filter: filter),
+      ),
     );
   }
 }
 
-class _IncomeStatementContent extends StatelessWidget {
+class _IncomeStatementContent extends StatefulWidget {
   final ReportFilter filter;
 
   const _IncomeStatementContent({required this.filter});
 
   @override
+  State<_IncomeStatementContent> createState() => _IncomeStatementContentState();
+}
+
+class _IncomeStatementContentState extends State<_IncomeStatementContent> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<IncomeStatementCubit>().updateDateRange(widget.filter);
+    });
+  }
+
+  @override
+  void didUpdateWidget(_IncomeStatementContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      context.read<IncomeStatementCubit>().updateDateRange(widget.filter);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          // Summary cards
-          const ReportSummaryRow(
-            cards: [
-              ReportSummaryCard(
-                title: 'إجمالي الإيرادات',
-                value: '180,000 ر.س',
-                icon: Icons.trending_up,
-                color: Colors.green,
-                change: 15.2,
-              ),
-              ReportSummaryCard(
-                title: 'إجمالي المصروفات',
-                value: '140,000 ر.س',
-                icon: Icons.trending_down,
-                color: Colors.red,
-                change: 8.5,
-              ),
-              ReportSummaryCard(
-                title: 'صافي الربح',
-                value: '40,000 ر.س',
-                icon: Icons.account_balance_wallet,
-                color: Colors.blue,
-                change: 22.5,
-              ),
-            ],
-          ),
+    return BlocBuilder<IncomeStatementCubit, IncomeStatementState>(
+      builder: (context, state) {
+        if (state is IncomeStatementLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          // Income Statement Table
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        if (state is IncomeStatementError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'خطأ: ${state.message}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<IncomeStatementCubit>().refresh();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('إعادة المحاولة'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        if (state is IncomeStatementLoaded) {
+          final summary = state.summary;
+          final categories = state.categories;
+
+          if (categories.isEmpty) {
+            return const Center(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Header
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF388E3C),
-                      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                    ),
-                    child: const Text(
-                      'قائمة الدخل',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
+                  Icon(Icons.assessment, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'لا توجد بيانات في الفترة المحددة',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
+                ],
+              ),
+            );
+          }
 
-                  // Revenue section
-                  _buildSectionHeader('الإيرادات', Colors.green),
-                  _buildLineItem('إيرادات المبيعات', 150000),
-                  _buildLineItem('إيرادات الخدمات', 25000),
-                  _buildLineItem('إيرادات أخرى', 5000),
-                  _buildTotalLine('إجمالي الإيرادات', 180000, Colors.green),
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                // Summary cards
+                ReportSummaryRow(
+                  cards: [
+                    ReportSummaryCard(
+                      title: 'إجمالي الإيرادات',
+                      value: '${summary.totalRevenue.toStringAsFixed(0)} ر.س',
+                      icon: Icons.trending_up,
+                      color: Colors.green,
+                    ),
+                    ReportSummaryCard(
+                      title: 'إجمالي المصروفات',
+                      value: '${(summary.totalCostOfSales + summary.totalOperatingExpenses + summary.totalOtherExpenses).toStringAsFixed(0)} ر.س',
+                      icon: Icons.trending_down,
+                      color: Colors.red,
+                    ),
+                    ReportSummaryCard(
+                      title: 'صافي الربح',
+                      value: '${summary.netIncome.toStringAsFixed(0)} ر.س',
+                      icon: Icons.account_balance_wallet,
+                      color: summary.netIncome >= 0 ? Colors.blue : Colors.red,
+                    ),
+                  ],
+                ),
 
-                  const Divider(height: 1),
-
-                  // Cost of Sales section
-                  _buildSectionHeader('تكلفة المبيعات', Colors.orange),
-                  _buildLineItem('تكلفة البضاعة المباعة', 100000),
-                  _buildLineItem('مصاريف شحن المشتريات', 5000),
-                  _buildTotalLine('إجمالي تكلفة المبيعات', 105000, Colors.orange),
-
-                  const Divider(height: 1),
-                  _buildTotalLine('مجمل الربح', 75000, Colors.blue, isBold: true),
-                  const Divider(height: 1),
-
-                  // Operating Expenses section
-                  _buildSectionHeader('المصروفات التشغيلية', Colors.red),
-                  _buildLineItem('رواتب وأجور', 20000),
-                  _buildLineItem('إيجارات', 8000),
-                  _buildLineItem('كهرباء ومياه', 2000),
-                  _buildLineItem('مصاريف إدارية', 3000),
-                  _buildLineItem('مصاريف تسويق', 2000),
-                  _buildTotalLine('إجمالي المصروفات التشغيلية', 35000, Colors.red),
-
-                  const Divider(height: 1),
-
-                  // Net Income
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    color: const Color(0xFF388E3C).withOpacity(0.1),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // Income Statement Table
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Text(
-                          'صافي الربح',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                        // Header
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF388E3C),
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                          ),
+                          child: const Text(
+                            'قائمة الدخل',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
                           ),
                         ),
-                        Text(
-                          '40,000 ر.س',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green[700],
+
+                        // Dynamic sections from data
+                        ...categories.expand((category) => [
+                          _buildSectionHeader(
+                            category.categoryName, 
+                            _getCategoryColor(category.categoryCode),
+                          ),
+                          ...category.items.map((item) => 
+                            _buildLineItem(item.accountName, item.amount)
+                          ),
+                          _buildTotalLine(
+                            'إجمالي ${category.categoryName}', 
+                            category.totalAmount, 
+                            _getCategoryColor(category.categoryCode),
+                          ),
+                          const Divider(height: 1),
+                        ]),
+
+                        // Gross Profit (if applicable)
+                        if (summary.grossProfit != 0)
+                          _buildTotalLine('مجمل الربح', summary.grossProfit, Colors.blue, isBold: true),
+                        if (summary.grossProfit != 0)
+                          const Divider(height: 1),
+
+                        // Net Income
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          color: const Color(0xFF388E3C).withOpacity(0.1),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'صافي الربح',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '${summary.netIncome.toStringAsFixed(0)} ر.س',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: summary.netIncome >= 0 ? Colors.green[700] : Colors.red[700],
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
+          );
+        }
+
+        return const Center(child: Text('لا توجد بيانات'));
+      },
     );
+  }
+
+  Color _getCategoryColor(String categoryCode) {
+    switch (categoryCode) {
+      case '4':
+        return Colors.green;
+      case '51':
+        return Colors.orange;
+      case '52':
+        return Colors.red;
+      case '53':
+        return Colors.purple;
+      default:
+        return Colors.grey;
+    }
   }
 
   Widget _buildSectionHeader(String title, Color color) {

@@ -30,7 +30,10 @@ void main() {
       dataSource = InitialLocalDataSourceImpl(database: db);
       
       // Setup repository
-      repository = InitialRepositoryImpl(localDataSource: dataSource);
+      repository = InitialRepositoryImpl(
+        localDataSource: dataSource,
+        databaseService: databaseService,
+      );
       accountingTemplate = OpeningBalanceAccountingTemplate(databaseService);
     });
     

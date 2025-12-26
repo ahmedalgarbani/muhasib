@@ -22,8 +22,17 @@ import 'package:muhasib/features/reports/presentation/pages/sales_summary_report
 import 'package:muhasib/features/reports/presentation/pages/stock_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/transactions_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/generic_report_page.dart';
+import 'package:muhasib/features/reports/presentation/pages/balance_sheet_report_page.dart';
+import 'package:muhasib/features/reports/presentation/pages/journal_report_page.dart';
+import 'package:muhasib/features/reports/presentation/pages/general_ledger_report_page.dart';
+import 'package:muhasib/features/reports/presentation/pages/invoices_list_report_page.dart';
+import 'package:muhasib/features/reports/presentation/pages/sales_aggregates_report_pages.dart';
+import 'package:muhasib/features/reports/presentation/pages/inventory_extra_report_pages.dart';
+import 'package:muhasib/features/reports/presentation/pages/party_balances_report_pages.dart';
+import 'package:muhasib/features/reports/presentation/pages/aged_reports_pages.dart';
+import 'package:muhasib/features/reports/presentation/pages/cash_flow_report_page.dart';
+import 'package:muhasib/features/reports/presentation/pages/purchase_summary_report_page.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
-import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
 import 'package:muhasib/features/sales/presentation/pages/improved_sales_invoice_screen.dart';
 import 'package:muhasib/features/sales/presentation/widgets/sale_page_body.dart';
 import 'package:muhasib/features/sales/presentation/pages/quotations_page.dart';
@@ -31,8 +40,11 @@ import 'package:muhasib/features/sales/presentation/pages/returns_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/return_invoice_form_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/select_invoice_for_return_page.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/customers/presentation/pages/customers_profile_page.dart';
+import 'package:muhasib/features/customers/presentation/pages/suppliers_profile_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchases_list_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_orders_page.dart';
@@ -224,7 +236,9 @@ final router = GoRouter(
           BlocProvider(create: (context) => getIt<AccountsCubit>()),
           BlocProvider(create: (context) => getIt<CustomersCubit>()),
         ],
-        child: const SalesInvoiceScreen(),
+        child: const ImprovedSalesInvoiceScreen(
+          invoiceType: InvoiceType.salesInvoice,
+        ),
       ),
     ),
     GoRoute(
@@ -495,7 +509,19 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsMore,
       name: AppRoutes.reportsMore,
-      builder: (context, state) => const PlaceholderWidget('More Reports'),
+      builder: (context, state) {
+        const report = ReportItem(
+          id: 'more_reports',
+          titleAr: 'تقارير إضافية',
+          titleEn: 'More Reports',
+          descriptionAr: 'تقارير إضافية سيتم توفيرها قريباً',
+          icon: Icons.more_horiz,
+          color: Color(0xFF607D8B),
+          route: AppRoutes.reportsMore,
+          category: ReportCategory.accounting,
+        );
+        return const GenericReportPage(report: report);
+      },
     ),
 
     // تقارير المحاسبة
@@ -512,70 +538,22 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsBalanceSheet,
       name: AppRoutes.reportsBalanceSheet,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'balance_sheet',
-          titleAr: 'الميزانية العمومية',
-          titleEn: 'Balance Sheet',
-          descriptionAr: 'الأصول والخصوم وحقوق الملكية',
-          icon: Icons.account_balance,
-          color: Color(0xFF7B1FA2),
-          route: AppRoutes.reportsBalanceSheet,
-          category: ReportCategory.accounting,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const BalanceSheetReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsCashFlow,
       name: AppRoutes.reportsCashFlow,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'cash_flow',
-          titleAr: 'التدفقات النقدية',
-          titleEn: 'Cash Flow',
-          descriptionAr: 'حركة النقد الداخل والخارج',
-          icon: Icons.water_drop,
-          color: Color(0xFF00ACC1),
-          route: AppRoutes.reportsCashFlow,
-          category: ReportCategory.accounting,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const CashFlowReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsGeneralLedger,
       name: AppRoutes.reportsGeneralLedger,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'general_ledger',
-          titleAr: 'دفتر الأستاذ العام',
-          titleEn: 'General Ledger',
-          descriptionAr: 'جميع القيود والحركات المحاسبية',
-          icon: Icons.menu_book,
-          color: Color(0xFF5D4037),
-          route: AppRoutes.reportsGeneralLedger,
-          category: ReportCategory.accounting,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const GeneralLedgerReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsJournal,
       name: AppRoutes.reportsJournal,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'journal',
-          titleAr: 'تقرير اليومية',
-          titleEn: 'Journal Report',
-          descriptionAr: 'قيود اليومية والحركات اليومية',
-          icon: Icons.event_note,
-          color: Color(0xFF607D8B),
-          route: AppRoutes.reportsJournal,
-          category: ReportCategory.accounting,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const JournalReportPage(),
     ),
 
     // تقارير المبيعات
@@ -587,174 +565,74 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsSalesByCustomer,
       name: AppRoutes.reportsSalesByCustomer,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'sales_by_customer',
-          titleAr: 'مبيعات حسب العميل',
-          titleEn: 'Sales by Customer',
-          descriptionAr: 'تحليل المبيعات لكل عميل',
-          icon: Icons.people,
-          color: Color(0xFF388E3C),
-          route: AppRoutes.reportsSalesByCustomer,
-          category: ReportCategory.sales,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const SalesByCustomerReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsSalesByProduct,
       name: AppRoutes.reportsSalesByProduct,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'sales_by_product',
-          titleAr: 'مبيعات حسب المنتج',
-          titleEn: 'Sales by Product',
-          descriptionAr: 'تحليل المبيعات لكل منتج',
-          icon: Icons.inventory_2,
-          color: Color(0xFF7B1FA2),
-          route: AppRoutes.reportsSalesByProduct,
-          category: ReportCategory.sales,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const SalesByProductReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsDailySales,
       name: AppRoutes.reportsDailySales,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'daily_sales',
-          titleAr: 'المبيعات اليومية',
-          titleEn: 'Daily Sales',
-          descriptionAr: 'تقرير المبيعات اليومي',
-          icon: Icons.today,
-          color: Color(0xFF00ACC1),
-          route: AppRoutes.reportsDailySales,
-          category: ReportCategory.sales,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const DailySalesReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsInvoices,
       name: AppRoutes.reportsInvoices,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'invoices',
-          titleAr: 'تقرير الفواتير',
-          titleEn: 'Invoices Report',
-          descriptionAr: 'قائمة جميع فواتير المبيعات',
-          icon: Icons.receipt,
-          color: Color(0xFFFF5722),
-          route: AppRoutes.reportsInvoices,
-          category: ReportCategory.sales,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const InvoicesListReportPage(
+        title: 'تقرير الفواتير',
+        icon: Icons.receipt,
+        color: Color(0xFFFF5722),
+        invoiceTypes: [1, 2],
+      ),
     ),
     GoRoute(
       path: AppRoutes.reportsQuotations,
       name: AppRoutes.reportsQuotations,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'quotations',
-          titleAr: 'تقرير العروض',
-          titleEn: 'Quotations Report',
-          descriptionAr: 'عروض الأسعار وحالتها',
-          icon: Icons.request_quote,
-          color: Color(0xFF795548),
-          route: AppRoutes.reportsQuotations,
-          category: ReportCategory.sales,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const InvoicesListReportPage(
+        title: 'تقرير العروض',
+        icon: Icons.request_quote,
+        color: Color(0xFF795548),
+        invoiceTypes: [3],
+      ),
     ),
     GoRoute(
       path: AppRoutes.reportsSalesReturns,
       name: AppRoutes.reportsSalesReturns,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'sales_returns',
-          titleAr: 'مرتجعات المبيعات',
-          titleEn: 'Sales Returns',
-          descriptionAr: 'تقرير مرتجعات المبيعات',
-          icon: Icons.assignment_return,
-          color: Color(0xFFF44336),
-          route: AppRoutes.reportsSalesReturns,
-          category: ReportCategory.sales,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const InvoicesListReportPage(
+        title: 'مرتجعات المبيعات',
+        icon: Icons.assignment_return,
+        color: Color(0xFFF44336),
+        invoiceTypes: [4],
+      ),
     ),
 
     // تقارير المشتريات
     GoRoute(
       path: AppRoutes.reportsPurchaseSummary,
       name: AppRoutes.reportsPurchaseSummary,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'purchase_summary',
-          titleAr: 'ملخص المشتريات',
-          titleEn: 'Purchase Summary',
-          descriptionAr: 'إجمالي المشتريات والتكاليف',
-          icon: Icons.shopping_cart,
-          color: Color(0xFF1976D2),
-          route: AppRoutes.reportsPurchaseSummary,
-          category: ReportCategory.purchases,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const PurchaseSummaryReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsPurchaseBySupplier,
       name: AppRoutes.reportsPurchaseBySupplier,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'purchase_by_supplier',
-          titleAr: 'مشتريات حسب المورد',
-          titleEn: 'Purchase by Supplier',
-          descriptionAr: 'تحليل المشتريات لكل مورد',
-          icon: Icons.local_shipping,
-          color: Color(0xFF388E3C),
-          route: AppRoutes.reportsPurchaseBySupplier,
-          category: ReportCategory.purchases,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const PurchaseBySupplierReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsPurchaseByProduct,
       name: AppRoutes.reportsPurchaseByProduct,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'purchase_by_product',
-          titleAr: 'مشتريات حسب المنتج',
-          titleEn: 'Purchase by Product',
-          descriptionAr: 'تحليل المشتريات لكل منتج',
-          icon: Icons.category,
-          color: Color(0xFF7B1FA2),
-          route: AppRoutes.reportsPurchaseByProduct,
-          category: ReportCategory.purchases,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const PurchaseByProductReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsPurchaseReturns,
       name: AppRoutes.reportsPurchaseReturns,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'purchase_returns',
-          titleAr: 'مرتجعات المشتريات',
-          titleEn: 'Purchase Returns',
-          descriptionAr: 'تقرير مرتجعات المشتريات',
-          icon: Icons.assignment_return,
-          color: Color(0xFFF44336),
-          route: AppRoutes.reportsPurchaseReturns,
-          category: ReportCategory.purchases,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const InvoicesListReportPage(
+        title: 'مرتجعات المشتريات',
+        icon: Icons.assignment_return,
+        color: Color(0xFFF44336),
+        invoiceTypes: [5],
+      ),
     ),
 
     // تقارير المخزون
@@ -766,157 +644,66 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsStockMovement,
       name: AppRoutes.reportsStockMovement,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'stock_movement',
-          titleAr: 'حركة المخزون',
-          titleEn: 'Stock Movement',
-          descriptionAr: 'تتبع حركة الأصناف',
-          icon: Icons.swap_horiz,
-          color: Color(0xFF388E3C),
-          route: AppRoutes.reportsStockMovement,
-          category: ReportCategory.inventory,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const StockMovementReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsLowStock,
       name: AppRoutes.reportsLowStock,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'low_stock',
-          titleAr: 'تنبيه نقص المخزون',
-          titleEn: 'Low Stock Alert',
-          descriptionAr: 'الأصناف التي وصلت للحد الأدنى',
-          icon: Icons.warning,
-          color: Color(0xFFFF9800),
-          route: AppRoutes.reportsLowStock,
-          category: ReportCategory.inventory,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const LowStockReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsStockValuation,
       name: AppRoutes.reportsStockValuation,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'stock_valuation',
-          titleAr: 'تقييم المخزون',
-          titleEn: 'Stock Valuation',
-          descriptionAr: 'قيمة المخزون بالتكلفة وسعر البيع',
-          icon: Icons.monetization_on,
-          color: Color(0xFF7B1FA2),
-          route: AppRoutes.reportsStockValuation,
-          category: ReportCategory.inventory,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const StockValuationReportPage(),
     ),
 
     // تقارير العملاء والموردين
     GoRoute(
       path: AppRoutes.reportsCustomerStatement,
       name: AppRoutes.reportsCustomerStatement,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'customer_statement',
-          titleAr: 'كشف حساب عميل',
-          titleEn: 'Customer Statement',
-          descriptionAr: 'تفاصيل حركة حساب العميل',
-          icon: Icons.person,
-          color: Color(0xFF1976D2),
-          route: AppRoutes.reportsCustomerStatement,
-          category: ReportCategory.customers,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const CustomerStatementReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsCustomerBalances,
       name: AppRoutes.reportsCustomerBalances,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'customer_balances',
-          titleAr: 'أرصدة العملاء',
-          titleEn: 'Customer Balances',
-          descriptionAr: 'أرصدة جميع العملاء',
-          icon: Icons.account_balance_wallet,
-          color: Color(0xFF388E3C),
-          route: AppRoutes.reportsCustomerBalances,
-          category: ReportCategory.customers,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const CustomerBalancesReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsAgedReceivables,
       name: AppRoutes.reportsAgedReceivables,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'aged_receivables',
-          titleAr: 'أعمار الديون',
-          titleEn: 'Aged Receivables',
-          descriptionAr: 'تحليل عمر ديون العملاء',
-          icon: Icons.schedule,
-          color: Color(0xFFFF5722),
-          route: AppRoutes.reportsAgedReceivables,
-          category: ReportCategory.customers,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const AgedReceivablesReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsSupplierStatement,
       name: AppRoutes.reportsSupplierStatement,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'supplier_statement',
-          titleAr: 'كشف حساب مورد',
-          titleEn: 'Supplier Statement',
-          descriptionAr: 'تفاصيل حركة حساب المورد',
-          icon: Icons.local_shipping,
-          color: Color(0xFF7B1FA2),
-          route: AppRoutes.reportsSupplierStatement,
-          category: ReportCategory.customers,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const SupplierStatementReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsSupplierBalances,
       name: AppRoutes.reportsSupplierBalances,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'supplier_balances',
-          titleAr: 'أرصدة الموردين',
-          titleEn: 'Supplier Balances',
-          descriptionAr: 'أرصدة جميع الموردين',
-          icon: Icons.account_balance,
-          color: Color(0xFF00ACC1),
-          route: AppRoutes.reportsSupplierBalances,
-          category: ReportCategory.customers,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const SupplierBalancesReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsAgedPayables,
       name: AppRoutes.reportsAgedPayables,
-      builder: (context, state) {
-        const report = ReportItem(
-          id: 'aged_payables',
-          titleAr: 'أعمار المستحقات',
-          titleEn: 'Aged Payables',
-          descriptionAr: 'تحليل عمر المستحقات للموردين',
-          icon: Icons.history,
-          color: Color(0xFFF44336),
-          route: AppRoutes.reportsAgedPayables,
-          category: ReportCategory.customers,
-        );
-        return const GenericReportPage(report: report);
-      },
+      builder: (context, state) => const AgedPayablesReportPage(),
+    ),
+
+    // ======= الملفات الشخصية (العملاء والموردين) =======
+    GoRoute(
+      path: AppRoutes.profiles,
+      name: AppRoutes.profiles,
+      builder: (context, state) => const CustomersProfilePage(),
+    ),
+    GoRoute(
+      path: AppRoutes.customersProfile,
+      name: AppRoutes.customersProfile,
+      builder: (context, state) => const CustomersProfilePage(),
+    ),
+    GoRoute(
+      path: AppRoutes.suppliersProfile,
+      name: AppRoutes.suppliersProfile,
+      builder: (context, state) => const SuppliersProfilePage(),
     ),
 
     // ======= عن التطبيق =======

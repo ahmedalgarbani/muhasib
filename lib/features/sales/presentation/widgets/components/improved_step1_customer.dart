@@ -4,7 +4,6 @@ import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
-import 'package:muhasib/core/helpers/get_it.dart';
 
 class ImprovedStep1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -90,8 +89,9 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                     }
                     
                     if (state is CustomersLoaded) {
+                      // Only real customers (customers table: type=1). Suppliers are type=2.
                       final customers = state.customers
-                          .where((c) => c.type == 1 || c.type == 2) // Only customers, not suppliers
+                          .where((c) => c.type == 1)
                           .toList();
                       
                       return Column(
@@ -319,11 +319,12 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                 ),
                 child: IconButton(
                   onPressed: () async {
+                    final cubit = context.read<CustomersCubit>();
                     final newCustomer = await showDialog<Customer>(
                       context: context,
-                      builder: (context) => BlocProvider(
-                        create: (_) => getIt<CustomersCubit>(),
-                        child: const AddCustomerDialog(),
+                      builder: (dialogContext) => BlocProvider.value(
+                        value: cubit,
+                        child: const AddCustomerDialog(partyType: 1),
                       ),
                     );
                     
@@ -332,8 +333,8 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                         widget.invoice.copyWith(customer: newCustomer),
                       );
                       
-                      // Reload customers list
-                      context.read<CustomersCubit>().loadCustomers();
+                      // Ensure list is refreshed (cubit also reloads on add)
+                      cubit.loadCustomers();
                     }
                   },
                   icon: const Icon(Icons.add, color: Colors.white),

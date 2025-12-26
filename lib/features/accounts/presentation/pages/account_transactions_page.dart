@@ -8,9 +8,9 @@ class AccountTransactionsPage extends StatefulWidget {
   final AccountEntity account;
   
   const AccountTransactionsPage({
-    Key? key,
+    super.key,
     required this.account,
-  }) : super(key: key);
+  });
 
   @override
   State<AccountTransactionsPage> createState() => _AccountTransactionsPageState();
@@ -53,7 +53,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
         SELECT 
           je.id,
           je.number as entry_number,
-          je.date,
+          je.entry_date as date,
           je.description,
           jel.debit_amount,
           jel.credit_amount,
@@ -62,8 +62,8 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
         FROM journal_entry_lines jel
         JOIN journal_entries je ON je.id = jel.journal_entry_id
         WHERE jel.account_id = ?
-        ${selectedPeriod != 'الكل' ? 'AND je.date >= ? AND je.date <= ?' : ''}
-        ORDER BY je.date DESC, je.id DESC
+        ${selectedPeriod != 'الكل' ? 'AND je.entry_date >= ? AND je.entry_date <= ?' : ''}
+        ORDER BY je.entry_date DESC, je.id DESC
       ''', whereArgs);
       
       // Get transactions from invoices (sales/purchases)
@@ -105,26 +105,26 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
           v.number as entry_number,
           v.date,
           CASE 
-            WHEN v.voucher_type = 1 THEN 'سند قبض'
-            WHEN v.voucher_type = 2 THEN 'سند صرف'
-            WHEN v.voucher_type = 3 THEN 'سند يومية'
+            WHEN v.type = 1 THEN 'سند قبض'
+            WHEN v.type = 2 THEN 'سند صرف'
+            WHEN v.type = 3 THEN 'سند يومية'
             ELSE 'سند'
           END as description,
           CASE 
-            WHEN v.voucher_type = 2 THEN v.amount
+            WHEN v.type = 2 THEN v.amount
             ELSE 0.0
           END as debit_amount,
           CASE 
-            WHEN v.voucher_type = 1 THEN v.amount
+            WHEN v.type = 1 THEN v.amount
             ELSE 0.0
           END as credit_amount,
           v.statement as notes,
           'voucher' as source_type
         FROM vouchers v
-        WHERE (v.from_account_id = ? OR v.to_account_id = ?)
+        WHERE v.account_id = ?
         ${selectedPeriod != 'الكل' ? 'AND v.date >= ? AND v.date <= ?' : ''}
         ORDER BY v.date DESC, v.id DESC
-      ''', [...whereArgs, widget.account.id]);
+      ''', whereArgs);
       
       // Combine all transactions
       final allTransactions = [
@@ -163,7 +163,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
         isLoading = false;
       });
     } catch (e) {
-      print('Error loading transactions: $e');
+      debugPrint('Error loading transactions: $e');
       setState(() {
         isLoading = false;
       });

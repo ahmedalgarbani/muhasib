@@ -1,11 +1,13 @@
 import 'package:get_it/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/core/services/account_config_service.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_connect_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/journal_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/voucher_local_datasource.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/opening_balance_registration.dart';
 import 'package:muhasib/features/accounts/domain/services/account_limit_service.dart';
+import 'package:muhasib/features/accounts/data/datasources/account_limit_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/services/account_limit_service_impl.dart';
 import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 import 'package:muhasib/features/accounts/domain/services/account_connect_validator.dart';
@@ -94,6 +96,10 @@ import 'package:muhasib/features/products/data/datasources/item_movement_local_d
 import 'package:muhasib/features/products/data/repositories/item_movement_repository_impl.dart';
 import 'package:muhasib/features/products/domain/repositories/item_movement_repository.dart';
 import 'package:muhasib/features/products/presentation/cubit/item_movements_cubit.dart';
+import 'package:muhasib/features/products/data/datasources/product_price_local_datasource.dart';
+import 'package:muhasib/features/products/data/repositories/product_price_repository_impl.dart';
+import 'package:muhasib/features/products/domain/repositories/product_price_repository.dart';
+import 'package:muhasib/features/products/presentation/cubit/product_prices_cubit.dart';
 import 'package:muhasib/features/initial/data/datasources/initial_local_datasource.dart';
 import 'package:muhasib/features/initial/data/repositories/initial_repository_impl.dart';
 import 'package:muhasib/features/initial/domain/repositories/initial_repository.dart';
@@ -176,13 +182,21 @@ class GetItHelper {
 
     getIt.registerLazySingleton<IDatabaseService>(() => databaseService);
     getIt.registerLazySingleton<DatabaseService>(() => databaseService);
+    
+    // Account Config Service (dynamic account ID lookup)
+    getIt.registerLazySingleton<AccountConfigService>(
+      () => AccountConfigService(database: database),
+    );
 
     // ==================== Initial Feature ====================
     getIt.registerLazySingleton<InitialLocalDataSource>(
       () => InitialLocalDataSourceImpl(database: database),
     );
     getIt.registerLazySingleton<InitialRepository>(
-      () => InitialRepositoryImpl(localDataSource: getIt<InitialLocalDataSource>()),
+      () => InitialRepositoryImpl(
+        localDataSource: getIt<InitialLocalDataSource>(),
+        databaseService: getIt<DatabaseService>(),
+      ),
     );
     getIt.registerLazySingleton(
       () => CheckInitialSetupStatus(getIt<InitialRepository>()),
@@ -345,9 +359,12 @@ class GetItHelper {
     // Register Opening Balance dependencies
     registerOpeningBalanceDependencies(getIt, databaseService);
 
-    // Register Account Limit Service
+    // Account Limits datasource + service
+    getIt.registerLazySingleton<AccountLimitLocalDataSource>(
+      () => AccountLimitLocalDataSourceImpl(databaseService: databaseService),
+    );
     getIt.registerLazySingleton<AccountLimitService>(
-      () => AccountLimitServiceImpl(databaseService: databaseService),
+      () => AccountLimitServiceImpl(localDataSource: getIt<AccountLimitLocalDataSource>()),
     );
     
     // Register Account Limit Interceptor
@@ -479,7 +496,9 @@ class GetItHelper {
     // ==================== Purchases Feature ====================
     // Repository (reuses Invoice data source)
     getIt.registerLazySingleton<PurchaseRepository>(
-      () => PurchaseRepositoryImpl(localDataSource: getIt<InvoiceLocalDataSource>()),
+      () => PurchaseRepositoryImpl(
+        localDataSource: getIt<InvoiceLocalDataSource>(),
+      ),
     );
     
     // Cubit
@@ -537,6 +556,17 @@ class GetItHelper {
     );
     getIt.registerFactory(
       () => ItemMovementsCubit(getIt<ItemMovementRepository>()),
+    );
+    
+    // Product Prices
+    getIt.registerLazySingleton<ProductPriceLocalDataSource>(
+      () => ProductPriceLocalDataSourceImpl(database: database),
+    );
+    getIt.registerLazySingleton<ProductPriceRepository>(
+      () => ProductPriceRepositoryImpl(getIt<ProductPriceLocalDataSource>()),
+    );
+    getIt.registerFactory(
+      () => ProductPricesCubit(getIt<ProductPriceRepository>()),
     );
     
     // ==================== Stores/Warehouses Feature ====================

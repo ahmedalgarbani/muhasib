@@ -11,14 +11,21 @@ import 'package:muhasib/features/purchases/presentation/widgets/add_line_dialog.
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
+import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
 // Items and Warehouses features will be added later
 // import 'package:muhasib/features/items/presentation/cubit/items_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 
 class PurchaseFormPage extends StatefulWidget {
   final InvoiceEntity? invoice;
+  final int invoiceType; // 2 = Purchase Invoice, 3 = Purchase Order
   
-  const PurchaseFormPage({Key? key, this.invoice}) : super(key: key);
+  const PurchaseFormPage({
+    Key? key,
+    this.invoice,
+    this.invoiceType = 2,
+  }) : super(key: key);
 
   @override
   State<PurchaseFormPage> createState() => _PurchaseFormPageState();
@@ -78,7 +85,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
 
   void _generateInvoiceNumber() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    _numberController.text = 'PUR-$timestamp';
+    _numberController.text = widget.invoiceType == 3 ? 'PO-$timestamp' : 'PUR-$timestamp';
   }
 
   void _calculateTotals() {
@@ -159,16 +166,22 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
         taxAmt: _taxAmount,
         totalAmount: _subtotal,
         finalAmt: _total,
-        invoiceType: 2, // Purchase Invoice
-        invoiceTransType: 1,
-        paymentStatus: _paymentType == 0 ? 1 : 0, // Paid if cash, unpaid if credit
+        invoiceType: widget.invoiceType, // 2=Purchase Invoice, 3=Purchase Order
+        // For purchase invoices: 0=cash, 1=credit. For orders: force 1 to distinguish from sales quotations.
+        invoiceTransType: widget.invoiceType == 3 ? 1 : (_paymentType == 0 ? 0 : 1),
+        // Status is UI-only for now; accounting posting uses invoice_trans_type + invoice_type
+        paymentStatus: widget.invoiceType == 3 ? 0 : (_paymentType == 0 ? 1 : 0),
         shippingAddress: _shippingAddressController.text,
       );
 
       if (widget.invoice != null) {
         context.read<PurchasesCubit>().updatePurchaseInvoice(invoice);
       } else {
-        context.read<PurchasesCubit>().createPurchaseInvoice(invoice);
+        if (widget.invoiceType == 3) {
+          context.read<PurchasesCubit>().createPurchaseOrder(invoice);
+        } else {
+          context.read<PurchasesCubit>().createPurchaseInvoice(invoice);
+        }
       }
     }
   }
@@ -441,33 +454,72 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
             BlocBuilder<CustomersCubit, CustomersState>(
               builder: (context, state) {
                 if (state is SuppliersLoaded) {
-                  return DropdownButtonFormField<int>(
-                    value: _selectedSupplierId,
-                    decoration: InputDecoration(
-                      labelText: 'المورد',
-                      labelStyle: const TextStyle(fontSize: 12),
-                      prefixIcon: const Icon(Icons.business, size: 20),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: DropdownButtonFormField<int>(
+                          value: _selectedSupplierId,
+                          decoration: InputDecoration(
+                            labelText: 'المورد',
+                            labelStyle: const TextStyle(fontSize: 12),
+                            prefixIcon: const Icon(Icons.business, size: 20),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                          ),
+                          style: const TextStyle(fontSize: 13, color: Colors.black),
+                          items: state.suppliers.map((supplier) {
+                            return DropdownMenuItem<int>(
+                              value: int.parse(supplier.id),
+                              child: Text(
+                                supplier.name,
+                                style: const TextStyle(fontSize: 13),
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() => _selectedSupplierId = value);
+                          },
+                          validator: (value) {
+                            if (value == null) {
+                              return 'يجب اختيار المورد';
+                            }
+                            return null;
+                          },
+                        ),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    ),
-                    style: const TextStyle(fontSize: 13, color: Colors.black),
-                    items: state.suppliers.map((supplier) {
-                      return DropdownMenuItem<int>(
-                        value: int.parse(supplier.id),
-                        child: Text(supplier.name, style: const TextStyle(fontSize: 13)),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() => _selectedSupplierId = value);
-                    },
-                    validator: (value) {
-                      if (value == null) {
-                        return 'يجب اختيار المورد';
-                      }
-                      return null;
-                    },
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        width: 44,
+                        height: 44,
+                        child: IconButton(
+                          tooltip: 'إضافة مورد جديد',
+                          onPressed: () async {
+                            final cubit = context.read<CustomersCubit>();
+                            final newSupplier = await showDialog<Customer>(
+                              context: context,
+                              builder: (_) => BlocProvider.value(
+                                value: cubit,
+                                child: const AddCustomerDialog(partyType: 2),
+                              ),
+                            );
+
+                            if (newSupplier != null && mounted) {
+                              setState(() {
+                                _selectedSupplierId = int.tryParse(newSupplier.id);
+                              });
+                              // Ensure suppliers list is refreshed (cubit also reloads on add)
+                              cubit.loadSuppliers();
+                            }
+                          },
+                          icon: const Icon(Icons.add),
+                        ),
+                      ),
+                    ],
                   );
                 }
                 return const LinearProgressIndicator();

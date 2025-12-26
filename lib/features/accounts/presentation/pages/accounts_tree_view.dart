@@ -138,16 +138,15 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
         ? state.accounts
         : (cubit.allAccounts ?? const <AccountEntity>[]);
 
-    final accounts = source
-        .where((account) => account.masterId == null)
-        .toList();
-
+    // Default view: only root accounts (masterId == null)
+    // Search view: search across ALL accounts to ensure seeded accounts that
+    // have incorrect masterId but correct masterCId are still discoverable.
     if (searchQuery.isEmpty) {
-      return accounts;
+      return source.where((account) => account.masterId == null).toList();
     }
 
     final query = searchQuery.trim();
-    return accounts
+    return source
         .where(
           (account) =>
               account.name.contains(query) || account.code.contains(query),
@@ -414,7 +413,13 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
           }
 
           final childAccounts = allAccounts
-              .where((account) => account.masterId == widget.masterAccount.id)
+              .where(
+                (account) =>
+                    // Primary linkage
+                    account.masterId == widget.masterAccount.id ||
+                    // Fallback linkage (used by seeders)
+                    account.masterCId == widget.masterAccount.cId,
+              )
               .toList();
 
           if (childAccounts.isEmpty) {

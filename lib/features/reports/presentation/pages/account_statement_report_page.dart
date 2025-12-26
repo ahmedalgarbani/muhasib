@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
+import 'package:muhasib/features/reports/presentation/cubit/account_statement_cubit.dart';
+import 'package:muhasib/features/reports/presentation/cubit/account_statement_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
 
@@ -8,87 +12,162 @@ class AccountStatementReportPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ReportBasePage(
-      title: 'كشف حساب',
-      icon: Icons.receipt_long,
-      color: const Color(0xFFFF5722),
-      additionalFilters: [
-        _buildAccountSelector(),
-      ],
-      reportBuilder: (filter) => _AccountStatementContent(filter: filter),
+    return BlocProvider(
+      create: (context) => getIt<AccountStatementCubit>()..loadAccounts(),
+      child: Builder(
+        builder: (context) => ReportBasePage(
+          title: 'كشف حساب',
+          icon: Icons.receipt_long,
+          color: const Color(0xFFFF5722),
+          additionalFilters: [
+            _buildAccountSelector(context),
+          ],
+          reportBuilder: (filter) => _AccountStatementContent(filter: filter),
+        ),
+      ),
     );
   }
 
-  Widget _buildAccountSelector() {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        labelText: 'اختر الحساب',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        fillColor: Colors.white,
-      ),
-      items: const [
-        DropdownMenuItem(value: '1110', child: Text('1110 - الصندوق')),
-        DropdownMenuItem(value: '1120', child: Text('1120 - البنك')),
-        DropdownMenuItem(value: '1210', child: Text('1210 - العملاء')),
-        DropdownMenuItem(value: '2110', child: Text('2110 - الموردين')),
-      ],
-      onChanged: (value) {},
+  Widget _buildAccountSelector(BuildContext context) {
+    return BlocBuilder<AccountStatementCubit, AccountStatementState>(
+      builder: (context, state) {
+        if (state is AccountStatementLoaded) {
+          return DropdownButtonFormField<int>(
+            value: state.selectedAccountId,
+            decoration: InputDecoration(
+              labelText: 'اختر الحساب',
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              filled: true,
+              fillColor: Colors.white,
+            ),
+            items: state.accounts.map((account) {
+              return DropdownMenuItem(
+                value: account['id'] as int,
+                child: Text('${account['code']} - ${account['name']}'),
+              );
+            }).toList(),
+            onChanged: (value) {
+              if (value != null) {
+                context.read<AccountStatementCubit>().selectAccount(value);
+              }
+            },
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 }
 
-class _AccountStatementContent extends StatelessWidget {
+class _AccountStatementContent extends StatefulWidget {
   final ReportFilter filter;
 
   const _AccountStatementContent({required this.filter});
 
   @override
+  State<_AccountStatementContent> createState() => _AccountStatementContentState();
+}
+
+class _AccountStatementContentState extends State<_AccountStatementContent> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AccountStatementCubit>().updateDateRange(widget.filter);
+    });
+  }
+
+  @override
+  void didUpdateWidget(_AccountStatementContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      context.read<AccountStatementCubit>().updateDateRange(widget.filter);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final transactions = [
-      _Transaction(DateTime(2024, 1, 1), 'رصيد افتتاحي', '', 50000, 0, 50000),
-      _Transaction(DateTime(2024, 1, 5), 'فاتورة مبيعات #001', 'INV-001', 15000, 0, 65000),
-      _Transaction(DateTime(2024, 1, 8), 'سداد عميل', 'REC-001', 0, 10000, 55000),
-      _Transaction(DateTime(2024, 1, 12), 'فاتورة مبيعات #002', 'INV-002', 22000, 0, 77000),
-      _Transaction(DateTime(2024, 1, 15), 'مرتجع مبيعات', 'RET-001', 0, 3000, 74000),
-      _Transaction(DateTime(2024, 1, 20), 'سداد عميل', 'REC-002', 0, 20000, 54000),
-      _Transaction(DateTime(2024, 1, 25), 'فاتورة مبيعات #003', 'INV-003', 18500, 0, 72500),
-    ];
+    return BlocBuilder<AccountStatementCubit, AccountStatementState>(
+      builder: (context, state) {
+        if (state is AccountStatementLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    final totalDebit = transactions.fold<double>(0, (sum, t) => sum + t.debit);
-    final totalCredit = transactions.fold<double>(0, (sum, t) => sum + t.credit);
+        if (state is AccountStatementError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                const SizedBox(height: 16),
+                Text(
+                  'خطأ: ${state.message}',
+                  style: const TextStyle(fontSize: 16),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<AccountStatementCubit>().refresh();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('إعادة المحاولة'),
+                ),
+              ],
+            ),
+          );
+        }
 
-    return Column(
-      children: [
-        // Summary cards
-        ReportSummaryRow(
-          cards: [
-            ReportSummaryCard(
-              title: 'الرصيد الافتتاحي',
-              value: '50,000 ر.س',
-              icon: Icons.play_arrow,
-              color: Colors.blue,
-            ),
-            ReportSummaryCard(
-              title: 'إجمالي المدين',
-              value: '${totalDebit.toStringAsFixed(0)} ر.س',
-              icon: Icons.arrow_upward,
-              color: Colors.green,
-            ),
-            ReportSummaryCard(
-              title: 'إجمالي الدائن',
-              value: '${totalCredit.toStringAsFixed(0)} ر.س',
-              icon: Icons.arrow_downward,
-              color: Colors.red,
-            ),
-            ReportSummaryCard(
-              title: 'الرصيد الختامي',
-              value: '72,500 ر.س',
-              icon: Icons.stop,
-              color: Colors.purple,
-            ),
-          ],
-        ),
+        if (state is AccountStatementLoaded) {
+          final transactions = state.transactions;
+          final summary = state.summary;
+
+          if (transactions.isEmpty) {
+            return const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.receipt_long, size: 64, color: Colors.grey),
+                  SizedBox(height: 16),
+                  Text(
+                    'لا توجد حركات في الفترة المحددة',
+                    style: TextStyle(fontSize: 16, color: Colors.grey),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          return Column(
+            children: [
+              // Summary cards
+              ReportSummaryRow(
+                cards: [
+                  ReportSummaryCard(
+                    title: 'الرصيد الافتتاحي',
+                    value: '${summary.openingBalance.toStringAsFixed(0)} ر.س',
+                    icon: Icons.play_arrow,
+                    color: Colors.blue,
+                  ),
+                  ReportSummaryCard(
+                    title: 'إجمالي المدين',
+                    value: '${summary.totalDebits.toStringAsFixed(0)} ر.س',
+                    icon: Icons.arrow_upward,
+                    color: Colors.green,
+                  ),
+                  ReportSummaryCard(
+                    title: 'إجمالي الدائن',
+                    value: '${summary.totalCredits.toStringAsFixed(0)} ر.س',
+                    icon: Icons.arrow_downward,
+                    color: Colors.red,
+                  ),
+                  ReportSummaryCard(
+                    title: 'الرصيد الختامي',
+                    value: '${summary.closingBalance.toStringAsFixed(0)} ر.س',
+                    icon: Icons.stop,
+                    color: summary.closingBalance >= 0 ? Colors.purple : Colors.red,
+                  ),
+                ],
+              ),
 
         // Transactions table
         Expanded(
@@ -132,7 +211,7 @@ class _AccountStatementContent extends StatelessWidget {
                             Expanded(
                               flex: 2,
                               child: Text(
-                                '${t.date.day}/${t.date.month}/${t.date.year}',
+                                '${t.transactionDate.day}/${t.transactionDate.month}/${t.transactionDate.year}',
                                 style: const TextStyle(fontSize: 13),
                               ),
                             ),
@@ -150,17 +229,17 @@ class _AccountStatementContent extends StatelessWidget {
                             Expanded(
                               flex: 2,
                               child: Text(
-                                t.debit > 0 ? t.debit.toStringAsFixed(0) : '-',
+                                t.debitAmount > 0 ? t.debitAmount.toStringAsFixed(0) : '-',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: t.debit > 0 ? Colors.green : Colors.grey),
+                                style: TextStyle(color: t.debitAmount > 0 ? Colors.green : Colors.grey),
                               ),
                             ),
                             Expanded(
                               flex: 2,
                               child: Text(
-                                t.credit > 0 ? t.credit.toStringAsFixed(0) : '-',
+                                t.creditAmount > 0 ? t.creditAmount.toStringAsFixed(0) : '-',
                                 textAlign: TextAlign.center,
-                                style: TextStyle(color: t.credit > 0 ? Colors.red : Colors.grey),
+                                style: TextStyle(color: t.creditAmount > 0 ? Colors.red : Colors.grey),
                               ),
                             ),
                             Expanded(
@@ -191,7 +270,7 @@ class _AccountStatementContent extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          totalDebit.toStringAsFixed(0),
+                          summary.totalDebits.toStringAsFixed(0),
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.green),
                         ),
@@ -199,7 +278,7 @@ class _AccountStatementContent extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          totalCredit.toStringAsFixed(0),
+                          summary.totalCredits.toStringAsFixed(0),
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.red),
                         ),
@@ -207,7 +286,7 @@ class _AccountStatementContent extends StatelessWidget {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          '72,500',
+                          summary.closingBalance.toStringAsFixed(0),
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.purple),
                         ),
@@ -219,19 +298,13 @@ class _AccountStatementContent extends StatelessWidget {
             ),
           ),
         ),
-      ],
+            ],
+          );
+        }
+
+        return const Center(child: Text('لا توجد بيانات'));
+      },
     );
   }
-}
-
-class _Transaction {
-  final DateTime date;
-  final String description;
-  final String reference;
-  final double debit;
-  final double credit;
-  final double balance;
-
-  _Transaction(this.date, this.description, this.reference, this.debit, this.credit, this.balance);
 }
 

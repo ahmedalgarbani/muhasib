@@ -5,6 +5,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
+import 'package:muhasib/features/purchases/presentation/pages/select_purchase_for_return_page.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 
 class PurchaseReturnsPage extends StatefulWidget {
@@ -60,7 +61,16 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
             ],
           ),
           floatingActionButton: FloatingActionButton.extended(
-            onPressed: () => _showCreateReturnDialog(innerContext),
+            onPressed: () {
+              Navigator.push(
+                innerContext,
+                MaterialPageRoute(
+                  builder: (_) => const SelectPurchaseForReturnPage(),
+                ),
+              ).then((_) {
+                innerContext.read<PurchasesCubit>().loadPurchaseReturns();
+              });
+            },
             backgroundColor: Colors.red,
             icon: const Icon(Icons.assignment_return, size: 20),
             label: const Text('مردود جديد', style: TextStyle(fontSize: 13)),

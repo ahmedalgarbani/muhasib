@@ -2,7 +2,6 @@ import 'package:dartz/dartz.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_connect_entity.dart';
 import 'package:muhasib/features/accounts/domain/repositories/account_connect_repository.dart';
-import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 
 /// Service to validate account connections before operations
 class AccountConnectValidator {

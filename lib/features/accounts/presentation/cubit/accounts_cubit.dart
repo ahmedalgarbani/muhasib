@@ -8,7 +8,6 @@ import 'package:muhasib/features/accounts/domain/usecases/get_all_accounts.dart'
 import 'package:muhasib/features/accounts/domain/usecases/get_master_accounts.dart';
 import 'package:muhasib/features/accounts/domain/usecases/search_accounts.dart';
 import 'package:muhasib/features/accounts/domain/usecases/update_account.dart';
-import 'package:hasib_lib/utils/app_logs.dart';
 
 part 'accounts_state.dart';
 
@@ -103,5 +102,10 @@ class AccountsCubit extends Cubit<AccountsState> {
       (failure) => emit(AccountsError(failure.message)),
       (accounts) => emit(AccountsLoaded(accounts)),
     );
+  }
+
+  // Alias for loadAllAccounts for compatibility
+  Future<void> getAccounts() async {
+    await loadAllAccounts();
   }
 }

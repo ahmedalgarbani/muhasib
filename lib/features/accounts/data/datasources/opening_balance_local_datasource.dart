@@ -13,6 +13,12 @@ abstract class OpeningBalanceLocalDataSource {
 }
 
 class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource {
+  static const _entriesTable = 'opening_entries';
+  static const _linesTable = 'opening_entry_lines';
+  static const _accountsTable = 'accounts';
+  static const _journalEntries = 'journal_entries';
+  static const _journalLines = 'journal_entry_lines';
+
   final DatabaseService databaseService;
 
   OpeningBalanceLocalDataSourceImpl({required this.databaseService});
@@ -20,87 +26,96 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
   @override
   Future<List<OpeningBalanceModel>> getAllOpeningBalances() async {
     final db = await databaseService.database;
-    
-    // Get all journal entries that are opening balances
+
     final entries = await db.query(
-      'journal_entries',
-      where: 'description LIKE ?',
-      whereArgs: ['%رصيد افتتاحي%'],
-      orderBy: 'entry_date DESC, id DESC',
+      _entriesTable,
+      orderBy: 'date DESC, id DESC',
     );
 
     final List<OpeningBalanceModel> openingBalances = [];
-    
+
     for (final entry in entries) {
-      // Get lines for this entry
-      final lines = await db.query(
-        'journal_entry_lines',
-        where: 'journal_entry_id = ?',
-        whereArgs: [entry['id']],
-        orderBy: 'line_number',
+      final lines = await db.rawQuery(
+        '''
+        SELECT l.*, a.code AS account_code, a.name AS account_name
+        FROM $_linesTable l
+        LEFT JOIN $_accountsTable a ON a.id = l.account_id
+        WHERE l.opening_entry_id = ?
+        ORDER BY l.line_number
+        ''',
+        [entry['id']],
       );
-      
-      final lineModels = lines.map((line) => OpeningBalanceLineModel.fromMap(line)).toList();
+
+      final lineModels =
+          lines.map((line) => OpeningBalanceLineModel.fromMap(line)).toList();
       openingBalances.add(OpeningBalanceModel.fromMap(entry, lineModels));
     }
-    
+
     return openingBalances;
   }
 
   @override
   Future<OpeningBalanceModel> getOpeningBalanceById(int id) async {
     final db = await databaseService.database;
-    
+
     final entries = await db.query(
-      'journal_entries',
+      _entriesTable,
       where: 'id = ?',
       whereArgs: [id],
       limit: 1,
     );
-    
+
     if (entries.isEmpty) {
       throw Exception('Opening balance not found');
     }
-    
-    final lines = await db.query(
-      'journal_entry_lines',
-      where: 'journal_entry_id = ?',
-      whereArgs: [id],
-      orderBy: 'line_number',
+
+    final lines = await db.rawQuery(
+      '''
+      SELECT l.*, a.code AS account_code, a.name AS account_name
+      FROM $_linesTable l
+      LEFT JOIN $_accountsTable a ON a.id = l.account_id
+      WHERE l.opening_entry_id = ?
+      ORDER BY l.line_number
+      ''',
+      [id],
     );
-    
-    final lineModels = lines.map((line) => OpeningBalanceLineModel.fromMap(line)).toList();
+
+    final lineModels =
+        lines.map((line) => OpeningBalanceLineModel.fromMap(line)).toList();
     return OpeningBalanceModel.fromMap(entries.first, lineModels);
   }
 
   @override
   Future<int> createOpeningBalance(OpeningBalanceModel openingBalance) async {
     final db = await databaseService.database;
-    
+
     return await db.transaction((txn) async {
-      // Insert journal entry
       final entryId = await txn.insert(
-        'journal_entries',
-        {
-          ...openingBalance.toMap(),
-          'reference_number': 'OB-${openingBalance.number}',
-        },
+        _entriesTable,
+        openingBalance.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.abort,
       );
-      
-      // Insert journal entry lines
-      for (int i = 0; i < openingBalance.lines.length; i++) {
-        final line = openingBalance.lines[i] as OpeningBalanceLineModel;
+
+      for (final line in openingBalance.lines) {
+        final model = line as OpeningBalanceLineModel;
         await txn.insert(
-          'journal_entry_lines',
-          line.toMap(entryId),
+          _linesTable,
+          model.toMap(entryId),
+          conflictAlgorithm: ConflictAlgorithm.abort,
         );
-        
-        // Update account balance if posted
-        if (openingBalance.isPosted) {
-          await _updateAccountBalance(txn, line.accountId, line.debit - line.credit);
-        }
       }
-      
+
+      if (openingBalance.isPosted) {
+        for (final line in openingBalance.lines) {
+          await _updateAccountBalance(
+            txn,
+            line.accountId,
+            line.debit - line.credit,
+          );
+        }
+        await _createJournalEntryFromOpening(txn, entryId, openingBalance);
+      }
+
       return entryId;
     });
   }
@@ -110,46 +125,52 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
     if (openingBalance.id == null) {
       throw Exception('Cannot update opening balance without ID');
     }
-    
+
     final db = await databaseService.database;
-    
+
     await db.transaction((txn) async {
-      // Get old entry to reverse balances if posted
       final oldEntry = await getOpeningBalanceById(openingBalance.id!);
-      
+
       if (oldEntry.isPosted) {
-        // Reverse old balances
         for (final line in oldEntry.lines) {
-          await _updateAccountBalance(txn, line.accountId, -(line.debit - line.credit));
+          await _updateAccountBalance(
+            txn,
+            line.accountId,
+            -(line.debit - line.credit),
+          );
         }
       }
-      
-      // Update journal entry
+
       await txn.update(
-        'journal_entries',
+        _entriesTable,
         openingBalance.toMap(),
         where: 'id = ?',
         whereArgs: [openingBalance.id],
+        conflictAlgorithm: ConflictAlgorithm.abort,
       );
-      
-      // Delete old lines
+
       await txn.delete(
-        'journal_entry_lines',
-        where: 'journal_entry_id = ?',
+        _linesTable,
+        where: 'opening_entry_id = ?',
         whereArgs: [openingBalance.id],
       );
-      
-      // Insert new lines
-      for (int i = 0; i < openingBalance.lines.length; i++) {
-        final line = openingBalance.lines[i] as OpeningBalanceLineModel;
+
+      for (final line in openingBalance.lines) {
+        final model = line as OpeningBalanceLineModel;
         await txn.insert(
-          'journal_entry_lines',
-          line.toMap(openingBalance.id!),
+          _linesTable,
+          model.toMap(openingBalance.id!),
+          conflictAlgorithm: ConflictAlgorithm.abort,
         );
-        
-        // Update account balance if posted
-        if (openingBalance.isPosted) {
-          await _updateAccountBalance(txn, line.accountId, line.debit - line.credit);
+      }
+
+      if (openingBalance.isPosted) {
+        for (final line in openingBalance.lines) {
+          await _updateAccountBalance(
+            txn,
+            line.accountId,
+            line.debit - line.credit,
+          );
         }
       }
     });
@@ -158,21 +179,22 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
   @override
   Future<void> deleteOpeningBalance(int id) async {
     final db = await databaseService.database;
-    
+
     await db.transaction((txn) async {
-      // Get entry to reverse balances if posted
       final entry = await getOpeningBalanceById(id);
-      
+
       if (entry.isPosted) {
-        // Reverse balances
         for (final line in entry.lines) {
-          await _updateAccountBalance(txn, line.accountId, -(line.debit - line.credit));
+          await _updateAccountBalance(
+            txn,
+            line.accountId,
+            -(line.debit - line.credit),
+          );
         }
       }
-      
-      // Delete entry (lines will be cascade deleted)
+
       await txn.delete(
-        'journal_entries',
+        _entriesTable,
         where: 'id = ?',
         whereArgs: [id],
       );
@@ -182,83 +204,140 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
   @override
   Future<void> postOpeningBalance(int id) async {
     final db = await databaseService.database;
-    
+
     await db.transaction((txn) async {
-      // Get the opening balance
       final entry = await getOpeningBalanceById(id);
-      
+
       if (entry.isPosted) {
         throw Exception('Opening balance is already posted');
       }
-      
       if (!entry.isBalanced) {
         throw Exception('Cannot post unbalanced entry. Debit must equal Credit.');
       }
-      
-      // Update status to posted
+
       await txn.update(
-        'journal_entries',
+        _entriesTable,
         {
-          'is_posted': 1,
-          'status': 2, // Posted status
-          'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          'status': 2,
+          'last_modification_time':
+              DateTime.now().millisecondsSinceEpoch ~/ 1000,
         },
         where: 'id = ?',
         whereArgs: [id],
       );
-      
-      // Update account balances
+
       for (final line in entry.lines) {
-        await _updateAccountBalance(txn, line.accountId, line.debit - line.credit);
+        await _updateAccountBalance(
+          txn,
+          line.accountId,
+          line.debit - line.credit,
+        );
       }
+
+      await _createJournalEntryFromOpening(txn, id, entry);
     });
   }
 
   @override
   Future<String> generateNextNumber() async {
     final db = await databaseService.database;
-    
-    // Get the last opening balance number
-    final result = await db.rawQuery('''
-      SELECT MAX(CAST(SUBSTR(number, 4) AS INTEGER)) as max_num 
-      FROM journal_entries 
-      WHERE number LIKE 'OB-%'
-    ''');
-    
+    final result = await db.rawQuery(
+      'SELECT MAX(number) as max_num FROM $_entriesTable',
+    );
+
     int nextNumber = 1;
     if (result.isNotEmpty && result.first['max_num'] != null) {
-      nextNumber = (result.first['max_num'] as int) + 1;
+      final maxNum = result.first['max_num'];
+      if (maxNum is int) {
+        nextNumber = maxNum + 1;
+      } else if (maxNum is num) {
+        nextNumber = maxNum.toInt() + 1;
+      } else if (maxNum is String) {
+        nextNumber = int.tryParse(maxNum) ?? 1;
+      }
     }
-    
-    return 'OB-${nextNumber.toString().padLeft(6, '0')}';
+
+    return nextNumber.toString().padLeft(6, '0');
   }
 
-  Future<void> _updateAccountBalance(Transaction txn, int accountId, double amount) async {
-    // Get current balance
+  Future<void> _updateAccountBalance(
+    Transaction txn,
+    int accountId,
+    double amount,
+  ) async {
     final accounts = await txn.query(
-      'accounts',
+      _accountsTable,
       where: 'id = ?',
       whereArgs: [accountId],
       limit: 1,
     );
-    
+
     if (accounts.isEmpty) {
       throw Exception('Account not found');
     }
-    
-    final currentBalance = accounts.first['balance'] as double? ?? 0.0;
+
+    final currentBalance = (accounts.first['balance'] as num?)?.toDouble() ?? 0.0;
     final newBalance = currentBalance + amount;
-    
-    // Update balance
+
     await txn.update(
-      'accounts',
+      _accountsTable,
       {
         'balance': newBalance,
         'local_balance': newBalance,
-        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'last_modification_time':
+            DateTime.now().millisecondsSinceEpoch ~/ 1000,
       },
       where: 'id = ?',
       whereArgs: [accountId],
     );
   }
+
+  Future<void> _createJournalEntryFromOpening(
+    Transaction txn,
+    int openingEntryId,
+    OpeningBalanceModel openingBalance,
+  ) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final journalId = await txn.insert(
+      _journalEntries,
+      {
+        'number': 'OB-${openingBalance.number}',
+        'entry_date': openingBalance.entryDate.millisecondsSinceEpoch ~/ 1000,
+        'description': openingBalance.description ?? 'رصيد افتتاحي',
+        'reference_type': 'opening_entry',
+        'reference_id': openingEntryId,
+        'reference_number': openingBalance.number,
+        'notes': openingBalance.notes,
+        'status': 2,
+        'is_posted': 1,
+        'total_debit': openingBalance.totalDebit,
+        'total_credit': openingBalance.totalCredit,
+        'difference': 0,
+        'creation_time': now,
+        'last_modification_time': now,
+      },
+      conflictAlgorithm: ConflictAlgorithm.abort,
+    );
+
+    int lineNumber = 1;
+    for (final line in openingBalance.lines) {
+      await txn.insert(
+        _journalLines,
+        {
+          'journal_entry_id': journalId,
+          'line_number': lineNumber++,
+          'account_id': line.accountId,
+          'account_code': line.accountCode,
+          'account_name': line.accountName,
+          'currency_id': line.currencyId,
+          'currency_code': line.currencyCode,
+            'debit_amount': line.debit,
+            'credit_amount': line.credit,
+          'notes': line.notes,
+        },
+        conflictAlgorithm: ConflictAlgorithm.abort,
+      );
+    }
+  }
 }
+

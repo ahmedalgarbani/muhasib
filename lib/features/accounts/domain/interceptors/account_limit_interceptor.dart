@@ -287,18 +287,3 @@ enum InvoiceType {
   purchaseReturn,
   quotation,
 }
-
-class ValidationFailure extends Failure {
-  final List<String> violations;
-
-  ValidationFailure({
-    required String message,
-    this.violations = const [],
-  }) : super(message);
-
-  @override
-  String toString() {
-    if (violations.isEmpty) return message;
-    return '$message:\n${violations.join('\n')}';
-  }
-}

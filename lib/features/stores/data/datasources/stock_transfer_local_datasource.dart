@@ -1,5 +1,6 @@
 import 'package:muhasib/features/stores/data/models/stock_transfer_model.dart';
 import 'package:muhasib/features/stores/domain/entities/stock_transfer_entity.dart';
+import 'package:muhasib/features/stores/domain/enums/stock_enums.dart';
 import 'package:sqflite/sqflite.dart';
 
 abstract class StockTransferLocalDataSource {
@@ -84,15 +85,23 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
 
   @override
   Future<void> updateTransferStatus(int id, String status) async {
+    final parsedStatus = TransferStatus.values.firstWhere(
+      (e) => e.name == status,
+      orElse: () => TransferStatus.draft,
+    );
+
     await database.update(
       'stock_transfers',
-      {'status': 4, 'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000},
+      {
+        'status': parsedStatus.value,
+        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      },
       where: 'id = ?',
       whereArgs: [id],
     );
 
     // If status is 'completed', update stock quantities
-    if (status == 'completed') {
+    if (parsedStatus == TransferStatus.completed) {
       await _processTransferCompletion(id);
     }
   }

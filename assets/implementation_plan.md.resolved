@@ -1,0 +1,52 @@
+# Implementation Plan - Account Limits (سقف الحسابات)
+
+The goal is to implement the "Account Limits" feature, ensuring proper domain, data, and presentation layer implementation, and linking it to the database.
+
+## User Review Required
+
+> [!IMPORTANT]
+> I will be implementing the missing Data Layer components (`AccountLimitModel`, `AccountLimitLocalDataSource`, `AccountLimitRepositoryImpl`) to support the existing Domain and Presentation layers.
+
+## Proposed Changes
+
+### Data Layer
+#### [NEW] [account_limit_model.dart](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/models/account_limit_model.dart)
+- Create `AccountLimitModel` extending [AccountLimitEntity](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/entities/account_limit_entity.dart#3-126).
+- Implement `fromJson`, [toJson](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/models/journal_entry_model.dart#74-88), `fromMap`, [toMap](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/models/opening_balance_model.dart#42-59) for database interaction.
+- Map `account_limits` table columns to the model.
+
+#### [NEW] [account_limit_local_datasource.dart](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/datasources/account_limit_local_datasource.dart)
+- Implement `AccountLimitLocalDataSource` to interact with `account_limits` table.
+- Methods:
+    - [getAllAccountLimits()](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#43-44)
+    - [getAccountLimit(int accountId, int currencyId)](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#37-41)
+    - [saveAccountLimit(AccountLimitModel limit)](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#49-50)
+    - [deleteAccountLimit(int id)](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#52-53)
+    - `updateCurrentUsage(int accountId, int currencyId, double debitChange, double creditChange)`
+
+#### [NEW] [account_limit_repository_impl.dart](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/repositories/account_limit_repository_impl.dart)
+- Implement `AccountLimitRepository` (or [AccountLimitService](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#5-65) if it acts as a repository).
+- *Note: The existing code uses [AccountLimitService](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#5-65) directly in the Cubit. I will likely implement `AccountLimitServiceImpl` that uses the datasource.*
+
+### Domain Layer
+#### [MODIFY] [account_limit_service.dart](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart)
+- Ensure [AccountLimitService](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#5-65) is an interface (abstract class) if it isn't already, or create a repository interface if better suited.
+- *Correction*: Based on file view, [AccountLimitService](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#5-65) seems to be the interface. I will create an implementation for it.
+
+### Presentation Layer
+- [AccountLimitsCubit](file:///d:/Flutter/projects/muhasib/lib/features/accounts/presentation/cubit/account_limits_cubit.dart#8-43) and [AccountLimitsScreen](file:///d:/Flutter/projects/muhasib/lib/features/accounts/presentation/pages/accounts_limit_page_clean.dart#11-17) already exist. I will verify they work correctly with the new data layer implementation.
+
+## Verification Plan
+
+### Manual Verification
+1.  **Add Limit**:
+    - Go to Account Limits page.
+    - Add a limit for an account (e.g., Debit Limit 1000).
+    - Save.
+    - Verify it appears in the list.
+2.  **Check Limit Enforcement** (Future Step/Integration):
+    - *This task focuses on CRUD of limits. Enforcement logic usually resides in Transaction creation (Journal Entry).*
+    - I will ensure the [AccountLimitService](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/services/account_limit_service.dart#5-65) has a method `checkLimit(AccountLimitViolation violation)` or similar to be used by other features.
+3.  **Edit/Delete**:
+    - Edit the limit.
+    - Delete the limit.

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/features/accounts/domain/services/account_connect_validator.dart';
-import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 
 /// Mixin to add account connection validation to Cubits
 mixin AccountConnectValidationMixin {

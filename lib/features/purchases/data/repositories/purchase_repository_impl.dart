@@ -9,18 +9,19 @@ import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 class PurchaseRepositoryImpl implements PurchaseRepository {
   final InvoiceLocalDataSource localDataSource;
 
-  PurchaseRepositoryImpl({required this.localDataSource});
+  PurchaseRepositoryImpl({
+    required this.localDataSource,
+  });
 
   @override
   Future<Either<Failure, List<InvoiceEntity>>> getPurchaseInvoices() async {
     try {
       final allInvoices = await localDataSource.getInvoices();
-      // Filter for purchase invoices (invoice_type = 2, invoice_trans_type = 1)
+      // Purchase invoices (invoice_type = 2)
       final purchaseInvoices = allInvoices
           .where(
             (invoice) =>
-                invoice.invoiceType == InvoiceType.purchaseInvoice.value &&
-                invoice.invoiceTransType == 1,
+                invoice.invoiceType == InvoiceType.purchaseInvoice.value,
           )
           .toList();
       return Right(purchaseInvoices);
@@ -36,8 +37,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
     try {
       final invoice = await localDataSource.getInvoice(id);
       // Verify it's a purchase invoice
-      if (invoice.invoiceType == InvoiceType.purchaseInvoice.value &&
-          invoice.invoiceTransType == 1) {
+      if (invoice.invoiceType == InvoiceType.purchaseInvoice.value) {
         return Right(invoice);
       } else {
         return Left(CacheFailure('Invoice is not a purchase invoice'));
@@ -57,7 +57,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       // Create a purchase invoice entity with correct type
       final purchaseInvoice = InvoiceEntity(
         invoiceType: InvoiceType.purchaseInvoice.value,
-        invoiceTransType: 1,
+        invoiceTransType: invoice.invoiceTransType,
         number: invoice.number,
         date: invoice.date,
         customerId: invoice.customerId,
@@ -76,6 +76,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       final id = await localDataSource.insertInvoice(
         InvoiceModel.fromEntity(purchaseInvoice),
       );
+
       return Right(id);
     } catch (e) {
       return Left(
@@ -112,6 +113,11 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       await localDataSource.updateInvoice(
         InvoiceModel.fromEntity(purchaseInvoice),
       );
+      
+      // TODO: Update accounting entries (reverse old, create new, or update)
+      // For now, we are not handling updates to accounting entries automatically
+      // This requires finding the old entry by reference and updating it.
+
       return const Right(null);
     } catch (e) {
       return Left(
@@ -124,6 +130,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
   Future<Either<Failure, void>> deletePurchaseInvoice(int id) async {
     try {
       await localDataSource.deleteInvoice(id);
+      // TODO: Delete or reverse accounting entries
       return const Right(null);
     } catch (e) {
       return Left(
@@ -195,7 +202,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       // Create new purchase invoice from order
       final purchaseInvoice = InvoiceEntity(
         invoiceType: InvoiceType.purchaseInvoice.value,
-        invoiceTransType: 1,
+        invoiceTransType: invoice.invoiceTransType,
         parentInvoiceId: orderId,
         parentInvoiceNumber: order.number,
         number: invoice.number,
@@ -256,8 +263,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       final purchaseReturns = allInvoices
           .where(
             (invoice) =>
-                invoice.invoiceType == InvoiceType.purchaseReturn.value &&
-                invoice.invoiceTransType == 1,
+                invoice.invoiceType == InvoiceType.purchaseReturn.value,
           )
           .toList();
       return Right(purchaseReturns);
@@ -280,7 +286,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       // Create return with reference to parent
       final purchaseReturn = InvoiceEntity(
         invoiceType: InvoiceType.purchaseReturn.value,
-        invoiceTransType: 1,
+        invoiceTransType: returnInvoice.invoiceTransType,
         parentInvoiceId: parentInvoiceId,
         parentInvoiceNumber: parentInvoice.number,
         number: returnInvoice.number,
@@ -300,6 +306,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       final id = await localDataSource.insertInvoice(
         InvoiceModel.fromEntity(purchaseReturn),
       );
+
       return Right(id);
     } catch (e) {
       return Left(
@@ -338,7 +345,13 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       final searchResults = await localDataSource.searchInvoices(query);
       // Filter for purchase-related invoices only
       final purchaseResults = searchResults
-          .where((invoice) => invoice.invoiceTransType == 1)
+          .where(
+            (invoice) =>
+                invoice.invoiceType == InvoiceType.purchaseInvoice.value ||
+                invoice.invoiceType == InvoiceType.purchaseReturn.value ||
+                (invoice.invoiceType == InvoiceType.quotation.value &&
+                    invoice.invoiceTransType == 1), // purchase orders
+          )
           .toList();
       return Right(purchaseResults);
     } catch (e) {

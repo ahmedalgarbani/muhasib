@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
-import 'package:muhasib/core/route/app_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
@@ -19,7 +18,7 @@ class _SalePageBodyState extends State<SalePageBody> {
   @override
   void initState() {
     super.initState();
-    // Load data when the page initializes
+    
     context.read<SalesCubit>().loadInvoices();
     context.read<AccountsCubit>().loadAllAccounts();
   }
@@ -42,7 +41,7 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   bool _filterOpen = false;
   String _sortBy = "date-desc";
   // Local filter state
-  int? _selectedPaymentStatus; // 0: unpaid, 1: paid, etc. (Mapping needed)
+  // int? _selectedPaymentStatus; // 0: unpaid, 1: paid, etc. (Mapping needed)
 
   void _toggleFilterOpen() {
     setState(() {
@@ -157,7 +156,10 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   }
 
   List<InvoiceEntity> _filterInvoices(List<InvoiceEntity> invoices) {
-    var filtered = invoices;
+    // This page is "Sales List" -> only show sales invoices
+    var filtered = invoices
+        .where((inv) => inv.invoiceType == 1)
+        .toList();
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
           .where(
@@ -475,18 +477,14 @@ class BillCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = DateFormat(
-      'yyyy-MM-dd',
-    ).format(DateTime.fromMillisecondsSinceEpoch(invoice.date));
+    // Invoices store date as seconds since epoch
+    final dateStr = DateFormat('yyyy-MM-dd').format(
+      DateTime.fromMillisecondsSinceEpoch(invoice.date * 1000),
+    );
     // Try to find customer name from AccountsCubit
     final accountsState = context.read<AccountsCubit>().state;
     String customerName = 'Customer #${invoice.customerId}';
     if (accountsState is AccountsLoaded) {
-      final customer = accountsState.accounts.firstWhere(
-        (a) => a.id == invoice.customerId,
-        orElse: () =>
-            accountsState.accounts.first, // Fallback? Or maybe create a dummy
-      );
       // If found, use name. But firstWhere throws if not found unless orElse is provided.
       // Let's use try/catch or collection firstWhereOrNull if available, or just loop.
       try {

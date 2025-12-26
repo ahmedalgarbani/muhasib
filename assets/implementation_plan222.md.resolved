@@ -1,0 +1,53 @@
+# Implementation Plan - Opening Balances (الارصدة الافتتاحيه)
+
+The goal is to refactor the "Opening Balances" feature to use the dedicated `opening_entries` and `opening_entry_lines` tables, ensuring proper separation of concerns and linking to the General Ledger (`journal_entries`) upon posting.
+
+## User Review Required
+
+> [!IMPORTANT]
+> I will be switching the storage from `journal_entries` to `opening_entries`. Existing opening balances stored as journal entries might not be visible in the new Opening Balance list unless migrated (migration is out of scope unless requested).
+> Posting an Opening Balance will now create a corresponding Journal Entry.
+
+## Proposed Changes
+
+### Data Layer
+#### [MODIFY] [opening_balance_model.dart](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/models/opening_balance_model.dart)
+- Update `fromMap`/[toMap](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/models/opening_balance_model.dart#42-59) to match `opening_entries` table columns:
+    - `entry_date` -> [date](file:///d:/Flutter/projects/muhasib/lib/features/accounts/presentation/cubit/opening_balance_cubit.dart#141-168)
+    - `description` -> `statement`
+    - `total_debit` -> `debit_amount`
+    - `total_credit` -> `credit_amount`
+- Update [OpeningBalanceLineModel](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/models/opening_balance_model.dart#101-176):
+    - Map `debit`/`credit` to `amount` and `type` (1=Debit, 2=Credit) for `opening_entry_lines` table.
+
+#### [MODIFY] [opening_balance_local_datasource.dart](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/datasources/opening_balance_local_datasource.dart)
+- Change table references from `journal_entries` to `opening_entries`.
+- Change line table references from `journal_entry_lines` to `opening_entry_lines`.
+- **Refactor [postOpeningBalance](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/datasources/opening_balance_local_datasource.dart#183-216)**:
+    - Mark `opening_entry` as posted.
+    - **Create a new Journal Entry** in `journal_entries` table to reflect this transaction in the General Ledger.
+    - Update Account Balances.
+
+### Domain Layer
+- [OpeningBalanceEntity](file:///d:/Flutter/projects/muhasib/lib/features/accounts/domain/entities/opening_balance_entity.dart#3-96) remains largely unchanged, serving as the abstraction.
+
+### Presentation Layer
+#### [MODIFY] [opening_balance_cubit.dart](file:///d:/Flutter/projects/muhasib/lib/features/accounts/presentation/cubit/opening_balance_cubit.dart)
+- Ensure it handles the updated model/datasource correctly.
+- Verify [saveOpeningBalance](file:///d:/Flutter/projects/muhasib/lib/features/accounts/presentation/cubit/opening_balance_cubit.dart#227-251) and [postOpeningBalance](file:///d:/Flutter/projects/muhasib/lib/features/accounts/data/datasources/opening_balance_local_datasource.dart#183-216) flows.
+
+## Verification Plan
+
+### Manual Verification
+1.  **Create Opening Balance**:
+    - Add lines (Debit/Credit).
+    - Save.
+    - Verify it is saved in `opening_entries` table (using DB inspector or by listing).
+2.  **Post Opening Balance**:
+    - Click Post.
+    - Verify `status` becomes Posted.
+    - **Verify a new Journal Entry is created** in `journal_entries` table with the same details.
+    - Verify Account Balances are updated.
+3.  **Edit/Delete**:
+    - Verify Edit works (before posting).
+    - Verify Delete works (before posting).

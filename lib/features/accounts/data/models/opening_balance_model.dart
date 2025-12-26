@@ -19,19 +19,20 @@ class OpeningBalanceModel extends OpeningBalanceEntity {
     super.lastModificationTime,
   });
 
+  /// Creates model from opening_entries table row
   factory OpeningBalanceModel.fromMap(Map<String, dynamic> map, List<OpeningBalanceLineModel> lines) {
     return OpeningBalanceModel(
       id: map['id'] as int?,
-      number: map['number'] as String,
-      entryDate: DateTime.fromMillisecondsSinceEpoch((map['entry_date'] as int) * 1000),
-      description: map['description'] as String?,
-      notes: map['notes'] as String?,
-      currencyId: map['currency_id'] ?? 1,
-      currencyCode: map['currency_code'] ?? 'SAR',
+      number: map['number']?.toString() ?? '',
+      entryDate: DateTime.fromMillisecondsSinceEpoch((map['date'] as int) * 1000),
+      description: map['statement'] as String?,
+      notes: map['extra_properties'] as String?,
+      currencyId: map['currency_id'] as int? ?? 1,
+      currencyCode: map['currency_code'] as String? ?? 'SAR',
       status: map['status'] as int? ?? 0,
-      isPosted: (map['is_posted'] as int? ?? 0) == 1,
-      totalDebit: map['total_debit'] as double? ?? 0.0,
-      totalCredit: map['total_credit'] as double? ?? 0.0,
+      isPosted: (map['status'] as int? ?? 0) == 2, // status 2 = posted
+      totalDebit: (map['debit_amount'] as num?)?.toDouble() ?? 0.0,
+      totalCredit: (map['credit_amount'] as num?)?.toDouble() ?? 0.0,
       lines: lines,
       creatorId: map['creator_id'] as int?,
       creationTime: map['creation_time'] as int?,
@@ -39,18 +40,22 @@ class OpeningBalanceModel extends OpeningBalanceEntity {
     );
   }
 
+  /// Converts model to opening_entries table row
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
+      if (id != null) 'id': id,
       'number': number,
-      'entry_date': entryDate.millisecondsSinceEpoch ~/ 1000,
-      'description': description ?? 'رصيد افتتاحي',
-      'notes': notes,
-      'status': status,
-      'is_posted': isPosted ? 1 : 0,
-      'total_debit': totalDebit,
-      'total_credit': totalCredit,
-      'difference': difference,
+      'date': entryDate.millisecondsSinceEpoch ~/ 1000,
+      'statement': description ?? 'رصيد افتتاحي',
+      'extra_properties': notes,
+      'currency_id': currencyId,
+      'currency_code': currencyCode,
+      'status': isPosted ? 2 : status,
+      'debit_amount': totalDebit,
+      'debit_local_amount': totalDebit,
+      'credit_amount': totalCredit,
+      'credit_local_amount': totalCredit,
+      'exchange_rate': 1.0,
       'creator_id': creatorId ?? 1,
       'creation_time': creationTime ?? DateTime.now().millisecondsSinceEpoch ~/ 1000,
       'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -112,34 +117,46 @@ class OpeningBalanceLineModel extends OpeningBalanceLineEntity {
     super.notes,
   });
 
+  /// Creates model from opening_entry_lines table row
+  /// The table uses 'amount' and 'type' (1=Debit, 2=Credit)
   factory OpeningBalanceLineModel.fromMap(Map<String, dynamic> map) {
+    final amount = (map['amount'] as num?)?.toDouble() ?? 0.0;
+    final type = map['type'] as int? ?? 1;
+    
     return OpeningBalanceLineModel(
       id: map['id'] as int?,
-      lineNumber: map['line_number'] as int,
+      lineNumber: map['line_number'] as int? ?? 0,
       accountId: map['account_id'] as int,
-      accountCode: map['account_code'] as String,
-      accountName: map['account_name'] as String,
+      accountCode: map['account_code'] as String? ?? '',
+      accountName: map['account_name'] as String? ?? '',
       currencyId: map['currency_id'] as int? ?? 1,
       currencyCode: map['currency_code'] as String? ?? 'SAR',
-      debit: map['debit'] as double? ?? 0.0,
-      credit: map['credit'] as double? ?? 0.0,
-      notes: map['notes'] as String?,
+      debit: type == 1 ? amount : 0.0,
+      credit: type == 2 ? amount : 0.0,
+      notes: map['statement'] as String?,
     );
   }
 
-  Map<String, dynamic> toMap(int journalEntryId) {
+  /// Converts model to opening_entry_lines table row
+  /// Uses 'amount' and 'type' (1=Debit, 2=Credit) format
+  Map<String, dynamic> toMap(int openingEntryId) {
+    // Determine type and amount based on debit/credit
+    final int type = debit > 0 ? 1 : 2;
+    final double amount = debit > 0 ? debit : credit;
+    
     return {
-      'id': id,
-      'journal_entry_id': journalEntryId,
-      'line_number': lineNumber,
+      if (id != null) 'id': id,
+      'opening_entry_id': openingEntryId,
       'account_id': accountId,
-      'account_code': accountCode,
-      'account_name': accountName,
+      'amount': amount,
+      'local_amount': amount,
+      'type': type,
       'currency_id': currencyId,
       'currency_code': currencyCode,
-      'debit': debit,
-      'credit': credit,
-      'notes': notes,
+      'exchange_rate': 1.0,
+      'statement': notes ?? '',
+      'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
     };
   }
 

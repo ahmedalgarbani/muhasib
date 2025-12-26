@@ -48,11 +48,11 @@ class AppNavigator {
           icon: Icons.trending_up,
           route: AppRoutes.accountsLimits,
         ),
-        NavItem(
-          title: 'الإغلاق السنوي',
-          icon: Icons.lock_outline,
-          route: AppRoutes.accountsAnnualClose,
-        ),
+        // NavItem(
+        //   title: 'الإغلاق السنوي',
+        //   icon: Icons.lock_outline,
+        //   route: AppRoutes.accountsAnnualClose,
+        // ),
       ],
     ),
 
@@ -231,6 +231,25 @@ class AppNavigator {
           title: 'المناطق',
           icon: Icons.location_city,
           route: AppRoutes.settingsRegions,
+        ),
+      ],
+    ),
+
+    // ======= الملفات الشخصية =======
+    NavItem(
+      title: 'الملفات الشخصية',
+      icon: Icons.people_alt_outlined,
+      route: AppRoutes.profiles,
+      children: [
+        NavItem(
+          title: 'العملاء',
+          icon: Icons.person_outline,
+          route: AppRoutes.customersProfile,
+        ),
+        NavItem(
+          title: 'الموردين',
+          icon: Icons.store_outlined,
+          route: AppRoutes.suppliersProfile,
         ),
       ],
     ),

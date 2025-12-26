@@ -120,6 +120,13 @@ class AppRoutes {
   static const String reportsSupplierBalances = '/reports/supplier-balances';
   static const String reportsAgedPayables = '/reports/aged-payables';
 
+  // ======= الملفات الشخصية (العملاء والموردين) =======
+  static const String profiles = '/profiles';
+  static const String customersProfile = '/profiles/customers';
+  static const String suppliersProfile = '/profiles/suppliers';
+  static const String customerDetails = '/profiles/customers/details';
+  static const String supplierDetails = '/profiles/suppliers/details';
+
   // ======= عن التطبيق =======
   static const String about = '/about';
   static const String aboutYoutube = '/about/youtube';

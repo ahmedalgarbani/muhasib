@@ -5,9 +5,10 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
+import 'package:muhasib/features/products/presentation/cubit/product_prices_cubit.dart';
 
 class ProductPricingPage extends StatefulWidget {
-  const ProductPricingPage({Key? key}) : super(key: key);
+  const ProductPricingPage({super.key});
 
   @override
   State<ProductPricingPage> createState() => _ProductPricingPageState();
@@ -26,6 +27,9 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
         ),
         BlocProvider(
           create: (context) => getIt<ProductSubUnitsCubit>()..loadAllSubUnits(),
+        ),
+        BlocProvider(
+          create: (context) => getIt<ProductPricesCubit>()..loadAllPrices(),
         ),
       ],
       child: Directionality(
@@ -80,8 +84,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
           BlocBuilder<ProductsCubit, ProductsState>(
             builder: (context, productsState) {
               if (productsState is ProductsLoaded) {
-                return DropdownButton<int?>
-(
+                return DropdownButton<int?>(
                   value: _selectedProductFilter,
                   hint: const Text('اختر المنتج'),
                   isExpanded: true,
@@ -115,36 +118,60 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
   }
 
   Widget _buildPricingContent(BuildContext innerContext) {
-    return BlocBuilder<ProductSubUnitsCubit, ProductSubUnitsState>(
-      builder: (context, state) {
-        if (state is ProductSubUnitsLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is ProductSubUnitsError) {
-          return Center(
-            child: Text(
-              state.message,
-              style: const TextStyle(color: Colors.red),
+    return BlocConsumer<ProductPricesCubit, ProductPricesState>(
+      listener: (context, state) {
+        if (state is ProductPricesSaved) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.green,
             ),
           );
-        } else if (state is ProductSubUnitsLoaded) {
-          if (state.subUnits.isEmpty) {
-            return _buildEmptyState();
-          }
-          return _buildPricingList(innerContext, state);
+        } else if (state is ProductPricesError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: Colors.red,
+            ),
+          );
         }
-        return const Center(
-          child: Text('ابدأ بإضافة أسعار للمنتجات'),
+      },
+      builder: (context, pricesState) {
+        return BlocBuilder<ProductSubUnitsCubit, ProductSubUnitsState>(
+          builder: (context, state) {
+            if (state is ProductSubUnitsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (state is ProductSubUnitsError) {
+              return Center(
+                child: Text(
+                  state.message,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              );
+            } else if (state is ProductSubUnitsLoaded) {
+              if (state.subUnits.isEmpty) {
+                return _buildEmptyState();
+              }
+              return _buildPricingList(innerContext, state, pricesState);
+            }
+            return const Center(
+              child: Text('ابدأ بإضافة أسعار للمنتجات'),
+            );
+          },
         );
       },
     );
   }
 
-  Widget _buildPricingList(BuildContext innerContext, ProductSubUnitsLoaded state) {
+  Widget _buildPricingList(BuildContext innerContext, ProductSubUnitsLoaded subUnitsState, ProductPricesState pricesState) {
+    final prices = pricesState is ProductPricesLoaded ? pricesState.prices : [];
+    
     return ListView.builder(
       padding: const EdgeInsets.all(16),
-      itemCount: state.subUnits.length,
+      itemCount: subUnitsState.subUnits.length,
       itemBuilder: (context, index) {
-        final subUnit = state.subUnits[index];
+        final subUnit = subUnitsState.subUnits[index];
+        final subUnitPrices = prices.where((p) => p.categorySubUnitId == subUnit.id).toList();
         
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
@@ -163,7 +190,6 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                     );
                     productName = product.name;
                   } catch (e) {
-                    // Product not found, keep default name
                     productName = 'منتج غير معروف';
                   }
                 }
@@ -174,9 +200,10 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
               },
             ),
             children: [
-              _buildPriceLevelItem('سعر التجزئة', 1, subUnit.id),
-              _buildPriceLevelItem('سعر الجملة', 2, subUnit.id),
-              _buildPriceLevelItem('سعر خاص', 3, subUnit.id),
+              _buildPriceLevelItem('سعر التجزئة', 1, subUnit.id, subUnitPrices, innerContext),
+              _buildPriceLevelItem('سعر الجملة', 2, subUnit.id, subUnitPrices, innerContext),
+              _buildPriceLevelItem('سعر خاص', 3, subUnit.id, subUnitPrices, innerContext),
+              _buildPriceLevelItem('سعر الموزع', 4, subUnit.id, subUnitPrices, innerContext),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton.icon(
@@ -195,44 +222,57 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
     );
   }
 
-  Widget _buildPriceLevelItem(String levelName, int priceLevel, int? subUnitId) {
+  Widget _buildPriceLevelItem(String levelName, int priceLevel, int? subUnitId, List prices, BuildContext innerContext) {
+    final price = prices.where((p) => p.priceLevel == priceLevel).firstOrNull;
+    final hasPrice = price != null && price.bidAmount != null && price.bidAmount > 0;
+    
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.green.shade50,
+          color: hasPrice ? Colors.green.shade50 : Colors.grey.shade100,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Icon(
           Icons.attach_money,
-          color: Colors.green.shade700,
+          color: hasPrice ? Colors.green.shade700 : Colors.grey.shade400,
         ),
       ),
       title: Text(levelName),
-      subtitle: const Text('غير محدد'),
+      subtitle: Text(hasPrice ? 'الحد الأدنى: ${price.minQuantity ?? 1} وحدة' : 'غير محدد'),
       trailing: SizedBox(
-        width: 120,
+        width: 140,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
-            Text(
-              '0.00 ر.س',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
+            Flexible(
+              child: Text(
+                hasPrice ? '${price.bidAmount?.toStringAsFixed(2)} ر.س' : '0.00 ر.س',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: hasPrice ? Colors.green.shade700 : Colors.grey.shade500,
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
             ),
+            const SizedBox(width: 4),
             IconButton(
               icon: const Icon(Icons.edit, size: 20),
               onPressed: () => _showPricingDialog(
-                context,
+                innerContext,
                 subUnitId: subUnitId,
                 priceLevel: priceLevel,
+                existingPrice: hasPrice ? price.bidAmount : null,
+                existingMinQty: hasPrice ? price.minQuantity : null,
               ),
             ),
+            if (hasPrice)
+              IconButton(
+                icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                onPressed: () => _confirmDeletePrice(innerContext, price.id),
+              ),
           ],
         ),
       ),
@@ -271,21 +311,53 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
     );
   }
 
-  void _showPricingDialog(BuildContext context, {int? subUnitId, int? priceLevel}) {
-    final priceController = TextEditingController();
-    final minQuantityController = TextEditingController(text: '1');
+  void _confirmDeletePrice(BuildContext context, int priceId) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Text('تأكيد الحذف'),
+          content: const Text('هل أنت متأكد من حذف هذا السعر؟'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('إلغاء'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                context.read<ProductPricesCubit>().deletePrice(priceId);
+                Navigator.pop(dialogContext);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text('حذف'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showPricingDialog(BuildContext context, {int? subUnitId, int? priceLevel, double? existingPrice, double? existingMinQty}) {
+    final priceController = TextEditingController(text: existingPrice?.toString() ?? '');
+    final minQuantityController = TextEditingController(text: (existingMinQty ?? 1.0).toString());
     int selectedPriceLevel = priceLevel ?? 1;
+    int? selectedSubUnitId = subUnitId;
+    final pricesCubit = context.read<ProductPricesCubit>();
     final subUnitsCubit = context.read<ProductSubUnitsCubit>();
 
     showDialog(
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
-        child: BlocProvider.value(
-          value: subUnitsCubit,
+        child: MultiBlocProvider(
+          providers: [
+            BlocProvider.value(value: pricesCubit),
+            BlocProvider.value(value: subUnitsCubit),
+          ],
           child: StatefulBuilder(
             builder: (context, setState) => AlertDialog(
-              title: const Text('إضافة سعر'),
+              title: Text(existingPrice != null ? 'تعديل السعر' : 'إضافة سعر'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -295,6 +367,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                         builder: (context, state) {
                           if (state is ProductSubUnitsLoaded) {
                             return DropdownButtonFormField<int>(
+                              value: selectedSubUnitId,
                               decoration: const InputDecoration(
                                 labelText: 'الوحدة الفرعية',
                                 border: OutlineInputBorder(),
@@ -305,7 +378,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                                     child: Text('وحدة ${subUnit.packaging}'),
                                   )).toList(),
                               onChanged: (value) {
-                                // Update subUnitId
+                                setState(() => selectedSubUnitId = value);
                               },
                             );
                           }
@@ -361,11 +434,34 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // TODO: Implement price saving logic
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('سيتم حفظ السعر قريباً'),
-                      ),
+                    final priceValue = double.tryParse(priceController.text) ?? 0;
+                    final minQty = double.tryParse(minQuantityController.text) ?? 1;
+                    
+                    if (selectedSubUnitId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('يرجى اختيار الوحدة الفرعية'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    if (priceValue <= 0) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('يرجى إدخال سعر صحيح'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+                    
+                    pricesCubit.savePrice(
+                      subUnitId: selectedSubUnitId!,
+                      priceLevel: selectedPriceLevel,
+                      amount: priceValue,
+                      minQuantity: minQty,
                     );
                     Navigator.pop(dialogContext);
                   },
