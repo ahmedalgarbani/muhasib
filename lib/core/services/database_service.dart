@@ -13,6 +13,7 @@ import 'package:muhasib/core/database/tables/user_data_permissions_table.dart';
 import 'package:muhasib/core/database/tables/settings_table.dart';
 import 'package:muhasib/core/database/tables/account_limits_table.dart';
 import 'package:muhasib/core/database/tables/account_currencies_table.dart';
+import 'package:muhasib/core/database/tables/account_limit_logs_table.dart';
 import 'package:muhasib/core/database/tables/old_docs_table.dart';
 import 'package:muhasib/core/database/tables/old_doc_lines_table.dart';
 import 'package:muhasib/core/database/tables/vouchers_table.dart';
@@ -134,6 +135,17 @@ class DatabaseService implements IDatabaseService {
         }
       }
     }
+
+    if (oldVersion < 3) {
+      final newTables = [AccountLimitLogsTable()];
+
+      for (final table in newTables) {
+        await db.execute(table.createTable);
+        for (final index in table.indexes) {
+          await db.execute(index);
+        }
+      }
+    }
   }
 
   final List<TableSchema> _tables = [
@@ -147,6 +159,7 @@ class DatabaseService implements IDatabaseService {
     // Accounting
     AccountsTable(),
     AccountLimitsTable(),
+    AccountLimitLogsTable(),
     AccountCurrenciesTable(),
     AccountConnectsTable(),
 

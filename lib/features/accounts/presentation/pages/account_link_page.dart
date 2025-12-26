@@ -9,7 +9,7 @@ import 'package:hasib_lib/form/form_field.dart';
 import 'package:hasib_lib/theme/app_colors.dart';
 
 class AccountLinkEntity {
-  final int id;
+  final int connectType;
   final String name;
   final IconData icon;
   final Color color;
@@ -19,7 +19,7 @@ class AccountLinkEntity {
   final String? linkedAccountNumber;
 
   AccountLinkEntity({
-    required this.id,
+    required this.connectType,
     required this.name,
     required this.icon,
     required this.color,
@@ -30,7 +30,7 @@ class AccountLinkEntity {
   });
 
   AccountLinkEntity copyWith({
-    int? id,
+    int? connectType,
     String? name,
     IconData? icon,
     Color? color,
@@ -40,7 +40,7 @@ class AccountLinkEntity {
     String? linkedAccountNumber,
   }) {
     return AccountLinkEntity(
-      id: id ?? this.id,
+      connectType: connectType ?? this.connectType,
       name: name ?? this.name,
       icon: icon ?? this.icon,
       color: color ?? this.color,
@@ -617,35 +617,35 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
 
       accounts = [
         AccountLinkEntity(
-          id: 1,
+          connectType: 0,
           name: 'البنوك',
           icon: Icons.account_balance,
           color: Colors.blue,
           category: 'أصول',
         ),
         AccountLinkEntity(
-          id: 2,
+          connectType: 1,
           name: 'الصناديق',
           icon: Icons.wallet,
           color: Colors.green,
           category: 'أصول',
         ),
         AccountLinkEntity(
-          id: 3,
+          connectType: 2,
           name: 'العملاء',
           icon: Icons.people,
           color: Colors.purple,
           category: 'أصول',
         ),
         AccountLinkEntity(
-          id: 4,
+          connectType: 3,
           name: 'الموردون',
           icon: Icons.inventory_2,
           color: Colors.orange,
           category: 'خصوم',
         ),
         AccountLinkEntity(
-          id: 5,
+          connectType: 4,
           name: 'الضرائب',
           icon: Icons.description,
           color: Colors.red,
@@ -655,21 +655,21 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
           // linkedAccountNumber: '3221-001',
         ),
         AccountLinkEntity(
-          id: 6,
+          connectType: 5,
           name: 'المخزون',
           icon: Icons.inventory,
           color: Colors.indigo,
           category: 'أصول',
         ),
         AccountLinkEntity(
-          id: 7,
+          connectType: 6,
           name: 'البضاعة',
           icon: Icons.shopping_cart,
           color: Colors.pink,
           category: 'أصول',
         ),
         AccountLinkEntity(
-          id: 8,
+          connectType: 7,
           name: 'المبيعات',
           icon: Icons.trending_up,
           color: Colors.teal,
@@ -679,21 +679,21 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
           // linkedAccountNumber: '411-001',
         ),
         AccountLinkEntity(
-          id: 9,
+          connectType: 8,
           name: 'الخصم المسموح به',
           icon: Icons.credit_card,
           color: Colors.cyan,
           category: 'مصروفات',
         ),
         AccountLinkEntity(
-          id: 10,
+          connectType: 9,
           name: 'الخصم المكتسب',
           icon: Icons.credit_card,
           color: const Color(0xFF14B8A6),
           category: 'إيرادات',
         ),
         AccountLinkEntity(
-          id: 11,
+          connectType: 10,
           name: 'المشتريات',
           icon: Icons.shopping_basket,
           color: Colors.amber,
@@ -705,6 +705,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
       availableAccounts = cubitInstance.allAccounts ?? [];
 
       print('Available accounts loaded: ${availableAccounts.length}');
+      context.read<AccountConnectCubit>().loadAllAccountConnects();
       if (mounted) {
         setState(() {});
       }
@@ -767,7 +768,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
         'Selected account: ${selectedAccount.name}, cId: ${selectedAccount.cId}',
       );
 
-      final index = accounts.indexWhere((a) => a.id == account.id);
+      final index = accounts.indexWhere((a) => a.connectType == account.connectType);
       print('Account index: $index');
 
       if (index == -1) {
@@ -779,7 +780,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
       // Create account connect with proper timestamp
       final now = DateTime.now().millisecondsSinceEpoch;
       final accountConnect = AccountConnectEntity(
-        accountConnectType: index,
+        accountConnectType: account.connectType,
         cId: selectedAccount.cId,
         creationTime: now,
         lastModificationTime: now,
@@ -799,9 +800,10 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
     AccountLinkEntity account,
     List<AccountConnectEntity> accountConnects,
   ) {
-    final index = accounts.indexWhere((a) => a.id == account.id);
+    final index = accounts.indexWhere((a) => a.connectType == account.connectType);
     final connectToRemove = accountConnects.firstWhere(
-      (connect) => connect.accountConnectType == index,
+      (connect) => connect.accountConnectType == account.connectType,
+      orElse: () => const AccountConnectEntity(),
     );
 
     if (connectToRemove.id != null) {
@@ -915,7 +917,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
 
     if (state is AccountConnectsLoaded) {
       final accountConnects = state.accountConnects.where(
-        (e) => e.accountConnectType == index,
+        (e) => e.accountConnectType == accountEntity.connectType,
       );
       final accountConnect = accountConnects.isNotEmpty
           ? accountConnects.first
@@ -1001,3 +1003,4 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
     );
   }
 }
+

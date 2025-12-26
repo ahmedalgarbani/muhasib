@@ -3,6 +3,7 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_connect_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/journal_local_datasource.dart';
+import 'package:muhasib/features/accounts/data/datasources/voucher_local_datasource.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/opening_balance_registration.dart';
 import 'package:muhasib/features/accounts/domain/services/account_limit_service.dart';
 import 'package:muhasib/features/accounts/data/services/account_limit_service_impl.dart';
@@ -11,28 +12,38 @@ import 'package:muhasib/features/accounts/domain/services/account_connect_valida
 import 'package:muhasib/features/accounts/data/repositories/account_connect_repository_impl.dart';
 import 'package:muhasib/features/accounts/data/repositories/account_repository_impl.dart';
 import 'package:muhasib/features/accounts/data/repositories/journal_repository_impl.dart';
+import 'package:muhasib/features/accounts/data/repositories/voucher_repository_impl.dart';
 import 'package:muhasib/features/accounts/domain/repositories/account_connect_repository.dart';
 import 'package:muhasib/features/accounts/domain/repositories/account_repository.dart';
 import 'package:muhasib/features/accounts/domain/repositories/journal_repository.dart';
+import 'package:muhasib/features/accounts/domain/repositories/voucher_repository.dart';
 import 'package:muhasib/features/accounts/domain/usecases/create_account.dart';
 import 'package:muhasib/features/accounts/domain/usecases/create_account_connect.dart';
 import 'package:muhasib/features/accounts/domain/usecases/create_journal_entry.dart';
 import 'package:muhasib/features/accounts/domain/usecases/delete_account.dart';
 import 'package:muhasib/features/accounts/domain/usecases/delete_account_connect.dart';
 import 'package:muhasib/features/accounts/domain/usecases/delete_journal_entry.dart';
+import 'package:muhasib/features/accounts/domain/usecases/add_voucher.dart';
+import 'package:muhasib/features/accounts/domain/usecases/delete_voucher.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_account_connect_by_type.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_all_account_connects.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_all_accounts.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_journal_entries.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_journal_entry.dart';
+import 'package:muhasib/features/accounts/domain/usecases/get_voucher_by_id.dart';
+import 'package:muhasib/features/accounts/domain/usecases/get_vouchers.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_master_accounts.dart';
 import 'package:muhasib/features/accounts/domain/usecases/search_accounts.dart';
 import 'package:muhasib/features/accounts/domain/usecases/update_account.dart';
 import 'package:muhasib/features/accounts/domain/usecases/update_account_connect.dart';
 import 'package:muhasib/features/accounts/domain/usecases/update_journal_entry.dart';
+import 'package:muhasib/features/accounts/domain/usecases/update_voucher.dart';
+import 'package:muhasib/features/accounts/domain/usecases/generate_voucher_number.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/vouchers_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubit.dart';
 import 'package:muhasib/features/currencies/data/datasources/currency_local_datasource.dart';
 import 'package:muhasib/features/currencies/data/repositories/currency_repository_impl.dart';
 import 'package:muhasib/features/currencies/domain/repositories/currency_repository.dart';
@@ -110,6 +121,9 @@ import 'package:muhasib/features/stores/presentation/cubit/stock_transfers_cubit
 import 'package:muhasib/features/stores/presentation/cubit/inventory_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/stock_adjustments_cubit.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/customers/data/datasources/customer_data_source.dart';
+import 'package:muhasib/features/customers/data/repositories/customer_repository_impl.dart';
+import 'package:muhasib/features/customers/domain/repositories/customer_repository.dart';
 import 'package:muhasib/features/settings_entities/data/datasources/bank_local_datasource.dart';
 import 'package:muhasib/features/settings_entities/data/datasources/cashbox_local_datasource.dart';
 import 'package:muhasib/features/settings_entities/data/datasources/other_fee_local_datasource.dart';
@@ -130,6 +144,26 @@ import 'package:muhasib/features/reports/data/datasources/transactions_report_da
 import 'package:muhasib/features/reports/data/repositories/transactions_report_repository_impl.dart';
 import 'package:muhasib/features/reports/domain/repositories/transactions_report_repository.dart';
 import 'package:muhasib/features/reports/presentation/cubit/transactions_report_cubit.dart';
+import 'package:muhasib/features/reports/data/datasources/trial_balance_datasource.dart';
+import 'package:muhasib/features/reports/data/repositories/trial_balance_repository_impl.dart';
+import 'package:muhasib/features/reports/domain/repositories/trial_balance_repository.dart';
+import 'package:muhasib/features/reports/presentation/cubit/trial_balance_cubit.dart';
+import 'package:muhasib/features/reports/data/datasources/income_statement_datasource.dart';
+import 'package:muhasib/features/reports/data/repositories/income_statement_repository_impl.dart';
+import 'package:muhasib/features/reports/domain/repositories/income_statement_repository.dart';
+import 'package:muhasib/features/reports/presentation/cubit/income_statement_cubit.dart';
+import 'package:muhasib/features/reports/data/datasources/sales_summary_datasource.dart';
+import 'package:muhasib/features/reports/data/repositories/sales_summary_repository_impl.dart';
+import 'package:muhasib/features/reports/domain/repositories/sales_summary_repository.dart';
+import 'package:muhasib/features/reports/presentation/cubit/sales_summary_cubit.dart';
+import 'package:muhasib/features/reports/data/datasources/stock_datasource.dart';
+import 'package:muhasib/features/reports/data/repositories/stock_repository_impl.dart';
+import 'package:muhasib/features/reports/domain/repositories/stock_repository.dart';
+import 'package:muhasib/features/reports/presentation/cubit/stock_cubit.dart';
+import 'package:muhasib/features/reports/data/datasources/account_statement_datasource.dart';
+import 'package:muhasib/features/reports/data/repositories/account_statement_repository_impl.dart';
+import 'package:muhasib/features/reports/domain/repositories/account_statement_repository.dart';
+import 'package:muhasib/features/reports/presentation/cubit/account_statement_cubit.dart';
 
 final getIt = GetIt.instance;
 final sl = getIt; // Alias for backward compatibility
@@ -183,6 +217,9 @@ class GetItHelper {
     getIt.registerLazySingleton<JournalLocalDataSource>(
       () => JournalLocalDataSourceImpl(database: database),
     );
+    getIt.registerLazySingleton<VoucherLocalDataSource>(
+      () => VoucherLocalDataSourceImpl(database: database),
+    );
 
     // Repositories
     getIt.registerLazySingleton<AccountRepository>(
@@ -196,6 +233,11 @@ class GetItHelper {
     getIt.registerLazySingleton<JournalRepository>(
       () => JournalRepositoryImpl(
         localDataSource: getIt<JournalLocalDataSource>(),
+      ),
+    );
+    getIt.registerLazySingleton<VoucherRepository>(
+      () => VoucherRepositoryImpl(
+        localDataSource: getIt<VoucherLocalDataSource>(),
       ),
     );
 
@@ -281,6 +323,24 @@ class GetItHelper {
     getIt.registerLazySingleton(
       () => DeleteJournalEntry(getIt<JournalRepository>()),
     );
+    getIt.registerLazySingleton(
+      () => GetVouchersUseCase(getIt<VoucherRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetVoucherByIdUseCase(getIt<VoucherRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => AddVoucherUseCase(getIt<VoucherRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => UpdateVoucherUseCase(getIt<VoucherRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => DeleteVoucherUseCase(getIt<VoucherRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GenerateVoucherNumberUseCase(getIt<VoucherRepository>()),
+    );
 
     // Register Opening Balance dependencies
     registerOpeningBalanceDependencies(getIt, databaseService);
@@ -364,12 +424,28 @@ class GetItHelper {
       ),
     );
     getIt.registerFactory(
+      () => AccountLimitsCubit(
+        limitService: getIt<AccountLimitService>(),
+      ),
+    );
+    getIt.registerFactory(
       () => JournalEntryCubit(
         createJournalEntry: getIt<CreateJournalEntry>(),
         updateJournalEntry: getIt<UpdateJournalEntry>(),
         deleteJournalEntry: getIt<DeleteJournalEntry>(),
         getJournalEntries: getIt<GetJournalEntries>(),
         getJournalEntry: getIt<GetJournalEntry>(),
+        limitInterceptor: getIt<AccountLimitInterceptor>(),
+      ),
+    );
+    getIt.registerFactory(
+      () => VouchersCubit(
+        getVouchersUseCase: getIt<GetVouchersUseCase>(),
+        getVoucherByIdUseCase: getIt<GetVoucherByIdUseCase>(),
+        addVoucherUseCase: getIt<AddVoucherUseCase>(),
+        updateVoucherUseCase: getIt<UpdateVoucherUseCase>(),
+        deleteVoucherUseCase: getIt<DeleteVoucherUseCase>(),
+        generateVoucherNumberUseCase: getIt<GenerateVoucherNumberUseCase>(),
       ),
     );
     getIt.registerFactory(
@@ -507,9 +583,19 @@ class GetItHelper {
     );
     
     // ==================== Customers Feature ====================
+    // Data Source
+    getIt.registerLazySingleton<CustomerDataSource>(
+      () => CustomerDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    
+    // Repository
+    getIt.registerLazySingleton<CustomerRepository>(
+      () => CustomerRepositoryImpl(dataSource: getIt<CustomerDataSource>()),
+    );
+    
     // Cubit
     getIt.registerFactory(
-      () => CustomersCubit(getIt<DatabaseService>()),
+      () => CustomersCubit(getIt<CustomerRepository>()),
     );
     
     // ==================== Settings Feature ====================
@@ -577,6 +663,61 @@ class GetItHelper {
     );
     getIt.registerFactory(
       () => TransactionsReportCubit(getIt<TransactionsReportRepository>()),
+    );
+
+    // Trial Balance Report
+    getIt.registerLazySingleton<TrialBalanceDataSource>(
+      () => TrialBalanceDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    getIt.registerLazySingleton<TrialBalanceRepository>(
+      () => TrialBalanceRepositoryImpl(dataSource: getIt<TrialBalanceDataSource>()),
+    );
+    getIt.registerFactory(
+      () => TrialBalanceCubit(repository: getIt<TrialBalanceRepository>()),
+    );
+
+    // Income Statement Report
+    getIt.registerLazySingleton<IncomeStatementDataSource>(
+      () => IncomeStatementDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    getIt.registerLazySingleton<IncomeStatementRepository>(
+      () => IncomeStatementRepositoryImpl(dataSource: getIt<IncomeStatementDataSource>()),
+    );
+    getIt.registerFactory(
+      () => IncomeStatementCubit(repository: getIt<IncomeStatementRepository>()),
+    );
+
+    // Sales Summary Report
+    getIt.registerLazySingleton<SalesSummaryDataSource>(
+      () => SalesSummaryDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    getIt.registerLazySingleton<SalesSummaryRepository>(
+      () => SalesSummaryRepositoryImpl(dataSource: getIt<SalesSummaryDataSource>()),
+    );
+    getIt.registerFactory(
+      () => SalesSummaryCubit(repository: getIt<SalesSummaryRepository>()),
+    );
+
+    // Stock Report
+    getIt.registerLazySingleton<StockDataSource>(
+      () => StockDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    getIt.registerLazySingleton<StockRepository>(
+      () => StockRepositoryImpl(dataSource: getIt<StockDataSource>()),
+    );
+    getIt.registerFactory(
+      () => StockCubit(repository: getIt<StockRepository>()),
+    );
+
+    // Account Statement Report
+    getIt.registerLazySingleton<AccountStatementDataSource>(
+      () => AccountStatementDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    getIt.registerLazySingleton<AccountStatementRepository>(
+      () => AccountStatementRepositoryImpl(dataSource: getIt<AccountStatementDataSource>()),
+    );
+    getIt.registerFactory(
+      () => AccountStatementCubit(repository: getIt<AccountStatementRepository>()),
     );
   }
 

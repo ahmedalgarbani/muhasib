@@ -4,13 +4,14 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/pages/account_link_page.dart';
-import 'package:muhasib/features/accounts/presentation/pages/accounts_limit_page.dart';
 import 'package:muhasib/features/currencies/presentation/pages/currencies_page.dart';
 import 'package:muhasib/features/accounts/presentation/pages/open_balance_page.dart';
-import 'package:muhasib/features/accounts/presentation/pages/voucher_form_screen_page.dart';
+import 'package:muhasib/features/accounts/presentation/pages/vouchers_page.dart';
 import 'package:muhasib/features/accounts/presentation/pages/journal_entry_page.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/vouchers_cubit.dart';
 import 'package:muhasib/features/main/presentation/pages/home_page_view.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_tree_view.dart';
 import 'package:muhasib/features/reports/presentation/pages/account_statement_report_page.dart';
@@ -68,6 +69,7 @@ import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.
 import 'package:muhasib/features/currencies/presentation/pages/currency_exchange_page.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/pages/annual_close_page.dart';
+import 'package:muhasib/features/accounts/presentation/pages/accounts_limit_page_clean.dart';
 import 'package:muhasib/features/settings_entities/settings_entities.dart'
     as settings_entities;
 
@@ -171,7 +173,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.accountsVouchers,
       name: AppRoutes.accountsVouchers,
-      builder: (context, state) => const VoucherFormScreen(),
+      builder: (context, state) => BlocProvider(
+        create: (_) => getIt<VouchersCubit>(),
+        child: const VouchersPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.accountsOpeningBalance,
@@ -181,7 +186,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.accountsLimits,
       name: AppRoutes.accountsLimits,
-      builder: (context, state) => AccountLimitsScreen(),
+      builder: (context, state) => BlocProvider(
+        create: (_) => getIt<AccountLimitsCubit>()..loadLimits(),
+        child: const AccountLimitsScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.accountsAnnualClose,
@@ -963,7 +971,7 @@ class PlaceholderWidget extends StatelessWidget {
 }
 
 class _MainBottomBar extends StatefulWidget {
-  const _MainBottomBar({super.key});
+  const _MainBottomBar();
 
   @override
   State<_MainBottomBar> createState() => _MainBottomBarState();
