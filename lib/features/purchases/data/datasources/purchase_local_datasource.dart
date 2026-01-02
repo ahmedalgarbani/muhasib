@@ -170,10 +170,62 @@ class PurchaseLocalDataSourceImpl implements PurchaseLocalDataSource {
   Future<void> updatePurchaseInvoice(PurchaseInvoiceModel invoice) async {
     try {
       await database.transaction((txn) async {
+        // ========== Protection Check Before Update ==========
+        final existing = await txn.query(
+          _invoicesTable,
+          where: 'id = ?',
+          whereArgs: [invoice.id],
+          limit: 1,
+        );
+        
+        if (existing.isEmpty) {
+          throw LocalStorageException('فاتورة المشتريات غير موجودة');
+        }
+        
+        final currentInvoice = existing.first;
+        
+        // Check if invoice is posted (has journal entry)
+        final isPosted = (currentInvoice['is_posted'] as int?) == 1;
+        if (isPosted) {
+          throw LocalStorageException(
+            'لا يمكن تعديل فاتورة مرحّلة محاسبياً. يرجى إلغاء الترحيل أولاً أو إنشاء فاتورة تعديل.'
+          );
+        }
+        
+        // Check if invoice has any payments
+        final payments = await txn.query(
+          _paymentsTable,
+          where: 'invoice_id = ?',
+          whereArgs: [invoice.id],
+          limit: 1,
+        );
+        
+        if (payments.isNotEmpty) {
+          throw LocalStorageException(
+            'لا يمكن تعديل فاتورة لها مدفوعات. يرجى حذف المدفوعات أولاً.'
+          );
+        }
+        
+        // Check if invoice has returns
+        final returns = await txn.query(
+          _invoicesTable,
+          where: 'parent_invoice_id = ? AND invoice_type = ?',
+          whereArgs: [invoice.id, 2], // 2 = return
+          limit: 1,
+        );
+        
+        if (returns.isNotEmpty) {
+          throw LocalStorageException(
+            'لا يمكن تعديل فاتورة لها مرتجعات.'
+          );
+        }
+        // ========== End Protection Check ==========
+        
         // Update invoice
         final invoiceData = invoice.toJson();
         invoiceData.remove('items');
         invoiceData.remove('payments');
+        invoiceData['last_modification_time'] = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         
         await txn.update(
           _invoicesTable,
@@ -217,6 +269,9 @@ class PurchaseLocalDataSourceImpl implements PurchaseLocalDataSource {
         }
       });
     } catch (e) {
+      if (e is LocalStorageException) {
+        throw LocalStorageException(e.message);
+      }
       throw LocalStorageException('Failed to update purchase invoice: $e');
     }
   }
@@ -233,9 +288,100 @@ class PurchaseLocalDataSourceImpl implements PurchaseLocalDataSource {
           limit: 1,
         );
         
-        if (invoices.isEmpty) return;
+        if (invoices.isEmpty) {
+          throw LocalStorageException('فاتورة المشتريات غير موجودة');
+        }
         
-        // Delete invoice (items and payments will be cascade deleted)
+        final invoice = invoices.first;
+        final invoiceNumber = invoice['invoice_number'] as String? ?? '';
+        
+        // ========== Protection Check Before Delete ==========
+        
+        // Check if invoice is posted (has journal entry)
+        final isPosted = (invoice['is_posted'] as int?) == 1;
+        if (isPosted) {
+          throw LocalStorageException(
+            'لا يمكن حذف فاتورة $invoiceNumber لأنها مرحّلة محاسبياً. يرجى إلغاء الترحيل أولاً.'
+          );
+        }
+        
+        // Check if invoice has any payments
+        final payments = await txn.query(
+          _paymentsTable,
+          where: 'invoice_id = ?',
+          whereArgs: [id],
+          limit: 1,
+        );
+        
+        if (payments.isNotEmpty) {
+          throw LocalStorageException(
+            'لا يمكن حذف فاتورة $invoiceNumber لأنها تحتوي على مدفوعات.'
+          );
+        }
+        
+        // Check if invoice has returns
+        final returns = await txn.query(
+          _invoicesTable,
+          where: 'parent_invoice_id = ? AND invoice_type = ?',
+          whereArgs: [id, 2], // 2 = return
+          limit: 1,
+        );
+        
+        if (returns.isNotEmpty) {
+          throw LocalStorageException(
+            'لا يمكن حذف فاتورة $invoiceNumber لأنها تحتوي على مرتجعات.'
+          );
+        }
+        
+        // Check if this is a return and parent invoice exists
+        final invoiceType = invoice['invoice_type'] as int?;
+        final parentId = invoice['parent_invoice_id'] as int?;
+        if (invoiceType == 2 && parentId != null) {
+          throw LocalStorageException(
+            'لا يمكن حذف مردود المشتريات. يرجى إلغاؤه بدلاً من حذفه.'
+          );
+        }
+        // ========== End Protection Check ==========
+        
+        // Reverse inventory if items exist
+        final items = await txn.query(
+          _itemsTable,
+          where: 'invoice_id = ?',
+          whereArgs: [id],
+        );
+        
+        if (items.isNotEmpty) {
+          for (final item in items) {
+            final productId = item['product_id'] as int?;
+            final quantity = (item['quantity'] as num?)?.toDouble() ?? 0.0;
+            
+            if (productId != null && quantity > 0) {
+              // Reduce stock quantity
+              await txn.rawUpdate('''
+                UPDATE products 
+                SET quantity = COALESCE(quantity, 0) - ?,
+                    last_modification_time = ?
+                WHERE id = ?
+              ''', [quantity, DateTime.now().millisecondsSinceEpoch ~/ 1000, productId]);
+            }
+          }
+        }
+        
+        // Delete items first
+        await txn.delete(
+          _itemsTable,
+          where: 'invoice_id = ?',
+          whereArgs: [id],
+        );
+        
+        // Delete payments
+        await txn.delete(
+          _paymentsTable,
+          where: 'invoice_id = ?',
+          whereArgs: [id],
+        );
+        
+        // Delete invoice
         await txn.delete(
           _invoicesTable,
           where: 'id = ?',
@@ -243,6 +389,9 @@ class PurchaseLocalDataSourceImpl implements PurchaseLocalDataSource {
         );
       });
     } catch (e) {
+      if (e is LocalStorageException) {
+        throw LocalStorageException(e.message);
+      }
       throw LocalStorageException('Failed to delete purchase invoice: $e');
     }
   }

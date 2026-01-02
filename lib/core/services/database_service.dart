@@ -1,6 +1,7 @@
 import 'package:muhasib/core/database/database_config.dart';
 import 'package:muhasib/core/database/tables/seeders.dart';
 import 'package:muhasib/core/database/seeders/settings_seeder.dart';
+import 'package:muhasib/core/database/seeders/currency_seeder.dart';
 import 'package:muhasib/core/database/tables/accounts_table.dart';
 import 'package:muhasib/core/database/tables/account_connects_table.dart';
 import 'package:muhasib/core/database/tables/journal_entries_table.dart';
@@ -73,6 +74,12 @@ import 'package:muhasib/core/database/tables/sales_invoices_table.dart';
 import 'package:muhasib/core/database/tables/sales_invoice_items_table.dart';
 import 'package:muhasib/core/database/tables/payments_table.dart';
 import 'package:muhasib/core/database/tables/inventory_transactions_table.dart';
+import 'package:muhasib/core/database/tables/invoice_payments_table.dart';
+import 'package:muhasib/core/database/tables/discount_codes_table.dart';
+import 'package:muhasib/core/database/tables/sales_commissions_table.dart';
+import 'package:muhasib/core/database/tables/stock_movements_table.dart';
+import 'package:muhasib/core/database/tables/unified_payments_table.dart';
+import 'package:muhasib/core/database/seeders/payment_methods_seeder.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 
@@ -220,15 +227,33 @@ class DatabaseService implements IDatabaseService {
     InvoiceLinesTable(),
     SalesInvoicesTable(),
     SalesInvoiceItemsTable(),
+    
+    // Unified Payments System (replaces old payment tables)
+    PaymentMethodTypesTable(),
+    UnifiedPaymentsTable(),
+    PaymentAllocationsTable(),
+    
+    // Legacy payment tables (kept for migration/compatibility)
     PaymentsTable(),
+    InvoicePaymentsTable(),
+    
+    // Discount codes & coupons
+    DiscountCodesTable(),
+    DiscountCodeUsageTable(),
+    
+    // Sales agents & commissions
+    SalesAgentsTable(),
+    SalesCommissionsTable(),
     
     // Purchases
     PurchaseInvoicesTable(),
     PurchaseInvoiceItemsTable(),
     PurchasePaymentsTable(),
     
-    // Inventory
+    // Inventory & Stock Movements
     InventoryTransactionsTable(),
+    StockMovementsTable(),
+    WarehouseStocksTable(),
 
     // Category movements
     CategoryMovsTable(),
@@ -267,10 +292,11 @@ class DatabaseService implements IDatabaseService {
 
   final List<Future<void> Function(Database)> _seeders = [
     SettingsSeeder.seed,
+    CurrencySeeder.seed,
+    PaymentMethodsSeeder.seed,
     seedDefaultStocks,
     seedDefaultCustomers,
     seedDefaultAccounts,
-    // seedDefaultCurrency,
   ];
 
   @override

@@ -48,7 +48,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
         whereArgs.add(endDate.millisecondsSinceEpoch ~/ 1000);
       }
       
-      // First, try to get transactions from journal_entries
+      // Use the journal as the single source of truth (double-entry).
       final journalEntries = await db.rawQuery('''
         SELECT 
           je.id,
@@ -65,98 +65,26 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
         ${selectedPeriod != 'الكل' ? 'AND je.entry_date >= ? AND je.entry_date <= ?' : ''}
         ORDER BY je.entry_date DESC, je.id DESC
       ''', whereArgs);
+
+      final allTransactions = [...journalEntries];
       
-      // Get transactions from invoices (sales/purchases)
-      final invoiceTransactions = await db.rawQuery('''
-        SELECT 
-          i.id,
-          i.number as entry_number,
-          i.date,
-          CASE 
-            WHEN i.invoice_type = 1 THEN 'فاتورة مبيعات'
-            WHEN i.invoice_type = 2 THEN 'فاتورة مشتريات'
-            WHEN i.invoice_type = 3 THEN 'عرض سعر'
-            WHEN i.invoice_type = 4 THEN 'مرتجع مبيعات'
-            WHEN i.invoice_type = 5 THEN 'مرتجع مشتريات'
-            ELSE 'فاتورة'
-          END as description,
-          CASE 
-            WHEN i.invoice_type IN (1, 4) THEN 0.0
-            ELSE i.final_amt
-          END as debit_amount,
-          CASE 
-            WHEN i.invoice_type IN (1, 4) THEN i.final_amt
-            ELSE 0.0
-          END as credit_amount,
-          i.statement as notes,
-          'invoice' as source_type
-        FROM invoices i
-        WHERE i.customer_id IN (
-          SELECT id FROM customers WHERE account_id = ?
-        )
-        ${selectedPeriod != 'الكل' ? 'AND i.date >= ? AND i.date <= ?' : ''}
-        ORDER BY i.date DESC, i.id DESC
-      ''', whereArgs);
-      
-      // Get voucher transactions
-      final voucherTransactions = await db.rawQuery('''
-        SELECT 
-          v.id,
-          v.number as entry_number,
-          v.date,
-          CASE 
-            WHEN v.type = 1 THEN 'سند قبض'
-            WHEN v.type = 2 THEN 'سند صرف'
-            WHEN v.type = 3 THEN 'سند يومية'
-            ELSE 'سند'
-          END as description,
-          CASE 
-            WHEN v.type = 2 THEN v.amount
-            ELSE 0.0
-          END as debit_amount,
-          CASE 
-            WHEN v.type = 1 THEN v.amount
-            ELSE 0.0
-          END as credit_amount,
-          v.statement as notes,
-          'voucher' as source_type
-        FROM vouchers v
-        WHERE v.account_id = ?
-        ${selectedPeriod != 'الكل' ? 'AND v.date >= ? AND v.date <= ?' : ''}
-        ORDER BY v.date DESC, v.id DESC
-      ''', whereArgs);
-      
-      // Combine all transactions
-      final allTransactions = [
-        ...journalEntries,
-        ...invoiceTransactions,
-        ...voucherTransactions,
-      ];
-      
-      // Sort by date
-      allTransactions.sort((a, b) {
-        final dateA = a['date'] as int;
-        final dateB = b['date'] as int;
-        return dateB.compareTo(dateA);
-      });
-      
-      // Calculate totals and running balance
+      // Calculate totals and running balance (descending dates):
+      // start from current balance and walk backwards.
       double runningBalance = widget.account.balance;
       totalDebit = 0.0;
       totalCredit = 0.0;
       
-      for (var transaction in allTransactions) {
-        final debit = (transaction['debit_amount'] ?? 0.0) as double;
-        final credit = (transaction['credit_amount'] ?? 0.0) as double;
+      for (final transaction in allTransactions) {
+        final debit = (transaction['debit_amount'] as num?)?.toDouble() ?? 0.0;
+        final credit = (transaction['credit_amount'] as num?)?.toDouble() ?? 0.0;
         
         totalDebit += debit;
         totalCredit += credit;
-        runningBalance += debit - credit;
-        
         transaction['balance'] = runningBalance;
+        runningBalance -= (debit - credit);
       }
       
-      currentBalance = runningBalance;
+      currentBalance = widget.account.balance;
       
       setState(() {
         transactions = allTransactions;

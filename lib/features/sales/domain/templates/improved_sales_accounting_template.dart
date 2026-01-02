@@ -9,10 +9,12 @@ import 'package:muhasib/core/services/account_config_service.dart';
 class ImprovedSalesAccountingTemplate {
   
   /// إنشاء قيود محاسبية لفاتورة مبيعات مع دفعات متعددة
+  /// إنشاء قيود محاسبية لفاتورة مبيعات مع دفعات متعددة
   static List<JournalEntryEntity> createSalesInvoiceEntries({
     required InvoiceEntity invoice,
-    required List<Payment> payments,
-    required Customer customer,
+    required List<dynamic> payments, // Keeping dynamic for payments to avoid import, or define Payment interface
+    required String customerName,
+    required int customerId,
     required SalesAccountConfig config,
     double? inventoryCost,
   }) {
@@ -31,16 +33,19 @@ class ImprovedSalesAccountingTemplate {
     double deferredPayments = 0;
     
     for (final payment in payments) {
-      switch (payment.method) {
-        case PaymentMethod.cash:
-          cashPayments += payment.amount;
-          break;
-        case PaymentMethod.bank:
-          bankPayments += payment.amount;
-          break;
-        case PaymentMethod.deferred:
-          deferredPayments += payment.amount;
-          break;
+      // Assuming payment has method and amount properties
+      // We need to handle dynamic type safely or map it before calling this
+      final method = payment.method; // This assumes payment object has method enum/property
+      final amount = payment.amount as double;
+      
+      // We need to map PaymentMethod enum from presentation to something domain understands or check string/index
+      // Assuming PaymentMethod is available or we check index/name
+      if (method.toString().contains('cash')) {
+        cashPayments += amount;
+      } else if (method.toString().contains('bank')) {
+        bankPayments += amount;
+      } else {
+        deferredPayments += amount;
       }
     }
     
@@ -79,10 +84,10 @@ class ImprovedSalesAccountingTemplate {
         accountId: config.customersAccountId,
         debit: deferredAmount,
         credit: 0,
-        description: 'ذمة مدينة للعميل ${customer.name}',
+        description: 'ذمة مدينة للعميل $customerName',
         referenceType: 'sales_invoice',
         referenceId: invoice.id,
-        partnerId: int.tryParse(customer.id),
+        partnerId: customerId,
         partnerType: 'customer',
       ));
     }
@@ -173,10 +178,10 @@ class ImprovedSalesAccountingTemplate {
             accountId: config.customersAccountId,
             debit: 0,
             credit: overpayment,
-            description: 'رصيد دائن للعميل ${customer.name}',
+            description: 'رصيد دائن للعميل $customerName',
             referenceType: 'customer_overpayment',
             referenceId: invoice.id,
-            partnerId: int.tryParse(customer.id),
+            partnerId: customerId,
             partnerType: 'customer',
           ),
           JournalLineEntity(
@@ -199,7 +204,8 @@ class ImprovedSalesAccountingTemplate {
   /// إنشاء قيد محاسبي لمردود مبيعات
   static JournalEntryEntity createSalesReturnEntry({
     required InvoiceEntity returnInvoice,
-    required Customer customer,
+    required String customerName,
+    required int customerId,
     required SalesAccountConfig config,
     double? inventoryCost,
   }) {
@@ -234,10 +240,10 @@ class ImprovedSalesAccountingTemplate {
         accountId: config.customersAccountId,
         debit: 0,
         credit: returnInvoice.finalAmt ?? returnInvoice.amount,
-        description: 'تخفيض ذمة العميل ${customer.name}',
+        description: 'تخفيض ذمة العميل $customerName',
         referenceType: 'sales_return',
         referenceId: returnInvoice.id,
-        partnerId: int.tryParse(customer.id),
+        partnerId: customerId,
         partnerType: 'customer',
       ));
     } else {

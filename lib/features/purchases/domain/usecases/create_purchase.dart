@@ -7,10 +7,14 @@ import 'package:muhasib/features/purchases/domain/repositories/purchase_reposito
 class CreatePurchase extends UseCase<int, InvoiceEntity> {
   final PurchaseRepository repository;
 
-  CreatePurchase(this.repository);
+  CreatePurchase(
+    this.repository,
+  );
 
   @override
   Future<Either<Failure, int>> call({required InvoiceEntity params}) async {
+    // Accounting (journal posting + balances + limits) is handled atomically
+    // in InvoiceLocalDataSource when saving the purchase invoice/order/return.
     return await repository.createPurchaseInvoice(params);
   }
 }

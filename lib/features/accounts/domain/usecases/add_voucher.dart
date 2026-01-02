@@ -8,11 +8,15 @@ import '../repositories/voucher_repository.dart';
 class AddVoucherUseCase implements Usecase<Either<Failure, int>, VoucherEntity> {
   final VoucherRepository repository;
 
-  AddVoucherUseCase(this.repository);
+  AddVoucherUseCase(
+    this.repository,
+  );
 
   @override
-  Future<Either<Failure, int>> call({required VoucherEntity params}) {
-    return repository.addVoucher(params);
+  Future<Either<Failure, int>> call({required VoucherEntity params}) async {
+    // Accounting (journal posting + balances + limits) is handled atomically
+    // inside VoucherLocalDataSource when saving the voucher.
+    return await repository.addVoucher(params);
   }
 }
 

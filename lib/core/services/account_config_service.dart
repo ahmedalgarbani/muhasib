@@ -16,23 +16,34 @@ class AccountConnectTypes {
   static const int salesReturns = 11;
   static const int purchaseReturns = 12;
   static const int costOfGoodsSold = 13;
+  static const int salesCommissionExpense = 14;
+  static const int commissionPayable = 15;
+  static const int exchangeGainLoss = 16;
+  static const int inputVAT = 17;  // ضريبة المدخلات (مشتريات)
+  static const int outputVAT = 18; // ضريبة المخرجات (مبيعات)
 }
 
 /// Default Account IDs (fallback values when no account_connect is configured)
 class DefaultAccountIds {
-  static const int sales = 401;
-  static const int cash = 121;
-  static const int bank = 122;
-  static const int customers = 120;
-  static const int suppliers = 210;
-  static const int tax = 222;
-  static const int salesReturns = 402;
+  static const int sales = 4110;
+  static const int cash = 1110;
+  static const int bank = 1110;
+  static const int customers = 1120;
+  static const int suppliers = 2110;
+  static const int tax = 2140;
+  static const int salesReturns = 4150;
   static const int purchaseReturns = 502;
-  static const int discountAllowed = 403;
-  static const int discountEarned = 404;
-  static const int inventory = 141;
-  static const int costOfGoodsSold = 501;
-  static const int purchases = 501;
+  static const int discountAllowed = 3150;
+  static const int discountEarned = 4140;
+  static const int inventory = 1180;
+  static const int costOfGoodsSold = 3190;
+  static const int purchases = 3110;
+  static const int salesCommissionExpense = 3180;
+  static const int commissionPayable = 2160;
+  static const int exchangeGains = 4160;
+  static const int exchangeLosses = 3170;
+  static const int inputVAT = 1170;  // ضريبة مدخلات قابلة للاسترداد
+  static const int outputVAT = 2170; // ضريبة مخرجات مستحقة
 }
 
 /// Service for retrieving dynamically configured account IDs from account_connects table

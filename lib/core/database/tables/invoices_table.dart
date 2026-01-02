@@ -51,7 +51,31 @@ class InvoicesTable implements TableSchema {
       image_path TEXT NULL,
       payment_status INTEGER NOT NULL DEFAULT 0,
       shipping_address TEXT NULL,
-      due_date INTEGER NULL
+      due_date INTEGER NULL,
+      
+      -- Quotation protection fields
+      valid_until INTEGER NULL,
+      -- Expiry date for quotations (timestamp)
+      
+      is_locked INTEGER NOT NULL DEFAULT 0,
+      -- 1 = locked (cannot edit), 0 = editable
+      
+      locked_at INTEGER NULL,
+      locked_by INTEGER NULL,
+      locked_reason TEXT NULL,
+      
+      -- Approval workflow
+      approval_status INTEGER NOT NULL DEFAULT 0,
+      -- 0=draft, 1=pending_approval, 2=approved, 3=rejected, 4=expired
+      
+      approved_at INTEGER NULL,
+      approved_by INTEGER NULL,
+      approval_notes TEXT NULL,
+      
+      -- Versioning for audit trail
+      version INTEGER NOT NULL DEFAULT 1,
+      original_hash TEXT NULL
+      -- Hash of original data to detect tampering
     );
   ''';
 

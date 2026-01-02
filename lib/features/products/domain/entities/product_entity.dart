@@ -1,5 +1,12 @@
 import 'package:equatable/equatable.dart';
 
+/// Product types
+enum ProductType {
+  goods,     // 0 - سلعة (تُخزن في المخزون)
+  service,   // 1 - خدمة (لا تُخزن)
+  consumable // 2 - مستهلكات (تُخزن لكن لا تُتبع بدقة)
+}
+
 class ProductEntity extends Equatable {
   final int? id;
   final String name;
@@ -32,6 +39,21 @@ class ProductEntity extends Equatable {
   final String? extraProperties;
   final int? creationTime;
   final int? lastModificationTime;
+  
+  // New fields
+  final ProductType productType;
+  final bool trackInventory;
+  
+  // Accounting links
+  final int? inventoryAccountId;
+  final int? cogsAccountId;
+  final int? revenueAccountId;
+  final int? purchaseAccountId;
+  
+  // Soft delete
+  final bool isDeleted;
+  final int? deletedAt;
+  final int? deletedBy;
 
   const ProductEntity({
     this.id,
@@ -65,7 +87,23 @@ class ProductEntity extends Equatable {
     this.extraProperties,
     this.creationTime,
     this.lastModificationTime,
+    // New fields
+    this.productType = ProductType.goods,
+    this.trackInventory = true,
+    this.inventoryAccountId,
+    this.cogsAccountId,
+    this.revenueAccountId,
+    this.purchaseAccountId,
+    this.isDeleted = false,
+    this.deletedAt,
+    this.deletedBy,
   });
+
+  /// Check if this product is a service (no inventory tracking)
+  bool get isService => productType == ProductType.service;
+  
+  /// Check if this product should affect inventory
+  bool get affectsInventory => trackInventory && productType != ProductType.service;
 
   @override
   List<Object?> get props => [
@@ -100,5 +138,15 @@ class ProductEntity extends Equatable {
         extraProperties,
         creationTime,
         lastModificationTime,
+        productType,
+        trackInventory,
+        inventoryAccountId,
+        cogsAccountId,
+        revenueAccountId,
+        purchaseAccountId,
+        isDeleted,
+        deletedAt,
+        deletedBy,
       ];
 }
+

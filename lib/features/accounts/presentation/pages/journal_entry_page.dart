@@ -3,12 +3,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.dart'
     as domain;
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
 import 'package:hasib_lib/form/form_button.dart';
 import 'package:hasib_lib/form/form_field.dart';
 
 class JournalEntry {
   final String id;
+  final int? accountId;
   final String account;
+  final int? currencyId;
   final String currency;
   final double debit;
   final double credit;
@@ -16,7 +20,9 @@ class JournalEntry {
 
   const JournalEntry({
     required this.id,
+    this.accountId,
     required this.account,
+    this.currencyId,
     required this.currency,
     required this.debit,
     required this.credit,
@@ -25,7 +31,9 @@ class JournalEntry {
 
   JournalEntry copyWith({
     String? id,
+    int? accountId,
     String? account,
+    int? currencyId,
     String? currency,
     double? debit,
     double? credit,
@@ -33,7 +41,9 @@ class JournalEntry {
   }) {
     return JournalEntry(
       id: id ?? this.id,
+      accountId: accountId ?? this.accountId,
       account: account ?? this.account,
+      currencyId: currencyId ?? this.currencyId,
       currency: currency ?? this.currency,
       debit: debit ?? this.debit,
       credit: credit ?? this.credit,
@@ -84,24 +94,7 @@ class AppTheme {
   static const yellowColor = Color(0xFFD97706);
 }
 
-class AppConstants {
-  static const List<String> accounts = [
-    'الصندوق الرئيسي',
-    'البنك الرئيسي',
-    'المبيعات',
-    'المشتريات',
-    'إيرادات أخرى',
-    'مصروفات عمومية',
-  ];
 
-  static const List<String> currencies = [
-    'الريال اليمني',
-    'USD',
-    'SAR',
-    'EGP',
-    'EUR',
-  ];
-}
 
 class SummaryCard extends StatelessWidget {
   final String label;
@@ -202,11 +195,11 @@ class StatusCard extends StatelessWidget {
   }
 }
 
-class TextFieldSelect extends StatelessWidget {
+class TextFieldSelect<T> extends StatelessWidget {
   final String hint;
-  final List<String> items;
-  final String? selectedValue;
-  final ValueChanged<String?> onChanged;
+  final List<DropdownMenuItem<T>> items;
+  final T? selectedValue;
+  final ValueChanged<T?> onChanged;
   final bool showHint;
   final bool isRequired;
   final String? errorText;
@@ -224,21 +217,17 @@ class TextFieldSelect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<String>(
-      value: selectedValue?.isEmpty == true ? null : selectedValue,
+    return DropdownButtonFormField<T>(
+      value: selectedValue,
       decoration: InputDecoration(
         labelText: hint,
         errorText: errorText,
         suffixIcon: const Icon(Icons.arrow_drop_down),
       ),
       validator: isRequired
-          ? (value) => value == null || value.isEmpty ? 'مطلوب' : null
+          ? (value) => value == null ? 'مطلوب' : null
           : null,
-      items: items
-          .map(
-            (item) => DropdownMenuItem<String>(value: item, child: Text(item)),
-          )
-          .toList(),
+      items: items,
       onChanged: onChanged,
     );
   }
@@ -247,8 +236,16 @@ class TextFieldSelect extends StatelessWidget {
 class AddEntryModal extends StatefulWidget {
   final JournalEntry? initialEntry;
   final ValueChanged<JournalEntry> onSave;
+  final List<AccountEntity> accounts;
+  final List<CurrencyEntity> currencies;
 
-  const AddEntryModal({super.key, this.initialEntry, required this.onSave});
+  const AddEntryModal({
+    super.key,
+    this.initialEntry,
+    required this.onSave,
+    required this.accounts,
+    required this.currencies,
+  });
 
   @override
   State<AddEntryModal> createState() => _AddEntryModalState();
@@ -259,8 +256,8 @@ class _AddEntryModalState extends State<AddEntryModal> {
   late TextEditingController _amountController;
   late TextEditingController _notesController;
 
-  String _account = '';
-  String _currency = AppConstants.currencies.first;
+  AccountEntity? _selectedAccount;
+  CurrencyEntity? _selectedCurrency;
   String _direction = 'debit';
 
   @override
@@ -268,14 +265,30 @@ class _AddEntryModalState extends State<AddEntryModal> {
     super.initState();
     final entry = widget.initialEntry;
     if (entry != null) {
-      _account = entry.account;
-      _currency = entry.currency;
+      // Find account by ID if possible, otherwise by name (fallback)
+      if (entry.accountId != null) {
+        _selectedAccount = widget.accounts.where((a) => a.id == entry.accountId).firstOrNull;
+      } else {
+        _selectedAccount = widget.accounts.where((a) => a.name == entry.account).firstOrNull;
+      }
+
+      // Find currency by ID if possible, otherwise by name/code
+      if (entry.currencyId != null) {
+        _selectedCurrency = widget.currencies.where((c) => c.id == entry.currencyId).firstOrNull;
+      } else {
+        _selectedCurrency = widget.currencies.where((c) => c.name == entry.currency).firstOrNull;
+      }
+      
       _direction = entry.debit > 0 ? 'debit' : 'credit';
       _amountController = TextEditingController(
         text: (entry.debit + entry.credit).toStringAsFixed(2),
       );
       _notesController = TextEditingController(text: entry.notes);
     } else {
+      // Default to first currency (usually local currency)
+      if (widget.currencies.isNotEmpty) {
+        _selectedCurrency = widget.currencies.first;
+      }
       _amountController = TextEditingController(text: '0');
       _notesController = TextEditingController();
     }
@@ -290,13 +303,17 @@ class _AddEntryModalState extends State<AddEntryModal> {
 
   void _submit() {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedAccount == null || _selectedCurrency == null) return;
+
     final amount = double.parse(_amountController.text);
     final entry = JournalEntry(
       id:
           widget.initialEntry?.id ??
           DateTime.now().millisecondsSinceEpoch.toString(),
-      account: _account,
-      currency: _currency,
+      accountId: _selectedAccount!.id,
+      account: _selectedAccount!.name,
+      currencyId: _selectedCurrency!.id,
+      currency: _selectedCurrency!.name,
       debit: _direction == 'debit' ? amount : 0,
       credit: _direction == 'credit' ? amount : 0,
       notes: _notesController.text,
@@ -355,12 +372,17 @@ class _AddEntryModalState extends State<AddEntryModal> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    TextFieldSelect(
+                    TextFieldSelect<AccountEntity>(
                       hint: 'الحساب',
-                      items: AppConstants.accounts,
-                      selectedValue: _account,
+                      items: widget.accounts
+                          .map((e) => DropdownMenuItem(
+                                value: e,
+                                child: Text('${e.code} - ${e.name}'),
+                              ))
+                          .toList(),
+                      selectedValue: _selectedAccount,
                       onChanged: (value) =>
-                          setState(() => _account = value ?? ''),
+                          setState(() => _selectedAccount = value),
                       isRequired: true,
                     ),
                     const SizedBox(height: 16),
@@ -383,12 +405,17 @@ class _AddEntryModalState extends State<AddEntryModal> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: TextFieldSelect(
+                          child: TextFieldSelect<CurrencyEntity>(
                             hint: 'العملة',
-                            items: AppConstants.currencies,
-                            selectedValue: _currency,
+                            items: widget.currencies
+                                .map((e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(e.name),
+                                    ))
+                                .toList(),
+                            selectedValue: _selectedCurrency,
                             onChanged: (value) =>
-                                setState(() => _currency = value ?? _currency),
+                                setState(() => _selectedCurrency = value),
                             isRequired: true,
                           ),
                         ),
@@ -522,6 +549,8 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   );
 
   bool _isSaving = false;
+  List<AccountEntity> _accounts = [];
+  List<CurrencyEntity> _currencies = [];
 
   @override
   void initState() {
@@ -530,6 +559,9 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     _header = _header.copyWith(entryNumber: generatedNumber);
     _numberController = TextEditingController(text: generatedNumber);
     _descriptionController = TextEditingController();
+    
+    // Load accounts and currencies
+    context.read<JournalEntryCubit>().loadFormData();
   }
 
   @override
@@ -555,11 +587,18 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   }
 
   void _showEntryDialog({JournalEntry? entry}) {
+    if (_accounts.isEmpty || _currencies.isEmpty) {
+      _showToast('جاري تحميل البيانات، يرجى الانتظار...');
+      return;
+    }
+    
     showDialog(
       context: context,
       builder: (_) => AddEntryModal(
         initialEntry: entry,
         onSave: entry == null ? _addEntry : _updateEntry,
+        accounts: _accounts.where((a) => !a.isMaster).toList(),
+        currencies: _currencies,
       ),
     );
   }
@@ -638,13 +677,30 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     final lines = _entries.asMap().entries.map((entry) {
       final idx = entry.key;
       final line = entry.value;
+      
+      // Find account code if possible
+      String? accountCode;
+      if (line.accountId != null) {
+        final account = _accounts.where((a) => a.id == line.accountId).firstOrNull;
+        accountCode = account?.code;
+      }
+      
+      // Find currency code if possible
+      String? currencyCode = line.currency;
+      if (line.currencyId != null) {
+        final currency = _currencies.where((c) => c.id == line.currencyId).firstOrNull;
+        if (currency != null) {
+          currencyCode = currency.code; // Assuming CurrencyEntity has code
+        }
+      }
+
       return domain.JournalEntryLineEntity(
         lineNumber: idx + 1,
-        accountId: null,
-        accountCode: null,
+        accountId: line.accountId,
+        accountCode: accountCode,
         accountName: line.account,
-        currencyId: null,
-        currencyCode: line.currency,
+        currencyId: line.currencyId,
+        currencyCode: currencyCode,
         debit: line.debit,
         credit: line.credit,
         notes: line.notes,
@@ -661,6 +717,8 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
       description: _descriptionController.text.trim().isEmpty
           ? null
           : _descriptionController.text.trim(),
+      // Manual journal entry should be posted by default so it appears in reports/ledger.
+      isPosted: true,
       totalDebit: totals.debit,
       totalCredit: totals.credit,
       difference: totals.difference,
@@ -767,6 +825,11 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                 backgroundColor: AppTheme.redColor,
               ),
             );
+          } else if (state is JournalEntryFormDataLoaded) {
+            setState(() {
+              _accounts = state.accounts;
+              _currencies = state.currencies;
+            });
           }
         },
         child: Scaffold(

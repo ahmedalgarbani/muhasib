@@ -84,9 +84,14 @@ class _JournalReportContent extends StatelessWidget {
 
     String where = 'is_posted = 1';
     if (filter.startDate != null && filter.endDate != null) {
-      where += ' AND entry_date >= ? AND entry_date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      // Support both seconds (correct) and legacy milliseconds timestamps.
+      where += ' AND ((entry_date >= ? AND entry_date <= ?) OR (entry_date >= ? AND entry_date <= ?))';
+      final startSec = filter.startDate!.millisecondsSinceEpoch ~/ 1000;
+      final endSec = filter.endDate!.millisecondsSinceEpoch ~/ 1000;
+      args.add(startSec);
+      args.add(endSec);
+      args.add(startSec * 1000);
+      args.add(endSec * 1000);
     }
 
     final entries = await db.query(

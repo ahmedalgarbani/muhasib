@@ -43,11 +43,11 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
 
     // Date filter
     if (filter.startDate != null && filter.endDate != null) {
-      whereClause = 'entry_date >= ? AND entry_date <= ?';
-      whereArgs = [
-        filter.startDate!.millisecondsSinceEpoch ~/ 1000,
-        filter.endDate!.millisecondsSinceEpoch ~/ 1000,
-      ];
+      // Support both seconds (correct) and legacy milliseconds timestamps.
+      whereClause = '((entry_date >= ? AND entry_date <= ?) OR (entry_date >= ? AND entry_date <= ?))';
+      final startSec = filter.startDate!.millisecondsSinceEpoch ~/ 1000;
+      final endSec = filter.endDate!.millisecondsSinceEpoch ~/ 1000;
+      whereArgs = [startSec, endSec, startSec * 1000, endSec * 1000];
     }
 
     // Transaction type filter

@@ -77,6 +77,8 @@ class JournalEntryEntity extends Equatable {
   final DateTime entryDate;
   final String? description;
   final String? referenceNumber;
+  final String? referenceType;
+  final int? referenceId;
   final String? notes;
   final int status;
   final bool isPosted;
@@ -91,6 +93,8 @@ class JournalEntryEntity extends Equatable {
     required this.entryDate,
     this.description,
     this.referenceNumber,
+    this.referenceType,
+    this.referenceId,
     this.notes,
     this.status = 0,
     this.isPosted = false,
@@ -106,6 +110,8 @@ class JournalEntryEntity extends Equatable {
     DateTime? entryDate,
     String? description,
     String? referenceNumber,
+    String? referenceType,
+    int? referenceId,
     String? notes,
     int? status,
     bool? isPosted,
@@ -120,6 +126,8 @@ class JournalEntryEntity extends Equatable {
       entryDate: entryDate ?? this.entryDate,
       description: description ?? this.description,
       referenceNumber: referenceNumber ?? this.referenceNumber,
+      referenceType: referenceType ?? this.referenceType,
+      referenceId: referenceId ?? this.referenceId,
       notes: notes ?? this.notes,
       status: status ?? this.status,
       isPosted: isPosted ?? this.isPosted,
@@ -137,6 +145,8 @@ class JournalEntryEntity extends Equatable {
         entryDate,
         description,
         referenceNumber,
+        referenceType,
+        referenceId,
         notes,
         status,
         isPosted,

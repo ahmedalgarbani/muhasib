@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/features/reports/data/models/transaction_model.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/entities/transaction_entity.dart';
 import 'package:muhasib/features/reports/presentation/cubit/transactions_report_cubit.dart';
@@ -53,6 +54,7 @@ class _TransactionsReportContentState
       context.read<TransactionsReportCubit>().updateDateRange(widget.filter);
     }
   }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<TransactionsReportCubit, TransactionsReportState>(
@@ -250,11 +252,29 @@ class _TransactionsReportContentState
                           // Get first debit and credit entries
                           final debitEntry = transaction.details.firstWhere(
                             (d) => d.debitAmount > 0,
-                            orElse: () => transaction.details.first,
+                            orElse: () => transaction.details.isNotEmpty
+                                ? transaction.details.first
+                                : const TransactionDetailModel(
+                                    id: 0,
+                                    accountId: 0,
+                                    accountName: '',
+                                    accountCode: '',
+                                    debitAmount: 0,
+                                    creditAmount: 0,
+                                  ),
                           );
                           final creditEntry = transaction.details.firstWhere(
                             (d) => d.creditAmount > 0,
-                            orElse: () => transaction.details.first,
+                            orElse: () => transaction.details.isNotEmpty
+                                ? transaction.details.first
+                                : const TransactionDetailModel(
+                                    id: 0,
+                                    accountId: 0,
+                                    accountName: '',
+                                    accountCode: '',
+                                    debitAmount: 0,
+                                    creditAmount: 0,
+                                  ),
                           );
 
                           return DataRow(

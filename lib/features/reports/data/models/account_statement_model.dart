@@ -3,6 +3,7 @@ import 'package:muhasib/features/reports/domain/entities/account_statement_entit
 class AccountStatementModel extends AccountStatementEntity {
   const AccountStatementModel({
     required super.transactionId,
+    super.journalEntryId,
     required super.transactionDate,
     required super.description,
     required super.reference,
@@ -15,6 +16,7 @@ class AccountStatementModel extends AccountStatementEntity {
   factory AccountStatementModel.fromMap(Map<String, dynamic> map) {
     return AccountStatementModel(
       transactionId: map['transaction_id'] ?? 0,
+      journalEntryId: map['journal_entry_id'] as int?,
       transactionDate: DateTime.parse(map['transaction_date'] ?? DateTime.now().toIso8601String()),
       description: map['description'] ?? '',
       reference: map['reference'] ?? '',
@@ -25,3 +27,4 @@ class AccountStatementModel extends AccountStatementEntity {
     );
   }
 }
+

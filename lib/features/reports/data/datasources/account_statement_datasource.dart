@@ -41,6 +41,7 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
         '''
       SELECT 
         jel.id as transaction_id,
+        jel.journal_entry_id as journal_entry_id,
         datetime(je.entry_date, 'unixepoch') as transaction_date,
         COALESCE(je.description, '') as description,
         COALESCE(je.reference_number, je.number, '') as reference,

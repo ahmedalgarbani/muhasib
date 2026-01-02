@@ -39,5 +39,14 @@ class VouchersTable implements TableSchema {
   ''';
 
   @override
-  List<String> get indexes => [];
+  List<String> get indexes => [
+    // Ensure unique voucher numbers per type (prevent duplicates)
+    'CREATE UNIQUE INDEX IF NOT EXISTS idx_vouchers_type_number ON vouchers(type, number);',
+    // Fast lookup by type and date
+    'CREATE INDEX IF NOT EXISTS idx_vouchers_type_date ON vouchers(type, date DESC);',
+    // Fast lookup by account
+    'CREATE INDEX IF NOT EXISTS idx_vouchers_account ON vouchers(account_id);',
+    // Fast lookup by reference
+    'CREATE INDEX IF NOT EXISTS idx_vouchers_reference ON vouchers(reference_number);',
+  ];
 }

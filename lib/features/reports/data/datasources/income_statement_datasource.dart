@@ -34,7 +34,11 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
 
     final List<IncomeStatementEntity> categories = [];
 
-    // Revenue: accounts.type = 4 (per seeders)
+    // Reference type exclusion for opening/closing entries
+    const referenceExclusion = "AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')";
+    
+    // Revenue: accounts.type = 3 (revenue per AccountType enum)
+    // Note: In AccountType enum: revenue = 3, expenses = 4
     final revenueQuery = '''
       SELECT 
         a.id as account_id,
@@ -44,7 +48,8 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+      $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
       HAVING amount != 0
@@ -64,7 +69,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       ));
     }
 
-    // Expenses: accounts.type = 3 (per seeders)
+    // Expenses: accounts.type = 4 (expenses per AccountType enum)
     // Cost of Sales approximation: purchases accounts (code starts with '311')
     final costOfSalesQuery = '''
       SELECT 
@@ -75,7 +80,8 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.code LIKE '311%' AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 4 AND a.code LIKE '311%' AND a.is_active = 1 AND je.is_posted = 1
+      $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
       HAVING amount != 0
@@ -105,12 +111,13 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND (
+      WHERE a.type = 4 AND (
         a.code LIKE '312%' OR
         a.code LIKE '313%' OR
         a.code LIKE '314%' OR
         a.code LIKE '315%'
       ) AND a.is_active = 1 AND je.is_posted = 1
+      $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
       HAVING amount != 0
@@ -130,7 +137,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       ));
     }
 
-    // Other Expenses: remaining expenses (type=3) not included above
+    // Other Expenses: remaining expenses (type=4) not included above
     final otherExpensesQuery = '''
       SELECT 
         a.id as account_id,
@@ -140,12 +147,13 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
         AND a.code NOT LIKE '311%'
         AND a.code NOT LIKE '312%'
         AND a.code NOT LIKE '313%'
         AND a.code NOT LIKE '314%'
         AND a.code NOT LIKE '315%'
+      $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
       HAVING amount != 0
@@ -182,32 +190,37 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
     }
 
+    // Reference type exclusion for opening/closing entries
+    const referenceExclusion = "AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')";
+    
     // Get totals for each category
+    // Note: In AccountType enum: revenue = 3, expenses = 4
     final summaryQuery = '''
       SELECT 
         CASE 
-          WHEN a.type = 4 THEN 'revenue'
-          WHEN a.type = 3 AND a.code LIKE '311%' THEN 'cost_of_sales'
-          WHEN a.type = 3 AND (
+          WHEN a.type = 3 THEN 'revenue'
+          WHEN a.type = 4 AND a.code LIKE '311%' THEN 'cost_of_sales'
+          WHEN a.type = 4 AND (
             a.code LIKE '312%' OR
             a.code LIKE '313%' OR
             a.code LIKE '314%' OR
             a.code LIKE '315%'
           ) THEN 'operating_expenses'
-          WHEN a.type = 3 THEN 'other_expenses'
+          WHEN a.type = 4 THEN 'other_expenses'
           ELSE 'other'
         END as category,
         COALESCE(SUM(
           CASE 
-            WHEN a.type = 4 THEN jel.credit_amount - jel.debit_amount
-            WHEN a.type = 3 THEN jel.debit_amount - jel.credit_amount
+            WHEN a.type = 3 THEN jel.credit_amount - jel.debit_amount
+            WHEN a.type = 4 THEN jel.debit_amount - jel.credit_amount
             ELSE 0
           END
         ), 0) as amount
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1 AND (a.type = 4 OR a.type = 3)
+      WHERE a.is_active = 1 AND je.is_posted = 1 AND (a.type = 3 OR a.type = 4)
+      $referenceExclusion
       $dateFilter
       GROUP BY category
     ''';

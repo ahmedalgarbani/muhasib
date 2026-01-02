@@ -33,6 +33,16 @@ class ProductModel extends ProductEntity {
     super.extraProperties,
     super.creationTime,
     super.lastModificationTime,
+    // New fields
+    super.productType = ProductType.goods,
+    super.trackInventory = true,
+    super.inventoryAccountId,
+    super.cogsAccountId,
+    super.revenueAccountId,
+    super.purchaseAccountId,
+    super.isDeleted = false,
+    super.deletedAt,
+    super.deletedBy,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -68,6 +78,16 @@ class ProductModel extends ProductEntity {
       extraProperties: json['extra_properties'] as String?,
       creationTime: json['creation_time'] as int?,
       lastModificationTime: json['last_modification_time'] as int?,
+      // New fields
+      productType: ProductType.values[(json['product_type'] as int?) ?? 0],
+      trackInventory: (json['track_inventory'] as int? ?? 1) == 1,
+      inventoryAccountId: json['inventory_account_id'] as int?,
+      cogsAccountId: json['cogs_account_id'] as int?,
+      revenueAccountId: json['revenue_account_id'] as int?,
+      purchaseAccountId: json['purchase_account_id'] as int?,
+      isDeleted: (json['is_deleted'] as int? ?? 0) == 1,
+      deletedAt: json['deleted_at'] as int?,
+      deletedBy: json['deleted_by'] as int?,
     );
   }
 
@@ -102,6 +122,16 @@ class ProductModel extends ProductEntity {
       'last_modifier_id': lastModifierId ?? 1,
       'concurrency_stamp': concurrencyStamp,
       'extra_properties': extraProperties,
+      // New fields
+      'product_type': productType.index,
+      'track_inventory': trackInventory ? 1 : 0,
+      'inventory_account_id': inventoryAccountId,
+      'cogs_account_id': cogsAccountId,
+      'revenue_account_id': revenueAccountId,
+      'purchase_account_id': purchaseAccountId,
+      'is_deleted': isDeleted ? 1 : 0,
+      'deleted_at': deletedAt,
+      'deleted_by': deletedBy,
     };
     
     // Omit timestamps if null to use database defaults
@@ -148,6 +178,17 @@ class ProductModel extends ProductEntity {
       extraProperties: entity.extraProperties,
       creationTime: entity.creationTime,
       lastModificationTime: entity.lastModificationTime,
+      // New fields
+      productType: entity.productType,
+      trackInventory: entity.trackInventory,
+      inventoryAccountId: entity.inventoryAccountId,
+      cogsAccountId: entity.cogsAccountId,
+      revenueAccountId: entity.revenueAccountId,
+      purchaseAccountId: entity.purchaseAccountId,
+      isDeleted: entity.isDeleted,
+      deletedAt: entity.deletedAt,
+      deletedBy: entity.deletedBy,
     );
   }
 }
+

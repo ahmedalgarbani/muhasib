@@ -35,6 +35,19 @@ class InvoiceLineEntity extends Equatable {
   final int invoiceTransType;
   final double? lineDiscount;
 
+  // Unit conversion tracking (for accurate inventory)
+  final double? baseQuantity;
+  final double? conversionRate;
+  final int? packaging;
+
+  // Cost tracking (for accurate COGS)
+  final double? costPrice;
+  final double? costTotal;
+
+  // Price tracking
+  final double? price;
+  final double? sellingPrice;
+
   const InvoiceLineEntity({
     this.id,
     this.creatorId,
@@ -68,7 +81,28 @@ class InvoiceLineEntity extends Equatable {
     this.expireDate,
     required this.invoiceTransType,
     this.lineDiscount,
+    // Unit conversion
+    this.baseQuantity,
+    this.conversionRate,
+    this.packaging,
+    // Cost tracking
+    this.costPrice,
+    this.costTotal,
+    // Price tracking
+    this.price,
+    this.sellingPrice,
   });
+
+  /// Get the quantity to use for inventory operations
+  /// Returns baseQuantity if available, otherwise quantity
+  double get inventoryQuantity => baseQuantity ?? quantity;
+
+  /// Get the cost to use for COGS calculations
+  /// Returns costPrice if available, otherwise tries price
+  double get effectiveCostPrice => costPrice ?? price ?? 0.0;
+
+  /// Get the total cost for this line
+  double get effectiveCostTotal => costTotal ?? (inventoryQuantity * effectiveCostPrice);
 
   @override
   List<Object?> get props => [
@@ -104,5 +138,13 @@ class InvoiceLineEntity extends Equatable {
         expireDate,
         invoiceTransType,
         lineDiscount,
+        baseQuantity,
+        conversionRate,
+        packaging,
+        costPrice,
+        costTotal,
+        price,
+        sellingPrice,
       ];
 }
+

@@ -1,5 +1,6 @@
 class AccountStatementEntity {
   final int transactionId;
+  final int? journalEntryId;
   final DateTime transactionDate;
   final String description;
   final String reference;
@@ -10,6 +11,7 @@ class AccountStatementEntity {
 
   const AccountStatementEntity({
     required this.transactionId,
+    this.journalEntryId,
     required this.transactionDate,
     required this.description,
     required this.reference,

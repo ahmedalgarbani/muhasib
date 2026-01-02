@@ -5,38 +5,43 @@ import 'package:muhasib/core/usecase/usecases.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/repositories/invoice_repository.dart';
 
-/// Create a sales return invoice
-/// 
-/// This use case:
-/// 1. Creates a return invoice linked to the original sales invoice
-/// 2. Generates reverse accounting entries (debit customer, credit sales returns)
-/// 3. Updates inventory quantities (increases stock)
-/// 4. Updates customer balance (reduces accounts receivable)
+/// Create a sales return invoice.
+///
+/// NOTE: Accounting posting (journal entries + balances + limits) is handled
+/// atomically inside `InvoiceLocalDataSource` when the return invoice is saved.
+
 class CreateReturnInvoice extends Usecase<Either<Failure, int>, CreateReturnParams> {
   final InvoiceRepository repository;
 
-  CreateReturnInvoice(this.repository);
+  CreateReturnInvoice(
+    this.repository,
+  );
 
   @override
   Future<Either<Failure, int>> call({
     required CreateReturnParams params,
   }) async {
-    return await repository.createReturnInvoice(
+    // Create Return Invoice (posting is handled in the datasource).
+    final result = await repository.createReturnInvoice(
       params.returnInvoice,
       params.parentInvoiceId,
     );
+
+    return result;
   }
 }
 
 class CreateReturnParams extends Equatable {
   final InvoiceEntity returnInvoice;
   final int parentInvoiceId;
+  final String customerName;
 
   const CreateReturnParams({
     required this.returnInvoice,
     required this.parentInvoiceId,
+    required this.customerName,
   });
 
   @override
-  List<Object?> get props => [returnInvoice, parentInvoiceId];
+  List<Object?> get props => [returnInvoice, parentInvoiceId, customerName];
 }

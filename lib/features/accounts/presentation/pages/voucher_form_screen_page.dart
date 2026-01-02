@@ -1,12 +1,21 @@
 // ==================== FILE 1: models/voucher_model.dart ====================
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:muhasib/core/models/test/VoucherFormData.dart';
-import 'package:muhasib/features/accounts/data/models/account_model.dart';
-import 'package:muhasib/features/accounts/presentation/pages/currencies_manage_page.dart';
+import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/vouchers_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
+import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:intl/intl.dart';
 import 'package:hasib_lib/base/entity.dart';
 import 'package:hasib_lib/form/form_field.dart';
 import 'package:hasib_lib/theme/app_colors.dart';
+
+// ==================== PaymentMethod Enum ====================
+enum PaymentMethod { cash, bankTransfer }
 
 // ==================== FILE 3: constants/app_text_styles.dart ====================
 
@@ -253,6 +262,50 @@ class PrimaryButton extends StatelessWidget {
   }
 }
 
+// ==================== TextFieldSelect Widget ====================
+
+class TextFieldSelect<T> extends StatelessWidget {
+  final String hint;
+  final List<DropdownMenuItem<T>> items;
+  final T? selectedValue;
+  final ValueChanged<T?> onChanged;
+  final bool showHint;
+  final bool isRequired;
+  final String? errorText;
+
+  const TextFieldSelect({
+    Key? key,
+    required this.hint,
+    required this.items,
+    required this.selectedValue,
+    required this.onChanged,
+    this.showHint = false,
+    this.isRequired = false,
+    this.errorText,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<T>(
+      value: selectedValue,
+      decoration: InputDecoration(
+        labelText: hint,
+        errorText: errorText,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
+        ),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      validator: isRequired ? (value) => value == null ? 'مطلوب' : null : null,
+      items: items,
+      onChanged: onChanged,
+    );
+  }
+}
+
 // ==================== FILE 11: screens/voucher_form_screen.dart ====================
 
 class VoucherFormScreen extends StatefulWidget {
@@ -263,15 +316,23 @@ class VoucherFormScreen extends StatefulWidget {
 }
 
 class _VoucherFormScreenState extends State<VoucherFormScreen> {
-  VoucherType _voucherType = VoucherType.expense;
+  VoucherType _voucherType = VoucherType.payment;
   PaymentMethod _paymentMethod = PaymentMethod.cash;
-  VoucherFormData _formData = VoucherFormData();
 
-  final TextEditingController _numberController = TextEditingController(
-    text: '1',
-  );
+  // Data lists
+  List<AccountEntity> _accounts = [];
+  List<CurrencyEntity> _currencies = [];
+
+  // Selected values
+  AccountEntity? _selectedAccount;
+  CurrencyEntity? _selectedCurrency;
+  AccountEntity? _selectedBoxBank; // Cash box or Bank account
+
+  bool _isSaving = false;
+
+  final TextEditingController _numberController = TextEditingController();
   final TextEditingController _dateController = TextEditingController(
-    text: '17-10-2025',
+    text: DateFormat('yyyy-MM-dd').format(DateTime.now()),
   );
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -296,85 +357,116 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
     super.dispose();
   }
 
-  void _updateFormData(String field, String value) {
-    setState(() {
-      switch (field) {
-        case 'number':
-          _formData = _formData.copyWith(number: value);
-          break;
-        case 'date':
-          _formData = _formData.copyWith(date: value);
-          break;
-        case 'account':
-          _formData = _formData.copyWith(account: value);
-          break;
-        case 'notes':
-          _formData = _formData.copyWith(notes: value);
-          break;
-        case 'amount':
-          _formData = _formData.copyWith(amount: value);
-          break;
-        case 'currency':
-          _formData = _formData.copyWith(currency: value);
-          break;
-        case 'bank':
-          _formData = _formData.copyWith(bank: value);
-          break;
-        case 'accountNumber':
-          _formData = _formData.copyWith(accountNumber: value);
-          break;
-        case 'senderName':
-          _formData = _formData.copyWith(senderName: value);
-          break;
-        case 'recipientName':
-          _formData = _formData.copyWith(recipientName: value);
-          break;
-        case 'commissionAmount':
-          _formData = _formData.copyWith(commissionAmount: value);
-          break;
-        case 'commissionCurrency':
-          _formData = _formData.copyWith(commissionCurrency: value);
-          break;
-      }
-    });
+  @override
+  void initState() {
+    super.initState();
+    // Generate initial number
+    context.read<VouchersCubit>().refreshNumber(_voucherType);
   }
+
+  // Form data is managed via controllers and selected values directly
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
-        backgroundColor: AppColors.gray50,
-        body: SafeArea(
-          child: SingleChildScrollView(
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: AppDimensions.maxWidth,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(),
-                      const SizedBox(height: 24),
-                      _buildVoucherTypeSection(),
-                      _buildBasicInformationSection(),
-                      _buildNotesAndImageSection(),
-                      _buildPaymentMethodSection(),
-                      _buildPaymentDetailsSection(),
-                      const SizedBox(height: 8),
-                      PrimaryButton(text: 'حفظ', onPressed: _handleSave),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => getIt<VouchersCubit>()),
+        BlocProvider(create: (_) => getIt<AccountsCubit>()..loadAllAccounts()),
+        BlocProvider(
+          create: (_) => getIt<CurrenciesCubit>()..loadAllCurrencies(),
+        ),
+      ],
+      child: BlocListener<VouchersCubit, VouchersState>(
+        listener: (context, state) {
+          if (state is VoucherActionInProgress) {
+            setState(() => _isSaving = true);
+          } else if (state is VoucherActionSuccess) {
+            setState(() => _isSaving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.green,
               ),
-            ),
-          ),
+            );
+            Navigator.pop(context);
+          } else if (state is VouchersFailure) {
+            setState(() => _isSaving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message),
+                backgroundColor: Colors.red,
+              ),
+            );
+          } else if (state is VoucherNumberGenerated) {
+            _numberController.text = state.number.toString();
+          }
+        },
+        child: BlocBuilder<AccountsCubit, AccountsState>(
+          builder: (context, accountsState) {
+            if (accountsState is AccountsLoaded) {
+              _accounts = accountsState.accounts;
+            }
+
+            return BlocBuilder<CurrenciesCubit, CurrenciesState>(
+              builder: (context, currenciesState) {
+                if (currenciesState is CurrenciesLoaded) {
+                  _currencies = currenciesState.currencies;
+                  if (_selectedCurrency == null && _currencies.isNotEmpty) {
+                    _selectedCurrency = _currencies.firstWhere(
+                      (c) => c.isLocalCurrency,
+                      orElse: () => _currencies.first,
+                    );
+                  }
+                }
+
+                return Scaffold(
+                  backgroundColor: AppColors.gray50,
+                  body: SafeArea(
+                    child: SingleChildScrollView(
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: AppDimensions.maxWidth,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _buildHeader(),
+                                const SizedBox(height: 24),
+                                _buildVoucherTypeSection(),
+                                _buildBasicInformationSection(),
+                                _buildNotesAndImageSection(),
+                                _buildPaymentMethodSection(),
+                                _buildPaymentDetailsSection(),
+                                const SizedBox(height: 8),
+                                _buildSaveButton(),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return Builder(
+      builder: (context) {
+        return PrimaryButton(
+          text: _isSaving ? 'جاري الحفظ...' : 'حفظ',
+          onPressed: _isSaving ? () {} : () => _handleSave(context),
+        );
+      },
     );
   }
 
@@ -396,16 +488,22 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
       child: Row(
         children: [
           CustomRadioButton<VoucherType>(
-            value: VoucherType.expense,
+            value: VoucherType.payment,
             groupValue: _voucherType,
             label: 'سند صرف',
-            onChanged: (value) => setState(() => _voucherType = value),
+            onChanged: (value) {
+              setState(() => _voucherType = value);
+              context.read<VouchersCubit>().refreshNumber(value);
+            },
           ),
           CustomRadioButton<VoucherType>(
             value: VoucherType.receipt,
             groupValue: _voucherType,
             label: 'سند قبض',
-            onChanged: (value) => setState(() => _voucherType = value),
+            onChanged: (value) {
+              setState(() => _voucherType = value);
+              context.read<VouchersCubit>().refreshNumber(value);
+            },
           ),
         ],
       ),
@@ -423,7 +521,6 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
                   hint: 'الرقم',
                   isRequired: true,
                   textEditingController: _numberController,
-                  onChanged: (value) => _updateFormData('number', value),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -433,20 +530,28 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
                   hint: 'تاريخ السند',
                   isRequired: true,
                   textEditingController: _dateController,
-                  onChanged: (value) => _updateFormData('date', value),
                   textAlign: TextAlign.center,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          TextFieldSelect<AccountModel>(
+          const SizedBox(height: 16),
+          TextFieldSelect<AccountEntity>(
             showHint: true,
             isRequired: true,
-            // value: _formData.account,
-            items: [],
-            onChanged: (value) => _updateFormData('account', ''),
-            hint: 'اختر الحساب',
+            selectedValue: _selectedAccount,
+            items: _accounts
+                .where((a) => !a.isMaster)
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child: Text('${e.code} - ${e.name}'),
+                  ),
+                )
+                .toList(),
+            onChanged: (value) => setState(() => _selectedAccount = value),
+            hint: 'اختر الحساب (الطرف الثاني)',
           ),
         ],
       ),
@@ -461,7 +566,6 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             // label: 'الملاحظة',
             hint: 'أضف ملاحظة...',
             textEditingController: _notesController,
-            onChanged: (value) => _updateFormData('notes', value),
             maxLines: 3,
             maxLength: 1000,
             showCharacterCount: true,
@@ -559,19 +663,29 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
         children: [
           _buildAmountField(),
           const SizedBox(height: 16),
-          TextFieldSelect<Boxess>(
+          const SizedBox(height: 16),
+          TextFieldSelect<AccountEntity>(
             hint: 'الصندوق',
-            // value: '',
-            items: [Boxess('الصندوق الرئيسي'), Boxess('صندوق فرعي')],
-            onChanged: (value) {},
+            selectedValue: _selectedBoxBank,
+            items: _accounts
+                .where(
+                  (a) =>
+                      !a.isMaster &&
+                      (a.name.contains('صندوق') || a.code.startsWith('111')),
+                )
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedBoxBank = value),
           ),
           const SizedBox(height: 16),
-          TextFieldSelect<Currency>(
+          TextFieldSelect<CurrencyEntity>(
             hint: 'العملة',
             showHint: true,
-            // selectedValue : _formData.currency,
-            items: const [],
-            onChanged: (value) => _updateFormData('currency', 'USD'),
+            selectedValue: _selectedCurrency,
+            items: _currencies
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedCurrency = value),
           ),
         ],
       ),
@@ -584,25 +698,29 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
         children: [
           _buildAmountField(),
           const SizedBox(height: 16),
-          TextFieldSelect<Currency>(
+          TextFieldSelect<CurrencyEntity>(
             hint: 'العملة',
             isRequired: true,
-            // value: _formData.currency,
-            items: const [],
-            onChanged: (value) => _updateFormData('currency', 'USD'),
+            selectedValue: _selectedCurrency,
+            items: _currencies
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedCurrency = value),
           ),
           const SizedBox(height: 16),
-          TextFieldSelect<Boxess>(
+          TextFieldSelect<AccountEntity>(
             showHint: true,
             isRequired: true,
-            // value: _formData.bank,
-            items: [
-              Boxess('اختر البنك'),
-              Boxess('البنك الأهلي'),
-              Boxess('البنك الزراعي'),
-              Boxess('بنك مصر'),
-            ],
-            onChanged: (value) => _updateFormData('bank', ''),
+            selectedValue: _selectedBoxBank,
+            items: _accounts
+                .where(
+                  (a) =>
+                      !a.isMaster &&
+                      (a.name.contains('بنك') || a.code.startsWith('112')),
+                )
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedBoxBank = value),
             hint: 'اختر البنك',
           ),
           const SizedBox(height: 16),
@@ -610,8 +728,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             label: 'رقم الحساب',
             isRequired: true,
             hint: 'أدخل رقم الحساب',
-            // controller: _accountNumberController,
-            onChanged: (value) => _updateFormData('accountNumber', value),
+            textEditingController: _accountNumberController,
             maxLength: 20,
             showCharacterCount: true,
           ),
@@ -623,8 +740,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
                   label: 'اسم المرسل',
                   isRequired: true,
                   hint: 'الاسم',
-                  // controller: _senderNameController,
-                  onChanged: (value) => _updateFormData('senderName', value),
+                  textEditingController: _senderNameController,
                   maxLength: 50,
                   showCharacterCount: true,
                 ),
@@ -635,8 +751,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
                   label: 'اسم المستقبل',
                   isRequired: true,
                   hint: 'الاسم',
-                  // controller: _recipientNameController,
-                  onChanged: (value) => _updateFormData('recipientName', value),
+                  textEditingController: _recipientNameController,
                   maxLength: 50,
                   showCharacterCount: true,
                 ),
@@ -655,8 +770,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
       label: 'المبلغ',
       isRequired: true,
       hint: '0.00',
-      // controller: _amountController,
-      onChanged: (value) => _updateFormData('amount', value),
+      textEditingController: _amountController,
       inputType: TextInputType.number,
       suffixIcon: Container(
         margin: const EdgeInsets.all(6),
@@ -695,10 +809,8 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             label: 'مبلغ عمولة الحوالة',
             isRequired: true,
             hint: '0.00',
-            // controller: _commissionAmountController,
-            onChanged: (value) => _updateFormData('commissionAmount', value),
+            textEditingController: _commissionAmountController,
             inputType: TextInputType.number,
-
             backgroundColor: AppColors.darkSecondary.withOpacity(0.1),
             borderColor: AppColors.darkSecondary,
             focusBorderColor: AppColors.darkSecondary,
@@ -717,24 +829,75 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          TextFieldSelect<Currency>(
+          TextFieldSelect<CurrencyEntity>(
             showHint: true,
             hint: 'عملة عمولة الحوالة',
-            // selectedValue: _formData.commissionCurrency,
-            items: [],
-            onChanged: (value) => _updateFormData('commissionCurrency', 'USD'),
+            selectedValue: _selectedCurrency,
+            items: _currencies
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: (value) => setState(() => _selectedCurrency = value),
           ),
         ],
       ),
     );
   }
 
-  void _handleSave() {
-    // Implement save logic
-    print('Form saved with data: $_formData');
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('تم حفظ السند بنجاح')));
+  void _handleSave(BuildContext context) {
+    if (_numberController.text.isEmpty || _dateController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('يرجى ملء الحقول المطلوبة')));
+      return;
+    }
+
+    if (_selectedAccount == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الحساب')));
+      return;
+    }
+
+    if (_selectedBoxBank == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('يرجى اختيار الصندوق أو البنك')),
+      );
+      return;
+    }
+
+    if (_amountController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('يرجى إدخال المبلغ')));
+      return;
+    }
+
+    final amount = double.tryParse(_amountController.text) ?? 0.0;
+
+    // Create Voucher Entity
+    final voucher = VoucherEntity(
+      number: int.tryParse(_numberController.text) ?? 0,
+      date: DateFormat('yyyy-MM-dd').parse(_dateController.text),
+      statement: _notesController.text.isEmpty
+          ? 'سند ${_voucherType.label}'
+          : _notesController.text,
+      amount: amount,
+      accountId: _selectedBoxBank!.id!, // Main account (Cash/Bank)
+      accountName: _selectedBoxBank!.name,
+      type: _voucherType,
+      currencyId: _selectedCurrency?.id,
+      currencyCode: _selectedCurrency?.code,
+      lines: [
+        VoucherLineEntity(
+          accountId: _selectedAccount!.id,
+          accountName: _selectedAccount!.name,
+          amount: amount,
+          statement: _notesController.text,
+        ),
+      ],
+    );
+
+    context.read<VouchersCubit>().saveVoucher(voucher);
   }
 }
 

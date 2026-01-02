@@ -32,10 +32,18 @@ class CurrencyExchangesTable implements TableSchema {
       parent_number TEXT NULL,
       parent_id INTEGER NULL,
       status INTEGER NOT NULL DEFAULT 0,
-      u_no TEXT NULL
+      u_no TEXT NULL,
+      exchange_rate_difference REAL NULL DEFAULT 0.0,
+      exchange_difference_account_id INTEGER NULL REFERENCES accounts (id),
+      journal_entry_id INTEGER NULL REFERENCES journal_entries (id),
+      notes TEXT NULL
     );
   ''';
 
   @override
-  List<String> get indexes => [];
+  List<String> get indexes => [
+    'CREATE INDEX idx_currency_exchanges_date ON currency_exchanges (date)',
+    'CREATE INDEX idx_currency_exchanges_journal_entry ON currency_exchanges (journal_entry_id)',
+  ];
 }
+

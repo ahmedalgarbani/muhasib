@@ -1,6 +1,8 @@
 import 'package:get_it/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
+import 'package:muhasib/core/services/account_validation_service.dart';
+import 'package:muhasib/core/services/accounting_setup_validator.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_connect_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/journal_local_datasource.dart';
@@ -75,6 +77,7 @@ import 'package:muhasib/features/sales/domain/usecases/update_invoice.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/purchases/domain/repositories/purchase_repository.dart';
 import 'package:muhasib/features/purchases/data/repositories/purchase_repository_impl.dart';
+import 'package:muhasib/features/purchases/domain/usecases/create_purchase.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/products/data/datasources/product_local_datasource.dart';
 import 'package:muhasib/features/products/data/datasources/product_group_local_datasource.dart';
@@ -187,6 +190,22 @@ class GetItHelper {
     getIt.registerLazySingleton<AccountConfigService>(
       () => AccountConfigService(database: database),
     );
+    
+    // Account Validation Service (prevent deletion of accounts used in journal entries)
+    getIt.registerLazySingleton<AccountValidationService>(
+      () => AccountValidationService(
+        database: database,
+        journalRepository: null, // Will be set after JournalRepository is registered
+      ),
+    );
+    
+    // Accounting Setup Validator (validate default accounts at startup)
+    getIt.registerLazySingleton<AccountingSetupValidator>(
+      () => AccountingSetupValidator(
+        database: database,
+        accountConfigService: getIt<AccountConfigService>(),
+      ),
+    );
 
     // ==================== Initial Feature ====================
     getIt.registerLazySingleton<InitialLocalDataSource>(
@@ -237,7 +256,10 @@ class GetItHelper {
 
     // Repositories
     getIt.registerLazySingleton<AccountRepository>(
-      () => AccountRepositoryImpl(getIt<AccountLocalDataSource>()),
+      () => AccountRepositoryImpl(
+        getIt<AccountLocalDataSource>(),
+        validationService: getIt<AccountValidationService>(),
+      ),
     );
     getIt.registerLazySingleton<AccountConnectRepository>(
       () => AccountConnectRepositoryImpl(
@@ -344,7 +366,9 @@ class GetItHelper {
       () => GetVoucherByIdUseCase(getIt<VoucherRepository>()),
     );
     getIt.registerLazySingleton(
-      () => AddVoucherUseCase(getIt<VoucherRepository>()),
+      () => AddVoucherUseCase(
+        getIt<VoucherRepository>(),
+      ),
     );
     getIt.registerLazySingleton(
       () => UpdateVoucherUseCase(getIt<VoucherRepository>()),
@@ -382,9 +406,13 @@ class GetItHelper {
     getIt.registerLazySingleton<InvoiceLocalDataSource>(
       () => InvoiceLocalDataSourceImpl(database: database),
     );
-    // Repository
+    // Repository (with accounting services for double-entry)
     getIt.registerLazySingleton<InvoiceRepository>(
-      () => InvoiceRepositoryImpl(getIt<InvoiceLocalDataSource>()),
+      () => InvoiceRepositoryImpl(
+        getIt<InvoiceLocalDataSource>(),
+        journalRepository: getIt<JournalRepository>(),
+        accountConfigService: getIt<AccountConfigService>(),
+      ),
     );
     // Use Cases
     getIt.registerLazySingleton(() => GetInvoices(getIt<InvoiceRepository>()));
@@ -414,7 +442,9 @@ class GetItHelper {
       () => GetReturnInvoices(getIt<InvoiceRepository>()),
     );
     getIt.registerLazySingleton(
-      () => CreateReturnInvoice(getIt<InvoiceRepository>()),
+      () => CreateReturnInvoice(
+        getIt<InvoiceRepository>(),
+      ),
     );
     getIt.registerLazySingleton(
       () => GetReturnsByParentInvoice(getIt<InvoiceRepository>()),
@@ -453,6 +483,8 @@ class GetItHelper {
         getJournalEntries: getIt<GetJournalEntries>(),
         getJournalEntry: getIt<GetJournalEntry>(),
         limitInterceptor: getIt<AccountLimitInterceptor>(),
+        getAllAccounts: getIt<GetAllAccounts>(),
+        getAllCurrencies: getIt<GetAllCurrencies>(),
       ),
     );
     getIt.registerFactory(
@@ -494,16 +526,28 @@ class GetItHelper {
     );
 
     // ==================== Purchases Feature ====================
-    // Repository (reuses Invoice data source)
+    // Repository (reuses Invoice data source + accounting services)
     getIt.registerLazySingleton<PurchaseRepository>(
       () => PurchaseRepositoryImpl(
         localDataSource: getIt<InvoiceLocalDataSource>(),
+        journalRepository: getIt<JournalRepository>(),
+        accountConfigService: getIt<AccountConfigService>(),
+      ),
+    );
+    
+    // Use Cases
+    getIt.registerLazySingleton(
+      () => CreatePurchase(
+        getIt<PurchaseRepository>(),
       ),
     );
     
     // Cubit
     getIt.registerFactory(
-      () => PurchasesCubit(repository: getIt<PurchaseRepository>()),
+      () => PurchasesCubit(
+        repository: getIt<PurchaseRepository>(),
+        createPurchase: getIt<CreatePurchase>(),
+      ),
     );
     
     // ==================== Products Feature ====================

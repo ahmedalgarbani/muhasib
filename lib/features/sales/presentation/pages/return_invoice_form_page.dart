@@ -7,6 +7,8 @@ import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart'
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
 
 class ReturnInvoiceFormPage extends StatefulWidget {
   final int? originalInvoiceId;
@@ -42,6 +44,8 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
     if (widget.originalInvoiceId != null) {
       _loadOriginalInvoice();
     }
+    // Load customers to get names
+    context.read<CustomersCubit>().loadCustomers();
   }
 
   void _generateReturnNumber() {
@@ -65,8 +69,11 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<ProductsCubit>()..loadProducts(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => getIt<ProductsCubit>()..loadProducts()),
+        BlocProvider(create: (context) => getIt<CustomersCubit>()),
+      ],
       child: Scaffold(
           backgroundColor: const Color(0xFFF9FAFB),
           appBar: AppBar(
@@ -596,7 +603,18 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
         paymentStatus: 0, // 0 for unpaid
       );
 
-      context.read<SalesCubit>().createReturn(returnInvoice, _originalInvoice!.id!);
+      // Get customer name
+      String customerName = 'Unknown';
+      final customersState = context.read<CustomersCubit>().state;
+      if (customersState is CustomersLoaded) {
+        final customer = customersState.customers.firstWhere(
+          (c) => c.id == _originalInvoice!.customerId.toString(),
+          orElse: () => Customer(id: '0', name: 'Unknown'),
+        );
+        customerName = customer.name;
+      }
+
+      context.read<SalesCubit>().createReturn(returnInvoice, _originalInvoice!.id!, customerName);
     }
   }
 

@@ -87,6 +87,14 @@ class InvoiceItem {
   final String unit;
   final int stock;
   int quantity;
+  
+  // Unit conversion fields
+  final int? unitId;
+  final double conversionRate;
+  final int packaging;
+  double? baseQuantity;
+  final double? costPrice;
+  final bool trackInventory;
 
   InvoiceItem({
     required this.id,
@@ -96,9 +104,27 @@ class InvoiceItem {
     required this.unit,
     required this.stock,
     this.quantity = 1,
-  });
+    this.unitId,
+    this.conversionRate = 1.0,
+    this.packaging = 1,
+    this.baseQuantity,
+    this.costPrice,
+    this.trackInventory = true,
+  }) {
+    // Calculate base quantity if not provided
+    baseQuantity ??= quantity * packaging * conversionRate;
+  }
 
   double get total => price * quantity;
+  
+  /// Get the quantity for inventory operations
+  double get inventoryQuantity => baseQuantity ?? (quantity * packaging * conversionRate);
+  
+  /// Update base quantity when quantity changes
+  void updateQuantity(int newQuantity) {
+    quantity = newQuantity;
+    baseQuantity = quantity * packaging * conversionRate;
+  }
 
   factory InvoiceItem.fromJson(Map<String, dynamic> json) {
     return InvoiceItem(
@@ -109,6 +135,12 @@ class InvoiceItem {
       unit: json['unit'],
       stock: json['stock'],
       quantity: json['quantity'] ?? 1,
+      unitId: json['unit_id'] as int?,
+      conversionRate: (json['conversion_rate'] as num?)?.toDouble() ?? 1.0,
+      packaging: json['packaging'] as int? ?? 1,
+      baseQuantity: (json['base_quantity'] as num?)?.toDouble(),
+      costPrice: (json['cost_price'] as num?)?.toDouble(),
+      trackInventory: json['track_inventory'] ?? true,
     );
   }
 
@@ -121,6 +153,12 @@ class InvoiceItem {
       'unit': unit,
       'stock': stock,
       'quantity': quantity,
+      'unit_id': unitId,
+      'conversion_rate': conversionRate,
+      'packaging': packaging,
+      'base_quantity': baseQuantity ?? inventoryQuantity,
+      'cost_price': costPrice,
+      'track_inventory': trackInventory,
     };
   }
 
@@ -132,6 +170,12 @@ class InvoiceItem {
     String? unit,
     int? stock,
     int? quantity,
+    int? unitId,
+    double? conversionRate,
+    int? packaging,
+    double? baseQuantity,
+    double? costPrice,
+    bool? trackInventory,
   }) {
     return InvoiceItem(
       id: id ?? this.id,
@@ -141,9 +185,16 @@ class InvoiceItem {
       unit: unit ?? this.unit,
       stock: stock ?? this.stock,
       quantity: quantity ?? this.quantity,
+      unitId: unitId ?? this.unitId,
+      conversionRate: conversionRate ?? this.conversionRate,
+      packaging: packaging ?? this.packaging,
+      baseQuantity: baseQuantity ?? this.baseQuantity,
+      costPrice: costPrice ?? this.costPrice,
+      trackInventory: trackInventory ?? this.trackInventory,
     );
   }
 }
+
 
 // lib/models/discount.dart
 
@@ -1439,6 +1490,14 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
   late int _quantity;
   late double _price;
   final _priceController = TextEditingController();
+  
+  // Unit conversion state
+  int? _selectedUnitId;
+  double _conversionRate = 1.0;
+  int _packaging = 1;
+  double? _baseQuantity;
+  List<Map<String, dynamic>> _availableUnits = [];
+  bool _isLoadingUnits = true;
 
   @override
   void initState() {
@@ -1446,6 +1505,39 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
     _quantity = widget.item.quantity;
     _price = widget.item.price;
     _priceController.text = _price.toStringAsFixed(0);
+    _selectedUnitId = widget.item.unitId;
+    _conversionRate = widget.item.conversionRate;
+    _packaging = widget.item.packaging;
+    _loadUnits();
+  }
+  
+  Future<void> _loadUnits() async {
+    setState(() => _isLoadingUnits = true);
+    try {
+      // Try to load units from database
+      // For now, use a simple fallback
+      final productId = int.tryParse(widget.item.id);
+      if (productId != null) {
+        // Get unit from product
+        _availableUnits = [
+          {
+            'id': widget.item.unitId ?? 0,
+            'name': widget.item.unit,
+            'short': widget.item.unit,
+            'packaging': 1,
+            'conversion_rate': 1.0,
+            'is_main': true,
+          },
+        ];
+      }
+    } catch (_) {
+      _availableUnits = [];
+    }
+    setState(() => _isLoadingUnits = false);
+  }
+  
+  void _updateBaseQuantity() {
+    _baseQuantity = _quantity * _packaging * _conversionRate;
   }
 
   @override
@@ -1534,6 +1626,20 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
             onChanged: (value) =>
                 setState(() => _price = double.tryParse(value) ?? _price),
           ),
+          if (widget.item.costPrice != null && _price < widget.item.costPrice!)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Row(
+                children: [
+                  const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 20),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    'تنبيه: السعر أقل من التكلفة (${NumberFormatter.formatCurrency(widget.item.costPrice!)})',
+                    style: AppTextStyles.small.copyWith(color: AppColors.warning),
+                  ),
+                ],
+              ),
+            ),
           const SizedBox(height: AppSpacing.lg),
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -1557,8 +1663,18 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
           PrimaryButton(
             text: 'إضافة إلى الفاتورة',
             onPressed: () {
+              // Calculate base quantity for inventory
+              _updateBaseQuantity();
+              
               widget.onAdd(
-                widget.item.copyWith(quantity: _quantity, price: _price),
+                widget.item.copyWith(
+                  quantity: _quantity,
+                  price: _price,
+                  unitId: _selectedUnitId,
+                  conversionRate: _conversionRate,
+                  packaging: _packaging,
+                  baseQuantity: _baseQuantity ?? (_quantity * _packaging * _conversionRate),
+                ),
               );
               Navigator.pop(context);
             },
@@ -1696,6 +1812,7 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
                             name: product.name,
                             barcode: product.barcodeNo,
                             price: product.sellAmount ?? product.sellLocalAmount ?? 0,
+                            costPrice: product.costAmount, // Map cost price
                             unit: 'قطعة', // Default unit, you can fetch from unit entity
                             stock: product.quantity.toInt(),
                           );
@@ -2099,14 +2216,19 @@ class _Step2ItemsState extends State<Step2Items> {
 
   void _addItem(InvoiceItem item) {
     final existingIndex = widget.invoice.items.indexWhere(
-      (i) => i.id == item.id,
+      (i) => i.id == item.id && i.unitId == item.unitId, // Match by unit too
     );
     List<InvoiceItem> updatedItems;
 
     if (existingIndex >= 0) {
       updatedItems = List.from(widget.invoice.items);
-      updatedItems[existingIndex] = updatedItems[existingIndex].copyWith(
-        quantity: updatedItems[existingIndex].quantity + item.quantity,
+      final existing = updatedItems[existingIndex];
+      final newQuantity = existing.quantity + item.quantity;
+      // Recalculate base quantity when merging
+      final newBaseQuantity = newQuantity * existing.packaging * existing.conversionRate;
+      updatedItems[existingIndex] = existing.copyWith(
+        quantity: newQuantity,
+        baseQuantity: newBaseQuantity,
       );
     } else {
       updatedItems = [...widget.invoice.items, item];
@@ -2118,8 +2240,13 @@ class _Step2ItemsState extends State<Step2Items> {
 
   void _updateItemQuantity(int index, int delta) {
     final updatedItems = List<InvoiceItem>.from(widget.invoice.items);
-    updatedItems[index] = updatedItems[index].copyWith(
-      quantity: (updatedItems[index].quantity + delta).clamp(1, 999),
+    final item = updatedItems[index];
+    final newQuantity = (item.quantity + delta).clamp(1, 999);
+    // Recalculate base quantity
+    final newBaseQuantity = newQuantity * item.packaging * item.conversionRate;
+    updatedItems[index] = item.copyWith(
+      quantity: newQuantity,
+      baseQuantity: newBaseQuantity,
     );
     widget.onInvoiceUpdate(widget.invoice.copyWith(items: updatedItems));
   }

@@ -2,13 +2,19 @@ import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:muhasib/features/purchases/domain/repositories/purchase_repository.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/features/purchases/domain/usecases/create_purchase.dart';
 
 part 'purchases_state.dart';
 
+
 class PurchasesCubit extends Cubit<PurchasesState> {
   final PurchaseRepository repository;
+  final CreatePurchase createPurchase;
 
-  PurchasesCubit({required this.repository}) : super(PurchasesInitial());
+  PurchasesCubit({
+    required this.repository,
+    required this.createPurchase,
+  }) : super(PurchasesInitial());
 
   // Load purchase invoices
   Future<void> loadPurchaseInvoices() async {
@@ -23,7 +29,7 @@ class PurchasesCubit extends Cubit<PurchasesState> {
   // Create new purchase invoice
   Future<void> createPurchaseInvoice(InvoiceEntity invoice) async {
     emit(PurchasesLoading());
-    final result = await repository.createPurchaseInvoice(invoice);
+    final result = await createPurchase(params: invoice);
     result.fold((failure) => emit(PurchasesError(failure.message)), (id) {
       emit(PurchaseInvoiceCreated(id));
       loadPurchaseInvoices();

@@ -37,7 +37,24 @@ class CategoriesTable implements TableSchema {
       max_stock_level REAL NULL,
       reorder_point REAL NULL,
       is_taxable INTEGER NOT NULL DEFAULT 1 CHECK (is_taxable IN (0, 1)),
-      tax_id INTEGER NULL REFERENCES taxes (id)
+      tax_id INTEGER NULL REFERENCES taxes (id),
+      
+      -- Product Type (0=goods, 1=service, 2=consumable)
+      product_type INTEGER NOT NULL DEFAULT 0 CHECK (product_type IN (0, 1, 2)),
+      
+      -- Track inventory flag (false for services)
+      track_inventory INTEGER NOT NULL DEFAULT 1 CHECK (track_inventory IN (0, 1)),
+      
+      -- Accounting Account Links
+      inventory_account_id INTEGER NULL REFERENCES accounts (id),
+      cogs_account_id INTEGER NULL REFERENCES accounts (id),
+      revenue_account_id INTEGER NULL REFERENCES accounts (id),
+      purchase_account_id INTEGER NULL REFERENCES accounts (id),
+      
+      -- Soft Delete
+      is_deleted INTEGER NOT NULL DEFAULT 0 CHECK (is_deleted IN (0, 1)),
+      deleted_at INTEGER NULL,
+      deleted_by INTEGER NULL
     );
   ''';
 
@@ -45,5 +62,8 @@ class CategoriesTable implements TableSchema {
   List<String> get indexes => [
     'CREATE INDEX idx_categories_barcode ON categories(barcode_no);',
     'CREATE INDEX idx_categories_name ON categories(name);',
+    'CREATE INDEX idx_categories_group ON categories(group_id);',
+    'CREATE INDEX idx_categories_product_type ON categories(product_type);',
   ];
 }
+

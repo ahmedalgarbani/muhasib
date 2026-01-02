@@ -9,6 +9,7 @@ void main() {
       final datasourcesFixed = [
         'AccountLocalDataSource - insertAccount: Fixed ✅',
         'JournalLocalDataSource - insertJournalEntry: Fixed ✅',
+        'VoucherLocalDataSource - vouchers post to journal + balances/limits ✅',
         'CurrencyLocalDataSource - insertCurrency: Fixed ✅',
         'ProductLocalDataSource - insertProduct: Fixed ✅',
         'ProductGroupLocalDataSource - insertGroup: Fixed ✅',
@@ -22,7 +23,7 @@ void main() {
         print(datasource);
       }
       
-      expect(datasourcesFixed.length, 9);
+      expect(datasourcesFixed.length, 10);
     });
     
     test('Model fixes applied', () {

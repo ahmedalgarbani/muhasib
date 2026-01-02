@@ -102,17 +102,17 @@ Future<void> seedDefaultAccountConnects(Database db) async {
   
   // Default account connections based on common accounting setup
   final defaultConnections = [
-    {'type': 0, 'cId': 1100, 'name': 'البنوك'},         // Banks -> النقدية في البنوك
-    {'type': 1, 'cId': 1101, 'name': 'الصناديق'},       // Cash -> الصندوق
-    {'type': 2, 'cId': 1200, 'name': 'العملاء'},        // Customers -> العملاء
-    {'type': 3, 'cId': 2100, 'name': 'الموردون'},       // Suppliers -> الموردون
-    {'type': 4, 'cId': 2200, 'name': 'الضرائب'},        // Taxes -> ضرائب مستحقة
-    {'type': 5, 'cId': 1300, 'name': 'المخزون'},        // Inventory -> المخزون
-    {'type': 6, 'cId': 1300, 'name': 'البضاعة'},        // Goods -> المخزون (same as inventory)
-    {'type': 7, 'cId': 4100, 'name': 'المبيعات'},       // Sales -> المبيعات
-    {'type': 8, 'cId': 3200, 'name': 'الخصم المسموح به'}, // Discount Allowed -> خصومات ممنوحة
-    {'type': 9, 'cId': 4200, 'name': 'الخصم المكتسب'},   // Discount Received -> خصومات مكتسبة
-    {'type': 10, 'cId': 3100, 'name': 'المشتريات'},     // Purchases -> المشتريات
+    {'type': 0, 'cId': 1110, 'name': 'البنوك'},         // Banks -> النقدية في البنوك
+    {'type': 1, 'cId': 1110, 'name': 'الصناديق'},       // Cash -> الصندوق
+    {'type': 2, 'cId': 1120, 'name': 'العملاء'},        // Customers -> العملاء
+    {'type': 3, 'cId': 2110, 'name': 'الموردون'},       // Suppliers -> الموردون
+    {'type': 4, 'cId': 2140, 'name': 'الضرائب'},        // Taxes -> ضرائب مستحقة
+    {'type': 5, 'cId': 1130, 'name': 'المخزون'},        // Inventory -> المخزون
+    {'type': 6, 'cId': 1130, 'name': 'البضاعة'},        // Goods -> المخزون (same as inventory)
+    {'type': 7, 'cId': 4110, 'name': 'المبيعات'},       // Sales -> المبيعات
+    {'type': 8, 'cId': 3150, 'name': 'الخصم المسموح به'}, // Discount Allowed -> خصومات ممنوحة
+    {'type': 9, 'cId': 4140, 'name': 'الخصم المكتسب'},   // Discount Received -> خصومات مكتسبة
+    {'type': 10, 'cId': 3110, 'name': 'المشتريات'},     // Purchases -> المشتريات
   ];
   
   for (final connection in defaultConnections) {
@@ -169,7 +169,7 @@ Future<void> _seedAssets(Database db) async {
     'c_id': 1110,
     'code': '111',
     'name': 'النقدية والبنوك',
-    'is_master': 0,
+    'is_master': 1,
     'master_id': 1,
     'master_c_id': 1000,
     'type': 1,
@@ -188,7 +188,7 @@ Future<void> _seedAssets(Database db) async {
     'c_id': 1120,
     'code': '112',
     'name': 'العملاء',
-    'is_master': 0,
+    'is_master': 1,
     'master_id': 1,
     'master_c_id': 1000,
     'type': 1,
@@ -288,7 +288,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
     'c_id': 2110,
     'code': '211',
     'name': 'الموردون',
-    'is_master': 0,
+    'is_master': 1,
     'master_id': 2,
     'master_c_id': 2000,
     'type': 2,
@@ -477,6 +477,139 @@ Future<void> _seedExpenses(Database db) async {
     'creation_time': now,
     'last_modification_time': now,
   });
+
+  // خسائر فروق صرف العملات (Exchange Rate Losses)
+  await db.insert('accounts', {
+    'c_id': 3170,
+    'code': '317',
+    'name': 'خسائر فروق صرف العملات',
+    'is_master': 0,
+    'master_id': 3,
+    'master_c_id': 3000,
+    'type': 3,
+    'national': 1,
+    'statement': 'قائمة الدخل',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // عمولات المبيعات (Sales Commission Expense)
+  await db.insert('accounts', {
+    'c_id': 3180,
+    'code': '318',
+    'name': 'عمولات المبيعات',
+    'is_master': 0,
+    'master_id': 3,
+    'master_c_id': 3000,
+    'type': 3,
+    'national': 1,
+    'statement': 'قائمة الدخل',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // عمولات مستحقة الدفع (Commission Payables)
+  await db.insert('accounts', {
+    'c_id': 2160,
+    'code': '216',
+    'name': 'عمولات مستحقة الدفع',
+    'is_master': 0,
+    'master_id': 2,
+    'master_c_id': 2000,
+    'type': 2,
+    'national': 1,
+    'statement': 'قائمة المركز المالي',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // ضريبة القيمة المضافة - مدخلات (Input VAT - Recoverable)
+  await db.insert('accounts', {
+    'c_id': 1170,
+    'code': '117',
+    'name': 'ضريبة مدخلات قابلة للاسترداد',
+    'is_master': 0,
+    'master_id': 1,
+    'master_c_id': 1000,
+    'type': 1,
+    'national': 1,
+    'statement': 'قائمة المركز المالي',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // ضريبة القيمة المضافة - مخرجات (Output VAT - Payable)
+  await db.insert('accounts', {
+    'c_id': 2170,
+    'code': '217',
+    'name': 'ضريبة مخرجات مستحقة',
+    'is_master': 0,
+    'master_id': 2,
+    'master_c_id': 2000,
+    'type': 2,
+    'national': 1,
+    'statement': 'قائمة المركز المالي',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // المخزون (Inventory Asset)
+  await db.insert('accounts', {
+    'c_id': 1180,
+    'code': '118',
+    'name': 'المخزون',
+    'is_master': 0,
+    'master_id': 1,
+    'master_c_id': 1000,
+    'type': 1,
+    'national': 1,
+    'statement': 'قائمة المركز المالي',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // تكلفة البضاعة المباعة (Cost of Goods Sold)
+  await db.insert('accounts', {
+    'c_id': 3190,
+    'code': '319',
+    'name': 'تكلفة البضاعة المباعة',
+    'is_master': 0,
+    'master_id': 3,
+    'master_c_id': 3000,
+    'type': 3,
+    'national': 1,
+    'statement': 'قائمة الدخل',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
 }
 
 // إيرادات (Revenues)
@@ -564,6 +697,25 @@ Future<void> _seedRevenues(Database db) async {
     'c_id': 4140,
     'code': '414',
     'name': 'الخصم المكتسب',
+    'is_master': 0,
+    'master_id': 4,
+    'master_c_id': 4000,
+    'type': 4,
+    'national': 1,
+    'statement': 'قائمة الدخل',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // أرباح فروق صرف العملات (Exchange Rate Gains)
+  await db.insert('accounts', {
+    'c_id': 4160,
+    'code': '416',
+    'name': 'أرباح فروق صرف العملات',
     'is_master': 0,
     'master_id': 4,
     'master_c_id': 4000,

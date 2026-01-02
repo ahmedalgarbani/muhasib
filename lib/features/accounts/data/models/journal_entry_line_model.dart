@@ -28,17 +28,20 @@ class JournalEntryLineModel extends JournalEntryLineEntity {
         );
 
   factory JournalEntryLineModel.fromJson(Map<String, dynamic> json) {
+    // journal_entry_lines schema uses debit_amount/credit_amount
+    final rawDebit = json['debit_amount'] ?? json['debit'];
+    final rawCredit = json['credit_amount'] ?? json['credit'];
     return JournalEntryLineModel(
       id: json['id'] as int?,
       journalEntryId: json['journal_entry_id'] as int?,
-      lineNumber: json['line_number'] as int,
+      lineNumber: (json['line_number'] as int?) ?? 0,
       accountId: json['account_id'] as int?,
       accountCode: json['account_code'] as String?,
-      accountName: json['account_name'] as String,
+      accountName: (json['account_name'] as String?) ?? '',
       currencyId: json['currency_id'] as int?,
-      currencyCode: json['currency_code'] as String,
-      debit: (json['debit'] as num).toDouble(),
-      credit: (json['credit'] as num).toDouble(),
+      currencyCode: (json['currency_code'] as String?) ?? '',
+      debit: (rawDebit as num?)?.toDouble() ?? 0.0,
+      credit: (rawCredit as num?)?.toDouble() ?? 0.0,
       notes: json['notes'] as String?,
     );
   }
@@ -68,8 +71,8 @@ class JournalEntryLineModel extends JournalEntryLineEntity {
       'account_name': accountName,
       'currency_id': currencyId,
       'currency_code': currencyCode,
-      'debit': debit,
-      'credit': credit,
+      'debit_amount': debit,
+      'credit_amount': credit,
       'notes': notes,
     };
   }

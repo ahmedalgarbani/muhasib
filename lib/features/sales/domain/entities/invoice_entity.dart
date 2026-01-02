@@ -45,6 +45,8 @@ class InvoiceEntity extends Equatable {
   final String? shippingAddress;
   final int? dueDate;
 
+  final int? quotationStatus;
+
   final List<InvoiceLineEntity> lines;
 
   const InvoiceEntity({
@@ -89,8 +91,101 @@ class InvoiceEntity extends Equatable {
     this.paymentStatus = 0,
     this.shippingAddress,
     this.dueDate,
+    this.quotationStatus,
     this.lines = const [],
   });
+
+  InvoiceEntity copyWith({
+    int? id,
+    int? creatorId,
+    int? lastModifierId,
+    String? concurrencyStamp,
+    String? extraProperties,
+    int? creationTime,
+    int? lastModificationTime,
+    int? invoiceType,
+    String? number,
+    int? date,
+    String? statement,
+    double? amount,
+    double? totalAmount,
+    double? taxAmt,
+    double? taxRatio,
+    double? discountAmt,
+    double? discountRatio,
+    double? otherFeeAmt,
+    double? otherFeeNetRatio,
+    double? netRevenueAmt,
+    double? totalAmountAfterDiscount,
+    double? finalAmt,
+    int? currencyId,
+    int? stockId,
+    int? customerId,
+    int? taxId,
+    int? otherFeeAccountId,
+    int? invoiceTransType,
+    int? parentInvoiceType,
+    int? parentInvoiceId,
+    String? parentInvoiceNumber,
+    int? nextInvoiceType,
+    int? nextInvoiceId,
+    String? nextInvoiceNumber,
+    String? uNo,
+    String? currencyCode,
+    double? exchangeRate,
+    String? imagePath,
+    int? paymentStatus,
+    String? shippingAddress,
+    int? dueDate,
+    int? quotationStatus,
+    List<InvoiceLineEntity>? lines,
+  }) {
+    return InvoiceEntity(
+      id: id ?? this.id,
+      creatorId: creatorId ?? this.creatorId,
+      lastModifierId: lastModifierId ?? this.lastModifierId,
+      concurrencyStamp: concurrencyStamp ?? this.concurrencyStamp,
+      extraProperties: extraProperties ?? this.extraProperties,
+      creationTime: creationTime ?? this.creationTime,
+      lastModificationTime: lastModificationTime ?? this.lastModificationTime,
+      invoiceType: invoiceType ?? this.invoiceType,
+      number: number ?? this.number,
+      date: date ?? this.date,
+      statement: statement ?? this.statement,
+      amount: amount ?? this.amount,
+      totalAmount: totalAmount ?? this.totalAmount,
+      taxAmt: taxAmt ?? this.taxAmt,
+      taxRatio: taxRatio ?? this.taxRatio,
+      discountAmt: discountAmt ?? this.discountAmt,
+      discountRatio: discountRatio ?? this.discountRatio,
+      otherFeeAmt: otherFeeAmt ?? this.otherFeeAmt,
+      otherFeeNetRatio: otherFeeNetRatio ?? this.otherFeeNetRatio,
+      netRevenueAmt: netRevenueAmt ?? this.netRevenueAmt,
+      totalAmountAfterDiscount: totalAmountAfterDiscount ?? this.totalAmountAfterDiscount,
+      finalAmt: finalAmt ?? this.finalAmt,
+      currencyId: currencyId ?? this.currencyId,
+      stockId: stockId ?? this.stockId,
+      customerId: customerId ?? this.customerId,
+      taxId: taxId ?? this.taxId,
+      otherFeeAccountId: otherFeeAccountId ?? this.otherFeeAccountId,
+      invoiceTransType: invoiceTransType ?? this.invoiceTransType,
+      parentInvoiceType: parentInvoiceType ?? this.parentInvoiceType,
+      parentInvoiceId: parentInvoiceId ?? this.parentInvoiceId,
+      parentInvoiceNumber: parentInvoiceNumber ?? this.parentInvoiceNumber,
+      nextInvoiceType: nextInvoiceType ?? this.nextInvoiceType,
+      nextInvoiceId: nextInvoiceId ?? this.nextInvoiceId,
+      nextInvoiceNumber: nextInvoiceNumber ?? this.nextInvoiceNumber,
+      uNo: uNo ?? this.uNo,
+      currencyCode: currencyCode ?? this.currencyCode,
+      exchangeRate: exchangeRate ?? this.exchangeRate,
+      imagePath: imagePath ?? this.imagePath,
+      paymentStatus: paymentStatus ?? this.paymentStatus,
+      shippingAddress: shippingAddress ?? this.shippingAddress,
+      dueDate: dueDate ?? this.dueDate,
+      quotationStatus: quotationStatus ?? this.quotationStatus,
+      lines: lines ?? this.lines,
+    );
+  }
 
   @override
   List<Object?> get props => [
@@ -135,6 +230,7 @@ class InvoiceEntity extends Equatable {
         paymentStatus,
         shippingAddress,
         dueDate,
+        quotationStatus,
         lines,
       ];
 }

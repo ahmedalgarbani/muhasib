@@ -8,7 +8,10 @@ import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart'
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
-import 'package:muhasib/features/sales/presentation/pages/improved_sales_invoice_screen.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
 
 class QuotationsPage extends StatefulWidget {
   const QuotationsPage({Key? key}) : super(key: key);
@@ -96,8 +99,13 @@ class _QuotationsPageState extends State<QuotationsPage> {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const ImprovedSalesInvoiceScreen(
-                invoiceType: InvoiceType.quotation,
+              builder: (context) => MultiBlocProvider(
+                providers: [
+                  BlocProvider(create: (_) => getIt<SalesCubit>()),
+                  BlocProvider(create: (_) => getIt<CustomersCubit>()),
+                  BlocProvider(create: (_) => getIt<ProductsCubit>()),
+                ],
+                child: const SalesInvoiceScreen(invoiceType: InvoiceType.quotation),
               ),
             ),
           );

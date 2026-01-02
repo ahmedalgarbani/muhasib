@@ -24,6 +24,7 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
     try {
       final result = await database.query(
         _tableName,
+        where: 'is_deleted = 0',
         orderBy: 'name ASC',
       );
       return result.map((json) => ProductModel.fromJson(json)).toList();
@@ -97,18 +98,81 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<void> deleteProduct(int id) async {
     try {
-      final count = await database.delete(
+      // Check 1: Verify product exists
+      final product = await database.query(
         _tableName,
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      
+      if (product.isEmpty) {
+        throw LocalStorageException('المنتج غير موجود');
+      }
+      
+      // Check 2: Check if product has invoice lines
+      final invoiceLines = await database.rawQuery(
+        'SELECT COUNT(*) as count FROM invoice_lines WHERE category_id = ?',
+        [id],
+      );
+      final invoiceCount = (invoiceLines.first['count'] as int?) ?? 0;
+      if (invoiceCount > 0) {
+        throw LocalStorageException(
+          'لا يمكن حذف المنتج - مستخدم في $invoiceCount فاتورة. يمكنك تعطيله بدلاً من ذلك.'
+        );
+      }
+      
+      // Check 3: Check if product has stock movements
+      try {
+        final movements = await database.rawQuery(
+          'SELECT COUNT(*) as count FROM stock_movements WHERE product_id = ?',
+          [id],
+        );
+        final movementCount = (movements.first['count'] as int?) ?? 0;
+        if (movementCount > 0) {
+          throw LocalStorageException(
+            'لا يمكن حذف المنتج - يوجد $movementCount حركة مخزون. يمكنك تعطيله بدلاً من ذلك.'
+          );
+        }
+      } catch (e) {
+        // Ignore if stock_movements table doesn't exist
+        if (!e.toString().contains('no such table')) rethrow;
+      }
+      
+      // Check 4: Check if product has quantity in any warehouse
+      try {
+        final stocks = await database.rawQuery(
+          'SELECT SUM(quantity) as total FROM warehouse_stocks WHERE product_id = ? AND quantity != 0',
+          [id],
+        );
+        final totalQty = (stocks.first['total'] as num?)?.toDouble() ?? 0.0;
+        if (totalQty.abs() > 0.001) {
+          throw LocalStorageException(
+            'لا يمكن حذف المنتج - يوجد كمية في المخزون ($totalQty). يجب تصفير الكمية أولاً.'
+          );
+        }
+      } catch (e) {
+        // Ignore if warehouse_stocks table doesn't exist
+        if (!e.toString().contains('no such table')) rethrow;
+      }
+      
+      // Safe to delete - use soft delete
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      await database.update(
+        _tableName,
+        {
+          'is_deleted': 1,
+          'is_active': 0,
+          'deleted_at': now,
+          'last_modification_time': now,
+        },
         where: 'id = ?',
         whereArgs: [id],
       );
       
-      if (count == 0) {
-        throw LocalStorageException('Product with id $id not found');
-      }
     } catch (e) {
       if (e is LocalStorageException) rethrow;
-      throw LocalStorageException('Failed to delete product: ${e.toString()}');
+      throw LocalStorageException('فشل في حذف المنتج: ${e.toString()}');
     }
   }
 

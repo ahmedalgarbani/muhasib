@@ -164,12 +164,13 @@ class SalesCubit extends Cubit<SalesState> {
     );
   }
 
-  Future<void> createReturn(InvoiceEntity returnInvoice, int parentInvoiceId) async {
+  Future<void> createReturn(InvoiceEntity returnInvoice, int parentInvoiceId, String customerName) async {
     emit(SalesLoading());
     final result = await createReturnInvoice(
       params: CreateReturnParams(
         returnInvoice: returnInvoice,
         parentInvoiceId: parentInvoiceId,
+        customerName: customerName,
       ),
     );
     result.fold(

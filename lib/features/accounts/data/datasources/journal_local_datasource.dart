@@ -22,6 +22,47 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
 
   JournalLocalDataSourceImpl({required this.database});
 
+  Future<void> _applyAccountBalanceDelta(
+    DatabaseExecutor txn,
+    int accountId,
+    double delta,
+  ) async {
+    final rows = await txn.query(
+      _accountsTable,
+      columns: ['balance', 'local_balance'],
+      where: 'id = ?',
+      whereArgs: [accountId],
+      limit: 1,
+    );
+    if (rows.isEmpty) {
+      throw LocalStorageException('Account not found: id=$accountId');
+    }
+    final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
+    final newBalance = current + delta;
+    await txn.update(
+      _accountsTable,
+      {
+        'balance': newBalance,
+        'local_balance': newBalance,
+        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      },
+      where: 'id = ?',
+      whereArgs: [accountId],
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> _getEntryLinesRaw(
+    DatabaseExecutor txn,
+    int entryId,
+  ) async {
+    return await txn.query(
+      _linesTable,
+      columns: ['account_id', 'debit_amount', 'credit_amount'],
+      where: 'journal_entry_id = ?',
+      whereArgs: [entryId],
+    );
+  }
+
   @override
   Future<List<JournalEntryModel>> getJournalEntries() async {
     try {
@@ -91,11 +132,32 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   @override
   Future<int> insertJournalEntry(JournalEntryModel entry) async {
     try {
+      // Validate balance before insert
+      final totalDebit = entry.lines.fold<double>(0, (sum, line) => sum + line.debit);
+      final totalCredit = entry.lines.fold<double>(0, (sum, line) => sum + line.credit);
+      final difference = (totalDebit - totalCredit).abs();
+      
+      if (difference > 0.01) {
+        throw LocalStorageException(
+          'القيد غير متوازن: المدين ($totalDebit) لا يساوي الدائن ($totalCredit)',
+        );
+      }
+      
+      if (entry.lines.isEmpty) {
+        throw LocalStorageException('القيد يجب أن يحتوي على سطر واحد على الأقل');
+      }
+      
       return await database.transaction((txn) async {
         // Prepare entry data with timestamps
         final entryData = entry.toJson();
-        entryData['creation_time'] ??= DateTime.now().millisecondsSinceEpoch;
-        entryData['last_modification_time'] ??= DateTime.now().millisecondsSinceEpoch;
+        final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        entryData['creation_time'] ??= nowSec;
+        entryData['last_modification_time'] ??= nowSec;
+        
+        // Ensure totals are correct
+        entryData['total_debit'] = totalDebit;
+        entryData['total_credit'] = totalCredit;
+        entryData['difference'] = difference;
         
         final entryId = await txn.insert(
           _entriesTable,
@@ -114,11 +176,23 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
             payload,
             conflictAlgorithm: ConflictAlgorithm.abort,
           );
+
+          // Update account balance for this line (debit - credit)
+          final accountId = payload['account_id'] as int?;
+          if (accountId != null) {
+            final debit = (payload['debit_amount'] as num?)?.toDouble() ?? 0.0;
+            final credit = (payload['credit_amount'] as num?)?.toDouble() ?? 0.0;
+            final delta = debit - credit;
+            if (delta != 0) {
+              await _applyAccountBalanceDelta(txn, accountId, delta);
+            }
+          }
         }
 
         return entryId;
       });
     } catch (e) {
+      if (e is LocalStorageException) rethrow;
       throw LocalStorageException(
         'Failed to insert journal entry: ${e.toString()}',
       );
@@ -132,10 +206,51 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
     }
 
     try {
+      // Validate balance before update
+      final totalDebit = entry.lines.fold<double>(0, (sum, line) => sum + line.debit);
+      final totalCredit = entry.lines.fold<double>(0, (sum, line) => sum + line.credit);
+      final difference = (totalDebit - totalCredit).abs();
+      
+      if (difference > 0.01) {
+        throw LocalStorageException(
+          'القيد غير متوازن: المدين ($totalDebit) لا يساوي الدائن ($totalCredit)',
+        );
+      }
+      
+      if (entry.lines.isEmpty) {
+        throw LocalStorageException('القيد يجب أن يحتوي على سطر واحد على الأقل');
+      }
+      
       await database.transaction((txn) async {
+        // Check if entry is posted - allow update but track modification
+        final existingEntry = await txn.query(
+          _entriesTable,
+          columns: ['is_posted'],
+          where: 'id = ?',
+          whereArgs: [entry.id],
+          limit: 1,
+        );
+        
+        final wasPosted = existingEntry.isNotEmpty && 
+            (existingEntry.first['is_posted'] as int?) == 1;
+        
+        // Reverse old balances before replacing lines
+        final oldLines = await _getEntryLinesRaw(txn, entry.id!);
+        for (final l in oldLines) {
+          final accountId = l['account_id'] as int;
+          final debit = (l['debit_amount'] as num?)?.toDouble() ?? 0.0;
+          final credit = (l['credit_amount'] as num?)?.toDouble() ?? 0.0;
+          final delta = debit - credit;
+          if (delta != 0) {
+            await _applyAccountBalanceDelta(txn, accountId, -delta);
+          }
+        }
+
+        final payload = entry.toJson();
+        payload['last_modification_time'] = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         final updatedRows = await txn.update(
           _entriesTable,
-          entry.toJson(),
+          payload,
           where: 'id = ?',
           whereArgs: [entry.id],
           conflictAlgorithm: ConflictAlgorithm.abort,
@@ -168,9 +283,21 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
             payload,
             conflictAlgorithm: ConflictAlgorithm.abort,
           );
+
+          // Apply new balances
+          final accountId = payload['account_id'] as int?;
+          if (accountId != null) {
+            final debit = (payload['debit_amount'] as num?)?.toDouble() ?? 0.0;
+            final credit = (payload['credit_amount'] as num?)?.toDouble() ?? 0.0;
+            final delta = debit - credit;
+            if (delta != 0) {
+              await _applyAccountBalanceDelta(txn, accountId, delta);
+            }
+          }
         }
       });
     } catch (e) {
+      if (e is LocalStorageException) rethrow;
       throw LocalStorageException(
         'Failed to update journal entry: ${e.toString()}',
       );
@@ -180,16 +307,30 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   @override
   Future<void> deleteJournalEntry(int id) async {
     try {
-      final deleted = await database.delete(
-        _entriesTable,
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      final deleted = await database.transaction((txn) async {
+        // Reverse balances before delete
+        final oldLines = await _getEntryLinesRaw(txn, id);
+        for (final l in oldLines) {
+          final accountId = l['account_id'] as int;
+          final debit = (l['debit_amount'] as num?)?.toDouble() ?? 0.0;
+          final credit = (l['credit_amount'] as num?)?.toDouble() ?? 0.0;
+          final delta = debit - credit;
+          if (delta != 0) {
+            await _applyAccountBalanceDelta(txn, accountId, -delta);
+          }
+        }
+        return await txn.delete(
+          _entriesTable,
+          where: 'id = ?',
+          whereArgs: [id],
+        );
+      });
 
       if (deleted == 0) {
         throw LocalStorageException('Journal entry with id $id not found');
       }
     } catch (e) {
+      if (e is LocalStorageException) rethrow;
       throw LocalStorageException(
         'Failed to delete journal entry: ${e.toString()}',
       );
@@ -231,10 +372,6 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
         payload['currency_id'] = currency.first['id'];
       }
     }
-    
-    // Ensure timestamps are set
-    payload['creation_time'] ??= DateTime.now().millisecondsSinceEpoch;
-    payload['last_modification_time'] ??= DateTime.now().millisecondsSinceEpoch;
 
     return payload;
   }

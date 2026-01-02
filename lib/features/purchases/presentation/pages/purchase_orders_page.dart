@@ -512,7 +512,13 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                 totalAmount: order.totalAmount,
                 finalAmt: order.finalAmt,
                 taxAmt: order.taxAmt,
+                taxRatio: order.taxRatio,
                 discountAmt: order.discountAmt,
+                discountRatio: order.discountRatio,
+                otherFeeAmt: order.otherFeeAmt,
+                otherFeeNetRatio: order.otherFeeNetRatio,
+                otherFeeAccountId: order.otherFeeAccountId,
+                totalAmountAfterDiscount: order.totalAmountAfterDiscount,
                 statement: order.statement,
                 lines: order.lines,
                 invoiceType: 2, // Purchase Invoice

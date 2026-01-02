@@ -8,6 +8,8 @@ class JournalEntryModel extends JournalEntryEntity {
     required DateTime entryDate,
     String? description,
     String? referenceNumber,
+    String? referenceType,
+    int? referenceId,
     String? notes,
     int status = 0,
     bool isPosted = false,
@@ -21,6 +23,8 @@ class JournalEntryModel extends JournalEntryEntity {
           entryDate: entryDate,
           description: description,
           referenceNumber: referenceNumber,
+          referenceType: referenceType,
+          referenceId: referenceId,
           notes: notes,
           status: status,
           isPosted: isPosted,
@@ -34,12 +38,17 @@ class JournalEntryModel extends JournalEntryEntity {
     Map<String, dynamic> json, {
     List<JournalEntryLineModel> lines = const [],
   }) {
+    final rawEntryDate = (json['entry_date'] as int?) ?? 0;
+    // Some old code stored milliseconds; normalize to milliseconds for DateTime.
+    final entryDateMs = rawEntryDate > 1000000000000 ? rawEntryDate : rawEntryDate * 1000;
     return JournalEntryModel(
       id: json['id'] as int?,
-      number: json['number'] as String,
-      entryDate: DateTime.fromMillisecondsSinceEpoch(json['entry_date'] as int),
+      number: (json['number'] as String?) ?? '',
+      entryDate: DateTime.fromMillisecondsSinceEpoch(entryDateMs),
       description: json['description'] as String?,
       referenceNumber: json['reference_number'] as String?,
+      referenceType: json['reference_type'] as String?,
+      referenceId: json['reference_id'] as int?,
       notes: json['notes'] as String?,
       status: json['status'] as int? ?? 0,
       isPosted: (json['is_posted'] as int? ?? 0) == 1,
@@ -61,6 +70,8 @@ class JournalEntryModel extends JournalEntryEntity {
       entryDate: entity.entryDate,
       description: entity.description,
       referenceNumber: entity.referenceNumber,
+      referenceType: entity.referenceType,
+      referenceId: entity.referenceId,
       notes: entity.notes,
       status: entity.status,
       isPosted: entity.isPosted,
@@ -74,9 +85,12 @@ class JournalEntryModel extends JournalEntryEntity {
   Map<String, dynamic> toJson() {
     return {
       'number': number,
-      'entry_date': entryDate.millisecondsSinceEpoch,
+      // Store seconds to match reports and other modules.
+      'entry_date': entryDate.millisecondsSinceEpoch ~/ 1000,
       'description': description,
       'reference_number': referenceNumber,
+      'reference_type': referenceType,
+      'reference_id': referenceId,
       'notes': notes,
       'status': status,
       'is_posted': isPosted ? 1 : 0,
@@ -93,6 +107,8 @@ class JournalEntryModel extends JournalEntryEntity {
       entryDate: entryDate,
       description: description,
       referenceNumber: referenceNumber,
+      referenceType: referenceType,
+      referenceId: referenceId,
       notes: notes,
       status: status,
       isPosted: isPosted,

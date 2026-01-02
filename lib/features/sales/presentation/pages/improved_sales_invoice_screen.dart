@@ -12,8 +12,6 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/improved_step1_customer.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_dialog.dart';
-import 'package:muhasib/features/sales/domain/templates/improved_sales_accounting_template.dart';
-import 'package:muhasib/core/services/account_config_service.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 
@@ -78,118 +76,88 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
       return;
     }
 
-    setState(() => _isSaving = true);
+    final invoiceEntity = _buildInvoiceEntity();
+    // Accounting (journal posting + balances + limits) is handled atomically
+    // in InvoiceLocalDataSource when saving the invoice.
+    context.read<SalesCubit>().addInvoice(invoiceEntity);
+  }
 
-    try {
-      // Calculate amounts
-      final discountAmount = _invoice.discount.type == DiscountType.percent
-          ? _invoice.subtotal * _invoice.discount.value / 100
-          : _invoice.discount.value;
-      final taxAmount = _invoice.subtotal * 0.15; // 15% VAT
-      final totalAfterDiscount = _invoice.subtotal - discountAmount;
-      final finalAmount = totalAfterDiscount + taxAmount;
+  InvoiceEntity _buildInvoiceEntity() {
+    // Calculate amounts
+    final discountAmount = _invoice.discount.type == DiscountType.percent
+        ? _invoice.subtotal * _invoice.discount.value / 100
+        : _invoice.discount.value;
+    final taxAmount = _invoice.subtotal * 0.15; // 15% VAT
+    final totalAfterDiscount = _invoice.subtotal - discountAmount;
+    final finalAmount = totalAfterDiscount + taxAmount;
 
-      // Determine invoice type and transaction type
-      final isQuotation = widget.invoiceType.isQuotation;
-      final hasDeferred = _payments.any((p) => p.method == PaymentMethod.deferred);
-      final totalPaid = _payments.fold(0.0, (sum, p) => sum + p.amount);
-      final isFullyPaid = totalPaid >= finalAmount;
-      final transType = isQuotation ? 0 : (hasDeferred || !isFullyPaid ? 1 : 0);
+    // Determine invoice type and transaction type
+    final isQuotation = widget.invoiceType.isQuotation;
+    final hasDeferred = _payments.any((p) => p.method == PaymentMethod.deferred);
+    final totalPaid = _payments.fold(0.0, (sum, p) => sum + p.amount);
+    final isFullyPaid = totalPaid >= finalAmount;
+    final transType = isQuotation ? 0 : (hasDeferred || !isFullyPaid ? 1 : 0);
 
-      // Create invoice lines
-      final invoiceLines = _invoice.items.map((item) {
-        return InvoiceLineEntity(
-          invoiceType: isQuotation ? 3 : 1, // 3=quotation, 1=sales
-          amount: item.price * item.quantity,
-          totalAmount: item.total,
-          quantity: item.quantity.toDouble(),
-          groupId: int.parse(item.id),
-          unitId: 1,
-          categorySubUnitId: 1,
-          stockId: 1, // Will be set from warehouse
-          customerId: int.parse(_invoice.customer!.id),
-          date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
-          // For quotations: keep trans type = 0 to avoid mixing with purchase orders
-          invoiceTransType: transType, // 1=credit, 0=cash
-          netRevenueAmt: item.total,
-          invoiceId: 0, // Will be set after creation
-        );
-      }).toList();
-
-      // Create invoice entity
-      final invoiceEntity = InvoiceEntity(
-        number: _invoice.number,
-        date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
+    // Create invoice lines
+    final invoiceLines = _invoice.items.map((item) {
+      return InvoiceLineEntity(
+        invoiceType: isQuotation ? 3 : 1, // 3=quotation, 1=sales
+        amount: item.price * item.quantity,
+        totalAmount: item.total,
+        quantity: item.quantity.toDouble(),
+        groupId: int.parse(item.id),
+        unitId: 1,
+        categorySubUnitId: 1,
+        stockId: 1, // Will be set from warehouse
         customerId: int.parse(_invoice.customer!.id),
-        stockId: 1, // Default warehouse
-        amount: _invoice.subtotal,
-        discountAmt: discountAmount,
-        taxAmt: taxAmount,
-        totalAmount: _invoice.subtotal,
-        finalAmt: finalAmount,
-        invoiceType: isQuotation ? 3 : 1,
-        invoiceTransType: transType,
-        paymentStatus: isQuotation ? 0 : (isFullyPaid ? 1 : 0),
-        lines: invoiceLines,
-        statement: _invoice.notes,
+        date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
+        // For quotations: keep trans type = 0 to avoid mixing with purchase orders
+        invoiceTransType: transType, // 1=credit, 0=cash
+        netRevenueAmt: item.total,
+        invoiceId: 0, // Will be set after creation
       );
+    }).toList();
 
-      // Save invoice using the correct method
-      await context.read<SalesCubit>().addInvoice(invoiceEntity);
+    // Create invoice entity
+    return InvoiceEntity(
+      number: _invoice.number,
+      date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
+      customerId: int.parse(_invoice.customer!.id),
+      stockId: 1, // Default warehouse
+      amount: _invoice.subtotal,
+      discountAmt: discountAmount,
+      taxAmt: taxAmount,
+      totalAmount: _invoice.subtotal,
+      finalAmt: finalAmount,
+      invoiceType: isQuotation ? 3 : 1,
+      invoiceTransType: transType,
+      paymentStatus: isQuotation ? 0 : (isFullyPaid ? 1 : 0),
+      lines: invoiceLines,
+      statement: _invoice.notes,
+    );
+  }
 
-      // Create accounting entries if not quotation
-      if (!isQuotation) {
-        // Fetch account config
-        final accountConfigService = getIt<AccountConfigService>();
-        final salesConfig = await accountConfigService.getSalesAccountConfig();
+  Future<void> _handleInvoiceCreated(int id) async {
+    try {
+      final isQuotation = widget.invoiceType.isQuotation;
+      
+      // Accounting (journal posting + balances + limits) is handled in SalesCubit
+      // via createInvoiceWithAccounting.
 
-        final entries = ImprovedSalesAccountingTemplate.createSalesInvoiceEntries(
-          invoice: invoiceEntity,
-          payments: _payments,
-          customer: _invoice.customer!,
-          config: salesConfig,
-          inventoryCost: _calculateInventoryCost(),
-        );
-
-        // Save journal entries (implement this in your accounting system)
-        for (final entry in entries) {
-          // await saveJournalEntry(entry);
-          debugPrint('Journal Entry: ${entry.description}');
-        }
-
-        // Update customer balance if needed
-        if (!isFullyPaid || totalPaid > finalAmount) {
-          final newBalance = _invoice.customer!.balance + 
-              (totalPaid > finalAmount ? finalAmount - totalPaid : finalAmount - totalPaid);
-          
-          await context.read<CustomersCubit>().updateCustomerBalance(
-            _invoice.customer!.id,
-            newBalance,
-          );
-        }
-      }
-
+      setState(() => _isSaving = false);
       _showSuccessSnackBar(
         isQuotation 
             ? 'تم حفظ عرض السعر بنجاح'
             : 'تم حفظ الفاتورة بنجاح',
       );
 
-      // Navigate back
       if (mounted) {
         context.pop();
       }
     } catch (e) {
-      _showErrorSnackBar('حدث خطأ: ${e.toString()}');
-    } finally {
       setState(() => _isSaving = false);
+      _showErrorSnackBar('حدث خطأ أثناء معالجة الفاتورة: ${e.toString()}');
     }
-  }
-
-  double _calculateInventoryCost() {
-    // This should calculate actual inventory cost
-    // For now, return a dummy value
-    return _invoice.subtotal * 0.7; // 70% cost assumption
   }
 
   void _showPaymentDialog() {
@@ -239,7 +207,22 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
         BlocProvider(create: (_) => getIt<WarehousesCubit>()),
         BlocProvider(create: (_) => getIt<ProductsCubit>()),
       ],
-      child: Scaffold(
+      child: BlocListener<SalesCubit, SalesState>(
+        listener: (context, state) {
+          if (state is SalesLoading) {
+            setState(() => _isSaving = true);
+          } else if (state is InvoiceCreated) {
+            _handleInvoiceCreated(state.id);
+          } else if (state is InvoiceUpdated) {
+            setState(() => _isSaving = false);
+            _showSuccessSnackBar('تم تحديث الفاتورة بنجاح');
+            if (mounted) context.pop();
+          } else if (state is SalesError) {
+            setState(() => _isSaving = false);
+            _showErrorSnackBar(state.message);
+          }
+        },
+        child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: const Color(0xFFF5F5F5),
         endDrawer: const MainAppDrawer(),
@@ -425,7 +408,8 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   String _getStepTitle() {

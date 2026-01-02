@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:muhasib/core/errors/exceptions.dart';
 import 'package:muhasib/core/errors/failure.dart';
+import 'package:muhasib/core/services/account_validation_service.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/domain/repositories/account_repository.dart';
 import '../datasources/account_local_datasource.dart';
@@ -8,8 +9,9 @@ import '../models/account_model.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
   final AccountLocalDataSource localDataSource;
+  final AccountValidationService? validationService;
 
-  AccountRepositoryImpl(this.localDataSource);
+  AccountRepositoryImpl(this.localDataSource, {this.validationService});
 
   @override
   Future<Either<Failure, List<AccountEntity>>> getAllAccounts() async {
@@ -90,6 +92,17 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Future<Either<Failure, int>> createAccount(AccountEntity account) async {
     try {
+      // Validate account type hierarchy if validation service is available
+      if (validationService != null && account.masterId != null) {
+        final hierarchyResult = await validationService!.validateAccountTypeHierarchy(
+          parentId: account.masterId,
+          accountType: account.type,
+        );
+        if (hierarchyResult.isLeft()) {
+          return Left(hierarchyResult.fold((l) => l, (r) => UnknownFailure('')));
+        }
+      }
+      
       final accountModel = AccountModel.fromEntity(account);
       final id = await localDataSource.insertAccount(accountModel);
       return Right(id);
@@ -103,6 +116,17 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Future<Either<Failure, int>> updateAccount(AccountEntity account) async {
     try {
+      // Validate account type hierarchy if validation service is available
+      if (validationService != null && account.masterId != null) {
+        final hierarchyResult = await validationService!.validateAccountTypeHierarchy(
+          parentId: account.masterId,
+          accountType: account.type,
+        );
+        if (hierarchyResult.isLeft()) {
+          return Left(hierarchyResult.fold((l) => l, (r) => UnknownFailure('')));
+        }
+      }
+      
       final accountModel = AccountModel.fromEntity(account);
       final count = await localDataSource.updateAccount(accountModel);
       return Right(count);
@@ -116,6 +140,14 @@ class AccountRepositoryImpl implements AccountRepository {
   @override
   Future<Either<Failure, int>> deleteAccount(int id) async {
     try {
+      // Validate deletion if validation service is available
+      if (validationService != null) {
+        final canDeleteResult = await validationService!.canDeleteAccount(id);
+        if (canDeleteResult.isLeft()) {
+          return Left(canDeleteResult.fold((l) => l, (r) => UnknownFailure('')));
+        }
+      }
+      
       final count = await localDataSource.deleteAccount(id);
       return Right(count);
     } on LocalStorageException catch (e) {
@@ -139,3 +171,4 @@ class AccountRepositoryImpl implements AccountRepository {
     }
   }
 }
+

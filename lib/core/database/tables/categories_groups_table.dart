@@ -17,10 +17,26 @@ class CategoriesGroupsTable implements TableSchema {
       name TEXT NOT NULL,
       is_active INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
       description TEXT NULL,
-      parent_group_id INTEGER NULL REFERENCES categories_groups (id)
+      parent_group_id INTEGER NULL REFERENCES categories_groups (id),
+      
+      -- Accounting Account Links (for segment accounting)
+      inventory_account_id INTEGER NULL REFERENCES accounts (id),
+      cogs_account_id INTEGER NULL REFERENCES accounts (id),
+      revenue_account_id INTEGER NULL REFERENCES accounts (id),
+      purchase_account_id INTEGER NULL REFERENCES accounts (id),
+      purchase_return_account_id INTEGER NULL REFERENCES accounts (id),
+      sales_return_account_id INTEGER NULL REFERENCES accounts (id),
+      
+      -- Default pricing and costing
+      default_tax_id INTEGER NULL REFERENCES taxes (id),
+      default_margin_percent REAL NULL DEFAULT 0.0
     );
   ''';
 
   @override
-  List<String> get indexes => [];
+  List<String> get indexes => [
+    'CREATE INDEX IF NOT EXISTS idx_categories_groups_parent ON categories_groups(parent_group_id);',
+    'CREATE INDEX IF NOT EXISTS idx_categories_groups_inventory_account ON categories_groups(inventory_account_id);',
+  ];
 }
+

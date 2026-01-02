@@ -34,6 +34,16 @@ class InvoiceLineModel extends InvoiceLineEntity {
     super.expireDate,
     required super.invoiceTransType,
     super.lineDiscount,
+    // Unit conversion
+    super.baseQuantity,
+    super.conversionRate,
+    super.packaging,
+    // Cost tracking
+    super.costPrice,
+    super.costTotal,
+    // Price tracking
+    super.price,
+    super.sellingPrice,
   });
 
   factory InvoiceLineModel.fromJson(Map<String, dynamic> json) =>
@@ -70,6 +80,16 @@ class InvoiceLineModel extends InvoiceLineEntity {
         expireDate: json['expire_date'] as int?,
         invoiceTransType: json['invoice_trans_type'] as int,
         lineDiscount: (json['line_discount'] as num?)?.toDouble(),
+        // Unit conversion
+        baseQuantity: (json['base_quantity'] as num?)?.toDouble(),
+        conversionRate: (json['conversion_rate'] as num?)?.toDouble(),
+        packaging: json['packaging'] as int?,
+        // Cost tracking
+        costPrice: (json['cost_price'] as num?)?.toDouble(),
+        costTotal: (json['cost_total'] as num?)?.toDouble(),
+        // Price tracking
+        price: (json['price'] as num?)?.toDouble(),
+        sellingPrice: (json['selling_price'] as num?)?.toDouble(),
       );
 
   Map<String, dynamic> toJson({required int invoiceId}) {
@@ -104,6 +124,16 @@ class InvoiceLineModel extends InvoiceLineEntity {
       'expire_date': expireDate,
       'invoice_trans_type': invoiceTransType,
       'line_discount': lineDiscount ?? 0.0,
+      // Unit conversion
+      'base_quantity': baseQuantity ?? quantity,
+      'conversion_rate': conversionRate ?? 1.0,
+      'packaging': packaging ?? 1,
+      // Cost tracking
+      'cost_price': costPrice,
+      'cost_total': costTotal,
+      // Price tracking
+      'price': price,
+      'selling_price': sellingPrice,
     };
     if (creationTime != null) {
       map['creation_time'] = creationTime;
@@ -147,6 +177,13 @@ class InvoiceLineModel extends InvoiceLineEntity {
     expireDate: expireDate,
     invoiceTransType: invoiceTransType,
     lineDiscount: lineDiscount,
+    baseQuantity: baseQuantity,
+    conversionRate: conversionRate,
+    packaging: packaging,
+    costPrice: costPrice,
+    costTotal: costTotal,
+    price: price,
+    sellingPrice: sellingPrice,
   );
 
   factory InvoiceLineModel.fromEntity(InvoiceLineEntity e) => InvoiceLineModel(
@@ -182,5 +219,13 @@ class InvoiceLineModel extends InvoiceLineEntity {
     expireDate: e.expireDate,
     invoiceTransType: e.invoiceTransType,
     lineDiscount: e.lineDiscount,
+    baseQuantity: e.baseQuantity,
+    conversionRate: e.conversionRate,
+    packaging: e.packaging,
+    costPrice: e.costPrice,
+    costTotal: e.costTotal,
+    price: e.price,
+    sellingPrice: e.sellingPrice,
   );
 }
+

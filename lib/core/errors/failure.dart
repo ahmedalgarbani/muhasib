@@ -35,3 +35,7 @@ class ValidationFailure extends Failure {
     return '$message:\n${violations.join('\n')}';
   }
 }
+
+class NotFoundFailure extends Failure {
+  NotFoundFailure(super.message);
+}

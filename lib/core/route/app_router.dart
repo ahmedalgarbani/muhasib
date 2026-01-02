@@ -33,7 +33,7 @@ import 'package:muhasib/features/reports/presentation/pages/aged_reports_pages.d
 import 'package:muhasib/features/reports/presentation/pages/cash_flow_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/purchase_summary_report_page.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
-import 'package:muhasib/features/sales/presentation/pages/improved_sales_invoice_screen.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
 import 'package:muhasib/features/sales/presentation/widgets/sale_page_body.dart';
 import 'package:muhasib/features/sales/presentation/pages/quotations_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/returns_page.dart';
@@ -41,10 +41,10 @@ import 'package:muhasib/features/sales/presentation/pages/return_invoice_form_pa
 import 'package:muhasib/features/sales/presentation/pages/select_invoice_for_return_page.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/customers/presentation/pages/customers_profile_page.dart';
 import 'package:muhasib/features/customers/presentation/pages/suppliers_profile_page.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchases_list_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_orders_page.dart';
@@ -79,6 +79,8 @@ import 'package:muhasib/features/initial/presentation/pages/initial_gate_page.da
 import 'package:muhasib/features/initial/presentation/pages/initial_setup_page.dart';
 import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
 import 'package:muhasib/features/currencies/presentation/pages/currency_exchange_page.dart';
+import 'package:muhasib/features/currencies/presentation/pages/currency_exchange_page_v2.dart';
+import 'package:muhasib/features/currencies/presentation/pages/currency_revaluation_page.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/pages/annual_close_page.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_limit_page_clean.dart';
@@ -218,7 +220,15 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.currenciesExchange,
       name: AppRoutes.currenciesExchange,
-      builder: (context, state) => const CurrencyExchangePage(),
+      builder: (context, state) => BlocProvider(
+        create: (context) => getIt<CurrenciesCubit>(),
+        child: const CurrencyExchangePageV2(),
+      ),
+    ),
+    GoRoute(
+      path: '/currencies/revaluation',
+      name: 'currencies-revaluation',
+      builder: (context, state) => const CurrencyRevaluationPage(),
     ),
 
     // ======= المبيعات =======
@@ -233,10 +243,10 @@ final router = GoRouter(
       builder: (context, state) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => getIt<SalesCubit>()),
-          BlocProvider(create: (context) => getIt<AccountsCubit>()),
           BlocProvider(create: (context) => getIt<CustomersCubit>()),
+          BlocProvider(create: (context) => getIt<ProductsCubit>()),
         ],
-        child: const ImprovedSalesInvoiceScreen(
+        child: const SalesInvoiceScreen(
           invoiceType: InvoiceType.salesInvoice,
         ),
       ),
@@ -244,7 +254,14 @@ final router = GoRouter(
     GoRoute(
       path: '/sales/improved-invoice',
       name: 'improved-sales-invoice',
-      builder: (context, state) => const ImprovedSalesInvoiceScreen(),
+      builder: (context, state) => MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => getIt<SalesCubit>()),
+          BlocProvider(create: (context) => getIt<CustomersCubit>()),
+          BlocProvider(create: (context) => getIt<ProductsCubit>()),
+        ],
+        child: const SalesInvoiceScreen(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.salesList,

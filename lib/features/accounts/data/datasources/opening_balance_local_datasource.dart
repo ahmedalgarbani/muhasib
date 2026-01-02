@@ -127,10 +127,32 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
     }
 
     final db = await databaseService.database;
+    
+    // Get old entry first
+    final oldEntry = await getOpeningBalanceById(openingBalance.id!);
+    
+    // ===== PROTECTION: Prevent modification of posted opening balance if transactions exist =====
+    if (oldEntry.isPosted) {
+      // Check if there are any journal entries after the opening balance date
+      final hasTransactionsAfter = await db.rawQuery('''
+        SELECT COUNT(*) as count FROM journal_entries 
+        WHERE entry_date > ? 
+        AND reference_type != 'opening_entry'
+        AND is_posted = 1
+      ''', [oldEntry.entryDate.millisecondsSinceEpoch ~/ 1000]);
+      
+      final count = (hasTransactionsAfter.first['count'] as int?) ?? 0;
+      if (count > 0) {
+        throw Exception(
+          'لا يمكن تعديل الرصيد الافتتاحي المرحل لوجود $count معاملة/معاملات بعد تاريخه. '
+          'يرجى إنشاء قيد تسوية بدلاً من ذلك.'
+        );
+      }
+    }
+    // ===========================================================================================
 
     await db.transaction((txn) async {
-      final oldEntry = await getOpeningBalanceById(openingBalance.id!);
-
+      // If old entry was posted, reverse its effect first
       if (oldEntry.isPosted) {
         for (final line in oldEntry.lines) {
           await _updateAccountBalance(
@@ -139,6 +161,13 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
             -(line.debit - line.credit),
           );
         }
+        
+        // Delete old journal entry if exists
+        await txn.delete(
+          _journalEntries,
+          where: 'reference_type = ? AND reference_id = ?',
+          whereArgs: ['opening_entry', openingBalance.id],
+        );
       }
 
       await txn.update(
@@ -172,6 +201,9 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
             line.debit - line.credit,
           );
         }
+        
+        // Create new journal entry for the updated opening balance
+        await _createJournalEntryFromOpening(txn, openingBalance.id!, openingBalance);
       }
     });
   }
@@ -179,10 +211,32 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
   @override
   Future<void> deleteOpeningBalance(int id) async {
     final db = await databaseService.database;
+    
+    // Get entry first
+    final entry = await getOpeningBalanceById(id);
+    
+    // ===== PROTECTION: Prevent deletion of posted opening balance if transactions exist =====
+    if (entry.isPosted) {
+      // Check if there are any journal entries after the opening balance date
+      final hasTransactionsAfter = await db.rawQuery('''
+        SELECT COUNT(*) as count FROM journal_entries 
+        WHERE entry_date > ? 
+        AND reference_type != 'opening_entry'
+        AND is_posted = 1
+      ''', [entry.entryDate.millisecondsSinceEpoch ~/ 1000]);
+      
+      final count = (hasTransactionsAfter.first['count'] as int?) ?? 0;
+      if (count > 0) {
+        throw Exception(
+          'لا يمكن حذف الرصيد الافتتاحي المرحل لوجود $count معاملة/معاملات بعد تاريخه. '
+          'هذا سيؤدي إلى أرصدة سالبة غير صحيحة.'
+        );
+      }
+    }
+    // ===========================================================================================
 
     await db.transaction((txn) async {
-      final entry = await getOpeningBalanceById(id);
-
+      // Reverse account balances if posted
       if (entry.isPosted) {
         for (final line in entry.lines) {
           await _updateAccountBalance(
@@ -191,8 +245,23 @@ class OpeningBalanceLocalDataSourceImpl implements OpeningBalanceLocalDataSource
             -(line.debit - line.credit),
           );
         }
+        
+        // Delete related journal entry
+        await txn.delete(
+          _journalEntries,
+          where: 'reference_type = ? AND reference_id = ?',
+          whereArgs: ['opening_entry', id],
+        );
       }
 
+      // Delete opening entry lines (cascade should handle this, but explicit is safer)
+      await txn.delete(
+        _linesTable,
+        where: 'opening_entry_id = ?',
+        whereArgs: [id],
+      );
+
+      // Delete opening entry
       await txn.delete(
         _entriesTable,
         where: 'id = ?',

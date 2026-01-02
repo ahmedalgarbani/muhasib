@@ -61,8 +61,8 @@ class _BalanceSheetContent extends StatelessWidget {
                   color: Colors.red,
                 ),
                 ReportSummaryCard(
-                  title: 'حقوق الملكية (محسوبة)',
-                  value: '${data.equity.toStringAsFixed(2)}',
+                  title: 'إجمالي حقوق الملكية',
+                  value: '${data.totalEquity.toStringAsFixed(2)}',
                   icon: Icons.account_balance_wallet,
                   color: Colors.blue,
                 ),
@@ -83,6 +83,23 @@ class _BalanceSheetContent extends StatelessWidget {
                     color: Colors.red,
                     rows: data.liabilities,
                   ),
+                  const SizedBox(height: 12),
+                  _section(
+                    title: 'حقوق الملكية',
+                    color: Colors.blue,
+                    rows: data.equityRows,
+                  ),
+                  const SizedBox(height: 12),
+                  if ((data.totalAssets - (data.totalLiabilities + data.totalEquity)).abs() > 0.01)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      color: Colors.red[100],
+                      child: Text(
+                        'تنبيه: الميزانية غير متوازنة! الفرق: ${(data.totalAssets - (data.totalLiabilities + data.totalEquity)).toStringAsFixed(2)}',
+                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -146,7 +163,9 @@ class _BalanceSheetContent extends StatelessWidget {
     // Use endDate as "as-of". If no endDate, use now.
     final asOf = (filter.endDate ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
 
-    final rows = await db.rawQuery(
+    // 1. Fetch Permanent Accounts (Assets, Liabilities, Equity)
+    // Account Types: 0=Assets, 1=Liabilities, 2=Equity
+    final balanceSheetAccounts = await db.rawQuery(
       '''
       SELECT
         a.id as account_id,
@@ -160,22 +179,53 @@ class _BalanceSheetContent extends StatelessWidget {
       WHERE a.is_active = 1
         AND (je.is_posted = 1 OR je.id IS NULL)
         AND (je.entry_date <= ? OR je.id IS NULL)
-        AND a.type IN (1, 2)
+        AND a.type IN (0, 1, 2)
       GROUP BY a.id, a.code, a.name, a.type
+      HAVING net != 0
       ORDER BY a.code
       ''',
       [asOf],
     );
 
+    // 2. Calculate Net Income (Revenue - Expenses) for Retained Earnings
+    // Account Types: 3=Revenue, 4=Expenses
+    // Revenue (Credit normal) -> Credit - Debit
+    // Expenses (Debit normal) -> Debit - Credit
+    // Net Income = Revenue - Expenses
+    // In terms of (Debit - Credit):
+    // Revenue net = (D - C) [usually negative]
+    // Expenses net = (D - C) [usually positive]
+    // Net Income = -(Revenue net) - (Expenses net) = - (Revenue net + Expenses net)
+    // Or simply: Sum(Credit - Debit) for all P&L accounts.
+    final netIncomeResult = await db.rawQuery(
+      '''
+      SELECT
+        COALESCE(SUM(jel.credit_amount - jel.debit_amount), 0) as net_income
+      FROM accounts a
+      JOIN journal_entry_lines jel ON jel.account_id = a.id
+      JOIN journal_entries je ON je.id = jel.journal_entry_id
+      WHERE a.is_active = 1
+        AND je.is_posted = 1
+        AND je.entry_date <= ?
+        AND a.type IN (3, 4)
+      ''',
+      [asOf],
+    );
+    
+    final netIncome = (netIncomeResult.first['net_income'] as num?)?.toDouble() ?? 0.0;
+
     final assets = <_AccountBalanceRow>[];
     final liabilities = <_AccountBalanceRow>[];
+    final equityRows = <_AccountBalanceRow>[];
 
     double totalAssets = 0;
     double totalLiabilities = 0;
+    double totalEquityAccounts = 0;
 
-    for (final m in rows) {
+    for (final m in balanceSheetAccounts) {
       final type = (m['account_type'] as int?) ?? 0;
       final net = (m['net'] as num?)?.toDouble() ?? 0.0; // debit - credit
+
       final row = _AccountBalanceRow(
         id: (m['account_id'] as int?) ?? 0,
         code: (m['account_code'] as String?) ?? '',
@@ -184,25 +234,40 @@ class _BalanceSheetContent extends StatelessWidget {
         net: net,
       );
 
-      if (type == 1) {
-        // Assets: show positive (debit) net. If credit net, show as negative (rare).
+      if (type == 0) {
+        // Assets (Debit Normal)
         assets.add(row);
         totalAssets += row.displayAmount;
-      } else if (type == 2) {
-        // Liabilities: normal balance is credit, so display as positive credit = -(debit-credit)
+      } else if (type == 1) {
+        // Liabilities (Credit Normal)
         liabilities.add(row);
         totalLiabilities += row.displayAmount;
+      } else if (type == 2) {
+        // Equity (Credit Normal)
+        equityRows.add(row);
+        totalEquityAccounts += row.displayAmount;
       }
     }
 
-    final equity = totalAssets - totalLiabilities;
+    // Add Net Income to Equity
+    if (netIncome != 0) {
+      equityRows.add(_AccountBalanceRow(
+        id: -1,
+        code: 'NI',
+        name: 'صافي دخل الفترة',
+        type: 2, // Treat as Equity
+        net: -netIncome, // Convert to (Debit - Credit) format for consistency with row.displayAmount logic (which negates for type 2)
+      ));
+      totalEquityAccounts += netIncome;
+    }
 
     return _BalanceSheetResult(
       assets: assets,
       liabilities: liabilities,
+      equityRows: equityRows,
       totalAssets: totalAssets,
       totalLiabilities: totalLiabilities,
-      equity: equity,
+      totalEquity: totalEquityAccounts,
     );
   }
 }
@@ -210,16 +275,18 @@ class _BalanceSheetContent extends StatelessWidget {
 class _BalanceSheetResult {
   final List<_AccountBalanceRow> assets;
   final List<_AccountBalanceRow> liabilities;
+  final List<_AccountBalanceRow> equityRows;
   final double totalAssets;
   final double totalLiabilities;
-  final double equity;
+  final double totalEquity;
 
   const _BalanceSheetResult({
     required this.assets,
     required this.liabilities,
+    required this.equityRows,
     required this.totalAssets,
     required this.totalLiabilities,
-    required this.equity,
+    required this.totalEquity,
   });
 }
 
@@ -227,7 +294,7 @@ class _AccountBalanceRow {
   final int id;
   final String code;
   final String name;
-  final int type; // 1 assets, 2 liabilities
+  final int type; // 0 assets, 1 liabilities, 2 equity
   final double net; // debit - credit (as-of)
 
   const _AccountBalanceRow({
@@ -239,7 +306,7 @@ class _AccountBalanceRow {
   });
 
   double get displayAmount {
-    if (type == 2) return -net; // liabilities show credit as positive
+    if (type == 1 || type == 2) return -net; // liabilities and equity show credit as positive
     return net;
   }
 }

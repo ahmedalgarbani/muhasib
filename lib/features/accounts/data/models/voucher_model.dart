@@ -47,10 +47,13 @@ class VoucherModel extends VoucherEntity {
     Map<String, dynamic> json, {
     List<VoucherLineModel> lines = const [],
   }) {
+    final rawDate = (json['date'] as int?) ?? 0;
+    // Support both seconds (correct) and legacy milliseconds timestamps.
+    final dateMs = rawDate > 1000000000000 ? rawDate : rawDate * 1000;
     return VoucherModel(
       id: json['id'] as int?,
       number: json['number'] as int,
-      date: DateTime.fromMillisecondsSinceEpoch(json['date'] as int),
+      date: DateTime.fromMillisecondsSinceEpoch(dateMs),
       statement: (json['statement'] as String?) ?? '',
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       accountId: json['account_id'] as int,
@@ -101,12 +104,13 @@ class VoucherModel extends VoucherEntity {
   }
 
   Map<String, dynamic> toJson() {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     return {
       'id': id,
       'type': type.value,
       'number': number,
-      'date': date.millisecondsSinceEpoch,
+      // Store seconds to match DB constraints and other modules.
+      'date': date.millisecondsSinceEpoch ~/ 1000,
       'statement': statement,
       'is_posted': isPosted ? 1 : 0,
       'reference_number': referenceNumber.isEmpty ? ' ' : referenceNumber,
@@ -120,8 +124,8 @@ class VoucherModel extends VoucherEntity {
       'parent_id': parentId,
       'status': status,
       'image_path': imagePath,
-      'last_modification_time': now,
-      if (id == null) 'creation_time': now,
+      'last_modification_time': nowSec,
+      if (id == null) 'creation_time': nowSec,
     };
   }
 }
@@ -182,7 +186,7 @@ class VoucherLineModel extends VoucherLineEntity {
   }
 
   Map<String, dynamic> toJson({required int voucherId}) {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     return {
       'vouchers_id': voucherId,
       'account_id': accountId,
@@ -192,8 +196,8 @@ class VoucherLineModel extends VoucherLineEntity {
       'currency_id': currencyId,
       'exchange_rate': exchangeRate,
       'statement': statement.isEmpty ? ' ' : statement,
-      'creation_time': now,
-      'last_modification_time': now,
+      'creation_time': nowSec,
+      'last_modification_time': nowSec,
     };
   }
 }

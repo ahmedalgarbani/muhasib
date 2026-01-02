@@ -38,12 +38,28 @@ class InvoiceLinesTable implements TableSchema {
       date INTEGER NOT NULL,
       expire_date INTEGER NULL,
       invoice_trans_type INTEGER NOT NULL DEFAULT 0,
-      line_discount REAL NULL DEFAULT 0.0
+      line_discount REAL NULL DEFAULT 0.0,
+      
+      -- Unit conversion tracking (for accurate inventory)
+      base_quantity REAL NULL,
+      conversion_rate REAL NULL DEFAULT 1.0,
+      packaging INTEGER NULL DEFAULT 1,
+      
+      -- Cost tracking (for accurate COGS)
+      cost_price REAL NULL,
+      cost_total REAL NULL,
+      
+      -- Price tracking
+      price REAL NULL,
+      selling_price REAL NULL
     );
   ''';
 
   @override
   List<String> get indexes => [
     'CREATE INDEX idx_invoice_lines_invoice ON invoice_lines(invoice_id);',
+    'CREATE INDEX idx_invoice_lines_category ON invoice_lines(category_id);',
+    'CREATE INDEX idx_invoice_lines_stock ON invoice_lines(stock_id);',
   ];
 }
+

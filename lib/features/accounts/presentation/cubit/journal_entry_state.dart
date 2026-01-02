@@ -56,6 +56,19 @@ class JournalEntryDeleted extends JournalEntryState {
   List<Object?> get props => [entryId, message];
 }
 
+class JournalEntryFormDataLoaded extends JournalEntryState {
+  final List<AccountEntity> accounts;
+  final List<CurrencyEntity> currencies;
+
+  const JournalEntryFormDataLoaded({
+    required this.accounts,
+    required this.currencies,
+  });
+
+  @override
+  List<Object?> get props => [accounts, currencies];
+}
+
 class JournalEntryFailure extends JournalEntryState {
   final String message;
 
