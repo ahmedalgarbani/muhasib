@@ -52,6 +52,9 @@ class InvoicesTable implements TableSchema {
       payment_status INTEGER NOT NULL DEFAULT 0,
       shipping_address TEXT NULL,
       due_date INTEGER NULL,
+      quotation_status INTEGER NULL,
+      paid_amount REAL NULL,
+      -- Amount paid in cash (for split payments: cash + credit)
       
       -- Quotation protection fields
       valid_until INTEGER NULL,

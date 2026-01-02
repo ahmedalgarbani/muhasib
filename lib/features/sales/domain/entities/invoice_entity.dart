@@ -46,6 +46,7 @@ class InvoiceEntity extends Equatable {
   final int? dueDate;
 
   final int? quotationStatus;
+  final double? paidAmount;  // Amount paid in cash for split payments
 
   final List<InvoiceLineEntity> lines;
 
@@ -92,6 +93,7 @@ class InvoiceEntity extends Equatable {
     this.shippingAddress,
     this.dueDate,
     this.quotationStatus,
+    this.paidAmount,
     this.lines = const [],
   });
 
@@ -138,6 +140,7 @@ class InvoiceEntity extends Equatable {
     String? shippingAddress,
     int? dueDate,
     int? quotationStatus,
+    double? paidAmount,
     List<InvoiceLineEntity>? lines,
   }) {
     return InvoiceEntity(
@@ -183,6 +186,7 @@ class InvoiceEntity extends Equatable {
       shippingAddress: shippingAddress ?? this.shippingAddress,
       dueDate: dueDate ?? this.dueDate,
       quotationStatus: quotationStatus ?? this.quotationStatus,
+      paidAmount: paidAmount ?? this.paidAmount,
       lines: lines ?? this.lines,
     );
   }
@@ -231,6 +235,7 @@ class InvoiceEntity extends Equatable {
         shippingAddress,
         dueDate,
         quotationStatus,
+        paidAmount,
         lines,
       ];
 }

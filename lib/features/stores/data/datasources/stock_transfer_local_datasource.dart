@@ -108,6 +108,12 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
 
   @override
   Future<void> deleteTransfer(int id) async {
+    // Check if transfer is completed
+    final transfer = await getTransfer(id);
+    if (transfer.status == TransferStatus.completed) {
+      throw Exception('لا يمكن حذف تحويل مكتمل - يرجى إنشاء تحويل معاكس');
+    }
+    
     await database.transaction((txn) async {
       // Delete transfer lines first
       await txn.delete(
@@ -138,57 +144,145 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
   Future<void> _processTransferCompletion(int transferId) async {
     final transfer = await getTransfer(transferId);
     
-    if (transfer.lines.isNotEmpty) {
-      await database.transaction((txn) async {
-        for (var line in transfer.lines) {
-          // Update category_movs table for stock tracking
-          // Decrease from source warehouse
-          await txn.insert('category_movs', {
-            'doc_no': transferId,
-            'trans_doc_type': 5, // Transfer type
-            'trans_in_out': 0, // Out
-            'trans_date': transfer.date,
-            'category_id': line.categoryId,
-            'unit_id': line.unitId,
-            'group_id': line.groupId,
-            'category_sub_unit_id': line.categorySubUnitId,
-            'stock_id': transfer.fromStockId,
-            'quantity': line.quantity,
-            'quantity_in': 0,
-            'quantity_out': line.quantity,
-            'cost_amount': line.costAmount ?? 0,
-            'cost_local_amount': (line.costAmount ?? 0) * line.quantity,
-            'currency_id': 1,
-            'refrenc_no': transfer.number,
-            'statement': line.statement,
-            'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          });
-
-          // Increase in destination warehouse
-          await txn.insert('category_movs', {
-            'doc_no': transferId,
-            'trans_doc_type': 5, // Transfer type
-            'trans_in_out': 1, // In
-            'trans_date': transfer.date,
-            'category_id': line.categoryId,
-            'unit_id': line.unitId,
-            'group_id': line.groupId,
-            'category_sub_unit_id': line.categorySubUnitId,
-            'stock_id': transfer.toStockId,
-            'quantity': line.quantity,
-            'quantity_in': line.quantity,
-            'quantity_out': 0,
-            'cost_amount': line.costAmount ?? 0,
-            'cost_local_amount': (line.costAmount ?? 0) * line.quantity,
-            'currency_id': 1,
-            'refrenc_no': transfer.number,
-            'statement': line.statement,
-            'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          });
+    if (transfer.lines.isEmpty) return;
+    
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    
+    await database.transaction((txn) async {
+      for (var line in transfer.lines) {
+        final productId = line.categoryId;
+        final quantity = line.quantity;
+        final costAmount = line.costAmount ?? 0;
+        
+        // 1. Validate quantity availability in source warehouse
+        final sourceStock = await txn.query(
+          'warehouse_stocks',
+          columns: ['quantity'],
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [productId, transfer.fromStockId],
+          limit: 1,
+        );
+        
+        final availableQty = sourceStock.isNotEmpty 
+            ? (sourceStock.first['quantity'] as num?)?.toDouble() ?? 0.0
+            : 0.0;
+        
+        if (availableQty < quantity) {
+          throw Exception(
+            'الكمية المتوفرة في المخزن المصدر ($availableQty) أقل من الكمية المطلوبة ($quantity)'
+          );
         }
-      });
-    }
+        
+        // 2. Decrease from source warehouse (warehouse_stocks)
+        await txn.rawUpdate('''
+          UPDATE warehouse_stocks 
+          SET quantity = quantity - ?, 
+              last_modification_time = ?
+          WHERE product_id = ? AND warehouse_id = ?
+        ''', [quantity, now, productId, transfer.fromStockId]);
+        
+        // 3. Increase in destination warehouse (warehouse_stocks)
+        await txn.rawInsert('''
+          INSERT INTO warehouse_stocks (product_id, warehouse_id, quantity, avg_cost, creation_time, last_modification_time)
+          VALUES (?, ?, ?, ?, ?, ?)
+          ON CONFLICT(product_id, warehouse_id) DO UPDATE SET
+          quantity = quantity + ?,
+          last_modification_time = ?
+        ''', [
+          productId, transfer.toStockId, quantity, costAmount, now, now,
+          quantity, now
+        ]);
+        
+        // 4. Record stock movement for source (outgoing)
+        await txn.insert('stock_movements', {
+          'product_id': productId,
+          'warehouse_id': transfer.fromStockId,
+          'movement_type': 'transfer_out',
+          'quantity': -quantity, // Negative for outgoing
+          'unit_cost': costAmount,
+          'total_cost': costAmount * quantity,
+          'balance_after': availableQty - quantity,
+          'reference_type': 'stock_transfer',
+          'reference_id': transferId,
+          'reference_number': transfer.number,
+          'creation_time': now,
+          'notes': 'تحويل إلى مخزن ${transfer.toStockId}',
+        });
+        
+        // 5. Record stock movement for destination (incoming)
+        final destStock = await txn.query(
+          'warehouse_stocks',
+          columns: ['quantity'],
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [productId, transfer.toStockId],
+          limit: 1,
+        );
+        final destQty = destStock.isNotEmpty 
+            ? (destStock.first['quantity'] as num?)?.toDouble() ?? 0.0
+            : quantity;
+        
+        await txn.insert('stock_movements', {
+          'product_id': productId,
+          'warehouse_id': transfer.toStockId,
+          'movement_type': 'transfer_in',
+          'quantity': quantity, // Positive for incoming
+          'unit_cost': costAmount,
+          'total_cost': costAmount * quantity,
+          'balance_after': destQty,
+          'reference_type': 'stock_transfer',
+          'reference_id': transferId,
+          'reference_number': transfer.number,
+          'creation_time': now,
+          'notes': 'تحويل من مخزن ${transfer.fromStockId}',
+        });
+        
+        // 6. Legacy category_movs for backwards compatibility
+        // Decrease from source warehouse
+        await txn.insert('category_movs', {
+          'doc_no': transferId,
+          'trans_doc_type': 5, // Transfer type
+          'trans_in_out': 0, // Out
+          'trans_date': transfer.date,
+          'category_id': line.categoryId,
+          'unit_id': line.unitId,
+          'group_id': line.groupId,
+          'category_sub_unit_id': line.categorySubUnitId,
+          'stock_id': transfer.fromStockId,
+          'quantity': line.quantity,
+          'quantity_in': 0,
+          'quantity_out': line.quantity,
+          'cost_amount': line.costAmount ?? 0,
+          'cost_local_amount': (line.costAmount ?? 0) * line.quantity,
+          'currency_id': 1,
+          'refrenc_no': transfer.number,
+          'statement': line.statement,
+          'creation_time': now,
+          'last_modification_time': now,
+        });
+
+        // Increase in destination warehouse
+        await txn.insert('category_movs', {
+          'doc_no': transferId,
+          'trans_doc_type': 5, // Transfer type
+          'trans_in_out': 1, // In
+          'trans_date': transfer.date,
+          'category_id': line.categoryId,
+          'unit_id': line.unitId,
+          'group_id': line.groupId,
+          'category_sub_unit_id': line.categorySubUnitId,
+          'stock_id': transfer.toStockId,
+          'quantity': line.quantity,
+          'quantity_in': line.quantity,
+          'quantity_out': 0,
+          'cost_amount': line.costAmount ?? 0,
+          'cost_local_amount': (line.costAmount ?? 0) * line.quantity,
+          'currency_id': 1,
+          'refrenc_no': transfer.number,
+          'statement': line.statement,
+          'creation_time': now,
+          'last_modification_time': now,
+        });
+      }
+    });
   }
 }

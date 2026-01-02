@@ -188,6 +188,7 @@ class _AggregateByPartyContent extends StatelessWidget {
       FROM invoices i
       INNER JOIN customers c ON c.id = i.customer_id
       WHERE i.invoice_type = ?
+        AND COALESCE(i.status, 1) != 3
       $dateFilter
       GROUP BY c.id, c.name
       ORDER BY total DESC
@@ -303,6 +304,7 @@ class _AggregateByProductContent extends StatelessWidget {
       INNER JOIN invoices i ON i.id = il.invoice_id
       LEFT JOIN categories c ON c.id = il.category_id
       WHERE i.invoice_type = ?
+        AND COALESCE(i.status, 1) != 3
       $dateFilter
       GROUP BY c.id, c.name
       ORDER BY total DESC
@@ -414,12 +416,14 @@ class _DailyTotalsContent extends StatelessWidget {
         COALESCE(SUM(COALESCE(i.final_amt, i.total_amount, i.amount, 0)), 0) as total
       FROM invoices i
       WHERE i.invoice_type = ?
+        AND COALESCE(i.status, 1) != 3
       $dateFilter
       GROUP BY date(i.date, 'unixepoch')
       ORDER BY day
       ''',
       args,
     );
+
 
     return rows.map((m) {
       return _DailyRow(

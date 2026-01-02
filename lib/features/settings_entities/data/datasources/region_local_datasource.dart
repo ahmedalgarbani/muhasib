@@ -13,7 +13,7 @@ abstract class RegionLocalDataSource {
 }
 
 class RegionLocalDataSourceImpl implements RegionLocalDataSource {
-  static const String _tableName = 'cities';
+  static const String _tableName = 'regions';
   final Database database;
 
   RegionLocalDataSourceImpl({required this.database});

@@ -125,6 +125,8 @@ import 'package:muhasib/features/stores/domain/repositories/warehouse_repository
 import 'package:muhasib/features/stores/domain/repositories/stock_transfer_repository.dart';
 import 'package:muhasib/features/stores/domain/repositories/inventory_repository.dart';
 import 'package:muhasib/features/stores/domain/repositories/stock_adjustment_repository.dart';
+import 'package:muhasib/features/stores/domain/services/warehouse_validation_service.dart';
+import 'package:muhasib/features/stores/data/services/warehouse_validation_service_impl.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/stock_transfers_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/inventory_cubit.dart';
@@ -173,6 +175,11 @@ import 'package:muhasib/features/reports/data/datasources/account_statement_data
 import 'package:muhasib/features/reports/data/repositories/account_statement_repository_impl.dart';
 import 'package:muhasib/features/reports/domain/repositories/account_statement_repository.dart';
 import 'package:muhasib/features/reports/presentation/cubit/account_statement_cubit.dart';
+import 'package:muhasib/features/accounts/data/datasources/account_movements_local_datasource.dart';
+import 'package:muhasib/features/accounts/data/repositories/account_movements_repository_impl.dart';
+import 'package:muhasib/features/accounts/domain/repositories/account_movements_repository.dart';
+import 'package:muhasib/features/accounts/domain/usecases/get_account_movements.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/account_movements_cubit.dart';
 
 final getIt = GetIt.instance;
 final sl = getIt; // Alias for backward compatibility
@@ -628,9 +635,17 @@ class GetItHelper {
       () => StockAdjustmentLocalDataSourceImpl(databaseService: getIt<DatabaseService>()),
     );
     
+    // Services
+    getIt.registerLazySingleton<WarehouseValidationService>(
+      () => WarehouseValidationServiceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    
     // Repositories
     getIt.registerLazySingleton<WarehouseRepository>(
-      () => WarehouseRepositoryImpl(getIt<WarehouseLocalDataSource>()),
+      () => WarehouseRepositoryImpl(
+        getIt<WarehouseLocalDataSource>(),
+        validationService: getIt<WarehouseValidationService>(),
+      ),
     );
     getIt.registerLazySingleton<StockTransferRepository>(
       () => StockTransferRepositoryImpl(getIt<StockTransferLocalDataSource>()),
@@ -792,6 +807,26 @@ class GetItHelper {
     );
     getIt.registerFactory(
       () => AccountStatementCubit(repository: getIt<AccountStatementRepository>()),
+    );
+
+    // Account Movements Feature
+    getIt.registerLazySingleton<AccountMovementsLocalDataSource>(
+      () => AccountMovementsLocalDataSourceImpl(database: database),
+    );
+    getIt.registerLazySingleton<AccountMovementsRepository>(
+      () => AccountMovementsRepositoryImpl(localDataSource: getIt<AccountMovementsLocalDataSource>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetAccountMovements(getIt<AccountMovementsRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetAccountMovementsSummary(getIt<AccountMovementsRepository>()),
+    );
+    getIt.registerFactory(
+      () => AccountMovementsCubit(
+        getAccountMovements: getIt<GetAccountMovements>(),
+        getAccountMovementsSummary: getIt<GetAccountMovementsSummary>(),
+      ),
     );
   }
 

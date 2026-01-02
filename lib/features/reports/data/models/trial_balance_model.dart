@@ -5,9 +5,13 @@ class TrialBalanceModel extends TrialBalanceEntity {
     required super.accountId,
     required super.accountCode,
     required super.accountName,
-    required super.debitBalance,
-    required super.creditBalance,
     required super.accountType,
+    super.openingDebit,
+    super.openingCredit,
+    super.periodDebit,
+    super.periodCredit,
+    super.closingDebit,
+    super.closingCredit,
   });
 
   factory TrialBalanceModel.fromMap(Map<String, dynamic> map) {
@@ -15,9 +19,31 @@ class TrialBalanceModel extends TrialBalanceEntity {
       accountId: map['account_id'] ?? 0,
       accountCode: map['account_code'] ?? '',
       accountName: map['account_name'] ?? '',
-      debitBalance: (map['debit_balance'] ?? 0.0).toDouble(),
-      creditBalance: (map['credit_balance'] ?? 0.0).toDouble(),
       accountType: map['account_type'] ?? 0,
+      openingDebit: (map['opening_debit'] as num?)?.toDouble() ?? 0.0,
+      openingCredit: (map['opening_credit'] as num?)?.toDouble() ?? 0.0,
+      periodDebit: (map['period_debit'] as num?)?.toDouble() ?? 0.0,
+      periodCredit: (map['period_credit'] as num?)?.toDouble() ?? 0.0,
+      closingDebit: (map['closing_debit'] as num?)?.toDouble() ?? 0.0,
+      closingCredit: (map['closing_credit'] as num?)?.toDouble() ?? 0.0,
+    );
+  }
+
+  /// Legacy factory for backward compatibility (simple debit/credit totals)
+  factory TrialBalanceModel.fromLegacyMap(Map<String, dynamic> map) {
+    final debit = (map['debit_balance'] as num?)?.toDouble() ?? 0.0;
+    final credit = (map['credit_balance'] as num?)?.toDouble() ?? 0.0;
+    return TrialBalanceModel(
+      accountId: map['account_id'] ?? 0,
+      accountCode: map['account_code'] ?? '',
+      accountName: map['account_name'] ?? '',
+      accountType: map['account_type'] ?? 0,
+      openingDebit: 0.0,
+      openingCredit: 0.0,
+      periodDebit: debit,
+      periodCredit: credit,
+      closingDebit: debit,
+      closingCredit: credit,
     );
   }
 
@@ -26,9 +52,13 @@ class TrialBalanceModel extends TrialBalanceEntity {
       'account_id': accountId,
       'account_code': accountCode,
       'account_name': accountName,
-      'debit_balance': debitBalance,
-      'credit_balance': creditBalance,
       'account_type': accountType,
+      'opening_debit': openingDebit,
+      'opening_credit': openingCredit,
+      'period_debit': periodDebit,
+      'period_credit': periodCredit,
+      'closing_debit': closingDebit,
+      'closing_credit': closingCredit,
     };
   }
 }

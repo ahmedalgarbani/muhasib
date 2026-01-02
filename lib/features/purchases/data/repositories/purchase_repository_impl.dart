@@ -12,6 +12,7 @@ import 'package:muhasib/features/accounts/data/models/journal_entry_model.dart';
 import 'package:muhasib/features/accounts/data/models/journal_entry_line_model.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/services/database_service.dart';
+import 'package:sqflite/sqflite.dart';
 
 class PurchaseRepositoryImpl implements PurchaseRepository {
   final InvoiceLocalDataSource localDataSource;
@@ -83,49 +84,96 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         paymentStatus: invoice.paymentStatus,
         dueDate: invoice.dueDate,
         shippingAddress: invoice.shippingAddress,
+        quotationStatus: invoice.quotationStatus,
       );
       final id = await localDataSource.insertInvoice(
         InvoiceModel.fromEntity(purchaseInvoice),
       );
 
-      // ---------- Double‑Entry Accounting ----------
-      // Build a balanced journal entry: Debit Inventory, Credit Supplier
-      if (journalRepository != null && accountConfigService != null) {
-        final purchaseConfig = await accountConfigService!.getPurchaseAccountConfig();
-        final inventoryAcc = purchaseConfig.inventoryAccountId;
-        final supplierAcc = purchaseConfig.suppliersAccountId;
-        final total = purchaseInvoice.totalAmount ?? 0.0;
+      // ========== UPDATE INVENTORY - Increase stock for purchased items ==========
+      final db = await DatabaseService().database;
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-        final journalEntry = JournalEntryModel(
-          number: 'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
-          entryDate: DateTime.now(),
-          description: 'فاتورة شراء ${purchaseInvoice.number}',
-          referenceNumber: purchaseInvoice.number,
-          totalDebit: total,
-          totalCredit: total,
-          difference: 0.0,
-          lines: [
-            JournalEntryLineModel(
-              lineNumber: 1,
-              accountId: inventoryAcc,
-              accountName: 'المخزون',
-              currencyCode: 'SAR',
-              debit: total,
-              credit: 0.0,
-            ),
-            JournalEntryLineModel(
-              lineNumber: 2,
-              accountId: supplierAcc,
-              accountName: 'الموردين',
-              currencyCode: 'SAR',
-              debit: 0.0,
-              credit: total,
-            ),
-          ],
-        );
-        await journalRepository!.createJournalEntry(journalEntry);
+      for (final line in purchaseInvoice.lines) {
+        final productId = line
+            .categoryId; // In this app, categoryId is used as productId in lines
+        final warehouseId = line.stockId ?? purchaseInvoice.stockId;
+        final qty = line.quantity;
+
+        if (productId != null && qty > 0) {
+          // Get current stock
+          final stockResult = await db.query(
+            'warehouse_stocks',
+            where: 'product_id = ? AND warehouse_id = ?',
+            whereArgs: [productId, warehouseId],
+            limit: 1,
+          );
+
+          double currentQty = 0.0;
+          double avgCost =
+              (line.costPrice ?? line.price ?? 0.0); // Initial cost
+
+          if (stockResult.isNotEmpty) {
+            currentQty =
+                (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+            // Weighted Average Cost calculation
+            final oldAvg =
+                (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+            if (currentQty + qty > 0) {
+              avgCost =
+                  ((currentQty * oldAvg) + (qty * avgCost)) /
+                  (currentQty + qty);
+            }
+          }
+
+          final newQty = currentQty + qty;
+
+          // Update or insert warehouse stock
+          if (stockResult.isNotEmpty) {
+            await db.update(
+              'warehouse_stocks',
+              {
+                'quantity': newQty,
+                'avg_cost': avgCost,
+                'last_cost': line.costPrice ?? line.price ?? 0.0,
+                'last_modification_time': now,
+              },
+              where: 'product_id = ? AND warehouse_id = ?',
+              whereArgs: [productId, warehouseId],
+            );
+          } else {
+            await db.insert('warehouse_stocks', {
+              'product_id': productId,
+              'warehouse_id': warehouseId,
+              'quantity': newQty,
+              'avg_cost': avgCost,
+              'last_cost': line.costPrice ?? line.price ?? 0.0,
+              'creation_time': now,
+              'last_modification_time': now,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+
+          // Record stock movement
+          try {
+            await db.insert('stock_movements', {
+              'product_id': productId,
+              'warehouse_id': warehouseId,
+              'movement_type': 'purchase',
+              'quantity': qty, // Positive for incoming
+              'unit_cost': line.costPrice ?? line.price ?? 0.0,
+              'total_cost': qty * (line.costPrice ?? line.price ?? 0.0),
+              'balance_after': newQty,
+              'reference_type': 'purchase_invoice',
+              'reference_id': id,
+              'reference_number': purchaseInvoice.number,
+              'creation_time': now,
+            });
+          } catch (_) {
+            // Ignore if stock_movements table doesn't exist
+          }
+        }
       }
-      // --------------------------------------------
+      // ========== END INVENTORY UPDATE ==========
 
       return Right(id);
     } catch (e) {
@@ -142,12 +190,14 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
     try {
       // Get old invoice for reversing entry
       InvoiceEntity? oldInvoice;
-      if (invoice.id != null && journalRepository != null && accountConfigService != null) {
+      if (invoice.id != null &&
+          journalRepository != null &&
+          accountConfigService != null) {
         try {
           oldInvoice = await localDataSource.getInvoice(invoice.id!);
         } catch (_) {}
       }
-      
+
       // Ensure it remains a purchase invoice
       final purchaseInvoice = InvoiceEntity(
         id: invoice.id,
@@ -167,24 +217,27 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         paymentStatus: invoice.paymentStatus,
         dueDate: invoice.dueDate,
         shippingAddress: invoice.shippingAddress,
+        quotationStatus: invoice.quotationStatus,
       );
       await localDataSource.updateInvoice(
         InvoiceModel.fromEntity(purchaseInvoice),
       );
-      
+
       // ---------- Double‑Entry Accounting (Update) ----------
       // Reverse old entry and create new entry
       if (journalRepository != null && accountConfigService != null) {
-        final purchaseConfig = await accountConfigService!.getPurchaseAccountConfig();
+        final purchaseConfig = await accountConfigService!
+            .getPurchaseAccountConfig();
         final inventoryAcc = purchaseConfig.inventoryAccountId;
         final supplierAcc = purchaseConfig.suppliersAccountId;
-        
+
         // Reverse old entry if exists
         if (oldInvoice != null) {
           final oldTotal = oldInvoice.totalAmount ?? 0.0;
           if (oldTotal > 0) {
             final reversingEntry = JournalEntryModel(
-              number: 'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
+              number:
+                  'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
               entryDate: DateTime.now(),
               description: 'قيد عكسي - تعديل فاتورة شراء ${oldInvoice.number}',
               referenceNumber: oldInvoice.number,
@@ -213,7 +266,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
             await journalRepository!.createJournalEntry(reversingEntry);
           }
         }
-        
+
         // Create new entry for updated invoice
         final newTotal = purchaseInvoice.totalAmount ?? 0.0;
         if (newTotal > 0) {
@@ -267,17 +320,20 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       } catch (_) {
         // Invoice not found, proceed with deletion only
       }
-      
+
       await localDataSource.deleteInvoice(id);
-      
+
       // ---------- Double‑Entry Accounting (Delete) ----------
       // Create a reversing entry with opposite signs
-      if (journalRepository != null && accountConfigService != null && invoiceToDelete != null) {
-        final purchaseConfig = await accountConfigService!.getPurchaseAccountConfig();
+      if (journalRepository != null &&
+          accountConfigService != null &&
+          invoiceToDelete != null) {
+        final purchaseConfig = await accountConfigService!
+            .getPurchaseAccountConfig();
         final inventoryAcc = purchaseConfig.inventoryAccountId;
         final supplierAcc = purchaseConfig.suppliersAccountId;
         final total = invoiceToDelete.totalAmount ?? 0.0;
-        
+
         if (total > 0) {
           final reversingEntry = JournalEntryModel(
             number: 'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
@@ -357,6 +413,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         paymentStatus: order.paymentStatus,
         dueDate: order.dueDate,
         shippingAddress: order.shippingAddress,
+        quotationStatus: order.quotationStatus,
       );
       final id = await localDataSource.insertInvoice(
         InvoiceModel.fromEntity(purchaseOrder),
@@ -396,6 +453,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         paymentStatus: invoice.paymentStatus,
         dueDate: invoice.dueDate,
         shippingAddress: invoice.shippingAddress,
+        quotationStatus: invoice.quotationStatus,
       );
 
       // insertInvoice now handles ID removal automatically
@@ -427,46 +485,82 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         InvoiceModel.fromEntity(updatedOrder),
       );
 
-      // ---------- Double‑Entry Accounting (Order to Invoice) ----------
-      // Create journal entry for the new purchase invoice
-      if (journalRepository != null && accountConfigService != null) {
-        final purchaseConfig = await accountConfigService!.getPurchaseAccountConfig();
-        final inventoryAcc = purchaseConfig.inventoryAccountId;
-        final supplierAcc = purchaseConfig.suppliersAccountId;
-        final total = purchaseInvoice.totalAmount ?? 0.0;
+      // ========== UPDATE INVENTORY - Increase stock for purchased items ==========
+      final db = await DatabaseService().database;
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-        if (total > 0) {
-          final journalEntry = JournalEntryModel(
-            number: 'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
-            entryDate: DateTime.now(),
-            description: 'فاتورة شراء (محولة من أمر) ${purchaseInvoice.number}',
-            referenceNumber: purchaseInvoice.number,
-            totalDebit: total,
-            totalCredit: total,
-            difference: 0.0,
-            lines: [
-              JournalEntryLineModel(
-                lineNumber: 1,
-                accountId: inventoryAcc,
-                accountName: 'المخزون',
-                currencyCode: 'SAR',
-                debit: total,
-                credit: 0.0,
-              ),
-              JournalEntryLineModel(
-                lineNumber: 2,
-                accountId: supplierAcc,
-                accountName: 'الموردين',
-                currencyCode: 'SAR',
-                debit: 0.0,
-                credit: total,
-              ),
-            ],
+      for (final line in purchaseInvoice.lines) {
+        final productId = line.categoryId;
+        final warehouseId = line.stockId ?? purchaseInvoice.stockId;
+        final qty = line.quantity;
+
+        if (productId != null && qty > 0) {
+          final stockResult = await db.query(
+            'warehouse_stocks',
+            where: 'product_id = ? AND warehouse_id = ?',
+            whereArgs: [productId, warehouseId],
+            limit: 1,
           );
-          await journalRepository!.createJournalEntry(journalEntry);
+
+          double currentQty = 0.0;
+          double avgCost = (line.costPrice ?? line.price ?? 0.0);
+
+          if (stockResult.isNotEmpty) {
+            currentQty =
+                (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+            final oldAvg =
+                (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+            if (currentQty + qty > 0) {
+              avgCost =
+                  ((currentQty * oldAvg) + (qty * avgCost)) /
+                  (currentQty + qty);
+            }
+          }
+
+          final newQty = currentQty + qty;
+
+          if (stockResult.isNotEmpty) {
+            await db.update(
+              'warehouse_stocks',
+              {
+                'quantity': newQty,
+                'avg_cost': avgCost,
+                'last_cost': line.costPrice ?? line.price ?? 0.0,
+                'last_modification_time': now,
+              },
+              where: 'product_id = ? AND warehouse_id = ?',
+              whereArgs: [productId, warehouseId],
+            );
+          } else {
+            await db.insert('warehouse_stocks', {
+              'product_id': productId,
+              'warehouse_id': warehouseId,
+              'quantity': newQty,
+              'avg_cost': avgCost,
+              'last_cost': line.costPrice ?? line.price ?? 0.0,
+              'creation_time': now,
+              'last_modification_time': now,
+            }, conflictAlgorithm: ConflictAlgorithm.replace);
+          }
+
+          try {
+            await db.insert('stock_movements', {
+              'product_id': productId,
+              'warehouse_id': warehouseId,
+              'movement_type': 'purchase',
+              'quantity': qty,
+              'unit_cost': line.costPrice ?? line.price ?? 0.0,
+              'total_cost': qty * (line.costPrice ?? line.price ?? 0.0),
+              'balance_after': newQty,
+              'reference_type': 'purchase_invoice',
+              'reference_id': newId,
+              'reference_number': purchaseInvoice.number,
+              'creation_time': now,
+            });
+          } catch (_) {}
         }
       }
-      // ------------------------------------------------------
+      // ========== END INVENTORY UPDATE ==========
 
       return Right(newId);
     } on LocalStorageException catch (e) {
@@ -537,6 +631,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         paymentStatus: returnInvoice.paymentStatus,
         dueDate: returnInvoice.dueDate,
         shippingAddress: returnInvoice.shippingAddress,
+        quotationStatus: returnInvoice.quotationStatus,
       );
 
       final id = await localDataSource.insertInvoice(
@@ -546,12 +641,12 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       // ========== UPDATE INVENTORY - Reduce stock for returned items ==========
       final db = await DatabaseService().database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
+
       for (final line in returnInvoice.lines) {
         final productId = line.categoryId;
         final warehouseId = line.stockId ?? returnInvoice.stockId ?? 1;
         final returnQty = line.quantity;
-        
+
         if (productId != null && returnQty > 0) {
           // Get current stock
           final stockResult = await db.query(
@@ -560,24 +655,23 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
             whereArgs: [productId, warehouseId],
             limit: 1,
           );
-          
+
           if (stockResult.isNotEmpty) {
-            final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-            final avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 
-                           (line.costPrice ?? line.price ?? 0.0);
+            final currentQty =
+                (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+            final avgCost =
+                (stockResult.first['avg_cost'] as num?)?.toDouble() ??
+                (line.costPrice ?? line.price ?? 0.0);
             final newQty = currentQty - returnQty;
-            
+
             // Update stock - reduce quantity
             await db.update(
               'warehouse_stocks',
-              {
-                'quantity': newQty,
-                'last_modification_time': now,
-              },
+              {'quantity': newQty, 'last_modification_time': now},
               where: 'product_id = ? AND warehouse_id = ?',
               whereArgs: [productId, warehouseId],
             );
-            
+
             // Record stock movement
             try {
               await db.insert('stock_movements', {
@@ -601,69 +695,6 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       }
       // ========== END INVENTORY UPDATE ==========
 
-      // ---------- Double‑Entry Accounting (Purchase Return) ----------
-      // Debit: Supplier/Cash | Credit: Inventory + Tax
-      if (journalRepository != null && accountConfigService != null) {
-        final purchaseConfig = await accountConfigService!.getPurchaseAccountConfig();
-        final inventoryAcc = purchaseConfig.inventoryAccountId;
-        final supplierAcc = purchaseConfig.suppliersAccountId;
-        final taxAcc = purchaseConfig.taxAccountId;
-        
-        final amount = purchaseReturn.totalAmount ?? 0.0;
-        final taxAmount = purchaseReturn.taxAmt ?? 0.0;
-        final netAmount = amount + taxAmount;
-        
-        if (netAmount > 0) {
-          final lines = <JournalEntryLineModel>[];
-          int lineNumber = 1;
-          
-          // Debit: Supplier (we get money back or reduce payable)
-          lines.add(JournalEntryLineModel(
-            lineNumber: lineNumber++,
-            accountId: supplierAcc,
-            accountName: 'الموردين',
-            currencyCode: 'SAR',
-            debit: netAmount,
-            credit: 0.0,
-          ));
-          
-          // Credit: Inventory (we return goods)
-          if (amount > 0) {
-            lines.add(JournalEntryLineModel(
-              lineNumber: lineNumber++,
-              accountId: inventoryAcc,
-              accountName: 'المخزون',
-              currencyCode: 'SAR',
-              debit: 0.0,
-              credit: amount,
-            ));
-          }
-          
-          // Credit: Tax (if applicable)
-          if (taxAmount > 0) {
-            lines.add(JournalEntryLineModel(
-              lineNumber: lineNumber++,
-              accountId: taxAcc,
-              accountName: 'ضريبة القيمة المضافة',
-              currencyCode: 'SAR',
-              debit: 0.0,
-              credit: taxAmount,
-            ));
-          }
-          
-          final returnEntry = JournalEntryModel(
-            number: 'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
-            entryDate: DateTime.now(),
-            description: 'مرتجع مشتريات رقم ${purchaseReturn.number}',
-            referenceNumber: purchaseReturn.number,
-            totalDebit: netAmount,
-            totalCredit: netAmount,
-            difference: 0.0,
-            lines: lines,
-          );
-          await journalRepository!.createJournalEntry(returnEntry);
-        }
-      }
       // ------------------------------------------------------
 
       return Right(id);

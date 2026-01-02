@@ -6,6 +6,7 @@ import 'package:muhasib/features/stores/data/models/stock_adjustment_model.dart'
 import 'package:muhasib/features/stores/domain/entities/stock_adjustment_entity.dart';
 import 'package:muhasib/features/stores/domain/enums/stock_enums.dart';
 import 'package:muhasib/features/stores/domain/repositories/stock_adjustment_repository.dart';
+import 'package:muhasib/features/stores/domain/services/stock_adjustment_validation_service.dart';
 
 class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
   final StockAdjustmentLocalDataSource localDataSource;
@@ -116,6 +117,12 @@ class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
   @override
   Future<Either<Failure, int>> createAdjustment(StockAdjustmentEntity adjustment) async {
     try {
+      // Validate adjustment before creation
+      final validationErrors = AdjustmentValidationRules.validate(adjustment);
+      if (validationErrors.isNotEmpty) {
+        return Left(ValidationFailure(message:  validationErrors.join('\n')));
+      }
+      
       final model = StockAdjustmentModel.fromEntity(adjustment);
       final id = await localDataSource.createAdjustment(model);
       return Right(id);

@@ -5,11 +5,16 @@ import 'package:muhasib/features/stores/data/datasources/warehouse_local_datasou
 import 'package:muhasib/features/stores/data/models/warehouse_model.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/domain/repositories/warehouse_repository.dart';
+import 'package:muhasib/features/stores/domain/services/warehouse_validation_service.dart';
 
 class WarehouseRepositoryImpl implements WarehouseRepository {
   final WarehouseLocalDataSource localDataSource;
+  final WarehouseValidationService? validationService;
 
-  WarehouseRepositoryImpl(this.localDataSource);
+  WarehouseRepositoryImpl(
+    this.localDataSource, {
+    this.validationService,
+  });
 
   @override
   Future<Either<Failure, List<WarehouseEntity>>> getWarehouses() async {
@@ -92,6 +97,40 @@ class WarehouseRepositoryImpl implements WarehouseRepository {
   @override
   Future<Either<Failure, void>> deleteWarehouse(int id) async {
     try {
+      // Validate before deletion if service is available
+      if (validationService != null) {
+        final statsResult = await validationService!.getWarehouseUsageStats(id);
+        
+        return statsResult.fold(
+          (failure) => Left(failure),
+          (stats) async {
+            if (!stats.canDelete) {
+              final reasons = <String>[];
+              if (stats.stockMovementsCount > 0) {
+                reasons.add('يوجد ${stats.stockMovementsCount} حركة مخزون');
+              }
+              if (stats.invoiceLinesCount > 0) {
+                reasons.add('يوجد ${stats.invoiceLinesCount} سطر فاتورة');
+              }
+              if (stats.productsWithStockCount > 0) {
+                reasons.add('يوجد ${stats.productsWithStockCount} منتج برصيد');
+              }
+              if (stats.hasOpenTransfers) {
+                reasons.add('يوجد تحويلات مفتوحة');
+              }
+              
+              return Left(ValidationFailure( message: 
+                'لا يمكن حذف المخزن:\n${reasons.join('\n')}',
+              ));
+            }
+            
+            await localDataSource.deleteWarehouse(id);
+            return const Right(null);
+          },
+        );
+      }
+      
+      // Fallback: delete without validation (not recommended)
       await localDataSource.deleteWarehouse(id);
       return const Right(null);
     } on LocalStorageException catch (e) {

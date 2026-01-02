@@ -26,6 +26,7 @@ import 'package:muhasib/core/database/tables/exchange_rate_differences_table.dar
 import 'package:muhasib/core/database/tables/exchange_rate_difference_lines_table.dart';
 import 'package:muhasib/core/database/tables/currencies_histories_table.dart';
 import 'package:muhasib/core/database/tables/cities_table.dart';
+import 'package:muhasib/core/database/tables/regions_table.dart';
 import 'package:muhasib/core/database/tables/classifications_table.dart';
 import 'package:muhasib/core/database/tables/customers_table.dart';
 import 'package:muhasib/core/database/tables/suppliers_table.dart';
@@ -153,6 +154,32 @@ class DatabaseService implements IDatabaseService {
         }
       }
     }
+
+    if (oldVersion < 4) {
+      await db.execute(
+          'ALTER TABLE invoices ADD COLUMN quotation_status INTEGER NULL');
+    }
+    if (oldVersion < 5) {
+      await db.execute(
+          'ALTER TABLE invoices ADD COLUMN paid_amount REAL NULL');
+    }
+    if (oldVersion < 6) {
+      // Create regions table
+      final regionsTable = RegionsTable();
+      await db.execute(regionsTable.createTable);
+      for (final index in regionsTable.indexes) {
+        await db.execute(index);
+      }
+
+      // Add region_id to cities table
+      // Check if column exists first to avoid error if re-running
+      try {
+        await db.execute(
+            'ALTER TABLE cities ADD COLUMN region_id INTEGER NULL REFERENCES regions (id)');
+      } catch (e) {
+        // Column might already exist, ignore
+      }
+    }
   }
 
   final List<TableSchema> _tables = [
@@ -193,6 +220,7 @@ class DatabaseService implements IDatabaseService {
     CurrenciesHistoriesTable(),
 
     // Customer management
+    RegionsTable(),
     CitiesTable(),
     ClassificationsTable(),
     CustomersTable(),

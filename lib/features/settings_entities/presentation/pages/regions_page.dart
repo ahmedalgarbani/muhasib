@@ -285,7 +285,9 @@ class _RegionsViewState extends State<_RegionsView> {
   void _showRegionDialog(BuildContext context, {RegionEntity? region}) {
     final isEditing = region != null;
     final nameController = TextEditingController(text: region?.name ?? '');
+    final codeController = TextEditingController(text: region?.code ?? '');
     final countryController = TextEditingController(text: region?.country ?? '');
+    final descriptionController = TextEditingController(text: region?.description ?? '');
     bool isActive = region?.isActive ?? true;
 
     showDialog(
@@ -320,11 +322,28 @@ class _RegionsViewState extends State<_RegionsView> {
                 ),
                 const SizedBox(height: 16),
                 TextField(
+                  controller: codeController,
+                  decoration: const InputDecoration(
+                    labelText: 'الرمز (Code)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
                   controller: countryController,
                   decoration: const InputDecoration(
                     labelText: 'الدولة',
                     border: OutlineInputBorder(),
                   ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: descriptionController,
+                  decoration: const InputDecoration(
+                    labelText: 'الوصف',
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile(
@@ -350,7 +369,9 @@ class _RegionsViewState extends State<_RegionsView> {
                 final newRegion = RegionEntity(
                   id: region?.id,
                   name: nameController.text,
+                  code: codeController.text.isNotEmpty ? codeController.text : null,
                   country: countryController.text.isNotEmpty ? countryController.text : null,
+                  description: descriptionController.text.isNotEmpty ? descriptionController.text : null,
                   isActive: isActive,
                 );
 

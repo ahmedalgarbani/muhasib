@@ -3,7 +3,13 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:intl/intl.dart';
 
+/// Enhanced Journal Report with:
+/// 1. Chronological ordering preservation
+/// 2. Posted vs Draft status indicators
+/// 3. Balance verification per entry
+/// 4. Protection indicators for posted entries
 class JournalReportPage extends StatelessWidget {
   const JournalReportPage({super.key});
 
@@ -20,91 +26,369 @@ class JournalReportPage extends StatelessWidget {
 
 class _JournalReportContent extends StatelessWidget {
   final ReportFilter filter;
+  final _numberFormat = NumberFormat('#,##0.00', 'ar');
 
-  const _JournalReportContent({required this.filter});
+  _JournalReportContent({required this.filter});
+
+  String _formatCurrency(double value) {
+    return _numberFormat.format(value);
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<_JournalEntryRow>>(
+    return FutureBuilder<_JournalReportResult>(
       future: _load(filter),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
         if (snapshot.hasError) {
-          return Center(child: Text('خطأ: ${snapshot.error}'));
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error, size: 64, color: Colors.red),
+                Text('خطأ: ${snapshot.error}'),
+              ],
+            ),
+          );
         }
-        final rows = snapshot.data ?? const [];
-        if (rows.isEmpty) {
+        final data = snapshot.data;
+        if (data == null || data.entries.isEmpty) {
           return const Center(child: Text('لا توجد قيود في الفترة المحددة'));
         }
 
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: rows.length,
-          itemBuilder: (context, index) {
-            final e = rows[index];
-            return Card(
-              child: ExpansionTile(
-                title: Text('${e.number ?? ''} - ${e.description ?? ''}'),
-                subtitle: Text('التاريخ: ${e.dateLabel} | مدين: ${e.totalDebit.toStringAsFixed(2)} | دائن: ${e.totalCredit.toStringAsFixed(2)}'),
-                children: [
-                  for (final l in e.lines)
-                    ListTile(
-                      dense: true,
-                      title: Text('${l.accountCode} - ${l.accountName}'),
-                      subtitle: l.notes == null ? null : Text(l.notes!),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            l.debitAmount > 0 ? l.debitAmount.toStringAsFixed(2) : '-',
-                            style: const TextStyle(color: Colors.green),
-                          ),
-                          const SizedBox(width: 12),
-                          Text(
-                            l.creditAmount > 0 ? l.creditAmount.toStringAsFixed(2) : '-',
-                            style: const TextStyle(color: Colors.red),
-                          ),
-                        ],
+        return Column(
+          children: [
+            // Summary Row
+            _buildSummaryCards(data),
+
+            // Integrity Check
+            if (data.unbalancedCount > 0)
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red[100],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error, color: Colors.red),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'تحذير: يوجد ${data.unbalancedCount} قيد غير متوازن!',
+                        style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
                       ),
                     ),
-                ],
+                  ],
+                ),
               ),
-            );
-          },
+
+            // Journal Entries List
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: data.entries.length,
+                itemBuilder: (context, index) {
+                  final entry = data.entries[index];
+                  return _buildJournalEntryCard(context, entry, index);
+                },
+              ),
+            ),
+          ],
         );
       },
     );
   }
 
-  Future<List<_JournalEntryRow>> _load(ReportFilter filter) async {
+  Widget _buildSummaryCards(_JournalReportResult data) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.all(8),
+      child: Row(
+        children: [
+          _buildSummaryCard('عدد القيود', '${data.entries.length}', Icons.event_note, Colors.blue),
+          _buildSummaryCard('المرحّلة', '${data.postedCount}', Icons.check_circle, Colors.green),
+          _buildSummaryCard('المسودات', '${data.draftCount}', Icons.edit_note, Colors.orange),
+          _buildSummaryCard('إجمالي المدين', _formatCurrency(data.totalDebit), Icons.arrow_upward, Colors.blue),
+          _buildSummaryCard('إجمالي الدائن', _formatCurrency(data.totalCredit), Icons.arrow_downward, Colors.green),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
+    return Container(
+      width: 130,
+      margin: const EdgeInsets.all(8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+        boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 8)],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, color: color, size: 16),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(title, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildJournalEntryCard(BuildContext context, _JournalEntryRow entry, int index) {
+    final isBalanced = (entry.totalDebit - entry.totalCredit).abs() < 0.01;
+    
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: entry.isPosted ? const Color(0xFF607D8B) : Colors.orange,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+            ),
+            child: Row(
+              children: [
+                // Entry Number & Status
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        entry.isPosted ? Icons.lock : Icons.edit,
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        entry.number ?? '#${entry.id}',
+                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 12),
+                // Description
+                Expanded(
+                  child: Text(
+                    entry.description ?? 'بدون وصف',
+                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                // Date
+                Text(
+                  entry.dateLabel,
+                  style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 12),
+                ),
+              ],
+            ),
+          ),
+
+          // Balance Check Warning
+          if (!isBalanced)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              color: Colors.red[100],
+              child: Row(
+                children: [
+                  const Icon(Icons.warning, color: Colors.red, size: 16),
+                  const SizedBox(width: 8),
+                  Text(
+                    'قيد غير متوازن! الفرق: ${_formatCurrency((entry.totalDebit - entry.totalCredit).abs())}',
+                    style: const TextStyle(color: Colors.red, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+
+          // Reference Info
+          if (entry.referenceType != null || entry.referenceNumber != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              color: Colors.grey[100],
+              child: Row(
+                children: [
+                  const Icon(Icons.link, size: 14, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Text(
+                    'المرجع: ${entry.referenceType ?? ''} ${entry.referenceNumber ?? ''}',
+                    style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+
+          // Lines Table Header
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            color: Colors.grey[200],
+            child: const Row(
+              children: [
+                Expanded(flex: 4, child: Text('الحساب', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11))),
+                Expanded(flex: 2, child: Text('مدين', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.blue))),
+                Expanded(flex: 2, child: Text('دائن', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.green))),
+              ],
+            ),
+          ),
+
+          // Lines
+          ...entry.lines.map((line) => Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${line.accountCode} - ${line.accountName}',
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if (line.notes != null && line.notes!.isNotEmpty)
+                        Text(
+                          line.notes!,
+                          style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    line.debitAmount > 0 ? _formatCurrency(line.debitAmount) : '-',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: line.debitAmount > 0 ? Colors.blue : Colors.grey),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    line.creditAmount > 0 ? _formatCurrency(line.creditAmount) : '-',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: line.creditAmount > 0 ? Colors.green : Colors.grey),
+                  ),
+                ),
+              ],
+            ),
+          )),
+
+          // Totals Row
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 4,
+                  child: Row(
+                    children: [
+                      // Posted Status Badge
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: entry.isPosted ? Colors.green : Colors.orange,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          entry.isPosted ? 'مُرحَّل ✓' : 'مسودة',
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (entry.isPosted)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 8),
+                          child: Icon(Icons.lock, size: 14, color: Colors.grey[600]),
+                        ),
+                    ],
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    _formatCurrency(entry.totalDebit),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue, fontSize: 12),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    _formatCurrency(entry.totalCredit),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<_JournalReportResult> _load(ReportFilter filter) async {
     final db = await getIt<DatabaseService>().database;
     final args = <Object?>[];
 
-    String where = 'is_posted = 1';
+    // Include both posted and draft entries for transparency
+    String where = '1=1';
     if (filter.startDate != null && filter.endDate != null) {
-      // Support both seconds (correct) and legacy milliseconds timestamps.
-      where += ' AND ((entry_date >= ? AND entry_date <= ?) OR (entry_date >= ? AND entry_date <= ?))';
-      final startSec = filter.startDate!.millisecondsSinceEpoch ~/ 1000;
-      final endSec = filter.endDate!.millisecondsSinceEpoch ~/ 1000;
-      args.add(startSec);
-      args.add(endSec);
-      args.add(startSec * 1000);
-      args.add(endSec * 1000);
+      where += ' AND entry_date >= ? AND entry_date <= ?';
+      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
+      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
     }
 
     final entries = await db.query(
       'journal_entries',
       where: where,
       whereArgs: args.isEmpty ? null : args,
-      orderBy: 'entry_date DESC, id DESC',
+      orderBy: 'entry_date ASC, id ASC',  // Chronological order
     );
 
     final results = <_JournalEntryRow>[];
+    double totalDebit = 0;
+    double totalCredit = 0;
+    int postedCount = 0;
+    int draftCount = 0;
+    int unbalancedCount = 0;
+
     for (final e in entries) {
-      final lines = await db.rawQuery(
-        '''
+      final lines = await db.rawQuery('''
         SELECT
           jel.*,
           a.code AS account_code_fallback,
@@ -113,15 +397,52 @@ class _JournalReportContent extends StatelessWidget {
         LEFT JOIN accounts a ON a.id = jel.account_id
         WHERE jel.journal_entry_id = ?
         ORDER BY jel.line_number, jel.id
-        ''',
-        [e['id']],
-      );
-      results.add(
-        _JournalEntryRow.fromDb(e, lines),
-      );
+      ''', [e['id']]);
+
+      final entry = _JournalEntryRow.fromDb(e, lines);
+      results.add(entry);
+
+      totalDebit += entry.totalDebit;
+      totalCredit += entry.totalCredit;
+
+      if (entry.isPosted) {
+        postedCount++;
+      } else {
+        draftCount++;
+      }
+
+      if ((entry.totalDebit - entry.totalCredit).abs() > 0.01) {
+        unbalancedCount++;
+      }
     }
-    return results;
+
+    return _JournalReportResult(
+      entries: results,
+      totalDebit: totalDebit,
+      totalCredit: totalCredit,
+      postedCount: postedCount,
+      draftCount: draftCount,
+      unbalancedCount: unbalancedCount,
+    );
   }
+}
+
+class _JournalReportResult {
+  final List<_JournalEntryRow> entries;
+  final double totalDebit;
+  final double totalCredit;
+  final int postedCount;
+  final int draftCount;
+  final int unbalancedCount;
+
+  const _JournalReportResult({
+    required this.entries,
+    required this.totalDebit,
+    required this.totalCredit,
+    required this.postedCount,
+    required this.draftCount,
+    required this.unbalancedCount,
+  });
 }
 
 class _JournalEntryRow {
@@ -129,6 +450,9 @@ class _JournalEntryRow {
   final String? number;
   final int entryDate;
   final String? description;
+  final String? referenceType;
+  final String? referenceNumber;
+  final bool isPosted;
   final double totalDebit;
   final double totalCredit;
   final List<_JournalLineRow> lines;
@@ -138,6 +462,9 @@ class _JournalEntryRow {
     required this.number,
     required this.entryDate,
     required this.description,
+    required this.referenceType,
+    required this.referenceNumber,
+    required this.isPosted,
     required this.totalDebit,
     required this.totalCredit,
     required this.lines,
@@ -157,6 +484,9 @@ class _JournalEntryRow {
       number: e['number'] as String?,
       entryDate: (e['entry_date'] as int?) ?? 0,
       description: e['description'] as String?,
+      referenceType: e['reference_type'] as String?,
+      referenceNumber: e['reference_number'] as String?,
+      isPosted: (e['is_posted'] as int?) == 1,
       totalDebit: (e['total_debit'] as num?)?.toDouble() ?? 0.0,
       totalCredit: (e['total_credit'] as num?)?.toDouble() ?? 0.0,
       lines: lines.map(_JournalLineRow.fromDb).toList(),
@@ -198,5 +528,3 @@ class _JournalLineRow {
     );
   }
 }
-
-

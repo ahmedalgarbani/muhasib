@@ -8,9 +8,10 @@ abstract class JournalLocalDataSource {
   Future<List<JournalEntryModel>> getJournalEntries();
   Future<JournalEntryModel> getJournalEntry(int id);
   Future<int> insertJournalEntry(JournalEntryModel entry);
-  Future<void> updateJournalEntry(JournalEntryModel entry);
-  Future<void> deleteJournalEntry(int id);
+  Future<void> updateJournalEntry(JournalEntryModel entry, {bool forceUpdate = false});
+  Future<void> deleteJournalEntry(int id, {bool forceDelete = false});
 }
+
 
 class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   static const String _entriesTable = 'journal_entries';
@@ -200,7 +201,7 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   }
 
   @override
-  Future<void> updateJournalEntry(JournalEntryModel entry) async {
+  Future<void> updateJournalEntry(JournalEntryModel entry, {bool forceUpdate = false}) async {
     if (entry.id == null) {
       throw LocalStorageException('Journal entry id is required for update');
     }
@@ -222,17 +223,35 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
       }
       
       await database.transaction((txn) async {
-        // Check if entry is posted - allow update but track modification
+        // SECURITY CHECK: Prevent modification of posted entries
         final existingEntry = await txn.query(
           _entriesTable,
-          columns: ['is_posted'],
+          columns: ['is_posted', 'reference_type'],
           where: 'id = ?',
           whereArgs: [entry.id],
           limit: 1,
         );
         
-        final wasPosted = existingEntry.isNotEmpty && 
-            (existingEntry.first['is_posted'] as int?) == 1;
+        if (existingEntry.isEmpty) {
+          throw LocalStorageException('القيد غير موجود: ${entry.id}');
+        }
+        
+        final wasPosted = (existingEntry.first['is_posted'] as int?) == 1;
+        final refType = existingEntry.first['reference_type'] as String?;
+        
+        // Block modification of posted entries unless force flag is set
+        if (wasPosted && !forceUpdate) {
+          throw LocalStorageException(
+            'لا يمكن تعديل قيد مُرحَّل. القيود المُرحَّلة محمية للحفاظ على سلامة السجلات المحاسبية.',
+          );
+        }
+        
+        // Block modification of system-generated entries (invoices, payments, etc.)
+        if (refType != null && refType.isNotEmpty && !forceUpdate) {
+          throw LocalStorageException(
+            'لا يمكن تعديل قيد مرتبط بمستند ($refType). يرجى تعديل المستند الأصلي.',
+          );
+        }
         
         // Reverse old balances before replacing lines
         final oldLines = await _getEntryLinesRaw(txn, entry.id!);
@@ -305,9 +324,39 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   }
 
   @override
-  Future<void> deleteJournalEntry(int id) async {
+  Future<void> deleteJournalEntry(int id, {bool forceDelete = false}) async {
     try {
       final deleted = await database.transaction((txn) async {
+        // SECURITY CHECK: Prevent deletion of posted entries
+        final existingEntry = await txn.query(
+          _entriesTable,
+          columns: ['is_posted', 'reference_type'],
+          where: 'id = ?',
+          whereArgs: [id],
+          limit: 1,
+        );
+        
+        if (existingEntry.isEmpty) {
+          throw LocalStorageException('القيد غير موجود: $id');
+        }
+        
+        final isPosted = (existingEntry.first['is_posted'] as int?) == 1;
+        final refType = existingEntry.first['reference_type'] as String?;
+        
+        // Block deletion of posted entries unless force flag is set
+        if (isPosted && !forceDelete) {
+          throw LocalStorageException(
+            'لا يمكن حذف قيد مُرحَّل. القيود المُرحَّلة محمية للحفاظ على سلامة السجلات المحاسبية. يمكنك إنشاء قيد عكسي بدلاً من ذلك.',
+          );
+        }
+        
+        // Block deletion of system-generated entries
+        if (refType != null && refType.isNotEmpty && !forceDelete) {
+          throw LocalStorageException(
+            'لا يمكن حذف قيد مرتبط بمستند ($refType). يرجى حذف/إلغاء المستند الأصلي.',
+          );
+        }
+        
         // Reverse balances before delete
         final oldLines = await _getEntryLinesRaw(txn, id);
         for (final l in oldLines) {

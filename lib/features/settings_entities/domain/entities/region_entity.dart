@@ -5,6 +5,9 @@ class RegionEntity extends Equatable {
   final String name;
   final bool isActive;
   final String? country;
+  final String? code;
+  final int? parentRegionId;
+  final String? description;
   final int? creatorId;
   final int? lastModifierId;
   final String? concurrencyStamp;
@@ -17,6 +20,9 @@ class RegionEntity extends Equatable {
     required this.name,
     this.isActive = true,
     this.country,
+    this.code,
+    this.parentRegionId,
+    this.description,
     this.creatorId,
     this.lastModifierId,
     this.concurrencyStamp,
@@ -30,6 +36,9 @@ class RegionEntity extends Equatable {
     String? name,
     bool? isActive,
     String? country,
+    String? code,
+    int? parentRegionId,
+    String? description,
     int? creatorId,
     int? lastModifierId,
     String? concurrencyStamp,
@@ -42,6 +51,9 @@ class RegionEntity extends Equatable {
       name: name ?? this.name,
       isActive: isActive ?? this.isActive,
       country: country ?? this.country,
+      code: code ?? this.code,
+      parentRegionId: parentRegionId ?? this.parentRegionId,
+      description: description ?? this.description,
       creatorId: creatorId ?? this.creatorId,
       lastModifierId: lastModifierId ?? this.lastModifierId,
       concurrencyStamp: concurrencyStamp ?? this.concurrencyStamp,
@@ -57,6 +69,9 @@ class RegionEntity extends Equatable {
         name,
         isActive,
         country,
+        code,
+        parentRegionId,
+        description,
         creatorId,
         lastModifierId,
         concurrencyStamp,

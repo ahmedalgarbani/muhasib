@@ -137,17 +137,28 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
         whereArgs: [id],
       );
 
+      double totalIncrease = 0.0;
+      double totalDecrease = 0.0;
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
       // Create stock settlements for differences
       for (var line in inventory.lines) {
         final difference = line.actualQuantity - line.quantity;
         if (difference != 0) {
           final adjType = difference > 0 ? 0 : 1; // increase/decrease
+          final differenceValue = (line.costAmount ?? 0) * difference.abs();
+          
+          if (difference > 0) {
+            totalIncrease += differenceValue;
+          } else {
+            totalDecrease += differenceValue;
+          }
 
           final settlementId = await txn.insert('stock_settlements', {
             'number': 'ADJ-INV-$id-${line.categoryId ?? 0}',
-            'date': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            'date': now,
             'type': adjType,
-            'total_amount': (line.costAmount ?? 0) * difference.abs(),
+            'total_amount': differenceValue,
             'currency_code': null,
             'exchange_rate': null,
             'currency_id': 1,
@@ -168,7 +179,7 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
             'quantity': difference.abs(),
             'statement': line.statement,
             'amount': (line.costAmount ?? 0),
-            'total_amount': (line.costAmount ?? 0) * difference.abs(),
+            'total_amount': differenceValue,
             'currency_code': null,
             'exchange_rate': null,
             'currency_id': 1,
@@ -178,12 +189,40 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
             'reason': 'الفرق في الجرد',
           });
 
-          // Update stock movement
+          // Update stock in warehouse_stocks
+          await txn.rawUpdate('''
+            INSERT INTO warehouse_stocks (product_id, warehouse_id, quantity, avg_cost, creation_time, last_modification_time)
+            VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(product_id, warehouse_id) DO UPDATE SET
+            quantity = quantity + ?,
+            last_modification_time = ?
+          ''', [
+            line.categoryId ?? 0, inventory.stockId, difference, (line.costAmount ?? 0), now, now,
+            difference, now
+          ]);
+
+          // Insert stock movement
+          await txn.insert('stock_movements', {
+            'product_id': line.categoryId ?? 0,
+            'warehouse_id': inventory.stockId,
+            'movement_type': 'inventory_adjustment',
+            'quantity': difference,
+            'unit_cost': (line.costAmount ?? 0),
+            'total_cost': differenceValue,
+            'balance_after': 0,
+            'reference_type': 'inventory',
+            'reference_id': id,
+            'reference_number': 'INV-$id',
+            'creation_time': now,
+            'notes': line.statement,
+          });
+
+          // Legacy category_movs for backwards compatibility
           await txn.insert('category_movs', {
             'doc_no': settlementId,
             'trans_doc_type': 6,
             'trans_in_out': difference > 0 ? 1 : 0,
-            'trans_date': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            'trans_date': now,
             'category_id': line.categoryId ?? 0,
             'unit_id': line.unitId,
             'group_id': line.groupId,
@@ -193,7 +232,7 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
             'quantity_in': difference > 0 ? difference.abs() : 0,
             'quantity_out': difference > 0 ? 0 : difference.abs(),
             'cost_amount': (line.costAmount ?? 0),
-            'cost_local_amount': (line.costAmount ?? 0) * difference.abs(),
+            'cost_local_amount': differenceValue,
             'currency_id': 1,
             'currency_code': null,
             'exchange_rate': null,
@@ -206,12 +245,156 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
             'barcode_no': null,
             'expire_date': null,
             'customer_id': null,
-            'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-            'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+            'creation_time': now,
+            'last_modification_time': now,
           });
         }
       }
+
+      // Create journal entries for the total differences
+      // CRITICAL: This was missing before - inventory differences must be recorded in accounting!
+      
+      // Get account IDs
+      final inventoryAccountId = await _resolveAccountId(txn, 'المخزون', 1180);
+      final increaseAccountId = await _resolveAccountId(txn, 'إيرادات تسوية مخزون', 4200);
+      final decreaseAccountId = await _resolveAccountId(txn, 'خسائر تسوية مخزون', 5200);
+
+      // Journal entry for increases (gains)
+      if (totalIncrease > 0) {
+        await _createJournalEntry(
+          txn: txn,
+          now: now,
+          inventoryId: id,
+          inventoryNumber: inventory.number,
+          debitAccountId: inventoryAccountId,
+          creditAccountId: increaseAccountId,
+          amount: totalIncrease,
+          isIncrease: true,
+        );
+      }
+
+      // Journal entry for decreases (losses)
+      if (totalDecrease > 0) {
+        await _createJournalEntry(
+          txn: txn,
+          now: now,
+          inventoryId: id,
+          inventoryNumber: inventory.number,
+          debitAccountId: decreaseAccountId,
+          creditAccountId: inventoryAccountId,
+          amount: totalDecrease,
+          isIncrease: false,
+        );
+      }
     });
+  }
+
+  /// Creates a journal entry for inventory adjustments
+  Future<void> _createJournalEntry({
+    required Transaction txn,
+    required int now,
+    required int inventoryId,
+    required String inventoryNumber,
+    required int debitAccountId,
+    required int creditAccountId,
+    required double amount,
+    required bool isIncrease,
+  }) async {
+    final journalNumber = await _nextJournalNumber(txn, 'INV');
+    
+    final journalEntryId = await txn.insert('journal_entries', {
+      'number': journalNumber,
+      'entry_date': now,
+      'description': isIncrease 
+          ? 'زيادة مخزون من جرد رقم $inventoryNumber'
+          : 'نقص مخزون من جرد رقم $inventoryNumber',
+      'reference_type': 'inventory',
+      'reference_id': inventoryId,
+      'reference_number': inventoryNumber,
+      'status': 1,
+      'is_posted': 1,
+      'total_debit': amount,
+      'total_credit': amount,
+      'difference': 0.0,
+      'creation_time': now,
+      'last_modification_time': now,
+    });
+
+    // Debit Line
+    final debitMeta = await _getAccountMeta(txn, debitAccountId);
+    await txn.insert('journal_entry_lines', {
+      'journal_entry_id': journalEntryId,
+      'line_number': 1,
+      'account_id': debitAccountId,
+      'account_code': debitMeta['code'],
+      'account_name': debitMeta['name'],
+      'debit_amount': amount,
+      'credit_amount': 0.0,
+      'description': isIncrease ? 'زيادة مخزون' : 'عجز مخزون',
+    });
+    
+    // Update Debit Account Balance
+    await txn.rawUpdate(
+      'UPDATE accounts SET balance = COALESCE(balance, 0) + ? WHERE id = ?',
+      [amount, debitAccountId],
+    );
+
+    // Credit Line
+    final creditMeta = await _getAccountMeta(txn, creditAccountId);
+    await txn.insert('journal_entry_lines', {
+      'journal_entry_id': journalEntryId,
+      'line_number': 2,
+      'account_id': creditAccountId,
+      'account_code': creditMeta['code'],
+      'account_name': creditMeta['name'],
+      'debit_amount': 0.0,
+      'credit_amount': amount,
+      'description': isIncrease ? 'إيراد تسوية جرد' : 'تخفيض مخزون',
+    });
+
+    // Update Credit Account Balance
+    await txn.rawUpdate(
+      'UPDATE accounts SET balance = COALESCE(balance, 0) - ? WHERE id = ?',
+      [amount, creditAccountId],
+    );
+  }
+
+  // Helper methods for accounting
+  Future<int> _resolveAccountId(Transaction txn, String label, int defaultId) async {
+    final result = await txn.query(
+      'accounts',
+      columns: ['id'],
+      where: 'name LIKE ? OR id = ?',
+      whereArgs: ['%$label%', defaultId],
+      limit: 1,
+    );
+    if (result.isNotEmpty) {
+      return result.first['id'] as int;
+    }
+    return defaultId;
+  }
+
+  Future<Map<String, dynamic>> _getAccountMeta(Transaction txn, int accountId) async {
+    final result = await txn.query(
+      'accounts',
+      columns: ['code', 'name'],
+      where: 'id = ?',
+      whereArgs: [accountId],
+      limit: 1,
+    );
+    if (result.isNotEmpty) {
+      return {'code': result.first['code'] ?? '', 'name': result.first['name'] ?? ''};
+    }
+    return {'code': '', 'name': ''};
+  }
+
+  Future<String> _nextJournalNumber(Transaction txn, String prefix) async {
+    final result = await txn.rawQuery(
+      "SELECT COALESCE(MAX(CAST(SUBSTR(number, ${prefix.length + 2}) AS INTEGER)), 0) + 1 as next "
+      "FROM journal_entries WHERE number LIKE '$prefix-%'",
+    );
+    final next = (result.first['next'] as int?) ?? 1;
+    return '$prefix-${next.toString().padLeft(6, '0')}';
   }
 
   @override

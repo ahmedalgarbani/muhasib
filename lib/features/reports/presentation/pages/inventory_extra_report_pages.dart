@@ -56,7 +56,7 @@ class _StockMovementsContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<_MovRow>>(
+    return FutureBuilder<_MovResult>(
       future: _load(filter),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -65,13 +65,10 @@ class _StockMovementsContent extends StatelessWidget {
         if (snapshot.hasError) {
           return Center(child: Text('خطأ: ${snapshot.error}'));
         }
-        final rows = snapshot.data ?? const [];
-        if (rows.isEmpty) {
+        final data = snapshot.data;
+        if (data == null || data.rows.isEmpty) {
           return const Center(child: Text('لا توجد حركات في الفترة المحددة'));
         }
-
-        final totalIn = rows.fold<double>(0, (s, r) => s + r.qtyIn);
-        final totalOut = rows.fold<double>(0, (s, r) => s + r.qtyOut);
 
         return Column(
           children: [
@@ -79,34 +76,125 @@ class _StockMovementsContent extends StatelessWidget {
               cards: [
                 ReportSummaryCard(
                   title: 'إجمالي الداخل',
-                  value: totalIn.toStringAsFixed(2),
+                  value: data.totalIn.toStringAsFixed(2),
                   icon: Icons.arrow_downward,
                   color: Colors.green,
                 ),
                 ReportSummaryCard(
                   title: 'إجمالي الخارج',
-                  value: totalOut.toStringAsFixed(2),
+                  value: data.totalOut.toStringAsFixed(2),
                   icon: Icons.arrow_upward,
                   color: Colors.red,
                 ),
                 ReportSummaryCard(
                   title: 'عدد الحركات',
-                  value: rows.length.toString(),
+                  value: data.rows.length.toString(),
                   icon: Icons.receipt,
                   color: Colors.blue,
                 ),
+                if (data.undocumentedCount > 0)
+                  ReportSummaryCard(
+                    title: 'بدون مرجع!',
+                    value: data.undocumentedCount.toString(),
+                    icon: Icons.warning,
+                    color: Colors.red,
+                  ),
               ],
             ),
+            // Warning for undocumented movements
+            if (data.undocumentedCount > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.red[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red[200]!),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning, color: Colors.red),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'تحذير: حركات بدون مرجع!',
+                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
+                            ),
+                            Text(
+                              'يوجد ${data.undocumentedCount} حركة بدون مستند مرجعي - هذا قد يشير إلى خلل في النظام.',
+                              style: TextStyle(fontSize: 12, color: Colors.red[700]),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
-                itemCount: rows.length,
+                itemCount: data.rows.length,
                 itemBuilder: (context, index) {
-                  final r = rows[index];
+                  final r = data.rows[index];
+                  final isUndocumented = r.referenceNo.isEmpty;
+                  
                   return Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: isUndocumented
+                          ? const BorderSide(color: Colors.red, width: 2)
+                          : BorderSide.none,
+                    ),
                     child: ListTile(
-                      title: Text('${r.productName} (${r.warehouseName})'),
-                      subtitle: Text('${r.dateLabel} | ${r.referenceNo} | ${r.statement}'),
+                      leading: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            r.qtyIn > 0 ? Icons.arrow_downward : Icons.arrow_upward,
+                            color: r.qtyIn > 0 ? Colors.green : Colors.red,
+                          ),
+                        ],
+                      ),
+                      title: Row(
+                        children: [
+                          Expanded(child: Text('${r.productName}')),
+                          if (isUndocumented)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.red[100],
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: const Text(
+                                'بدون مرجع!',
+                                style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                        ],
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('المخزن: ${r.warehouseName}'),
+                          Row(
+                            children: [
+                              Text('${r.dateLabel}', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                              if (r.referenceNo.isNotEmpty) ...[
+                                const Text(' | '),
+                                Text('المرجع: ${r.referenceNo}', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                              ],
+                            ],
+                          ),
+                          if (r.statement.isNotEmpty)
+                            Text(r.statement, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                        ],
+                      ),
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
@@ -116,12 +204,13 @@ class _StockMovementsContent extends StatelessWidget {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: r.qtyIn > 0 ? Colors.green : Colors.red,
+                              fontSize: 16,
                             ),
                           ),
                           if (r.value != 0)
                             Text(
-                              r.value.toStringAsFixed(2),
-                              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                              '${r.value.toStringAsFixed(2)} ر.س',
+                              style: TextStyle(color: Colors.grey[600], fontSize: 11),
                             ),
                         ],
                       ),
@@ -136,7 +225,7 @@ class _StockMovementsContent extends StatelessWidget {
     );
   }
 
-  Future<List<_MovRow>> _load(ReportFilter filter) async {
+  Future<_MovResult> _load(ReportFilter filter) async {
     final db = await getIt<DatabaseService>().database;
     final args = <Object?>[];
     String dateFilter = '';
@@ -146,8 +235,7 @@ class _StockMovementsContent extends StatelessWidget {
       args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
     }
 
-    final rows = await db.rawQuery(
-      '''
+    final rows = await db.rawQuery('''
       SELECT
         cm.trans_date,
         cm.quantity_in,
@@ -162,24 +250,48 @@ class _StockMovementsContent extends StatelessWidget {
       LEFT JOIN stocks s ON s.id = cm.stock_id
       $dateFilter
       ORDER BY cm.trans_date DESC
-      ''',
-      args,
-    );
+    ''', args);
 
-    return rows.map((m) {
+    final parsedRows = rows.map((m) {
       return _MovRow(
         transDate: (m['trans_date'] as int?) ?? 0,
         qtyIn: (m['quantity_in'] as num?)?.toDouble() ?? 0.0,
         qtyOut: (m['quantity_out'] as num?)?.toDouble() ?? 0.0,
         value: (m['cost_local_amount'] as num?)?.toDouble() ?? 0.0,
-        referenceNo: (m['refrenc_no'] as String?) ?? '',
-        statement: (m['statement'] as String?) ?? '',
+        referenceNo: ((m['refrenc_no'] as String?) ?? '').trim(),
+        statement: ((m['statement'] as String?) ?? '').trim(),
         productName: (m['product_name'] as String?) ?? '',
         warehouseName: (m['stock_name'] as String?) ?? '',
       );
     }).toList();
+
+    final totalIn = parsedRows.fold<double>(0, (s, r) => s + r.qtyIn);
+    final totalOut = parsedRows.fold<double>(0, (s, r) => s + r.qtyOut);
+    final undocumented = parsedRows.where((r) => r.referenceNo.isEmpty).length;
+
+    return _MovResult(
+      rows: parsedRows,
+      totalIn: totalIn,
+      totalOut: totalOut,
+      undocumentedCount: undocumented,
+    );
   }
 }
+
+class _MovResult {
+  final List<_MovRow> rows;
+  final double totalIn;
+  final double totalOut;
+  final int undocumentedCount;
+  
+  const _MovResult({
+    required this.rows,
+    required this.totalIn,
+    required this.totalOut,
+    required this.undocumentedCount,
+  });
+}
+
 
 class _LowStockContent extends StatelessWidget {
   const _LowStockContent();

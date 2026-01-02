@@ -394,17 +394,47 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final discountAllowedId =
         discount > 0 ? await _resolveConnectedAccountId(txn, 8, label: 'الخصم المسموح به') : 0;
 
+    // ========== Split Payment Support ==========
+    // paidAmount = cash portion; remainder = credit portion
+    final paidAmount = (invoiceData['paid_amount'] as num?)?.toDouble() ?? 0.0;
+    final cashPortion = isCredit ? paidAmount : total;  // If credit, use paidAmount as cash
+    final creditPortion = isCredit ? (total - paidAmount) : 0.0;  // If credit, remainder goes to customer account
+
     // Build lines (balanced)
     final rawLines = <Map<String, dynamic>>[];
 
-    // Debit side
-    rawLines.add({
-      'account_id': isCredit ? customerAccountId : cashAccountId,
-      'debit_amount': total,
-      'credit_amount': 0.0,
-      'notes': statement,
-      'description': isCredit ? 'ذمم العملاء - $invoiceNumber' : 'مبيعات نقدية - $invoiceNumber',
-    });
+    // Debit side - Cash portion (if any)
+    if (cashPortion > 0) {
+      rawLines.add({
+        'account_id': cashAccountId,
+        'debit_amount': cashPortion,
+        'credit_amount': 0.0,
+        'notes': statement,
+        'description': 'مبيعات نقدية - $invoiceNumber',
+      });
+    }
+
+    // Debit side - Credit portion (customer receivable)
+    if (creditPortion > 0) {
+      rawLines.add({
+        'account_id': customerAccountId,
+        'debit_amount': creditPortion,
+        'credit_amount': 0.0,
+        'notes': statement,
+        'description': 'ذمم العملاء - $invoiceNumber',
+      });
+    }
+
+    // If no cash and no credit (shouldn't happen, but fallback)
+    if (cashPortion <= 0 && creditPortion <= 0 && total > 0) {
+      rawLines.add({
+        'account_id': isCredit ? customerAccountId : cashAccountId,
+        'debit_amount': total,
+        'credit_amount': 0.0,
+        'notes': statement,
+        'description': isCredit ? 'ذمم العملاء - $invoiceNumber' : 'مبيعات نقدية - $invoiceNumber',
+      });
+    }
 
     // Credit: Sales revenue
     rawLines.add({
@@ -437,11 +467,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       });
     }
 
-    // Other fee account (optional)
-    final otherFeeAccountId = invoiceData['other_fee_account_id'] as int?;
-    if (otherFee > 0 && otherFeeAccountId != null) {
+    // Other fee account - use default if not specified to ensure accounting integrity
+    if (otherFee > 0) {
+      // Use provided account or default to "Other Revenue" account (4260)
+      final effectiveAccountId = invoiceData['other_fee_account_id'] as int? ?? 4260;
       rawLines.add({
-        'account_id': otherFeeAccountId,
+        'account_id': effectiveAccountId,
         'debit_amount': 0.0,
         'credit_amount': otherFee,
         'notes': statement,
@@ -523,11 +554,11 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
 
-    // Update customer balance only for credit invoices (A/R)
-    if (isCredit) {
+    // Update customer balance only for credit portion (A/R)
+    if (creditPortion > 0) {
       await txn.rawUpdate(
         'UPDATE $_customersTable SET current_balance = COALESCE(current_balance, 0) + ? WHERE id = ?',
-        [total, customerId],
+        [creditPortion, customerId],
       );
     }
   }
@@ -1488,6 +1519,90 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             'id': invoiceId,
           },
         );
+
+        // ========== UPDATE INVENTORY FOR SALES - Reduce stock ==========
+        final invoiceType = (invoiceData['invoice_type'] as int?) ?? 0;
+        if (invoiceType == 1) {
+          // Sales invoice only
+          final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+          final headerStockId = invoiceData['stock_id'] as int?;
+          final invoiceNumber = (invoiceData['number'] as String?) ?? '';
+          
+          for (final line in invoice.lines) {
+            final lineModel = line is InvoiceLineModel ? line : InvoiceLineModel.fromEntity(line);
+            final productId = lineModel.categoryId;
+            final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
+            final qty = lineModel.quantity;
+            
+            if (productId != null && qty > 0) {
+              // Get current stock
+              final stockResult = await txn.query(
+                'warehouse_stocks',
+                where: 'product_id = ? AND warehouse_id = ?',
+                whereArgs: [productId, warehouseId],
+                limit: 1,
+              );
+              
+              double currentQty = 0.0;
+              double avgCost = 0.0;
+              
+              if (stockResult.isNotEmpty) {
+                currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+                avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+              }
+              
+              final newQty = currentQty - qty;
+              
+              // Update or insert warehouse stock
+              if (stockResult.isNotEmpty) {
+                await txn.update(
+                  'warehouse_stocks',
+                  {
+                    'quantity': newQty,
+                    'last_modification_time': now,
+                  },
+                  where: 'product_id = ? AND warehouse_id = ?',
+                  whereArgs: [productId, warehouseId],
+                );
+              } else {
+                // Create new record with negative quantity (oversold)
+                await txn.insert(
+                  'warehouse_stocks',
+                  {
+                    'product_id': productId,
+                    'warehouse_id': warehouseId,
+                    'quantity': newQty,
+                    'avg_cost': 0.0,
+                    'last_cost': 0.0,
+                    'creation_time': now,
+                    'last_modification_time': now,
+                  },
+                  conflictAlgorithm: ConflictAlgorithm.replace,
+                );
+              }
+              
+              // Record stock movement
+              try {
+                await txn.insert('stock_movements', {
+                  'product_id': productId,
+                  'warehouse_id': warehouseId,
+                  'movement_type': 'sale',
+                  'quantity': -qty, // Negative for outgoing
+                  'unit_cost': avgCost,
+                  'total_cost': qty * avgCost,
+                  'balance_after': newQty,
+                  'reference_type': 'sales_invoice',
+                  'reference_id': invoiceId,
+                  'reference_number': invoiceNumber,
+                  'creation_time': now,
+                });
+              } catch (_) {
+                // Ignore if stock_movements table doesn't exist
+              }
+            }
+          }
+        }
+        // ========== END INVENTORY UPDATE ==========
 
         return invoiceId;
       });

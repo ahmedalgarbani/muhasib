@@ -35,7 +35,7 @@ class TransactionModel extends TransactionEntity {
       reference: json['number'] ?? json['reference_number'] ?? '',
       transactionType: _mapTransactionType(json['reference_type']),
       totalAmount: (json['total_debit'] ?? 0.0) as double,
-      details: lines.map((line) => TransactionDetailModel.fromDatabase(line)).toList(),
+      details: lines.map<TransactionDetailEntity>((line) => TransactionDetailModel.fromDatabase(line)).toList(),
       invoiceId: json['reference_id'] as int?,
       voucherId: json['voucher_id'] as int?,
       createdBy: json['creator_id'] ?? 1,
