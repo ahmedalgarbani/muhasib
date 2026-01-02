@@ -227,29 +227,29 @@ class DatabaseService implements IDatabaseService {
     InvoiceLinesTable(),
     SalesInvoicesTable(),
     SalesInvoiceItemsTable(),
-    
+
     // Unified Payments System (replaces old payment tables)
     PaymentMethodTypesTable(),
     UnifiedPaymentsTable(),
     PaymentAllocationsTable(),
-    
+
     // Legacy payment tables (kept for migration/compatibility)
     PaymentsTable(),
     InvoicePaymentsTable(),
-    
+
     // Discount codes & coupons
     DiscountCodesTable(),
     DiscountCodeUsageTable(),
-    
+
     // Sales agents & commissions
     SalesAgentsTable(),
     SalesCommissionsTable(),
-    
+
     // Purchases
     PurchaseInvoicesTable(),
     PurchaseInvoiceItemsTable(),
     PurchasePaymentsTable(),
-    
+
     // Inventory & Stock Movements
     InventoryTransactionsTable(),
     StockMovementsTable(),

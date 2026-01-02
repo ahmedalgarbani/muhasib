@@ -11,6 +11,7 @@ import 'package:muhasib/features/accounts/domain/repositories/journal_repository
 import 'package:muhasib/features/accounts/data/models/journal_entry_model.dart';
 import 'package:muhasib/features/accounts/data/models/journal_entry_line_model.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/services/database_service.dart';
 
 class PurchaseRepositoryImpl implements PurchaseRepository {
   final InvoiceLocalDataSource localDataSource;
@@ -543,7 +544,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       );
 
       // ========== UPDATE INVENTORY - Reduce stock for returned items ==========
-      final db = await databaseService.database;
+      final db = await DatabaseService().database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
       
       for (final line in returnInvoice.lines) {
@@ -563,7 +564,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
           if (stockResult.isNotEmpty) {
             final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
             final avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 
-                           (line.costPrice ?? line.price);
+                           (line.costPrice ?? line.price ?? 0.0);
             final newQty = currentQty - returnQty;
             
             // Update stock - reduce quantity

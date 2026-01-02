@@ -186,11 +186,14 @@ class _CurrenciesPageState extends State<CurrenciesPage> {
                           color: Colors.grey[600],
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          'سعر الصرف: ${currency.exchangeRate.toStringAsFixed(2)}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
+                        Flexible(
+                          child: Text(
+                            'سعر الصرف: ${currency.exchangeRate.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                         if (currency.isLocalCurrency == true) ...[

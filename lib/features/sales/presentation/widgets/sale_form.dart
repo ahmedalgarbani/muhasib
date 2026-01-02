@@ -1634,7 +1634,7 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
                   const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 20),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
-                    'تنبيه: السعر أقل من التكلفة (${NumberFormatter.formatCurrency(widget.item.costPrice!)})',
+                    'تنبيه: السعر أقل من التكلفة (${NumberFormatter.formatCurrency(widget.item.costPrice ?? 0)})',
                     style: AppTextStyles.small.copyWith(color: AppColors.warning),
                   ),
                 ],
@@ -2043,6 +2043,7 @@ class _Step1CustomerState extends State<Step1Customer> {
                           }
                           
                           return DropdownButtonFormField<int>(
+                            isExpanded: true,
                             value: _selectedCurrencyId,
                             decoration: InputDecoration(
                               filled: true,

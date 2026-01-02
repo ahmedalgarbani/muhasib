@@ -129,7 +129,7 @@ class UnifiedPaymentsTable implements TableSchema {
       
       -- Allocation tracking (for partial payments)
       allocated_amount REAL NOT NULL DEFAULT 0.0,
-      unallocated_amount REAL GENERATED ALWAYS AS (amount - allocated_amount) STORED,
+      unallocated_amount REAL NOT NULL DEFAULT 0.0,
       
       -- Notes and attachments
       notes TEXT NULL,
@@ -152,6 +152,10 @@ class UnifiedPaymentsTable implements TableSchema {
     'CREATE INDEX idx_unified_payments_check ON unified_payments (check_number) WHERE check_number IS NOT NULL',
     'CREATE INDEX idx_unified_payments_reconciled ON unified_payments (is_reconciled)',
     'CREATE INDEX idx_unified_payments_unallocated ON unified_payments (unallocated_amount) WHERE unallocated_amount > 0',
+    
+    // Triggers to calculate unallocated_amount (replacing GENERATED ALWAYS AS)
+    'CREATE TRIGGER tr_unified_payments_insert_unallocated AFTER INSERT ON unified_payments BEGIN UPDATE unified_payments SET unallocated_amount = NEW.amount - NEW.allocated_amount WHERE id = NEW.id; END',
+    'CREATE TRIGGER tr_unified_payments_update_unallocated AFTER UPDATE OF amount, allocated_amount ON unified_payments BEGIN UPDATE unified_payments SET unallocated_amount = NEW.amount - NEW.allocated_amount WHERE id = NEW.id; END',
   ];
 }
 

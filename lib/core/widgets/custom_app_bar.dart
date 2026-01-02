@@ -18,10 +18,12 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   Widget build(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.white,
-      leading: IconButton(
-        icon: const Icon(Icons.menu, color: Colors.black, size: 26),
-        onPressed: onMenuPressed,
-      ),
+      leading: onMenuPressed != null
+          ? IconButton(
+              icon: const Icon(Icons.menu, color: Colors.black, size: 26),
+              onPressed: onMenuPressed,
+            )
+          : null,
       title: Text(
         title ?? 'محاسب',
         style: const TextStyle(

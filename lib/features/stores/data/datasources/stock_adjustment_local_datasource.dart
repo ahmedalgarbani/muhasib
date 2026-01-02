@@ -20,7 +20,8 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
 
   @override
   Future<List<StockAdjustmentModel>> getAdjustments() async {
-    final List<Map<String, dynamic>> maps = await database.query(
+    final db = await databaseService.database;
+    final List<Map<String, dynamic>> maps = await db.query(
       'stock_settlements',
       orderBy: 'date DESC',
     );
@@ -35,7 +36,8 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
 
   @override
   Future<List<StockAdjustmentModel>> getAdjustmentsByWarehouse(int warehouseId) async {
-    final List<Map<String, dynamic>> maps = await database.query(
+    final db = await databaseService.database;
+    final List<Map<String, dynamic>> maps = await db.query(
       'stock_settlements',
       where: 'stock_id = ?',
       whereArgs: [warehouseId],
@@ -52,7 +54,8 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
 
   @override
   Future<StockAdjustmentModel> getAdjustment(int id) async {
-    final List<Map<String, dynamic>> maps = await database.query(
+    final db = await databaseService.database;
+    final List<Map<String, dynamic>> maps = await db.query(
       'stock_settlements',
       where: 'id = ?',
       whereArgs: [id],
@@ -69,7 +72,8 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
 
   @override
   Future<int> createAdjustment(StockAdjustmentModel adjustment) async {
-    return await database.transaction((txn) async {
+    final db = await databaseService.database;
+    return await db.transaction((txn) async {
       final id = await txn.insert('stock_settlements', adjustment.toMap());
       
       // Insert adjustment lines
@@ -87,8 +91,9 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
   @override
   Future<void> postAdjustment(int id) async {
     final adjustment = await getAdjustment(id);
+    final db = await databaseService.database;
     
-    await database.transaction((txn) async {
+    await db.transaction((txn) async {
       // 1. Update adjustment status to posted
       await txn.update(
         'stock_settlements',
@@ -220,6 +225,43 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
     });
   }
 
+  @override
+  Future<void> deleteAdjustment(int id) async {
+    final adjustment = await getAdjustment(id);
+    
+    // Only allow deletion if not posted
+    if (adjustment.status == TransferStatus.completed) {
+      throw Exception('Cannot delete posted adjustment');
+    }
+
+    final db = await databaseService.database;
+    await db.transaction((txn) async {
+      // Delete adjustment lines first
+      await txn.delete(
+        'stock_settlement_lines',
+        where: 'stock_settlement_id = ?',
+        whereArgs: [id],
+      );
+      
+      // Delete adjustment
+      await txn.delete(
+        'stock_settlements',
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
+  }
+
+  Future<List<StockAdjustmentLineModel>> _getAdjustmentLines(int adjustmentId) async {
+    final db = await databaseService.database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      'stock_settlement_lines',
+      where: 'stock_settlement_id = ?',
+      whereArgs: [adjustmentId],
+    );
+
+    return maps.map((map) => StockAdjustmentLineModel.fromMap(map)).toList();
+  }
   // Helpers for Accounting
   Future<int> _resolveAccountId(Transaction txn, String label, int defaultId) async {
     final result = await txn.query(

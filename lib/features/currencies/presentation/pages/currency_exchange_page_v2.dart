@@ -226,6 +226,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<CurrencyEntity>(
+                    isExpanded: true,
                     value: fromCurrency,
                     decoration: InputDecoration(
                       labelText: 'من العملة (بيع)',
@@ -320,6 +321,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<CurrencyEntity>(
+                    isExpanded: true,
                     value: toCurrency,
                     decoration: InputDecoration(
                       labelText: 'إلى العملة (شراء)',
@@ -448,6 +450,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
+              isExpanded: true,
               value: fromAccountId,
               decoration: InputDecoration(
                 labelText: 'حساب العملة المباعة (دائن)',
@@ -467,6 +470,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
+              isExpanded: true,
               value: toAccountId,
               decoration: InputDecoration(
                 labelText: 'حساب العملة المشتراة (مدين)',
@@ -486,6 +490,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
+              isExpanded: true,
               value: exchangeDifferenceAccountId,
               decoration: InputDecoration(
                 labelText: 'حساب فروق الصرف (اختياري)',

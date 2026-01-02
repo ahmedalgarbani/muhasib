@@ -72,12 +72,12 @@ class WarehouseStocksTable implements TableSchema {
       -- Current quantities and costs
       quantity REAL NOT NULL DEFAULT 0.0,
       reserved_quantity REAL NOT NULL DEFAULT 0.0,
-      available_quantity REAL GENERATED ALWAYS AS (quantity - reserved_quantity) STORED,
+      available_quantity REAL NOT NULL DEFAULT 0.0,
       
       -- Cost tracking (for COGS calculation)
       avg_cost REAL NOT NULL DEFAULT 0.0,
       last_cost REAL NOT NULL DEFAULT 0.0,
-      total_value REAL GENERATED ALWAYS AS (quantity * avg_cost) STORED,
+      total_value REAL NOT NULL DEFAULT 0.0,
       
       -- Reorder settings
       min_level REAL NULL DEFAULT 0.0,
@@ -95,5 +95,9 @@ class WarehouseStocksTable implements TableSchema {
     'CREATE INDEX idx_warehouse_stocks_product ON warehouse_stocks (product_id)',
     'CREATE INDEX idx_warehouse_stocks_warehouse ON warehouse_stocks (warehouse_id)',
     'CREATE INDEX idx_warehouse_stocks_low ON warehouse_stocks (quantity) WHERE quantity <= min_level',
+    
+    // Triggers to calculate generated columns
+    'CREATE TRIGGER tr_warehouse_stocks_insert_calc AFTER INSERT ON warehouse_stocks BEGIN UPDATE warehouse_stocks SET available_quantity = NEW.quantity - NEW.reserved_quantity, total_value = NEW.quantity * NEW.avg_cost WHERE id = NEW.id; END',
+    'CREATE TRIGGER tr_warehouse_stocks_update_calc AFTER UPDATE OF quantity, reserved_quantity, avg_cost ON warehouse_stocks BEGIN UPDATE warehouse_stocks SET available_quantity = NEW.quantity - NEW.reserved_quantity, total_value = NEW.quantity * NEW.avg_cost WHERE id = NEW.id; END',
   ];
 }
