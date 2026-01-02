@@ -625,7 +625,7 @@ class GetItHelper {
       () => InventoryLocalDataSourceImpl(database: database),
     );
     getIt.registerLazySingleton<StockAdjustmentLocalDataSource>(
-      () => StockAdjustmentLocalDataSourceImpl(database: database),
+      () => StockAdjustmentLocalDataSourceImpl(databaseService: getIt<DatabaseService>()),
     );
     
     // Repositories

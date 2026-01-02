@@ -1,3 +1,4 @@
+import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/stores/data/models/stock_adjustment_model.dart';
 import 'package:muhasib/features/stores/domain/entities/stock_adjustment_entity.dart';
 import 'package:muhasib/features/stores/domain/enums/stock_enums.dart';
@@ -13,9 +14,9 @@ abstract class StockAdjustmentLocalDataSource {
 }
 
 class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSource {
-  final Database database;
+  final DatabaseService databaseService;
 
-  StockAdjustmentLocalDataSourceImpl({required this.database});
+  StockAdjustmentLocalDataSourceImpl({required this.databaseService});
 
   @override
   Future<List<StockAdjustmentModel>> getAdjustments() async {
