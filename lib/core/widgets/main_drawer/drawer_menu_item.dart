@@ -70,7 +70,13 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
               border: isChild
                   ? null
                   : Border(
-                      bottom: BorderSide(color: Colors.grey[200]!, width: 0.8),
+                      bottom: BorderSide(
+                        style: _isExpanded
+                            ? BorderStyle.none
+                            : BorderStyle.solid,
+                        color: Colors.grey[200]!,
+                        width: 0.8,
+                      ),
                     ),
             ),
             child: Row(
@@ -79,6 +85,8 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
               children: [
                 Row(
                   children: [
+                    Icon(item.icon, size: isChild ? 15 : 18),
+                    const SizedBox(width: 12),
                     Text(
                       item.title,
                       style: TextStyle(
@@ -87,8 +95,6 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
                         color: Colors.black,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Icon(item.icon, size: isChild ? 15 : 18),
                   ],
                 ),
                 if (hasChildren)

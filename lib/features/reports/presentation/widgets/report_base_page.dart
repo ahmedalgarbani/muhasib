@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class ReportBasePage extends StatefulWidget {
   final String title;
@@ -10,6 +11,8 @@ class ReportBasePage extends StatefulWidget {
   final bool showDateFilter;
   final List<Widget>? additionalFilters;
   final List<Widget>? actions;
+  final VoidCallback? onPrint;
+  final VoidCallback? onExportExcel;
 
   const ReportBasePage({
     super.key,
@@ -20,6 +23,8 @@ class ReportBasePage extends StatefulWidget {
     this.showDateFilter = true,
     this.additionalFilters,
     this.actions,
+    this.onPrint,
+    this.onExportExcel,
   });
 
   @override
@@ -101,129 +106,151 @@ class _ReportBasePageState extends State<ReportBasePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: CustomAppBar(
-        title: widget.title,
-        actions: [
-          if (widget.showDateFilter)
-            IconButton(
-              icon: Icon(_showFilters ? Icons.filter_alt : Icons.filter_alt_outlined),
-              onPressed: () => setState(() => _showFilters = !_showFilters),
-              tooltip: 'الفلاتر',
-            ),
-          IconButton(
-            icon: const Icon(Icons.print),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('جاري تحضير الطباعة...')),
-              );
-            },
-            tooltip: 'طباعة',
-          ),
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('جاري تحضير المشاركة...')),
-              );
-            },
-            tooltip: 'مشاركة',
-          ),
-          ...?widget.actions,
-        ],
-      ),
-      body: Column(
-        children: [
-          // Header with icon and date range
-          Container(
-            color: widget.color,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(widget.icon, color: Colors.white, size: 32),
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: CustomAppBar(
+          title: widget.title,
+          actions: [
+            if (widget.showDateFilter)
+              IconButton(
+                icon: Icon(_showFilters ? Icons.filter_alt : Icons.filter_alt_outlined),
+                onPressed: () => setState(() => _showFilters = !_showFilters),
+                tooltip: 'الفلاتر',
+              ),
+            if (widget.onPrint != null)
+              IconButton(
+                icon: const Icon(Icons.picture_as_pdf),
+                onPressed: widget.onPrint,
+                tooltip: 'تصدير PDF',
+              ),
+            if (widget.onExportExcel != null)
+              IconButton(
+                icon: const Icon(Icons.table_view),
+                onPressed: widget.onExportExcel,
+                tooltip: 'تصدير Excel',
+              ),
+            ...?widget.actions,
+          ],
+        ),
+        body: Column(
+          children: [
+            // Premium Header
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [widget.color, widget.color.withOpacity(0.8)],
+                  begin: Alignment.topRight,
+                  end: Alignment.bottomLeft,
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      if (widget.showDateFilter && _filter.startDate != null) ...[
-                        const SizedBox(height: 4),
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.color.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                   Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Icon(widget.icon, color: Colors.white, size: 32),
+                  ),
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          'من ${_formatDate(_filter.startDate)} إلى ${_formatDate(_filter.endDate)}',
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 14,
+                          widget.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ],
-                  ),
-                ),
-                if (widget.showDateFilter)
-                  IconButton(
-                    icon: const Icon(Icons.calendar_month, color: Colors.white),
-                    onPressed: _selectDateRange,
-                  ),
-              ],
-            ),
-          ),
-
-          // Quick filters
-          if (_showFilters && widget.showDateFilter)
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'فلترة سريعة:',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: [
-                        _buildQuickFilterChip('اليوم', 'today'),
-                        const SizedBox(width: 8),
-                        _buildQuickFilterChip('هذا الأسبوع', 'week'),
-                        const SizedBox(width: 8),
-                        _buildQuickFilterChip('هذا الشهر', 'month'),
-                        const SizedBox(width: 8),
-                        _buildQuickFilterChip('هذا العام', 'year'),
+                        if (widget.showDateFilter && _filter.startDate != null) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(Icons.date_range, color: Colors.white.withOpacity(0.8), size: 14),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${_formatDate(_filter.startDate)} - ${_formatDate(_filter.endDate)}',
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  if (widget.additionalFilters != null) ...[
-                    const SizedBox(height: 12),
-                    ...widget.additionalFilters!,
-                  ],
+                  if (widget.showDateFilter)
+                    Material(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                      child: IconButton(
+                        icon: const Icon(Icons.calendar_month, color: Colors.white),
+                        onPressed: _selectDateRange,
+                        tooltip: 'تغيير الفترة',
+                      ),
+                    ),
                 ],
               ),
             ),
-
-          // Report content
-          Expanded(
-            child: widget.reportBuilder(_filter),
-          ),
-        ],
+      
+            // Quick filters
+            if (_showFilters && widget.showDateFilter)
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'الفترة الزمنية السريعة:',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey),
+                    ),
+                    const SizedBox(height: 12),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _buildQuickFilterChip('اليوم', 'today'),
+                          const SizedBox(width: 10),
+                          _buildQuickFilterChip('الأسبوع', 'week'),
+                          const SizedBox(width: 10),
+                          _buildQuickFilterChip('الشهر الحالي', 'month'),
+                          const SizedBox(width: 10),
+                          _buildQuickFilterChip('العام الحالي', 'year'),
+                        ],
+                      ),
+                    ),
+                    if (widget.additionalFilters != null) ...[
+                      const Divider(height: 24),
+                      ...widget.additionalFilters!,
+                    ],
+                  ],
+                ),
+              ),
+      
+            // Report content
+            Expanded(
+              child: widget.reportBuilder(_filter),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -231,10 +258,10 @@ class _ReportBasePageState extends State<ReportBasePage> {
   Widget _buildQuickFilterChip(String label, String type) {
     return ActionChip(
       label: Text(label),
-      backgroundColor: widget.color.withOpacity(0.1),
-      labelStyle: TextStyle(color: widget.color),
+      backgroundColor: widget.color.withOpacity(0.05),
+      labelStyle: TextStyle(color: widget.color, fontWeight: FontWeight.bold, fontSize: 12),
+      side: BorderSide(color: widget.color.withOpacity(0.2)),
       onPressed: () => _applyQuickFilter(type),
     );
   }
 }
-

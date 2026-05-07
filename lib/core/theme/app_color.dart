@@ -54,3 +54,33 @@ class AccountColors {
     }
   }
 }
+class AppColors {
+  // Primary colors
+  static const primary = Color(0xFF2563EB);
+  static const success = Color(0xFF10B981);
+  static const warning = Color(0xFFF59E0B);
+  static const error = Color(0xFFEF4444);
+  static const info = Color(0xFF3B82F6);
+
+  // Surface and Dark/Light variations
+  static const surfaceDark = Color(0xFF1E293B);
+  static const surfaceLight = Colors.white;
+  static const borderDark = Color(0xFF334155);
+  static const borderLight = Color(0xFFE2E8F0);
+  static const textPrimaryDark = Color(0xFFF8FAFC);
+  static const textPrimaryLight = Color(0xFF1E293B);
+  static const textSecondaryDark = Color(0xFF94A3B8);
+  static const textSecondaryLight = Color(0xFF64748B);
+
+  // Grey scale
+  static const grey300 = Color(0xFFD1D5DB);
+  static const grey400 = Color(0xFF9CA3AF);
+  static const grey500 = Color(0xFF6B7280);
+  static const grey700 = Color(0xFF374151);
+
+  // Gradients
+  static const gradientPrimary = [Color(0xFF2563EB), Color(0xFF1E40AF)];
+  static const gradientSuccess = [Color(0xFF10B981), Color(0xFF059669)];
+  static const gradientWarning = [Color(0xFFF59E0B), Color(0xFFD97706)];
+  static const gradientInfo = [Color(0xFF3B82F6), Color(0xFF2563EB)];
+}

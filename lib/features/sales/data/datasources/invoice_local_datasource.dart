@@ -554,13 +554,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
 
-    // Update customer balance only for credit portion (A/R)
-    if (creditPortion > 0) {
-      await txn.rawUpdate(
-        'UPDATE $_customersTable SET current_balance = COALESCE(current_balance, 0) + ? WHERE id = ?',
-        [creditPortion, customerId],
-      );
-    }
+    // Note: Customer balance is already updated by _applyAccountBalanceDelta()
+    // when the customer account is updated through journal entry lines
+    // Removing duplicate update to prevent quadruple balance issue
   }
 
   Future<void> _postSalesReturnToJournal({
@@ -746,13 +742,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
 
-    // Update customer balance only for credit returns (reduce A/R)
-    if (isCredit) {
-      await txn.rawUpdate(
-        'UPDATE $_customersTable SET current_balance = COALESCE(current_balance, 0) - ? WHERE id = ?',
-        [total, customerId],
-      );
-    }
+    // Note: Customer balance is already updated by _applyAccountBalanceDelta()
+    // when the customer account is updated through journal entry lines
+    // Removing duplicate update to prevent quadruple balance issue
   }
 
   Future<void> _postPurchaseInvoiceToJournal({
@@ -958,13 +950,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
 
-    // Update supplier balance only for credit purchases (A/P)
-    if (isCredit) {
-      await txn.rawUpdate(
-        'UPDATE $_customersTable SET current_balance = COALESCE(current_balance, 0) + ? WHERE id = ?',
-        [total, supplierId],
-      );
-    }
+    // Note: Supplier balance is already updated by _applyAccountBalanceDelta()
+    // when the supplier account is updated through journal entry lines
+    // Removing duplicate update to prevent triple balance issue
   }
 
   Future<void> _postPurchaseReturnToJournal({
@@ -1147,13 +1135,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
 
-    // Update supplier balance only for credit returns (reduce A/P)
-    if (isCredit) {
-      await txn.rawUpdate(
-        'UPDATE $_customersTable SET current_balance = COALESCE(current_balance, 0) - ? WHERE id = ?',
-        [total, supplierId],
-      );
-    }
+    // Note: Supplier balance is already updated by _applyAccountBalanceDelta()
+    // when the supplier account is updated through journal entry lines
+    // Removing duplicate update to prevent triple balance issue
   }
 
   @override

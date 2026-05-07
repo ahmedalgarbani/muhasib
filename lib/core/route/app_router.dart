@@ -10,9 +10,11 @@ import 'package:muhasib/features/currencies/presentation/pages/currencies_page.d
 import 'package:muhasib/features/accounts/presentation/pages/open_balance_page.dart';
 import 'package:muhasib/features/accounts/presentation/pages/vouchers_page.dart';
 import 'package:muhasib/features/accounts/presentation/pages/journal_entry_page.dart';
+import 'package:muhasib/features/accounts/presentation/pages/journal_entries_list_page.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/vouchers_cubit.dart';
 import 'package:muhasib/features/main/presentation/pages/home_page_view.dart';
+import 'package:muhasib/features/main/presentation/widgets/main_scaffold_shell.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_tree_view.dart';
 import 'package:muhasib/features/reports/presentation/pages/account_statement_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/reports_hub_page.dart';
@@ -125,10 +127,58 @@ final router = GoRouter(
         child: const InitialSetupPage(),
       ),
     ),
-    GoRoute(
-      path: AppRoutes.home,
-      name: AppRoutes.home,
-      builder: (context, state) => const HomePageView(),
+    StatefulShellRoute.indexedStack(
+      builder: (context, state, navigationShell) {
+        return MainScaffoldShell(navigationShell: navigationShell);
+      },
+      branches: [
+        // Index 0: Home
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.home,
+              name: AppRoutes.home,
+              builder: (context, state) => const HomePageView(),
+            ),
+          ],
+        ),
+        // Index 1: Sales
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.salesList,
+              name: AppRoutes.salesList,
+              builder: (context, state) => BlocProvider(
+                create: (context) => getIt<SalesCubit>(),
+                child: const SalePageBody(),
+              ),
+            ),
+          ],
+        ),
+        // Index 2: Reports
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.reports,
+              name: AppRoutes.reports,
+              builder: (context, state) => const ReportsHubPage(),
+            ),
+          ],
+        ),
+        // Index 3: Settings
+        StatefulShellBranch(
+          routes: [
+            GoRoute(
+              path: AppRoutes.settings,
+              name: AppRoutes.settings,
+              builder: (context, state) => BlocProvider(
+                create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
+                child: const new_settings.SettingsPage(),
+              ),
+            ),
+          ],
+        ),
+      ],
     ),
     GoRoute(
       path: AppRoutes.login,
@@ -139,14 +189,6 @@ final router = GoRouter(
       path: AppRoutes.dashboard,
       name: AppRoutes.dashboard,
       builder: (context, state) => const PlaceholderWidget('Dashboard'),
-    ),
-    GoRoute(
-      path: AppRoutes.settings,
-      name: AppRoutes.settings,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
-        child: const new_settings.SettingsPage(),
-      ),
     ),
     GoRoute(
       path: AppRoutes.profile,
@@ -179,6 +221,14 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.accountsJournal,
       name: AppRoutes.accountsJournal,
+      builder: (context, state) => BlocProvider(
+        create: (_) => getIt<JournalEntryCubit>(),
+        child: const JournalEntriesListPage(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.accountsJournalAdd,
+      name: AppRoutes.accountsJournalAdd,
       builder: (context, state) => BlocProvider(
         create: (_) => getIt<JournalEntryCubit>(),
         child: const JournalEntryScreen(),
@@ -261,14 +311,6 @@ final router = GoRouter(
           BlocProvider(create: (context) => getIt<ProductsCubit>()),
         ],
         child: const SalesInvoiceScreen(),
-      ),
-    ),
-    GoRoute(
-      path: AppRoutes.salesList,
-      name: AppRoutes.salesList,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<SalesCubit>(),
-        child: const SalePageBody(),
       ),
     ),
     GoRoute(
@@ -387,11 +429,6 @@ final router = GoRouter(
 
     // ======= الإعدادات =======
     GoRoute(
-      path: '/settings',
-      name: 'settings',
-      builder: (context, state) => const new_settings.SettingsPage(),
-    ),
-    GoRoute(
       path: AppRoutes.warehousesList,
       name: AppRoutes.warehousesList,
       builder: (context, state) => const WarehousesListPage(),
@@ -508,11 +545,6 @@ final router = GoRouter(
     ),
 
     // ======= التقارير =======
-    GoRoute(
-      path: AppRoutes.reports,
-      name: AppRoutes.reports,
-      builder: (context, state) => const ReportsHubPage(),
-    ),
     GoRoute(
       path: AppRoutes.reportsTransactions,
       name: AppRoutes.reportsTransactions,
@@ -678,7 +710,7 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsCustomerStatement,
       name: AppRoutes.reportsCustomerStatement,
-      builder: (context, state) => const CustomerStatementReportPage(),
+      builder: (context, state) => const AccountStatementReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsCustomerBalances,
@@ -693,7 +725,7 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsSupplierStatement,
       name: AppRoutes.reportsSupplierStatement,
-      builder: (context, state) => const SupplierStatementReportPage(),
+      builder: (context, state) => const AccountStatementReportPage(),
     ),
     GoRoute(
       path: AppRoutes.reportsSupplierBalances,

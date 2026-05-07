@@ -87,17 +87,17 @@ class MohasebFinanceApp extends StatelessWidget {
         return BlocBuilder<LocaleCubit, Locale>(
           builder: (context, local) {
             return MaterialApp.router(
+              locale: local,
               localizationsDelegates: [
                 S.delegate,
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              supportedLocales: S.delegate.supportedLocales,
+              supportedLocales: const [Locale('en'), Locale('ar')],
               debugShowCheckedModeBanner: false,
               title: 'محاسب',
               routerConfig: router,
-              locale: local,
               themeMode: mode,
               theme: ThemeData(
                 primarySwatch: Colors.blue,

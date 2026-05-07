@@ -3,6 +3,7 @@ import 'package:sqflite/sqflite.dart';
 
 import '../models/journal_entry_line_model.dart';
 import '../models/journal_entry_model.dart';
+import 'fiscal_period_datasource.dart';
 
 abstract class JournalLocalDataSource {
   Future<List<JournalEntryModel>> getJournalEntries();
@@ -133,6 +134,9 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   @override
   Future<int> insertJournalEntry(JournalEntryModel entry) async {
     try {
+      // Validate fiscal period first
+      await _validateFiscalPeriod(entry.entryDate);
+      
       // Validate balance before insert
       final totalDebit = entry.lines.fold<double>(0, (sum, line) => sum + line.debit);
       final totalCredit = entry.lines.fold<double>(0, (sum, line) => sum + line.credit);
@@ -238,6 +242,12 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
         
         final wasPosted = (existingEntry.first['is_posted'] as int?) == 1;
         final refType = existingEntry.first['reference_type'] as String?;
+        final oldEntryDate = existingEntry.first['entry_date'] as int;
+        
+        // Validate fiscal periods for both old and new dates
+        final oldDate = DateTime.fromMillisecondsSinceEpoch(oldEntryDate * 1000);
+        await _validateFiscalPeriod(oldDate, throwIfClosed: !forceUpdate);
+        await _validateFiscalPeriod(entry.entryDate, throwIfClosed: !forceUpdate);
         
         // Block modification of posted entries unless force flag is set
         if (wasPosted && !forceUpdate) {
@@ -423,5 +433,33 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
     }
 
     return payload;
+  }
+
+  /// Validate that journal entry is not in a closed fiscal period
+  Future<void> _validateFiscalPeriod(
+    DateTime entryDate, {
+    bool throwIfClosed = true,
+  }) async {
+    try {
+      final periodDataSource = FiscalPeriodDataSourceImpl(database: database);
+      final period = await periodDataSource.getPeriodForDate(entryDate);
+      
+      // If no period is defined, allow the operation (backward compatibility)
+      if (period == null) return;
+      
+      // Check if period is closed
+      if (throwIfClosed && period.isClosed) {
+        throw LocalStorageException(
+          'لا يمكن تعديل/إضافة قيود في فترة مالية مغلقة!\n'
+          'الفترة: ${period.year}-${period.period.toString().padLeft(2, '0')}\n'
+          'تاريخ الإقفال: ${period.closedAt?.toString() ?? 'غير محدد'}\n\n'
+          'الحل: استخدم قيود عكسية في الفترة المالية الحالية.'
+        );
+      }
+    } catch (e) {
+      if (e is LocalStorageException) rethrow;
+      // If fiscal period check fails, allow operation (backward compatibility)
+      print('Warning: Fiscal period validation failed: $e');
+    }
   }
 }

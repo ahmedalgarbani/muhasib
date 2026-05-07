@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/constant/account_constants.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 
@@ -159,13 +160,12 @@ class _AccountFormPageState extends State<AccountFormPage> {
                     labelText: 'نوع الحساب',
                     border: OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 0, child: Text('أصول')),
-                    DropdownMenuItem(value: 1, child: Text('خصوم')),
-                    DropdownMenuItem(value: 2, child: Text('حقوق ملكية')),
-                    DropdownMenuItem(value: 3, child: Text('إيرادات')),
-                    DropdownMenuItem(value: 4, child: Text('مصروفات')),
-                  ],
+                  items: AccountConstants.accountTypes
+                      .map((e) => DropdownMenuItem(
+                            value: e['id'] as int,
+                            child: Text(e['name'] as String),
+                          ))
+                      .toList(),
                   onChanged: (value) {
                     setState(() {
                       _type = value!;
@@ -179,10 +179,12 @@ class _AccountFormPageState extends State<AccountFormPage> {
                     labelText: 'التصنيف الوطني',
                     border: OutlineInputBorder(),
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 0, child: Text('محلي')),
-                    DropdownMenuItem(value: 1, child: Text('دولي')),
-                  ],
+                  items: AccountConstants.classificationTypes
+                      .map((e) => DropdownMenuItem(
+                            value: e['id'] as int,
+                            child: Text(e['name'] as String),
+                          ))
+                      .toList(),
                   onChanged: (value) {
                     setState(() {
                       _national = value!;

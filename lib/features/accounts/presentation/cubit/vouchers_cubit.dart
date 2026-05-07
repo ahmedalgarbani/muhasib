@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 import '../../domain/entities/voucher_entity.dart';
 import '../../domain/usecases/add_voucher.dart';
 import '../../domain/usecases/delete_voucher.dart';
@@ -18,6 +19,7 @@ class VouchersCubit extends Cubit<VouchersState> {
     required this.updateVoucherUseCase,
     required this.deleteVoucherUseCase,
     required this.generateVoucherNumberUseCase,
+    required this.limitInterceptor,
   }) : super(const VouchersInitial());
 
   final GetVouchersUseCase getVouchersUseCase;
@@ -26,6 +28,7 @@ class VouchersCubit extends Cubit<VouchersState> {
   final UpdateVoucherUseCase updateVoucherUseCase;
   final DeleteVoucherUseCase deleteVoucherUseCase;
   final GenerateVoucherNumberUseCase generateVoucherNumberUseCase;
+  final AccountLimitInterceptor limitInterceptor;
 
   VoucherType? _currentFilter;
 
@@ -54,33 +57,60 @@ class VouchersCubit extends Cubit<VouchersState> {
 
   Future<void> saveVoucher(VoucherEntity voucher) async {
     emit(const VoucherActionInProgress());
-    final isNew = voucher.id == null;
 
-    final result = isNew
-        ? await addVoucherUseCase(params: voucher)
-        : await updateVoucherUseCase(params: voucher);
-
-    await result.fold<Future<void>>(
-      (failure) async => emit(VouchersFailure(failure.message)),
-      (value) async {
-        final voucherId = isNew ? value as int : voucher.id!;
-        final fetchResult = await getVoucherByIdUseCase(params: voucherId);
-
-        fetchResult.fold(
-          (failure) async => emit(
-            VoucherActionSuccess(
-              message: isNew ? 'تم حفظ السند بنجاح' : 'تم تحديث السند بنجاح',
-            ),
-          ),
-          (savedVoucher) async => emit(
-            VoucherActionSuccess(
-              voucher: savedVoucher,
-              message: isNew ? 'تم حفظ السند بنجاح' : 'تم تحديث السند بنجاح',
-            ),
-          ),
+    try {
+      // 1. التحقق من السقوف المالية باستخدام المعترض للحساب الرئيسي
+      for (final line in voucher.lines) {
+        if (line.accountId == null) continue;
+        
+        final limitCheck = await limitInterceptor.validateVoucher(
+          fromAccountId: voucher.type == VoucherType.payment ? voucher.accountId : line.accountId!,
+          toAccountId: voucher.type == VoucherType.payment ? line.accountId! : voucher.accountId,
+          amount: line.amount ?? 0,
+          currencyId: voucher.currencyId ?? 1,
         );
-      },
-    );
+
+        bool hasStopped = false;
+        limitCheck.fold(
+          (failure) {
+            emit(VouchersFailure(failure.message));
+            hasStopped = true;
+          },
+          (_) => null,
+        );
+        
+        if (hasStopped) return;
+      }
+
+      final isNew = voucher.id == null;
+      final result = isNew
+          ? await addVoucherUseCase(params: voucher)
+          : await updateVoucherUseCase(params: voucher);
+
+      await result.fold<Future<void>>(
+        (failure) async => emit(VouchersFailure(failure.message)),
+        (value) async {
+          final voucherId = isNew ? value as int : voucher.id!;
+          final fetchResult = await getVoucherByIdUseCase(params: voucherId);
+
+          fetchResult.fold(
+            (failure) async => emit(
+              VoucherActionSuccess(
+                message: isNew ? 'تم حفظ السند بنجاح' : 'تم تحديث السند بنجاح',
+              ),
+            ),
+            (savedVoucher) async => emit(
+              VoucherActionSuccess(
+                voucher: savedVoucher,
+                message: isNew ? 'تم حفظ السند بنجاح' : 'تم تحديث السند بنجاح',
+              ),
+            ),
+          );
+        },
+      );
+    } catch (e) {
+      emit(VouchersFailure('خطأ غير متوقع في حفظ السند: ${e.toString()}'));
+    }
   }
 
   Future<void> removeVoucher(int id) async {
@@ -105,4 +135,3 @@ class VouchersCubit extends Cubit<VouchersState> {
     );
   }
 }
-

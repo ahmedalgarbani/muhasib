@@ -167,7 +167,7 @@ Future<void> _seedAssets(Database db) async {
   // النقدية والبنوك
   await db.insert('accounts', {
     'c_id': 1110,
-    'code': '111',
+    'code': '1001',
     'name': 'النقدية والبنوك',
     'is_master': 1,
     'master_id': 1,
@@ -186,7 +186,7 @@ Future<void> _seedAssets(Database db) async {
   // العملاء
   await db.insert('accounts', {
     'c_id': 1120,
-    'code': '112',
+    'code': '1002',
     'name': 'العملاء',
     'is_master': 1,
     'master_id': 1,
@@ -205,7 +205,7 @@ Future<void> _seedAssets(Database db) async {
   // المخزون
   await db.insert('accounts', {
     'c_id': 1130,
-    'code': '113',
+    'code': '1003',
     'name': 'المخزون',
     'is_master': 0,
     'master_id': 1,
@@ -224,7 +224,7 @@ Future<void> _seedAssets(Database db) async {
   // الأصول الثابتة
   await db.insert('accounts', {
     'c_id': 1140,
-    'code': '114',
+    'code': '1004',
     'name': 'الأصول الثابتة',
     'is_master': 0,
     'master_id': 1,
@@ -243,7 +243,7 @@ Future<void> _seedAssets(Database db) async {
   // الاستثمارات
   await db.insert('accounts', {
     'c_id': 1150,
-    'code': '115',
+    'code': '1005',
     'name': 'الاستثمارات',
     'is_master': 0,
     'master_id': 1,
@@ -286,7 +286,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
   // الموردون
   await db.insert('accounts', {
     'c_id': 2110,
-    'code': '211',
+    'code': '2001',
     'name': 'الموردون',
     'is_master': 1,
     'master_id': 2,
@@ -305,7 +305,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
   // رأس المال
   await db.insert('accounts', {
     'c_id': 2120,
-    'code': '212',
+    'code': '2002',
     'name': 'رأس المال',
     'is_master': 0,
     'master_id': 2,
@@ -324,7 +324,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
   // القروض والسلف
   await db.insert('accounts', {
     'c_id': 2130,
-    'code': '213',
+    'code': '2003',
     'name': 'القروض والسلف',
     'is_master': 0,
     'master_id': 2,
@@ -343,7 +343,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
   // الضرائب المستحقة
   await db.insert('accounts', {
     'c_id': 2140,
-    'code': '214',
+    'code': '2004',
     'name': 'الضرائب المستحقة',
     'is_master': 0,
     'master_id': 2,
@@ -386,7 +386,7 @@ Future<void> _seedExpenses(Database db) async {
   // المشتريات
   await db.insert('accounts', {
     'c_id': 3110,
-    'code': '311',
+    'code': '3001',
     'name': 'المشتريات',
     'is_master': 0,
     'master_id': 3,
@@ -405,7 +405,7 @@ Future<void> _seedExpenses(Database db) async {
   // الرواتب والأجور
   await db.insert('accounts', {
     'c_id': 3120,
-    'code': '312',
+    'code': '3002',
     'name': 'الرواتب والأجور',
     'is_master': 0,
     'master_id': 3,
@@ -424,7 +424,7 @@ Future<void> _seedExpenses(Database db) async {
   // مصاريف إدارية
   await db.insert('accounts', {
     'c_id': 3130,
-    'code': '313',
+    'code': '3003',
     'name': 'مصاريف إدارية',
     'is_master': 0,
     'master_id': 3,
@@ -443,7 +443,7 @@ Future<void> _seedExpenses(Database db) async {
   // مصاريف تشغيلية
   await db.insert('accounts', {
     'c_id': 3140,
-    'code': '314',
+    'code': '3004',
     'name': 'مصاريف تشغيلية',
     'is_master': 0,
     'master_id': 3,
@@ -462,7 +462,7 @@ Future<void> _seedExpenses(Database db) async {
   // الخصم المسموح به
   await db.insert('accounts', {
     'c_id': 3150,
-    'code': '315',
+    'code': '3005',
     'name': 'الخصم المسموح به',
     'is_master': 0,
     'master_id': 3,
@@ -481,7 +481,7 @@ Future<void> _seedExpenses(Database db) async {
   // خسائر فروق صرف العملات (Exchange Rate Losses)
   await db.insert('accounts', {
     'c_id': 3170,
-    'code': '317',
+    'code': '3006',
     'name': 'خسائر فروق صرف العملات',
     'is_master': 0,
     'master_id': 3,
@@ -500,7 +500,7 @@ Future<void> _seedExpenses(Database db) async {
   // عمولات المبيعات (Sales Commission Expense)
   await db.insert('accounts', {
     'c_id': 3180,
-    'code': '318',
+    'code': '3007',
     'name': 'عمولات المبيعات',
     'is_master': 0,
     'master_id': 3,
@@ -519,7 +519,7 @@ Future<void> _seedExpenses(Database db) async {
   // عمولات مستحقة الدفع (Commission Payables)
   await db.insert('accounts', {
     'c_id': 2160,
-    'code': '216',
+    'code': '2005',
     'name': 'عمولات مستحقة الدفع',
     'is_master': 0,
     'master_id': 2,
@@ -538,7 +538,7 @@ Future<void> _seedExpenses(Database db) async {
   // ضريبة القيمة المضافة - مدخلات (Input VAT - Recoverable)
   await db.insert('accounts', {
     'c_id': 1170,
-    'code': '117',
+    'code': '1006',
     'name': 'ضريبة مدخلات قابلة للاسترداد',
     'is_master': 0,
     'master_id': 1,
@@ -557,7 +557,7 @@ Future<void> _seedExpenses(Database db) async {
   // ضريبة القيمة المضافة - مخرجات (Output VAT - Payable)
   await db.insert('accounts', {
     'c_id': 2170,
-    'code': '217',
+    'code': '2006',
     'name': 'ضريبة مخرجات مستحقة',
     'is_master': 0,
     'master_id': 2,
@@ -576,7 +576,7 @@ Future<void> _seedExpenses(Database db) async {
   // المخزون (Inventory Asset)
   await db.insert('accounts', {
     'c_id': 1180,
-    'code': '118',
+    'code': '1007',
     'name': 'المخزون',
     'is_master': 0,
     'master_id': 1,
@@ -595,7 +595,7 @@ Future<void> _seedExpenses(Database db) async {
   // تكلفة البضاعة المباعة (Cost of Goods Sold)
   await db.insert('accounts', {
     'c_id': 3190,
-    'code': '319',
+    'code': '3008',
     'name': 'تكلفة البضاعة المباعة',
     'is_master': 0,
     'master_id': 3,
@@ -638,7 +638,7 @@ Future<void> _seedRevenues(Database db) async {
   // المبيعات
   await db.insert('accounts', {
     'c_id': 4110,
-    'code': '411',
+    'code': '4001',
     'name': 'المبيعات',
     'is_master': 0,
     'master_id': 4,
@@ -657,7 +657,7 @@ Future<void> _seedRevenues(Database db) async {
   // إيرادات أخرى
   await db.insert('accounts', {
     'c_id': 4120,
-    'code': '412',
+    'code': '4002',
     'name': 'إيرادات أخرى',
     'is_master': 0,
     'master_id': 4,
@@ -676,7 +676,7 @@ Future<void> _seedRevenues(Database db) async {
   // إيرادات الخدمات
   await db.insert('accounts', {
     'c_id': 4130,
-    'code': '413',
+    'code': '4003',
     'name': 'إيرادات الخدمات',
     'is_master': 0,
     'master_id': 4,
@@ -695,7 +695,7 @@ Future<void> _seedRevenues(Database db) async {
   // الخصم المكتسب
   await db.insert('accounts', {
     'c_id': 4140,
-    'code': '414',
+    'code': '4004',
     'name': 'الخصم المكتسب',
     'is_master': 0,
     'master_id': 4,
@@ -714,7 +714,7 @@ Future<void> _seedRevenues(Database db) async {
   // أرباح فروق صرف العملات (Exchange Rate Gains)
   await db.insert('accounts', {
     'c_id': 4160,
-    'code': '416',
+    'code': '4005',
     'name': 'أرباح فروق صرف العملات',
     'is_master': 0,
     'master_id': 4,
@@ -733,7 +733,7 @@ Future<void> _seedRevenues(Database db) async {
   // مرتجعات المبيعات (Sales Returns - Contra Revenue)
   await db.insert('accounts', {
     'c_id': 4150,
-    'code': '415',
+    'code': '4006',
     'name': 'مرتجعات المبيعات',
     'is_master': 0,
     'master_id': 4,
@@ -752,7 +752,7 @@ Future<void> _seedRevenues(Database db) async {
   // تكلفة البضاعة المباعة (Cost of Goods Sold)
   await db.insert('accounts', {
     'c_id': 3160,
-    'code': '316',
+    'code': '3009',
     'name': 'تكلفة البضاعة المباعة',
     'is_master': 0,
     'master_id': 3,

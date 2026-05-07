@@ -1,10 +1,12 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart' as intl;
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_limit_entity.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
-import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
 import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 
@@ -16,6 +18,7 @@ class AccountLimitsScreen extends StatefulWidget {
 }
 
 class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
+  final _numberFormat = intl.NumberFormat('#,##0.00', 'ar');
   @override
   void initState() {
     super.initState();
@@ -24,231 +27,273 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('حدود الحسابات'),
-        backgroundColor: Theme.of(context).primaryColor,
-        foregroundColor: Colors.white,
-      ),
-      body: BlocConsumer<AccountLimitsCubit, AccountLimitsState>(
-        listener: (context, state) {
-          if (state is AccountLimitsLoaded && state.message != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message!)),
-            );
-          } else if (state is AccountLimitsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is AccountLimitsLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          
-          if (state is AccountLimitsError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(state.message),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => context.read<AccountLimitsCubit>().loadLimits(),
-                    child: const Text('إعادة المحاولة'),
-                  ),
-                ],
-              ),
-            );
-          }
-          
-          if (state is AccountLimitsLoaded) {
-            if (state.limits.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.account_balance_wallet_outlined,
-                      size: 64,
-                      color: Colors.grey,
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'لا توجد حدود حسابات',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () => _showAddLimitDialog(context),
-                      icon: const Icon(Icons.add),
-                      label: const Text('إضافة حد حساب جديد'),
-                    ),
-                  ],
+    return Directionality(
+      textDirection: ui.TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF8FAFC),
+        appBar: AppBar(
+          title: const Text(
+            'إدارة سقوف الحسابات',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              color: Colors.white,
+            ),
+          ),
+          iconTheme: const IconThemeData(color: Colors.white),
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: AppColors.gradientPrimary),
+            ),
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              onPressed: () => context.read<AccountLimitsCubit>().loadLimits(),
+              tooltip: 'تحديث البيانات',
+            ),
+          ],
+        ),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: () => _showAddLimitSheet(context),
+          backgroundColor: AppColors.primary,
+          icon: const Icon(Icons.add, color: Colors.white),
+          label: const Text(
+            'إضافة سقف حساب',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        ),
+        body: BlocBuilder<AccountLimitsCubit, AccountLimitsState>(
+          builder: (context, state) {
+            if (state is AccountLimitsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state is AccountLimitsLoaded) {
+              final limits = state.limits;
+              if (limits.isEmpty) return _buildEmptyState();
+
+              return ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: limits.length,
+                itemBuilder: (context, index) => _AccountLimitCard(
+                  limit: limits[index],
+                  numberFormat: _numberFormat,
+                  onEdit: () =>
+                      _showAddLimitSheet(context, limit: limits[index]),
+                  onDelete: () => _confirmDelete(limits[index]),
                 ),
               );
             }
-            
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'الحدود المضافة: ${state.limits.length}',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      ElevatedButton.icon(
-                        onPressed: () => _showAddLimitDialog(context),
-                        icon: const Icon(Icons.add),
-                        label: const Text('إضافة حد جديد'),
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: state.limits.length,
-                    itemBuilder: (context, index) {
-                      final limit = state.limits[index];
-                      return _buildLimitCard(context, limit);
-                    },
-                  ),
-                ),
-              ],
-            );
-          }
-          
-          return const SizedBox();
-        },
-      ),
-    );
-  }
 
-  Widget _buildLimitCard(BuildContext context, AccountLimitEntity limit) {
-    final theme = Theme.of(context);
-    final usageLevel = limit.usageLevel;
-    final color = usageLevel == UsageLevel.critical
-        ? Colors.red
-        : usageLevel == UsageLevel.warning
-            ? Colors.orange
-            : Colors.green;
+            if (state is AccountLimitsError) {
+              return Center(
+                child: Text(
+                  state.message,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              );
+            }
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        limit.accountName,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'الكود: ${limit.accountCode} - العملة: ${limit.currencyCode}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit),
-                      onPressed: () => _showEditLimitDialog(context, limit),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => _confirmDelete(context, limit),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (limit.debitLimit > 0) ...[
-              _buildLimitRow(
-                context,
-                'حد المدين',
-                limit.currentDebit,
-                limit.debitLimit,
-                limit.debitUsagePercentage,
-                color,
-              ),
-              const SizedBox(height: 8),
-            ],
-            if (limit.creditLimit > 0) ...[
-              _buildLimitRow(
-                context,
-                'حد الدائن',
-                limit.currentCredit,
-                limit.creditLimit,
-                limit.creditUsagePercentage,
-                color,
-              ),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'الحالة: ${limit.isActive ? "نشط" : "غير نشط"}',
-                  style: TextStyle(
-                    color: limit.isActive ? Colors.green : Colors.grey,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: color.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: color),
-                  ),
-                  child: Text(
-                    usageLevel == UsageLevel.critical
-                        ? 'حرج'
-                        : usageLevel == UsageLevel.warning
-                            ? 'تحذير'
-                            : 'آمن',
-                    style: TextStyle(color: color, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ],
-            ),
-          ],
+            return const SizedBox();
+          },
         ),
       ),
     );
   }
 
-  Widget _buildLimitRow(
-    BuildContext context,
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.security_update_warning_outlined,
+            size: 80,
+            color: Colors.grey.shade300,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'لا توجد سقوف مفعّلة حالياً',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey,
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'استخدم السقوف لمنع التجاوزات المالية.',
+            style: TextStyle(color: Colors.grey),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAddLimitSheet(BuildContext context, {AccountLimitEntity? limit}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AddEditLimitSheet(limit: limit),
+    );
+  }
+
+  void _confirmDelete(AccountLimitEntity limit) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('حذف السقف'),
+        content: Text(
+          'هل أنت متأكد من حذف سقف الحساب لـ ${limit.accountName}؟',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context.read<AccountLimitsCubit>().deleteLimit(limit.id!);
+            },
+            child: const Text('نعم، احذف', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AccountLimitCard extends StatelessWidget {
+  final AccountLimitEntity limit;
+  final intl.NumberFormat numberFormat;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+
+  const _AccountLimitCard({
+    required this.limit,
+    required this.numberFormat,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final usageLevel = limit.usageLevel;
+    final color = usageLevel == UsageLevel.critical
+        ? Colors.red
+        : (usageLevel == UsageLevel.warning ? Colors.orange : Colors.green);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          ListTile(
+            title: Text(
+              limit.accountName,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            subtitle: Text(
+              'كود: ${limit.accountCode} | العملة: ${limit.currencyCode}',
+              style: const TextStyle(fontSize: 12),
+            ),
+            trailing: PopupMenuButton(
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit, size: 18),
+                      SizedBox(width: 8),
+                      Text('تعديل'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red, size: 18),
+                      SizedBox(width: 8),
+                      Text('حذف', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+              onSelected: (v) => v == 'edit' ? onEdit() : onDelete(),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                if (limit.debitLimit > 0)
+                  _buildProgressBar(
+                    'سقف المدين',
+                    limit.debitUsagePercentage,
+                    color,
+                    limit.debitLimit,
+                  ),
+                if (limit.creditLimit > 0) ...[
+                  const SizedBox(height: 16),
+                  _buildProgressBar(
+                    'سقف الدائن',
+                    limit.creditUsagePercentage,
+                    color,
+                    limit.creditLimit,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.05),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(20),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  usageLevel == UsageLevel.critical
+                      ? 'حالة حرجة!'
+                      : (usageLevel == UsageLevel.warning
+                            ? 'تنبيه تجاوز'
+                            : 'مستوى آمن'),
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  limit.isActive ? 'نشط' : 'متوقف',
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressBar(
     String label,
-    double current,
-    double limit,
     double percentage,
     Color color,
+    double max,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,284 +301,323 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label),
+            Text(label, style: const TextStyle(fontSize: 12)),
             Text(
-              '${current.toStringAsFixed(2)} / ${limit.toStringAsFixed(2)}',
+              '${numberFormat.format(max)}',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(4),
           child: LinearProgressIndicator(
             value: percentage / 100,
-            backgroundColor: Colors.grey[300],
-            valueColor: AlwaysStoppedAnimation<Color>(color),
+            backgroundColor: Colors.grey.shade100,
+            valueColor: AlwaysStoppedAnimation(color),
             minHeight: 8,
           ),
         ),
-        const SizedBox(height: 2),
-        Text(
-          '${percentage.toStringAsFixed(1)}% مستخدم',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: color,
+        const SizedBox(height: 4),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            '${percentage.toStringAsFixed(1)}% مستخدم',
+            style: TextStyle(
+              fontSize: 10,
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ],
     );
   }
-
-  void _showAddLimitDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: context.read<AccountLimitsCubit>()),
-          BlocProvider(create: (_) => getIt<AccountsCubit>()..loadAllAccounts()),
-          BlocProvider(create: (_) => getIt<CurrenciesCubit>()..loadAllCurrencies()),
-        ],
-        child: const AddEditLimitDialog(),
-      ),
-    );
-  }
-
-  void _showEditLimitDialog(BuildContext context, AccountLimitEntity limit) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => MultiBlocProvider(
-        providers: [
-          BlocProvider.value(value: context.read<AccountLimitsCubit>()),
-          BlocProvider(create: (_) => getIt<AccountsCubit>()..loadAllAccounts()),
-          BlocProvider(create: (_) => getIt<CurrenciesCubit>()..loadAllCurrencies()),
-        ],
-        child: AddEditLimitDialog(limit: limit),
-      ),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, AccountLimitEntity limit) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: Text('هل تريد حذف حد الحساب ${limit.accountName}؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              context.read<AccountLimitsCubit>().deleteLimit(limit.id!);
-            },
-            child: const Text('حذف', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
-class AddEditLimitDialog extends StatefulWidget {
+class _AddEditLimitSheet extends StatefulWidget {
   final AccountLimitEntity? limit;
-
-  const AddEditLimitDialog({super.key, this.limit});
+  const _AddEditLimitSheet({this.limit});
 
   @override
-  State<AddEditLimitDialog> createState() => _AddEditLimitDialogState();
+  State<_AddEditLimitSheet> createState() => _AddEditLimitSheetState();
 }
 
-class _AddEditLimitDialogState extends State<AddEditLimitDialog> {
-  final _formKey = GlobalKey<FormState>();
-  late TextEditingController _debitLimitController;
-  late TextEditingController _creditLimitController;
+class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
+  final _debitController = TextEditingController();
+  final _creditController = TextEditingController();
   AccountEntity? _selectedAccount;
-  CurrencyEntity? _selectedCurrency;
   bool _isActive = true;
 
   @override
   void initState() {
     super.initState();
-    _debitLimitController = TextEditingController(
-      text: widget.limit?.debitLimit.toString() ?? '0',
-    );
-    _creditLimitController = TextEditingController(
-      text: widget.limit?.creditLimit.toString() ?? '0',
-    );
-    _isActive = widget.limit?.isActive ?? true;
-  }
-
-  @override
-  void dispose() {
-    _debitLimitController.dispose();
-    _creditLimitController.dispose();
-    super.dispose();
+    if (widget.limit != null) {
+      _debitController.text = widget.limit!.debitLimit.toString();
+      _creditController.text = widget.limit!.creditLimit.toString();
+      _isActive = widget.limit!.isActive;
+    }
+    context.read<AccountsCubit>().loadAllAccounts();
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.limit == null ? 'إضافة حد حساب' : 'تعديل حد الحساب'),
-      content: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (widget.limit == null) ...[
-                BlocBuilder<AccountsCubit, AccountsState>(
-                  builder: (context, state) {
-                    if (state is AccountsLoaded) {
-                      return DropdownButtonFormField<AccountEntity>(
-                        value: _selectedAccount,
-                        decoration: const InputDecoration(
-                          labelText: 'الحساب',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: state.accounts.map((account) {
-                          return DropdownMenuItem(
-                            value: account,
-                            child: Text(account.name),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedAccount = value;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'يرجى اختيار الحساب';
-                          }
-                          return null;
-                        },
-                      );
-                    }
-                    return const CircularProgressIndicator();
-                  },
-                ),
-                const SizedBox(height: 16),
-                BlocBuilder<CurrenciesCubit, CurrenciesState>(
-                  builder: (context, state) {
-                    if (state is CurrenciesLoaded) {
-                      return DropdownButtonFormField<CurrencyEntity>(
-                        value: _selectedCurrency,
-                        decoration: const InputDecoration(
-                          labelText: 'العملة',
-                          border: OutlineInputBorder(),
-                        ),
-                        items: state.currencies.map((currency) {
-                          return DropdownMenuItem(
-                            value: currency,
-                            child: Text('${currency.name} (${currency.code})'),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedCurrency = value;
-                          });
-                        },
-                        validator: (value) {
-                          if (value == null) {
-                            return 'يرجى اختيار العملة';
-                          }
-                          return null;
-                        },
-                      );
-                    }
-                    return const CircularProgressIndicator();
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
-              TextFormField(
-                controller: _debitLimitController,
-                decoration: const InputDecoration(
-                  labelText: 'حد المدين',
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.money),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال حد المدين';
-                  }
-                  final parsed = double.tryParse(value);
-                  if (parsed == null || parsed < 0) {
-                    return 'يرجى إدخال رقم صحيح';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _creditLimitController,
-                decoration: const InputDecoration(
-                  labelText: 'حد الدائن',
-                  border: OutlineInputBorder(),
-                  suffixIcon: Icon(Icons.money),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'يرجى إدخال حد الدائن';
-                  }
-                  final parsed = double.tryParse(value);
-                  if (parsed == null || parsed < 0) {
-                    return 'يرجى إدخال رقم صحيح';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              SwitchListTile(
-                title: const Text('نشط'),
-                value: _isActive,
-                onChanged: (value) {
-                  setState(() {
-                    _isActive = value;
-                  });
-                },
-              ),
-            ],
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.85,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.limit == null
+                      ? 'ضبط سقف مالي جديد'
+                      : 'تعديل سقف الحساب',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                const Text(
+                  'الحساب المستهدف',
+                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                ),
+                const SizedBox(height: 8),
+                _buildAccountPicker(),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildInput(
+                        'سقف المدين',
+                        _debitController,
+                        Icons.arrow_downward,
+                        Colors.green,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildInput(
+                        'سقف الدائن',
+                        _creditController,
+                        Icons.arrow_upward,
+                        Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                SwitchListTile(
+                  title: const Text('تفعيل السقف (نشط)'),
+                  subtitle: const Text(
+                    'سيتم إجراء تدقيق مالي عند التنشيط.',
+                    style: TextStyle(fontSize: 11),
+                  ),
+                  value: _isActive,
+                  onChanged: (v) => setState(() => _isActive = v),
+                ),
+                const SizedBox(height: 40),
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                    ),
+                    onPressed: _save,
+                    child: const Text(
+                      'حفظ السقف المالي',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAccountPicker() {
+    return InkWell(
+      onTap: widget.limit != null ? null : _pickAccount,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.account_balance, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text(
+              widget.limit?.accountName ??
+                  _selectedAccount?.name ??
+                  'اضغط لاختيار الحساب...',
+              style: TextStyle(
+                color: widget.limit != null
+                    ? Colors.grey
+                    : (_selectedAccount == null ? Colors.grey : Colors.black87),
+              ),
+            ),
+            const Spacer(),
+            if (widget.limit == null)
+              const Icon(Icons.search, size: 18, color: Colors.grey),
+          ],
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('إلغاء'),
-        ),
-        ElevatedButton(
-          onPressed: _saveLimit,
-          child: const Text('حفظ'),
+    );
+  }
+
+  Widget _buildInput(
+    String label,
+    TextEditingController controller,
+    IconData icon,
+    Color color,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: color, size: 18),
+            hintText: '0.00',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
         ),
       ],
     );
   }
 
-  void _saveLimit() {
-    if (_formKey.currentState!.validate()) {
-      final limit = widget.limit?.copyWith(
-            debitLimit: double.parse(_debitLimitController.text),
-            creditLimit: double.parse(_creditLimitController.text),
-            isActive: _isActive,
-          ) ??
-          AccountLimitEntity(
-            accountId: _selectedAccount!.id!,
-            accountName: _selectedAccount!.name,
-            accountCode: _selectedAccount!.code,
-            currencyId: _selectedCurrency!.id!,
-            currencyCode: _selectedCurrency!.code,
-            debitLimit: double.parse(_debitLimitController.text),
-            creditLimit: double.parse(_creditLimitController.text),
-            isActive: _isActive,
-          );
+  void _pickAccount() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _AccountSearchSheet(
+        onSelected: (acc) => setState(() => _selectedAccount = acc),
+      ),
+    );
+  }
 
-      context.read<AccountLimitsCubit>().saveLimit(limit);
-      Navigator.pop(context);
-    }
+  void _save() {
+    if (widget.limit == null && _selectedAccount == null) return;
+
+    final limit =
+        widget.limit?.copyWith(
+          debitLimit: double.tryParse(_debitController.text) ?? 0,
+          creditLimit: double.tryParse(_creditController.text) ?? 0,
+          isActive: _isActive,
+        ) ??
+        AccountLimitEntity(
+          accountId: _selectedAccount!.id!,
+          accountName: _selectedAccount!.name,
+          accountCode: _selectedAccount!.code,
+          currencyId: 1, // Default currency
+          currencyCode: 'SAR',
+          debitLimit: double.tryParse(_debitController.text) ?? 0,
+          creditLimit: double.tryParse(_creditController.text) ?? 0,
+          isActive: _isActive,
+        );
+
+    context.read<AccountLimitsCubit>().saveLimit(limit);
+    Navigator.pop(context);
+  }
+}
+
+class _AccountSearchSheet extends StatefulWidget {
+  final Function(AccountEntity) onSelected;
+  const _AccountSearchSheet({required this.onSelected});
+
+  @override
+  State<_AccountSearchSheet> createState() => _AccountSearchSheetState();
+}
+
+class _AccountSearchSheetState extends State<_AccountSearchSheet> {
+  String _query = '';
+
+  @override
+  Widget build(BuildContext context) {
+    final accounts = context.watch<AccountsCubit>().allAccounts ?? [];
+    final filtered = accounts
+        .where(
+          (a) =>
+              !a.isMaster &&
+              (a.name.contains(_query) || a.code.contains(_query)),
+        )
+        .toList();
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.8,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: TextField(
+              onChanged: (v) => setState(() => _query = v),
+              decoration: InputDecoration(
+                hintText: 'ابحث عن حساب...',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: filtered.length,
+              itemBuilder: (context, i) => ListTile(
+                title: Text(
+                  filtered[i].name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(filtered[i].code),
+                onTap: () {
+                  widget.onSelected(filtered[i]);
+                  Navigator.pop(context);
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

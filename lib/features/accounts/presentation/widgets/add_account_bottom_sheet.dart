@@ -45,7 +45,55 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
     if (_formKey.currentState!.validate()) {
       final timestamp = DateTime.now().microsecondsSinceEpoch;
       final uniqueSeed = timestamp + Random().nextInt(1 << 20);
-      final code = 'ACC${uniqueSeed.toRadixString(36).toUpperCase()}';
+
+      final cubit = context.read<AccountsCubit>();
+      final allAccounts = cubit.allAccounts ?? [];
+
+      String generatedCode = '';
+      if (widget.masterAccount == null) {
+        // ترقيم الحسابات الرئيسية (1, 2, 3...)
+        final rootAccounts = allAccounts
+            .where((a) => a.masterId == null && a.masterCId == null)
+            .toList();
+        if (rootAccounts.isEmpty) {
+          generatedCode = '1';
+        } else {
+          int maxRoot = 0;
+          for (var a in rootAccounts) {
+            final val = int.tryParse(a.code) ?? 0;
+            if (val > maxRoot) maxRoot = val;
+          }
+          generatedCode = (maxRoot + 1).toString();
+        }
+      } else {
+        // ترقيم الحسابات الفرعية (كود الأب + 01, 02...)
+        final parentCode = widget.masterAccount!.code;
+        final siblings = allAccounts
+            .where(
+              (a) =>
+                  a.masterId == widget.masterAccount!.id ||
+                  a.masterCId == widget.masterAccount!.cId,
+            )
+            .toList();
+
+        if (siblings.isEmpty) {
+          generatedCode = '${parentCode}001';
+        } else {
+          int maxSuffix = 0;
+          for (var a in siblings) {
+            if (a.code.startsWith(parentCode) &&
+                a.code.length > parentCode.length) {
+              final suffixStr = a.code.substring(parentCode.length);
+              final suffix = int.tryParse(suffixStr) ?? 0;
+              if (suffix > maxSuffix) maxSuffix = suffix;
+            }
+          }
+          generatedCode =
+              '$parentCode${(maxSuffix + 1).toString().padLeft(3, '0')}';
+        }
+      }
+
+      final code = generatedCode;
       final cId = uniqueSeed;
 
       print('🔍 قيمة _isMaster عند الحفظ: $_isMaster');
@@ -63,7 +111,9 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
             0, // يأخذ طبيعة الحساب الأب أو محلي افتراضياً
         creationTime: now,
         lastModificationTime: now,
-        isMaster: _isMaster, // يمكن أن يكون رئيسي حتى لو كان تحت حساب آخر
+        isMaster: widget.masterAccount == null
+            ? true
+            : _isMaster, // يمكن أن يكون رئيسي حتى لو كان تحت حساب آخر
         masterId: widget.masterAccount?.id, // يأخذ id الحساب الأب
         masterCId: widget.masterAccount?.cId, // يأخذ cId الحساب الأب
         isActive: true,
@@ -102,7 +152,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.all(14.0),
             child: Form(
               key: _formKey,
               child: Column(
@@ -169,15 +219,17 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                           : 'يمكن إضافة حسابات فرعية تحت هذا الحساب',
                       style: const TextStyle(fontSize: 12),
                     ),
-                    value: _isMaster,
-                    onChanged: (value) {
-                      setState(() {
-                        _isMaster = value;
-                        print(
-                          '✅ تم تغيير isMaster إلى: $_isMaster',
-                        ); // للتأكد من التغيير
-                      });
-                    },
+                    value: widget.masterAccount == null ? true : _isMaster,
+                    onChanged: widget.masterAccount == null
+                        ? null
+                        : (value) {
+                            setState(() {
+                              _isMaster = value;
+                              print(
+                                '✅ تم تغيير isMaster إلى: $_isMaster',
+                              ); // للتأكد من التغيير
+                            });
+                          },
                   ),
                   if (widget.masterAccount != null)
                     Container(

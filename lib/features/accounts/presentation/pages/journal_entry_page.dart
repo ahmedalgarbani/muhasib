@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.dart'
     as domain;
@@ -7,15 +7,20 @@ import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
 import 'package:hasib_lib/form/form_button.dart';
 import 'package:hasib_lib/form/form_field.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/route/route_names.dart';
+import 'package:go_router/go_router.dart';
 
 class JournalEntry {
   final String id;
   final int? accountId;
   final String account;
   final int? currencyId;
+
   final String currency;
   final double debit;
   final double credit;
+
   final String notes;
 
   const JournalEntry({
@@ -94,48 +99,69 @@ class AppTheme {
   static const yellowColor = Color(0xFFD97706);
 }
 
-
-
 class SummaryCard extends StatelessWidget {
   final String label;
   final String value;
-  final Color backgroundColor;
-  final Color textColor;
+  final Color color;
+  final IconData icon;
 
   const SummaryCard({
     super.key,
     required this.label,
     required this.value,
-    required this.backgroundColor,
-    required this.textColor,
+    required this.color,
+    required this.icon,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withOpacity(0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: color.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: textColor.withOpacity(0.7),
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 16),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: textColor,
+              color: color,
             ),
           ),
         ],
@@ -224,9 +250,7 @@ class TextFieldSelect<T> extends StatelessWidget {
         errorText: errorText,
         suffixIcon: const Icon(Icons.arrow_drop_down),
       ),
-      validator: isRequired
-          ? (value) => value == null ? 'مطلوب' : null
-          : null,
+      validator: isRequired ? (value) => value == null ? 'مطلوب' : null : null,
       items: items,
       onChanged: onChanged,
     );
@@ -267,18 +291,26 @@ class _AddEntryModalState extends State<AddEntryModal> {
     if (entry != null) {
       // Find account by ID if possible, otherwise by name (fallback)
       if (entry.accountId != null) {
-        _selectedAccount = widget.accounts.where((a) => a.id == entry.accountId).firstOrNull;
+        _selectedAccount = widget.accounts
+            .where((a) => a.id == entry.accountId)
+            .firstOrNull;
       } else {
-        _selectedAccount = widget.accounts.where((a) => a.name == entry.account).firstOrNull;
+        _selectedAccount = widget.accounts
+            .where((a) => a.name == entry.account)
+            .firstOrNull;
       }
 
       // Find currency by ID if possible, otherwise by name/code
       if (entry.currencyId != null) {
-        _selectedCurrency = widget.currencies.where((c) => c.id == entry.currencyId).firstOrNull;
+        _selectedCurrency = widget.currencies
+            .where((c) => c.id == entry.currencyId)
+            .firstOrNull;
       } else {
-        _selectedCurrency = widget.currencies.where((c) => c.name == entry.currency).firstOrNull;
+        _selectedCurrency = widget.currencies
+            .where((c) => c.name == entry.currency)
+            .firstOrNull;
       }
-      
+
       _direction = entry.debit > 0 ? 'debit' : 'credit';
       _amountController = TextEditingController(
         text: (entry.debit + entry.credit).toStringAsFixed(2),
@@ -375,10 +407,12 @@ class _AddEntryModalState extends State<AddEntryModal> {
                     TextFieldSelect<AccountEntity>(
                       hint: 'الحساب',
                       items: widget.accounts
-                          .map((e) => DropdownMenuItem(
-                                value: e,
-                                child: Text('${e.code} - ${e.name}'),
-                              ))
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: Text('${e.code} - ${e.name}'),
+                            ),
+                          )
                           .toList(),
                       selectedValue: _selectedAccount,
                       onChanged: (value) =>
@@ -408,10 +442,12 @@ class _AddEntryModalState extends State<AddEntryModal> {
                           child: TextFieldSelect<CurrencyEntity>(
                             hint: 'العملة',
                             items: widget.currencies
-                                .map((e) => DropdownMenuItem(
-                                      value: e,
-                                      child: Text(e.name),
-                                    ))
+                                .map(
+                                  (e) => DropdownMenuItem(
+                                    value: e,
+                                    child: Text(e.name),
+                                  ),
+                                )
                                 .toList(),
                             selectedValue: _selectedCurrency,
                             onChanged: (value) =>
@@ -559,7 +595,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     _header = _header.copyWith(entryNumber: generatedNumber);
     _numberController = TextEditingController(text: generatedNumber);
     _descriptionController = TextEditingController();
-    
+
     // Load accounts and currencies
     context.read<JournalEntryCubit>().loadFormData();
   }
@@ -591,7 +627,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
       _showToast('جاري تحميل البيانات، يرجى الانتظار...');
       return;
     }
-    
+
     showDialog(
       context: context,
       builder: (_) => AddEntryModal(
@@ -677,18 +713,22 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
     final lines = _entries.asMap().entries.map((entry) {
       final idx = entry.key;
       final line = entry.value;
-      
+
       // Find account code if possible
       String? accountCode;
       if (line.accountId != null) {
-        final account = _accounts.where((a) => a.id == line.accountId).firstOrNull;
+        final account = _accounts
+            .where((a) => a.id == line.accountId)
+            .firstOrNull;
         accountCode = account?.code;
       }
-      
+
       // Find currency code if possible
       String? currencyCode = line.currency;
       if (line.currencyId != null) {
-        final currency = _currencies.where((c) => c.id == line.currencyId).firstOrNull;
+        final currency = _currencies
+            .where((c) => c.id == line.currencyId)
+            .firstOrNull;
         if (currency != null) {
           currencyCode = currency.code; // Assuming CurrencyEntity has code
         }
@@ -1012,27 +1052,54 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   }
 
   Widget _buildSummaryCard(JournalTotals totals) {
-    return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 3,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'ملخص القيد',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.analytics_outlined,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                const Text(
+                  'ملخص القيد والتحقق',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   child: SummaryCard(
                     label: 'إجمالي المدين',
                     value: totals.debit.toStringAsFixed(2),
-                    backgroundColor: AppTheme.greenColor.withOpacity(0.1),
-                    textColor: AppTheme.greenColor,
+                    color: AppTheme.greenColor,
+                    icon: Icons.arrow_upward,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -1040,29 +1107,29 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                   child: SummaryCard(
                     label: 'إجمالي الدائن',
                     value: totals.credit.toStringAsFixed(2),
-                    backgroundColor: AppTheme.redColor.withOpacity(0.1),
-                    textColor: AppTheme.redColor,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SummaryCard(
-                    label: 'الفرق',
-                    value: totals.difference.toStringAsFixed(2),
-                    backgroundColor: AppTheme.yellowColor.withOpacity(0.1),
-                    textColor: AppTheme.yellowColor,
+                    color: AppTheme.redColor,
+                    icon: Icons.arrow_downward,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
+            SummaryCard(
+              label: 'الفرق المحاسبي',
+              value: totals.difference.toStringAsFixed(2),
+              color: totals.isBalanced
+                  ? AppTheme.greenColor
+                  : AppTheme.redColor,
+              icon: Icons.balance,
+            ),
+            const SizedBox(height: 20),
             StatusCard(balanced: totals.isBalanced),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Row(
               children: [
                 Expanded(
                   child: HasibButton(
-                    label: _isSaving ? 'جارٍ الحفظ...' : 'حفظ القيد',
+                    label: _isSaving ? 'جارٍ الحفظ...' : 'حفظ القيد المحاسبي',
                     onPressed: (_isSaving || !totals.isBalanced)
                         ? null
                         : _saveJournal,
@@ -1070,12 +1137,17 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
-                  child: HasibButton(
-                    label: 'مسح القيد',
-                    onPressed: _isSaving ? null : _clearAll,
-                    variant: HasibButtonVariant.secondary,
+                IconButton(
+                  onPressed: _isSaving ? null : _clearAll,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                    foregroundColor: Colors.red,
+                    padding: const EdgeInsets.all(16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
+                  icon: const Icon(Icons.delete_outline),
                 ),
               ],
             ),

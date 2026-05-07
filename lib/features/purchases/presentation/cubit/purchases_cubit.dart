@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart' as limit;
 import 'package:muhasib/features/purchases/domain/repositories/purchase_repository.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/purchases/domain/usecases/create_purchase.dart';
@@ -10,10 +11,12 @@ part 'purchases_state.dart';
 class PurchasesCubit extends Cubit<PurchasesState> {
   final PurchaseRepository repository;
   final CreatePurchase createPurchase;
+  final limit.AccountLimitInterceptor limitInterceptor;
 
   PurchasesCubit({
     required this.repository,
     required this.createPurchase,
+    required this.limitInterceptor,
   }) : super(PurchasesInitial());
 
   // Load purchase invoices
@@ -29,6 +32,25 @@ class PurchasesCubit extends Cubit<PurchasesState> {
   // Create new purchase invoice
   Future<void> createPurchaseInvoice(InvoiceEntity invoice) async {
     emit(PurchasesLoading());
+    
+    // Validate limits
+    final limitCheck = await limitInterceptor.validateInvoice(
+      accountId: invoice.customerId,
+      totalAmount: invoice.amount,
+      currencyId: invoice.currencyId ?? 1,
+      invoiceType: invoice.invoiceType == 5 ? limit.InvoiceType.purchaseReturn : limit.InvoiceType.purchase,
+    );
+    
+    bool hasStopped = false;
+    limitCheck.fold(
+      (failure) {
+        emit(PurchasesError(failure.message));
+        hasStopped = true;
+      },
+      (_) => null,
+    );
+    if (hasStopped) return;
+
     final result = await createPurchase(params: invoice);
     result.fold((failure) => emit(PurchasesError(failure.message)), (id) {
       emit(PurchaseInvoiceCreated(id));
@@ -39,6 +61,25 @@ class PurchasesCubit extends Cubit<PurchasesState> {
   // Update purchase invoice
   Future<void> updatePurchaseInvoice(InvoiceEntity invoice) async {
     emit(PurchasesLoading());
+
+    // Validate limits
+    final limitCheck = await limitInterceptor.validateInvoice(
+      accountId: invoice.customerId,
+      totalAmount: invoice.amount,
+      currencyId: invoice.currencyId ?? 1,
+      invoiceType: invoice.invoiceType == 5 ? limit.InvoiceType.purchaseReturn : limit.InvoiceType.purchase,
+    );
+
+    bool hasStopped = false;
+    limitCheck.fold(
+      (failure) {
+        emit(PurchasesError(failure.message));
+        hasStopped = true;
+      },
+      (_) => null,
+    );
+    if (hasStopped) return;
+
     final result = await repository.updatePurchaseInvoice(invoice);
     result.fold((failure) => emit(PurchasesError(failure.message)), (_) {
       emit(PurchaseInvoiceUpdated());
@@ -104,6 +145,25 @@ class PurchasesCubit extends Cubit<PurchasesState> {
     int parentInvoiceId,
   ) async {
     emit(PurchasesLoading());
+
+    // Validate limits
+    final limitCheck = await limitInterceptor.validateInvoice(
+      accountId: returnInvoice.customerId,
+      totalAmount: returnInvoice.amount,
+      currencyId: returnInvoice.currencyId ?? 1,
+      invoiceType: limit.InvoiceType.purchaseReturn,
+    );
+
+    bool hasStopped = false;
+    limitCheck.fold(
+      (failure) {
+        emit(PurchasesError(failure.message));
+        hasStopped = true;
+      },
+      (_) => null,
+    );
+    if (hasStopped) return;
+
     final result = await repository.createPurchaseReturn(
       returnInvoice,
       parentInvoiceId,

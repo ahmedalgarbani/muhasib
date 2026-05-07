@@ -4,53 +4,10 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/accounts/accounts.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_connect_entity.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_link_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
 import 'package:hasib_lib/form/form_field.dart';
 import 'package:hasib_lib/theme/app_colors.dart';
-
-class AccountLinkEntity {
-  final int connectType;
-  final String name;
-  final IconData icon;
-  final Color color;
-  final String category;
-  final bool linked;
-  final String? linkedTo;
-  final String? linkedAccountNumber;
-
-  AccountLinkEntity({
-    required this.connectType,
-    required this.name,
-    required this.icon,
-    required this.color,
-    required this.category,
-    this.linked = false,
-    this.linkedTo,
-    this.linkedAccountNumber,
-  });
-
-  AccountLinkEntity copyWith({
-    int? connectType,
-    String? name,
-    IconData? icon,
-    Color? color,
-    String? category,
-    bool? linked,
-    String? linkedTo,
-    String? linkedAccountNumber,
-  }) {
-    return AccountLinkEntity(
-      connectType: connectType ?? this.connectType,
-      name: name ?? this.name,
-      icon: icon ?? this.icon,
-      color: color ?? this.color,
-      category: category ?? this.category,
-      linked: linked ?? this.linked,
-      linkedTo: linkedTo ?? this.linkedTo,
-      linkedAccountNumber: linkedAccountNumber ?? this.linkedAccountNumber,
-    );
-  }
-}
 
 class AccountCard extends StatelessWidget {
   final AccountLinkEntity account;
@@ -223,33 +180,25 @@ class AccountCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        gradient: account.linked
-            ? null
-            : const LinearGradient(
-                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
-              ),
-        color: account.linked ? AppColors.error.withOpacity(0.1) : null,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+        ),
         borderRadius: BorderRadius.circular(12),
-        border: account.linked
-            ? Border.all(color: AppColors.error.withOpacity(0.3), width: 2)
-            : null,
-        boxShadow: account.linked
-            ? null
-            : [
-                BoxShadow(
-                  color: Colors.blue.withOpacity(0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(
             child: Icon(
-              account.linked ? Icons.link_off : Icons.link,
-              color: account.linked ? AppColors.error : Colors.white,
+              account.linked ? Icons.swap_horiz : Icons.link,
+              color: Colors.white,
               size: 20,
             ),
           ),
@@ -754,63 +703,45 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
 
   void _handleLinkAccount(AccountLinkEntity account, int selectedId) {
     try {
-      print('Linking account: ${account.name} with selectedId: $selectedId');
+      final state = context.read<AccountConnectCubit>().state;
+      if (state is! AccountConnectsLoaded) return;
 
       final selectedAccount = availableAccounts.firstWhere(
         (a) => a.id == selectedId,
-        orElse: () {
-          print('Selected account not found with id: $selectedId');
-          throw Exception('Selected account not found');
-        },
+        orElse: () => throw Exception('Selected account not found'),
       );
 
-      print(
-        'Selected account: ${selectedAccount.name}, cId: ${selectedAccount.cId}',
-      );
-
-      final index = accounts.indexWhere((a) => a.connectType == account.connectType);
-      print('Account index: $index');
-
-      if (index == -1) {
-        print('Account not found in accounts list');
-        buildSnackbar(context, 'خطأ: لم يتم العثور على الحساب');
-        return;
-      }
-
-      // Create account connect with proper timestamp
       final now = DateTime.now().millisecondsSinceEpoch;
-      final accountConnect = AccountConnectEntity(
-        accountConnectType: account.connectType,
-        cId: selectedAccount.cId,
-        creationTime: now,
-        lastModificationTime: now,
+
+      // Check if we already have a connection for this type
+      final existingConnect = state.accountConnects.firstWhere(
+        (c) => c.accountConnectType == account.connectType,
+        orElse: () => const AccountConnectEntity(),
       );
 
-      print('Creating account connect: $accountConnect');
-      context.read<AccountConnectCubit>().addAccountConnect(accountConnect);
+      if (existingConnect.id != null) {
+        // Update existing link to the new account
+        final updatedConnect = existingConnect.copyWith(
+          cId: selectedAccount.cId,
+          lastModificationTime: now,
+        );
+        context.read<AccountConnectCubit>().modifyAccountConnect(
+          updatedConnect,
+        );
+      } else {
+        // Create new link for the first time
+        final accountConnect = AccountConnectEntity(
+          accountConnectType: account.connectType,
+          cId: selectedAccount.cId,
+          creationTime: now,
+          lastModificationTime: now,
+        );
+        context.read<AccountConnectCubit>().addAccountConnect(accountConnect);
+      }
 
       buildSnackbar(context, 'تم ربط ${account.name} بنجاح');
     } catch (e) {
-      print('Error linking account: $e');
       buildSnackbar(context, 'خطأ في ربط الحساب: $e');
-    }
-  }
-
-  void _handleUnlinkAccount(
-    AccountLinkEntity account,
-    List<AccountConnectEntity> accountConnects,
-  ) {
-    final index = accounts.indexWhere((a) => a.connectType == account.connectType);
-    final connectToRemove = accountConnects.firstWhere(
-      (connect) => connect.accountConnectType == account.connectType,
-      orElse: () => const AccountConnectEntity(),
-    );
-
-    if (connectToRemove.id != null) {
-      context.read<AccountConnectCubit>().removeAccountConnect(
-        connectToRemove.id!,
-      );
-      buildSnackbar(context, 'تم إلغاء ربط ${account.name}');
     }
   }
 
@@ -945,11 +876,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
           linkedAccountNumber: linkedAccountCode,
         ),
         onTap: () {
-          if (isLinked) {
-            _handleUnlinkAccount(accountEntity, state.accountConnects);
-          } else {
-            _showLinkBottomSheet(accountEntity);
-          }
+          _showLinkBottomSheet(accountEntity);
         },
       );
     } else if (state is AccountConnectLoading) {
@@ -1003,4 +930,3 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
     );
   }
 }
-

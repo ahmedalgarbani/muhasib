@@ -52,7 +52,7 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
             ),
           ],
         ),
-        endDrawer: const MainAppDrawer(),
+        drawer: const MainAppDrawer(),
         body: Column(
           children: [
             // Search bar

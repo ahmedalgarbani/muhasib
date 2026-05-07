@@ -265,6 +265,17 @@ class CustomerDataSourceImpl implements CustomerDataSource {
           classificationId: type,
         ),
       );
+
+      // Create opening balance journal entry if needed
+      if (openingBalance != 0) {
+        await _createOpeningBalanceEntry(
+          txn: txn,
+          accountId: accountId,
+          accountName: name,
+          amount: openingBalance,
+          type: type,
+        );
+      }
     });
 
     return getCustomerById(customerId);
@@ -482,5 +493,118 @@ class CustomerDataSourceImpl implements CustomerDataSource {
       'credit_limit': customer.creditLimit,
       'is_over_limit': customer.isOverCreditLimit,
     };
+  }
+
+  /// Create opening balance journal entry for customer/supplier
+  Future<void> _createOpeningBalanceEntry({
+    required dynamic txn,
+    required int accountId,
+    required String accountName,
+    required double amount,
+    required int type,  // 1=customer, 2=supplier
+  }) async {
+    try {
+      // 1. Get or create Opening Balance account (code 3100)
+      final obResults = await txn.query(
+        'accounts',
+        where: 'code = ?',
+        whereArgs: ['3100'],
+        limit: 1,
+      );
+      
+      int obAccountId;
+      if (obResults.isEmpty) {
+        // Create Opening Balance account
+        obAccountId = await txn.insert('accounts', {
+          'c_id': 3100,
+          'code': '3100',
+          'name': 'أرصدة افتتاحية',
+          'is_master': 0,
+          'type': 3,  // Equity
+          'national': 1,
+          'is_active': 1,
+          'allow_update_delete': 0,
+          'balance': 0.0,
+          'local_balance': 0.0,
+          'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+          'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        });
+      } else {
+        obAccountId = obResults.first['id'] as int;
+      }
+      
+      // 2. Create journal entry
+      final journalNumber = 'OB-${DateTime.now().millisecondsSinceEpoch}';
+      
+      final entryId = await txn.insert('journal_entries', {
+        'number': journalNumber,
+        'entry_date': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'description': 'رصيد افتتاحي - ${type == 1 ? "عميل" : "مورد"}: $accountName',
+        'reference_type': 'opening_balance',
+        'reference_number': accountName,
+        'reference_id': accountId,
+        'total_debit': amount,
+        'total_credit': amount,
+        'difference': 0.0,
+        'status': 0,
+        'is_posted': 0,
+        'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      });
+      
+      // 3. Insert journal entry lines
+      if (type == 1) {  // Customer (Asset - Debit)
+        // Line 1: Debit Customer Account
+        await txn.insert('journal_entry_lines', {
+          'journal_entry_id': entryId,
+          'line_number': 1,
+          'account_id': accountId,
+          'account_name': accountName,
+          'currency_code': 'YER',
+          'debit_amount': amount,
+          'credit_amount': 0.0,
+        });
+        
+        // Line 2: Credit Opening Balance
+        await txn.insert('journal_entry_lines', {
+          'journal_entry_id': entryId,
+          'line_number': 2,
+          'account_id': obAccountId,
+          'account_code': '3100',
+          'account_name': 'أرصدة افتتاحية',
+          'currency_code': 'YER',
+          'debit_amount': 0.0,
+          'credit_amount': amount,
+        });
+      } else {  // Supplier (Liability - Credit)
+        // Line 1: Debit Opening Balance
+        await txn.insert('journal_entry_lines', {
+          'journal_entry_id': entryId,
+          'line_number': 1,
+          'account_id': obAccountId,
+          'account_code': '3100',
+          'account_name': 'أرصدة افتتاحية',
+          'currency_code': 'YER',
+          'debit_amount': amount,
+          'credit_amount': 0.0,
+        });
+        
+        // Line 2: Credit Supplier Account
+        await txn.insert('journal_entry_lines', {
+          'journal_entry_id': entryId,
+          'line_number': 2,
+          'account_id': accountId,
+          'account_name': accountName,
+          'currency_code': 'YER',
+          'debit_amount': 0.0,
+          'credit_amount': amount,
+        });
+      }
+      
+      print('✅ Created opening balance entry for $accountName: $amount');
+    } catch (e) {
+      print('⚠️ Failed to create opening balance entry: $e');
+      // Don't throw - allow customer creation to succeed even if OB entry fails
+    }
   }
 }

@@ -29,9 +29,9 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: const Color(0xFFF5F5F5),
-        endDrawer: const MainAppDrawer(),
+        drawer: const MainAppDrawer(),
         appBar: CustomAppBar(
-          onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+          onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),

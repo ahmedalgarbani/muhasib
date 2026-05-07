@@ -198,6 +198,11 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         } catch (_) {}
       }
 
+      // Reverse old inventory before updating
+      if (oldInvoice != null) {
+        await _reverseInventory(oldInvoice);
+      }
+
       // Ensure it remains a purchase invoice
       final purchaseInvoice = InvoiceEntity(
         id: invoice.id,
@@ -223,6 +228,9 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         InvoiceModel.fromEntity(purchaseInvoice),
       );
 
+      // Add new inventory after updating
+      await _addNewInventory(purchaseInvoice);
+
       // ---------- Double‑Entry Accounting (Update) ----------
       // Reverse old entry and create new entry
       if (journalRepository != null && accountConfigService != null) {
@@ -235,6 +243,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         if (oldInvoice != null) {
           final oldTotal = oldInvoice.totalAmount ?? 0.0;
           if (oldTotal > 0) {
+            final baseCurrency = await _getBaseCurrency();
             final reversingEntry = JournalEntryModel(
               number:
                   'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
@@ -249,7 +258,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
                   lineNumber: 1,
                   accountId: inventoryAcc,
                   accountName: 'المخزون',
-                  currencyCode: 'SAR',
+                  currencyCode: baseCurrency,
                   debit: 0.0,
                   credit: oldTotal,
                 ),
@@ -257,7 +266,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
                   lineNumber: 2,
                   accountId: supplierAcc,
                   accountName: 'الموردين',
-                  currencyCode: 'SAR',
+                  currencyCode: baseCurrency,
                   debit: oldTotal,
                   credit: 0.0,
                 ),
@@ -270,6 +279,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         // Create new entry for updated invoice
         final newTotal = purchaseInvoice.totalAmount ?? 0.0;
         if (newTotal > 0) {
+          final baseCurrency = await _getBaseCurrency();
           final newEntry = JournalEntryModel(
             number: 'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
             entryDate: DateTime.now(),
@@ -283,7 +293,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
                 lineNumber: 1,
                 accountId: inventoryAcc,
                 accountName: 'المخزون',
-                currencyCode: 'SAR',
+                currencyCode: baseCurrency,
                 debit: newTotal,
                 credit: 0.0,
               ),
@@ -291,7 +301,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
                 lineNumber: 2,
                 accountId: supplierAcc,
                 accountName: 'الموردين',
-                currencyCode: 'SAR',
+                currencyCode: baseCurrency,
                 debit: 0.0,
                 credit: newTotal,
               ),
@@ -323,6 +333,11 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
 
       await localDataSource.deleteInvoice(id);
 
+      // Reverse inventory for deleted invoice
+      if (invoiceToDelete != null) {
+        await _reverseInventory(invoiceToDelete);
+      }
+
       // ---------- Double‑Entry Accounting (Delete) ----------
       // Create a reversing entry with opposite signs
       if (journalRepository != null &&
@@ -335,6 +350,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         final total = invoiceToDelete.totalAmount ?? 0.0;
 
         if (total > 0) {
+          final baseCurrency = await _getBaseCurrency();
           final reversingEntry = JournalEntryModel(
             number: 'JE-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}',
             entryDate: DateTime.now(),
@@ -348,7 +364,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
                 lineNumber: 1,
                 accountId: inventoryAcc,
                 accountName: 'المخزون',
-                currencyCode: 'SAR',
+                currencyCode: baseCurrency,
                 debit: 0.0,
                 credit: total, // Reverse: was debit, now credit
               ),
@@ -356,7 +372,7 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
                 lineNumber: 2,
                 accountId: supplierAcc,
                 accountName: 'الموردين',
-                currencyCode: 'SAR',
+                currencyCode: baseCurrency,
                 debit: total, // Reverse: was credit, now debit
                 credit: 0.0,
               ),
@@ -746,6 +762,181 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
       return Right(purchaseResults);
     } catch (e) {
       return Left(CacheFailure('Failed to search purchases: ${e.toString()}'));
+    }
+  }
+
+  /// Reverse inventory for old purchase invoice
+  Future<void> _reverseInventory(InvoiceEntity oldInvoice) async {
+    try {
+      final db = await DatabaseService().database;
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+      for (final line in oldInvoice.lines) {
+        final productId = line.categoryId; // categoryId is used as productId
+        final warehouseId = line.stockId ?? oldInvoice.stockId;
+        final qty = line.quantity;
+
+        if (productId != null && qty > 0) {
+          // Get current stock to check if reversal is possible
+          final stockResult = await db.query(
+            'warehouse_stocks',
+            where: 'product_id = ? AND warehouse_id = ?',
+            whereArgs: [productId, warehouseId],
+            limit: 1,
+          );
+
+          if (stockResult.isNotEmpty) {
+            final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+            
+            // Check if we have enough stock to reverse
+            if (currentQty >= qty) {
+              final newQty = currentQty - qty;
+              
+              // Update warehouse stock
+              await db.update(
+                'warehouse_stocks',
+                {
+                  'quantity': newQty,
+                  'last_modification_time': now,
+                },
+                where: 'product_id = ? AND warehouse_id = ?',
+                whereArgs: [productId, warehouseId],
+              );
+
+              // Record stock movement
+              try {
+                await db.insert('stock_movements', {
+                  'product_id': productId,
+                  'warehouse_id': warehouseId,
+                  'movement_type': 'purchase_reversal',
+                  'quantity': -qty, // Negative for outgoing
+                  'unit_cost': line.costPrice ?? line.price ?? 0.0,
+                  'total_cost': -qty * (line.costPrice ?? line.price ?? 0.0),
+                  'balance_after': newQty,
+                  'reference_type': 'purchase_update',
+                  'reference_id': oldInvoice.id,
+                  'reference_number': oldInvoice.number,
+                  'creation_time': now,
+                });
+              } catch (_) {
+                // Ignore if stock_movements table doesn't exist
+              }
+            } else {
+              print('⚠️ Warning: Cannot reverse inventory for product $productId. '
+                   'Current stock ($currentQty) is less than required ($qty)');
+            }
+          }
+        }
+      }
+    } catch (e) {
+      print('⚠️ Error reversing inventory: $e');
+      // Don't throw - allow update to continue
+    }
+  }
+
+  /// Get base currency code
+  Future<String> _getBaseCurrency() async {
+    try {
+      final db = await DatabaseService().database;
+      final result = await db.query(
+        'currencies',
+        where: 'is_local_currency = ?',
+        whereArgs: [1],
+        limit: 1,
+      );
+      
+      if (result.isNotEmpty) {
+        return result.first['code'] as String? ?? 'YER';
+      }
+      
+      return 'YER'; // Default to YER
+    } catch (e) {
+      return 'YER'; // Fallback
+    }
+  }
+
+  /// Add new inventory for updated purchase invoice
+  Future<void> _addNewInventory(InvoiceEntity invoice) async {
+    try {
+      final db = await DatabaseService().database;
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+      for (final line in invoice.lines) {
+        final productId = line.categoryId;
+        final warehouseId = line.stockId ?? invoice.stockId;
+        final qty = line.quantity;
+
+        if (productId != null && qty > 0) {
+          // Get current stock
+          final stockResult = await db.query(
+            'warehouse_stocks',
+            where: 'product_id = ? AND warehouse_id = ?',
+            whereArgs: [productId, warehouseId],
+            limit: 1,
+          );
+
+          double currentQty = 0.0;
+          double avgCost = (line.costPrice ?? line.price ?? 0.0);
+
+          if (stockResult.isNotEmpty) {
+            currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+            // Weighted Average Cost calculation
+            final oldAvg = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+            if (currentQty + qty > 0) {
+              avgCost = ((currentQty * oldAvg) + (qty * avgCost)) / (currentQty + qty);
+            }
+          }
+
+          final newQty = currentQty + qty;
+
+          // Update or insert warehouse stock
+          if (stockResult.isNotEmpty) {
+            await db.update(
+              'warehouse_stocks',
+              {
+                'quantity': newQty,
+                'avg_cost': avgCost,
+                'last_cost': line.costPrice ?? line.price ?? 0.0,
+                'last_modification_time': now,
+              },
+              where: 'product_id = ? AND warehouse_id = ?',
+              whereArgs: [productId, warehouseId],
+            );
+          } else {
+            await db.insert('warehouse_stocks', {
+              'product_id': productId,
+              'warehouse_id': warehouseId,
+              'quantity': newQty,
+              'avg_cost': avgCost,
+              'last_cost': line.costPrice ?? line.price ?? 0.0,
+              'creation_time': now,
+              'last_modification_time': now,
+            });
+          }
+
+          // Record stock movement
+          try {
+            await db.insert('stock_movements', {
+              'product_id': productId,
+              'warehouse_id': warehouseId,
+              'movement_type': 'purchase_update',
+              'quantity': qty,
+              'unit_cost': line.costPrice ?? line.price ?? 0.0,
+              'total_cost': qty * (line.costPrice ?? line.price ?? 0.0),
+              'balance_after': newQty,
+              'reference_type': 'purchase_update',
+              'reference_id': invoice.id,
+              'reference_number': invoice.number,
+              'creation_time': now,
+            });
+          } catch (_) {
+            // Ignore if stock_movements table doesn't exist
+          }
+        }
+      }
+    } catch (e) {
+      print('⚠️ Error adding new inventory: $e');
+      // Don't throw - allow update to continue
     }
   }
 }

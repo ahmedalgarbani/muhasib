@@ -5,12 +5,12 @@ import 'package:muhasib/core/route/route_names.dart';
 class AppNavigator {
   static const List<NavItem> items = [
     // ======= Header Section =======
-    NavItem(
-      title: 'المستخدمين والمزامنة',
-      icon: Icons.people_outline,
-      route: AppRoutes.usersSync,
-      position: DrawerSection.header,
-    ),
+    // NavItem(
+    //   title: 'المستخدمين والمزامنة',
+    //   icon: Icons.people_outline,
+    //   route: AppRoutes.usersSync,
+    //   position: DrawerSection.header,
+    // ),
 
     // ======= الحسابات =======
     NavItem(

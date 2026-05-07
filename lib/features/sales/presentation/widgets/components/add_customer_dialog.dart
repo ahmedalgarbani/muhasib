@@ -121,7 +121,6 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   ),
                   const Divider(),
                   const SizedBox(height: 16),
-                  
                   // Customer Name
                   TextFormField(
                     controller: _nameController,

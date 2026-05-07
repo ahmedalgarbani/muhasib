@@ -5,6 +5,7 @@ import 'package:muhasib/features/accounts/data/repositories/opening_balance_repo
 import 'package:muhasib/features/accounts/domain/repositories/opening_balance_repository.dart';
 import 'package:muhasib/features/accounts/domain/usecases/opening_balance_usecases.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_all_accounts.dart';
+import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/opening_balance_cubit.dart';
 
 /// Register all opening balance dependencies
@@ -62,6 +63,7 @@ void registerOpeningBalanceDependencies(GetIt getIt, DatabaseService databaseSer
       postOpeningBalance: getIt<PostOpeningBalance>(),
       generateNextNumber: getIt<GenerateNextOpeningBalanceNumber>(),
       getAllAccounts: getIt<GetAllAccounts>(),
+      limitInterceptor: getIt<AccountLimitInterceptor>(),
     ),
   );
 }

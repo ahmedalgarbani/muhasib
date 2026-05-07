@@ -7,6 +7,7 @@ class CustomTextField extends StatelessWidget {
   final String? hint;
   final IconData? prefixIcon;
   final Widget? suffixIcon;
+
   final int maxLines;
   final bool readOnly;
   final TextInputType? keyboardType;
@@ -56,9 +57,7 @@ class CustomTextField extends StatelessWidget {
         hintText: hint,
         prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
         suffixIcon: suffixIcon,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: enabled ? Colors.grey[50] : Colors.grey[200],
         enabledBorder: OutlineInputBorder(

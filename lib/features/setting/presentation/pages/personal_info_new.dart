@@ -103,7 +103,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               children: [
                 // Section: الاسم - العنوان
                 const Padding(
-                  padding: EdgeInsets.only(left: 16, right: 16, top: 8, bottom: 4),
+                  padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 8, bottom: 4),
                   child: Text(
                     'الاسم - العنوان',
                     style: TextStyle(

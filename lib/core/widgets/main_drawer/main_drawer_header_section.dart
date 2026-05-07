@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/constant/app_string.dart';
 import 'package:muhasib/core/widgets/main_drawer/main_drawer_header_icon.dart';
 
 class MainDrawerHeaderSection extends StatelessWidget {
@@ -17,9 +18,9 @@ class MainDrawerHeaderSection extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
             const Text(
-              'محاسب',
+              AppStrings.appTitle,
               style: TextStyle(
-                color: Color(0xFFC4A053),
+                color: Color.fromARGB(255, 10, 27, 119),
                 fontSize: 40,
                 fontWeight: FontWeight.bold,
               ),

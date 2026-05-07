@@ -170,6 +170,12 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
             children: [
               Row(
                 children: [
+                  Builder(
+                    builder: (innerContext) => IconButton(
+                      onPressed: () => Scaffold.of(innerContext).openDrawer(),
+                      icon: const Icon(Icons.menu, color: Colors.white),
+                    ),
+                  ),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,7 +263,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
     if (state is AccountsError) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

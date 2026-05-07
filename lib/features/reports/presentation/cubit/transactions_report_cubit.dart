@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart' as intl;
+import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/repositories/transactions_report_repository.dart';
 import 'package:muhasib/features/reports/presentation/cubit/transactions_report_state.dart';
@@ -150,25 +152,57 @@ class TransactionsReportCubit extends Cubit<TransactionsReportState> {
 
   Future<void> exportToPdf() async {
     if (state is TransactionsReportLoaded) {
-      // TODO: Implement PDF export
-      // This would typically involve creating a PDF document with the transactions
-      // and saving it or sharing it
+      final s = state as TransactionsReportLoaded;
+      final headers = ['الرقم المرجعي', 'التاريخ', 'الوصف', 'المبلغ', 'النوع'];
+      final data = s.transactions.map((t) => [
+        t.reference,
+        intl.DateFormat('yyyy/MM/dd').format(t.date),
+        t.description,
+        t.totalAmount.toStringAsFixed(2),
+        _getTypeLabel(t.transactionType),
+      ]).toList();
+
+      await ExportService.printData(
+        title: 'تقرير الحركات المالية',
+        headers: headers,
+        data: data,
+      );
     }
   }
 
   Future<void> exportToExcel() async {
     if (state is TransactionsReportLoaded) {
-      // TODO: Implement Excel export
-      // This would typically involve creating an Excel file with the transactions
-      // and saving it or sharing it
+      final s = state as TransactionsReportLoaded;
+      final headers = ['الرقم المرجعي', 'التاريخ', 'الوصف', 'المبلغ', 'النوع'];
+      final data = s.transactions.map((t) => [
+        t.reference,
+        intl.DateFormat('yyyy/MM/dd').format(t.date),
+        t.description,
+        t.totalAmount.toStringAsFixed(2),
+        _getTypeLabel(t.transactionType),
+      ]).toList();
+
+      await ExportService.exportToExcel(
+        fileName: 'تقرير_الحركات_${intl.DateFormat('yyyyMMdd').format(DateTime.now())}',
+        headers: headers,
+        data: data,
+      );
     }
   }
 
-  Future<void> printReport() async {
-    if (state is TransactionsReportLoaded) {
-      // TODO: Implement print functionality
-      // This would typically involve creating a printable version of the report
-      // and sending it to the printer
+  Future<void> printReport() async => exportToPdf();
+
+  String _getTypeLabel(String type) {
+    switch (type) {
+      case 'sales': return 'مبيعات';
+      case 'purchase': return 'مشتريات';
+      case 'journal': return 'قيد يومية';
+      case 'receipt': return 'قبض';
+      case 'payment': return 'صرف';
+      case 'opening': return 'افتتاحي';
+      case 'salesReturn': return 'مردود مبيعات';
+      case 'purchaseReturn': return 'مردود مشتريات';
+      default: return 'أخرى';
     }
   }
 }

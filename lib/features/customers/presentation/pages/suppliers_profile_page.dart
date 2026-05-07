@@ -54,7 +54,7 @@ class _SuppliersProfileContentState extends State<_SuppliersProfileContent> {
             ),
           ],
         ),
-        endDrawer: const MainAppDrawer(),
+        drawer: const MainAppDrawer(),
         body: Column(
           children: [
             // Search bar

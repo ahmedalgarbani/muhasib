@@ -14,8 +14,8 @@ class MainAppDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           MainDrawerHeaderSection(),
-          const CurrentAccountCard(),
-          const SizedBox(height: 8),
+          // const CurrentAccountCard(),
+          // const SizedBox(height: 8),
           ...AppNavigator.items.map((item) => DrawerMenuItem(item: item)),
           const SizedBox(height: 16),
         ],

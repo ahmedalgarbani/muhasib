@@ -1,525 +1,170 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
+import 'package:intl/intl.dart';
 
-class StockMovementReportPage extends StatelessWidget {
+class StockMovementReportPage extends StatefulWidget {
   const StockMovementReportPage({super.key});
+  @override
+  State<StockMovementReportPage> createState() => _StockMovementReportPageState();
+}
 
+class _StockMovementReportPageState extends State<StockMovementReportPage> {
+  _MovResult? _lastResult;
   @override
   Widget build(BuildContext context) {
     return ReportBasePage(
-      title: 'حركة المخزون',
+      title: 'تقرير حركة المخزون',
       icon: Icons.swap_horiz,
       color: const Color(0xFF388E3C),
-      reportBuilder: (filter) => _StockMovementsContent(filter: filter),
+      onPrint: _lastResult == null ? null : () => ExportService.printData(title: 'حركة المخزون', headers: ['التاريخ', 'الصنف', 'داخل', 'خارج', 'المرجع'], data: _lastResult!.rows.map((r) => [r.dateLabel, r.productName, r.qtyIn.toString(), r.qtyOut.toString(), r.referenceNo]).toList()),
+      onExportExcel: _lastResult == null ? null : () => ExportService.exportToExcel(fileName: 'stock_movements', headers: ['التاريخ', 'الصنف', 'كمية داخلة', 'كمية خارجة', 'رقم المرجع'], data: _lastResult!.rows.map((r) => [r.dateLabel, r.productName, r.qtyIn.toString(), r.qtyOut.toString(), r.referenceNo]).toList()),
+      reportBuilder: (filter) => _StockMovementsContent(filter: filter, onLoad: (r) => setState(() => _lastResult = r)),
     );
   }
 }
 
-class LowStockReportPage extends StatelessWidget {
+class LowStockReportPage extends StatefulWidget {
   const LowStockReportPage({super.key});
+  @override
+  State<LowStockReportPage> createState() => _LowStockReportPageState();
+}
 
+class _LowStockReportPageState extends State<LowStockReportPage> {
+  List<_LowStockRow>? _lastRows;
   @override
   Widget build(BuildContext context) {
     return ReportBasePage(
       title: 'تنبيه نقص المخزون',
-      icon: Icons.warning,
+      icon: Icons.warning_amber,
       color: const Color(0xFFFF9800),
       showDateFilter: false,
-      reportBuilder: (filter) => const _LowStockContent(),
+      onPrint: _lastRows == null ? null : () => ExportService.printData(title: 'نواقص المخزون', headers: ['الصنف', 'الكمية الحالية', 'حد الطلب'], data: _lastRows!.map((r) => [r.name, r.qty.toString(), r.min.toString()]).toList()),
+      reportBuilder: (_) => _LowStockContent(onLoad: (r) => setState(() => _lastRows = r)),
     );
   }
 }
 
-class StockValuationReportPage extends StatelessWidget {
+class StockValuationReportPage extends StatefulWidget {
   const StockValuationReportPage({super.key});
+  @override
+  State<StockValuationReportPage> createState() => _StockValuationReportPageState();
+}
 
+class _StockValuationReportPageState extends State<StockValuationReportPage> {
+  List<_ValuationRow>? _lastRows;
   @override
   Widget build(BuildContext context) {
     return ReportBasePage(
-      title: 'تقييم المخزون',
-      icon: Icons.monetization_on,
+      title: 'تقرير تقييم المخزون',
+      icon: Icons.account_balance_wallet,
       color: const Color(0xFF7B1FA2),
       showDateFilter: false,
-      reportBuilder: (filter) => const _StockValuationContent(),
+      onPrint: _lastRows == null ? null : () => ExportService.printData(title: 'تقييم المخزون', headers: ['الصنف', 'الكمية', 'القيمة المقدرة'], data: _lastRows!.map((r) => [r.name, r.qty.toString(), r.value.toStringAsFixed(2)]).toList()),
+      onExportExcel: _lastRows == null ? null : () => ExportService.exportToExcel(fileName: 'stock_valuation', headers: ['اسم الصنف', 'الكمية الحالية', 'قيمة التكلفة الإجمالية'], data: _lastRows!.map((r) => [r.name, r.qty.toString(), r.value.toStringAsFixed(2)]).toList()),
+      reportBuilder: (_) => _StockValuationContent(onLoad: (r) => setState(() => _lastRows = r)),
     );
   }
 }
 
 class _StockMovementsContent extends StatelessWidget {
   final ReportFilter filter;
-
-  const _StockMovementsContent({required this.filter});
+  final Function(_MovResult) onLoad;
+  const _StockMovementsContent({required this.filter, required this.onLoad});
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_MovResult>(
-      future: _load(filter),
+      future: _load(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('خطأ: ${snapshot.error}'));
-        }
-        final data = snapshot.data;
-        if (data == null || data.rows.isEmpty) {
-          return const Center(child: Text('لا توجد حركات في الفترة المحددة'));
-        }
-
-        return Column(
-          children: [
-            ReportSummaryRow(
-              cards: [
-                ReportSummaryCard(
-                  title: 'إجمالي الداخل',
-                  value: data.totalIn.toStringAsFixed(2),
-                  icon: Icons.arrow_downward,
-                  color: Colors.green,
-                ),
-                ReportSummaryCard(
-                  title: 'إجمالي الخارج',
-                  value: data.totalOut.toStringAsFixed(2),
-                  icon: Icons.arrow_upward,
-                  color: Colors.red,
-                ),
-                ReportSummaryCard(
-                  title: 'عدد الحركات',
-                  value: data.rows.length.toString(),
-                  icon: Icons.receipt,
-                  color: Colors.blue,
-                ),
-                if (data.undocumentedCount > 0)
-                  ReportSummaryCard(
-                    title: 'بدون مرجع!',
-                    value: data.undocumentedCount.toString(),
-                    icon: Icons.warning,
-                    color: Colors.red,
-                  ),
-              ],
-            ),
-            // Warning for undocumented movements
-            if (data.undocumentedCount > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.red[200]!),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.warning, color: Colors.red),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              'تحذير: حركات بدون مرجع!',
-                              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.red),
-                            ),
-                            Text(
-                              'يوجد ${data.undocumentedCount} حركة بدون مستند مرجعي - هذا قد يشير إلى خلل في النظام.',
-                              style: TextStyle(fontSize: 12, color: Colors.red[700]),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: data.rows.length,
-                itemBuilder: (context, index) {
-                  final r = data.rows[index];
-                  final isUndocumented = r.referenceNo.isEmpty;
-                  
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: isUndocumented
-                          ? const BorderSide(color: Colors.red, width: 2)
-                          : BorderSide.none,
-                    ),
-                    child: ListTile(
-                      leading: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            r.qtyIn > 0 ? Icons.arrow_downward : Icons.arrow_upward,
-                            color: r.qtyIn > 0 ? Colors.green : Colors.red,
-                          ),
-                        ],
-                      ),
-                      title: Row(
-                        children: [
-                          Expanded(child: Text('${r.productName}')),
-                          if (isUndocumented)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                              decoration: BoxDecoration(
-                                color: Colors.red[100],
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: const Text(
-                                'بدون مرجع!',
-                                style: TextStyle(color: Colors.red, fontSize: 10, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                        ],
-                      ),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('المخزن: ${r.warehouseName}'),
-                          Row(
-                            children: [
-                              Text('${r.dateLabel}', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                              if (r.referenceNo.isNotEmpty) ...[
-                                const Text(' | '),
-                                Text('المرجع: ${r.referenceNo}', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
-                              ],
-                            ],
-                          ),
-                          if (r.statement.isNotEmpty)
-                            Text(r.statement, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
-                        ],
-                      ),
-                      trailing: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            r.qtyIn > 0 ? '+${r.qtyIn.toStringAsFixed(2)}' : '-${r.qtyOut.toStringAsFixed(2)}',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: r.qtyIn > 0 ? Colors.green : Colors.red,
-                              fontSize: 16,
-                            ),
-                          ),
-                          if (r.value != 0)
-                            Text(
-                              '${r.value.toStringAsFixed(2)} ر.س',
-                              style: TextStyle(color: Colors.grey[600], fontSize: 11),
-                            ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final data = snapshot.data!;
+        WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(data));
+        return Column(children: [
+          ReportSummaryRow(cards: [
+            ReportSummaryCard(title: 'إجمالي الداخل', value: data.totalIn.toInt().toString(), icon: Icons.login, color: Colors.green),
+            ReportSummaryCard(title: 'إجمالي الخارج', value: data.totalOut.toInt().toString(), icon: Icons.logout, color: Colors.red),
+          ]),
+          Expanded(child: ListView.builder(padding: const EdgeInsets.all(16), itemCount: data.rows.length, itemBuilder: (context, index) {
+            final r = data.rows[index];
+            return Card(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey[100]!)), margin: const EdgeInsets.only(bottom: 12), child: ListTile(title: Text(r.productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)), subtitle: Text('${r.dateLabel} | مرجع: ${r.referenceNo}', style: const TextStyle(fontSize: 10)), trailing: Text(r.qtyIn > 0 ? '+${r.qtyIn.toInt()}' : '-${r.qtyOut.toInt()}', style: TextStyle(fontWeight: FontWeight.bold, color: r.qtyIn > 0 ? Colors.green : Colors.red, fontSize: 16))));
+          })),
+        ]);
       },
     );
   }
 
-  Future<_MovResult> _load(ReportFilter filter) async {
+  Future<_MovResult> _load() async {
     final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[];
-    String dateFilter = '';
-    if (filter.startDate != null && filter.endDate != null) {
-      dateFilter = 'WHERE cm.trans_date >= ? AND cm.trans_date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
-    }
-
-    final rows = await db.rawQuery('''
-      SELECT
-        cm.trans_date,
-        cm.quantity_in,
-        cm.quantity_out,
-        cm.cost_local_amount,
-        cm.refrenc_no,
-        cm.statement,
-        c.name as product_name,
-        s.name as stock_name
-      FROM category_movs cm
-      LEFT JOIN categories c ON c.id = cm.category_id
-      LEFT JOIN stocks s ON s.id = cm.stock_id
-      $dateFilter
-      ORDER BY cm.trans_date DESC
-    ''', args);
-
-    final parsedRows = rows.map((m) {
-      return _MovRow(
-        transDate: (m['trans_date'] as int?) ?? 0,
-        qtyIn: (m['quantity_in'] as num?)?.toDouble() ?? 0.0,
-        qtyOut: (m['quantity_out'] as num?)?.toDouble() ?? 0.0,
-        value: (m['cost_local_amount'] as num?)?.toDouble() ?? 0.0,
-        referenceNo: ((m['refrenc_no'] as String?) ?? '').trim(),
-        statement: ((m['statement'] as String?) ?? '').trim(),
-        productName: (m['product_name'] as String?) ?? '',
-        warehouseName: (m['stock_name'] as String?) ?? '',
-      );
-    }).toList();
-
-    final totalIn = parsedRows.fold<double>(0, (s, r) => s + r.qtyIn);
-    final totalOut = parsedRows.fold<double>(0, (s, r) => s + r.qtyOut);
-    final undocumented = parsedRows.where((r) => r.referenceNo.isEmpty).length;
-
-    return _MovResult(
-      rows: parsedRows,
-      totalIn: totalIn,
-      totalOut: totalOut,
-      undocumentedCount: undocumented,
-    );
+    final rows = await db.rawQuery('SELECT cm.trans_date, cm.quantity_in, cm.quantity_out, cm.refrenc_no, c.name FROM category_movs cm JOIN categories c ON c.id = cm.category_id ORDER BY cm.trans_date DESC LIMIT 100');
+    final list = rows.map((m) => _MovRow(transDate: m['trans_date'] as int, qtyIn: (m['quantity_in'] as num).toDouble(), qtyOut: (m['quantity_out'] as num).toDouble(), referenceNo: m['refrenc_no'] as String? ?? '', productName: m['name'] as String)).toList();
+    return _MovResult(rows: list, totalIn: list.fold(0, (s, r) => s + r.qtyIn), totalOut: list.fold(0, (s, r) => s + r.qtyOut));
   }
 }
 
-class _MovResult {
-  final List<_MovRow> rows;
-  final double totalIn;
-  final double totalOut;
-  final int undocumentedCount;
-  
-  const _MovResult({
-    required this.rows,
-    required this.totalIn,
-    required this.totalOut,
-    required this.undocumentedCount,
-  });
-}
-
-
 class _LowStockContent extends StatelessWidget {
-  const _LowStockContent();
+  final Function(List<_LowStockRow>) onLoad;
+  const _LowStockContent({required this.onLoad});
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_LowStockRow>>(
       future: _load(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('خطأ: ${snapshot.error}'));
-        }
-        final rows = snapshot.data ?? const [];
-        if (rows.isEmpty) {
-          return const Center(child: Text('لا توجد أصناف منخفضة'));
-        }
-
-        return Column(
-          children: [
-            ReportSummaryRow(
-              cards: [
-                ReportSummaryCard(
-                  title: 'عدد الأصناف',
-                  value: rows.length.toString(),
-                  icon: Icons.warning,
-                  color: Colors.orange,
-                ),
-              ],
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: rows.length,
-                itemBuilder: (context, index) {
-                  final r = rows[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(r.name),
-                      subtitle: Text('المخزن: ${r.stockName}'),
-                      trailing: Text(
-                        '${r.qty.toStringAsFixed(2)} / ${r.min.toStringAsFixed(2)}',
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final rows = snapshot.data!;
+        WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        return ListView.builder(padding: const EdgeInsets.all(16), itemCount: rows.length, itemBuilder: (context, index) {
+          final r = rows[index];
+          return Card(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: const BorderSide(color: Color(0x4DFF9800))), margin: const EdgeInsets.only(bottom: 12), child: ListTile(title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)), subtitle: Text('حد الطلب: ${r.min}', style: const TextStyle(fontSize: 10)), trailing: Text('${r.qty}', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.orange, fontSize: 16))));
+        });
       },
     );
   }
 
   Future<List<_LowStockRow>> _load() async {
     final db = await getIt<DatabaseService>().database;
-    final rows = await db.rawQuery(
-      '''
-      SELECT
-        c.name,
-        c.quantity,
-        COALESCE(c.min_stock_level, 0) as min_stock_level,
-        s.name as stock_name
-      FROM categories c
-      LEFT JOIN stocks s ON s.id = c.stock_id
-      WHERE c.is_active = 1 AND c.quantity <= COALESCE(c.min_stock_level, 0)
-      ORDER BY c.name
-      ''',
-    );
-
-    return rows.map((m) {
-      return _LowStockRow(
-        name: (m['name'] as String?) ?? '',
-        qty: (m['quantity'] as num?)?.toDouble() ?? 0.0,
-        min: (m['min_stock_level'] as num?)?.toDouble() ?? 0.0,
-        stockName: (m['stock_name'] as String?) ?? '',
-      );
-    }).toList();
+    final rows = await db.rawQuery('SELECT name, quantity, COALESCE(min_stock_level, 0) as ms FROM categories WHERE is_active = 1 AND quantity <= COALESCE(min_stock_level, 0)');
+    return rows.map((m) => _LowStockRow(name: m['name'] as String, qty: (m['quantity'] as num).toDouble(), min: (m['ms'] as num).toDouble())).toList();
   }
 }
 
 class _StockValuationContent extends StatelessWidget {
-  const _StockValuationContent();
+  final Function(List<_ValuationRow>) onLoad;
+  const _StockValuationContent({required this.onLoad});
 
   @override
   Widget build(BuildContext context) {
+    final fmt = NumberFormat('#,##0.00', 'ar');
     return FutureBuilder<List<_ValuationRow>>(
       future: _load(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (snapshot.hasError) {
-          return Center(child: Text('خطأ: ${snapshot.error}'));
-        }
-        final rows = snapshot.data ?? const [];
-        if (rows.isEmpty) {
-          return const Center(child: Text('لا توجد بيانات'));
-        }
-
-        final total = rows.fold<double>(0, (s, r) => s + r.value);
-        return Column(
-          children: [
-            ReportSummaryRow(
-              cards: [
-                ReportSummaryCard(
-                  title: 'إجمالي القيمة بالتكلفة',
-                  value: total.toStringAsFixed(2),
-                  icon: Icons.monetization_on,
-                  color: Colors.green,
-                ),
-                ReportSummaryCard(
-                  title: 'عدد الأصناف',
-                  value: rows.length.toString(),
-                  icon: Icons.category,
-                  color: Colors.blue,
-                ),
-              ],
-            ),
-            Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: rows.length,
-                itemBuilder: (context, index) {
-                  final r = rows[index];
-                  return Card(
-                    child: ListTile(
-                      title: Text(r.name),
-                      subtitle: Text('المخزن: ${r.stockName} | كمية: ${r.qty.toStringAsFixed(2)}'),
-                      trailing: Text(
-                        r.value.toStringAsFixed(2),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        );
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+        final rows = snapshot.data!;
+        WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        return Column(children: [
+          ReportSummaryRow(cards: [ReportSummaryCard(title: 'إجمالي القيمة', value: fmt.format(rows.fold(0.0, (s, r) => s + r.value)), icon: Icons.account_balance_wallet, color: Colors.purple)]),
+          Expanded(child: ListView.builder(padding: const EdgeInsets.all(16), itemCount: rows.length, itemBuilder: (context, index) {
+            final r = rows[index];
+            return Card(elevation: 0, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey[100]!)), margin: const EdgeInsets.only(bottom: 12), child: ListTile(title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)), subtitle: Text('الكمية: ${r.qty}', style: const TextStyle(fontSize: 10)), trailing: Text('${fmt.format(r.value)} ر.س', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.purple, fontSize: 14))));
+          })),
+        ]);
       },
     );
   }
 
   Future<List<_ValuationRow>> _load() async {
     final db = await getIt<DatabaseService>().database;
-    final rows = await db.rawQuery(
-      '''
-      SELECT
-        c.name,
-        c.quantity,
-        COALESCE(c.cost_amount, 0) as cost_amount,
-        (COALESCE(c.cost_amount, 0) * COALESCE(c.quantity, 0)) as value,
-        s.name as stock_name
-      FROM categories c
-      LEFT JOIN stocks s ON s.id = c.stock_id
-      WHERE c.is_active = 1
-      ORDER BY value DESC
-      ''',
-    );
-
-    return rows.map((m) {
-      return _ValuationRow(
-        name: (m['name'] as String?) ?? '',
-        qty: (m['quantity'] as num?)?.toDouble() ?? 0.0,
-        value: (m['value'] as num?)?.toDouble() ?? 0.0,
-        stockName: (m['stock_name'] as String?) ?? '',
-      );
-    }).toList();
+    final rows = await db.rawQuery('SELECT name, quantity, COALESCE(cost_amount, 0) * COALESCE(quantity, 0) as val FROM categories WHERE is_active = 1 AND quantity > 0 ORDER BY val DESC');
+    return rows.map((m) => _ValuationRow(name: m['name'] as String, qty: (m['quantity'] as num).toDouble(), value: (m['val'] as num).toDouble())).toList();
   }
 }
 
-class _MovRow {
-  final int transDate;
-  final double qtyIn;
-  final double qtyOut;
-  final double value;
-  final String referenceNo;
-  final String statement;
-  final String productName;
-  final String warehouseName;
-
-  const _MovRow({
-    required this.transDate,
-    required this.qtyIn,
-    required this.qtyOut,
-    required this.value,
-    required this.referenceNo,
-    required this.statement,
-    required this.productName,
-    required this.warehouseName,
-  });
-
-  String get dateLabel {
-    final d = DateTime.fromMillisecondsSinceEpoch(transDate * 1000);
-    return '${d.day}/${d.month}/${d.year}';
-  }
-}
-
-class _LowStockRow {
-  final String name;
-  final double qty;
-  final double min;
-  final String stockName;
-
-  const _LowStockRow({
-    required this.name,
-    required this.qty,
-    required this.min,
-    required this.stockName,
-  });
-}
-
-class _ValuationRow {
-  final String name;
-  final double qty;
-  final double value;
-  final String stockName;
-
-  const _ValuationRow({
-    required this.name,
-    required this.qty,
-    required this.value,
-    required this.stockName,
-  });
-}
-
-
+class _MovRow { final int transDate; final double qtyIn, qtyOut; final String referenceNo, productName; _MovRow({required this.transDate, required this.qtyIn, required this.qtyOut, required this.referenceNo, required this.productName}); String get dateLabel { final d = DateTime.fromMillisecondsSinceEpoch(transDate * 1000); return '${d.day}/${d.month}/${d.year}'; } }
+class _MovResult { final List<_MovRow> rows; final double totalIn, totalOut; _MovResult({required this.rows, required this.totalIn, required this.totalOut}); }
+class _LowStockRow { final String name; final double qty, min; _LowStockRow({required this.name, required this.qty, required this.min}); }
+class _ValuationRow { final String name; final double qty, value; _ValuationRow({required this.name, required this.qty, required this.value}); }

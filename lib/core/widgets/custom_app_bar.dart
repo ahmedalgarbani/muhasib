@@ -36,7 +36,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions:
           actions ??
           [
-            AppBarIcon(icon: Icons.cloud_outlined),
+            // AppBarIcon(icon: Icons.cloud_outlined),
             GestureDetector(
               child: AppBarIcon(icon: Icons.settings_outlined),
               onTap: () {

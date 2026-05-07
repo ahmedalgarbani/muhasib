@@ -175,6 +175,8 @@ import 'package:muhasib/features/reports/data/datasources/account_statement_data
 import 'package:muhasib/features/reports/data/repositories/account_statement_repository_impl.dart';
 import 'package:muhasib/features/reports/domain/repositories/account_statement_repository.dart';
 import 'package:muhasib/features/reports/presentation/cubit/account_statement_cubit.dart';
+import 'package:muhasib/features/accounts/data/datasources/fiscal_period_datasource.dart';
+import 'package:muhasib/core/services/number_sequence_service.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_movements_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/repositories/account_movements_repository_impl.dart';
 import 'package:muhasib/features/accounts/domain/repositories/account_movements_repository.dart';
@@ -212,6 +214,17 @@ class GetItHelper {
         database: database,
         accountConfigService: getIt<AccountConfigService>(),
       ),
+    );
+
+    // ==================== New Accounting Services ====================
+    // Fiscal Period DataSource
+    getIt.registerLazySingleton<FiscalPeriodDataSource>(
+      () => FiscalPeriodDataSourceImpl(database: database),
+    );
+
+    // Number Sequence Service
+    getIt.registerLazySingleton<NumberSequenceService>(
+      () => NumberSequenceService(database),
     );
 
     // ==================== Initial Feature ====================
@@ -416,9 +429,10 @@ class GetItHelper {
     // Repository (with accounting services for double-entry)
     getIt.registerLazySingleton<InvoiceRepository>(
       () => InvoiceRepositoryImpl(
-        getIt<InvoiceLocalDataSource>(),
+        localDataSource: getIt<InvoiceLocalDataSource>(),
         journalRepository: getIt<JournalRepository>(),
         accountConfigService: getIt<AccountConfigService>(),
+        numberSequenceService: getIt<NumberSequenceService>(),
       ),
     );
     // Use Cases
@@ -502,6 +516,7 @@ class GetItHelper {
         updateVoucherUseCase: getIt<UpdateVoucherUseCase>(),
         deleteVoucherUseCase: getIt<DeleteVoucherUseCase>(),
         generateVoucherNumberUseCase: getIt<GenerateVoucherNumberUseCase>(),
+        limitInterceptor: getIt<AccountLimitInterceptor>(),
       ),
     );
     getIt.registerFactory(
@@ -529,6 +544,7 @@ class GetItHelper {
         getReturnInvoices: getIt<GetReturnInvoices>(),
         createReturnInvoice: getIt<CreateReturnInvoice>(),
         getReturnsByParentInvoice: getIt<GetReturnsByParentInvoice>(),
+        limitInterceptor: getIt<AccountLimitInterceptor>(),
       ),
     );
 
@@ -554,6 +570,7 @@ class GetItHelper {
       () => PurchasesCubit(
         repository: getIt<PurchaseRepository>(),
         createPurchase: getIt<CreatePurchase>(),
+        limitInterceptor: getIt<AccountLimitInterceptor>(),
       ),
     );
     

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/dummy/dummy_data.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/main/presentation/widgets/bottom_action_card.dart';
 import 'package:muhasib/features/main/presentation/widgets/cards_carousel.dart';
 import 'package:muhasib/features/main/presentation/widgets/quick_access_section.dart';
@@ -19,7 +18,6 @@ class _HomePageViewState extends State<HomePageView> {
   bool showBalance = false;
   int activeCardIndex = 0;
   final PageController _pageController = PageController();
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   final List<CardData> cards = [
     CardData('الصندوق الرئيسي', '125,450.00', CardType.primary),
@@ -31,12 +29,10 @@ class _HomePageViewState extends State<HomePageView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      key: _scaffoldKey,
       backgroundColor: Colors.grey[50],
-      endDrawer: const MainAppDrawer(),
       appBar: CustomAppBar(
         title: 'محاسب',
-        onMenuPressed: () => _scaffoldKey.currentState?.openEndDrawer(),
+        onMenuPressed: () => Scaffold.of(context).openDrawer(),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

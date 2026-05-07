@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart' as limit;
 import 'package:muhasib/core/usecase/usecases.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/usecases/create_invoice.dart';
@@ -34,6 +35,8 @@ class SalesCubit extends Cubit<SalesState> {
   final GetReturnInvoices getReturnInvoices;
   final CreateReturnInvoice createReturnInvoice;
   final GetReturnsByParentInvoice getReturnsByParentInvoice;
+  
+  final limit.AccountLimitInterceptor limitInterceptor;
 
   List<InvoiceEntity>? allInvoices;
 
@@ -50,6 +53,7 @@ class SalesCubit extends Cubit<SalesState> {
     required this.getReturnInvoices,
     required this.createReturnInvoice,
     required this.getReturnsByParentInvoice,
+    required this.limitInterceptor,
   }) : super(SalesInitial());
 
   Future<void> loadInvoices() async {
@@ -63,6 +67,25 @@ class SalesCubit extends Cubit<SalesState> {
 
   Future<void> addInvoice(InvoiceEntity invoice) async {
     emit(SalesLoading());
+    
+    // Validate limits
+    final limitCheck = await limitInterceptor.validateInvoice(
+      accountId: invoice.customerId,
+      totalAmount: invoice.amount,
+      currencyId: invoice.currencyId ?? 1,
+      invoiceType: invoice.invoiceType == 4 ? limit.InvoiceType.salesReturn : limit.InvoiceType.sales,
+    );
+    
+    bool hasStopped = false;
+    limitCheck.fold(
+      (failure) {
+        emit(SalesError(failure.message));
+        hasStopped = true;
+      },
+      (_) => null,
+    );
+    if (hasStopped) return;
+
     final result = await createInvoice(params: invoice);
     result.fold((failure) => emit(SalesError(failure.message)), (id) {
       emit(InvoiceCreated(id));
@@ -72,6 +95,25 @@ class SalesCubit extends Cubit<SalesState> {
 
   Future<void> modifyInvoice(InvoiceEntity invoice) async {
     emit(SalesLoading());
+
+    // Validate limits
+    final limitCheck = await limitInterceptor.validateInvoice(
+      accountId: invoice.customerId,
+      totalAmount: invoice.amount,
+      currencyId: invoice.currencyId ?? 1,
+      invoiceType: invoice.invoiceType == 4 ? limit.InvoiceType.salesReturn : limit.InvoiceType.sales,
+    );
+
+    bool hasStopped = false;
+    limitCheck.fold(
+      (failure) {
+        emit(SalesError(failure.message));
+        hasStopped = true;
+      },
+      (_) => null,
+    );
+    if (hasStopped) return;
+
     final result = await updateInvoice(params: invoice);
     result.fold((failure) => emit(SalesError(failure.message)), (_) {
       emit(InvoiceUpdated());

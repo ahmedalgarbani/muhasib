@@ -19,6 +19,7 @@ class AppRoutes {
   static const String accountsGuide = '/accounts/guide';
   static const String accountsLink = '/accounts/link';
   static const String accountsJournal = '/accounts/journal';
+  static const String accountsJournalAdd = '/accounts/journal/add';
   static const String accountsVouchers = '/accounts/vouchers';
   static const String accountsOpeningBalance = '/accounts/opening-balance';
   static const String accountsLimits = '/accounts/limits';
