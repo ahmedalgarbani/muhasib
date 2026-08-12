@@ -5,9 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class PurchasesListPage extends StatefulWidget {
   const PurchasesListPage({Key? key}) : super(key: key);
@@ -39,10 +40,8 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
       child: Builder(
         builder: (innerContext) => Scaffold(
           key: _scaffoldKey,
-          backgroundColor: const Color(0xFFF9FAFB),
-          drawer: const MainAppDrawer(),
+          backgroundColor: AppColors.gray50,
           appBar: CustomAppBar(
-            onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
           body: Column(
             children: [
@@ -77,7 +76,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
             onPressed: () {
               innerContext.push(AppRoutes.purchasesAddInvoice);
             },
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AppColors.success,
             icon: const Icon(Icons.add),
             label: const Text('فاتورة جديدة'),
           ),
@@ -101,7 +100,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: AppColors.gray900,
             ),
           ),
           const SizedBox(height: 16),
@@ -116,16 +115,16 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                       borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                       borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: const BorderSide(color: Color(0xFF10B981)),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      borderSide: const BorderSide(color: AppColors.success),
                     ),
                   ),
                   onChanged: (value) {
@@ -146,7 +145,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.grey.shade100,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                 ),
               ),
@@ -177,7 +176,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: InkWell(
@@ -185,7 +184,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
           // TODO: Implement purchase invoice detail navigation
           // context.pushNamed(AppRoutes.purchaseDetail, extra: invoice);
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -203,7 +202,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                             const Icon(
                               Icons.receipt_long,
                               size: 20,
-                              color: Color(0xFF10B981),
+                              color: AppColors.success,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -211,7 +210,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
+                                color: AppColors.gray900,
                               ),
                             ),
                           ],
@@ -230,15 +229,15 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
+                      color: AppColors.success.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.lg20),
                     ),
                     child: const Text(
                       'مشتريات',
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF10B981),
+                        color: AppColors.success,
                       ),
                     ),
                   ),
@@ -290,7 +289,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
+                          color: AppColors.success,
                         ),
                       ),
                     ],
@@ -327,7 +326,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
       ),
       child: Text(
         text,

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/dummy/dummy_data.dart';
+import 'package:muhasib/features/main/presentation/models/card_data.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/main/presentation/widgets/bottom_action_card.dart';
 import 'package:muhasib/features/main/presentation/widgets/cards_carousel.dart';
@@ -20,10 +20,10 @@ class _HomePageViewState extends State<HomePageView> {
   final PageController _pageController = PageController();
 
   final List<CardData> cards = [
-    CardData('الصندوق الرئيسي', '125,450.00', CardType.primary),
-    CardData('الحساب الثانوي', '87,320.50', CardType.secondary),
-    CardData('حساب التوفير', '250,890.75', CardType.tertiary),
-    CardData('المحفظة الاستثمارية', '412,675.20', CardType.success),
+    CardData('الصندوق الرئيسي', '0.00', CardType.primary),
+    CardData('الحساب البنكي', '0.00', CardType.secondary),
+    CardData('حساب التوفير', '0.00', CardType.tertiary),
+    CardData('المحفظة الاستثمارية', '0.00', CardType.success),
   ];
 
   @override
@@ -32,7 +32,6 @@ class _HomePageViewState extends State<HomePageView> {
       backgroundColor: Colors.grey[50],
       appBar: CustomAppBar(
         title: 'محاسب',
-        onMenuPressed: () => Scaffold.of(context).openDrawer(),
       ),
       body: SafeArea(
         child: SingleChildScrollView(

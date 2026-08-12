@@ -3,10 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/pages/select_purchase_for_return_page.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class PurchaseReturnsPage extends StatefulWidget {
   const PurchaseReturnsPage({Key? key}) : super(key: key);
@@ -40,10 +41,8 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
       child: Builder(
         builder: (innerContext) => Scaffold(
           key: _scaffoldKey,
-          backgroundColor: const Color(0xFFF9FAFB),
-          drawer: const MainAppDrawer(),
+          backgroundColor:  AppColors.gray50,
           appBar: CustomAppBar(
-            onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
           body: Column(
             children: [
@@ -104,7 +103,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
                   color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: const Icon(
                   Icons.assignment_return,
@@ -122,7 +121,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
+                        color: AppColors.gray900,
                       ),
                     ),
                     SizedBox(height: 2),
@@ -130,7 +129,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                       'إدارة المردودات والمرتجعات',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.gray500,
                       ),
                     ),
                   ],
@@ -142,7 +141,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.grey.shade100,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                 ),
               ),
@@ -156,17 +155,17 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
               hintStyle: const TextStyle(fontSize: 13),
               prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
               filled: true,
-              fillColor: const Color(0xFFF9FAFB),
+              fillColor: AppColors.gray50,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: const BorderSide(color: Colors.red, width: 1),
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -268,14 +267,14 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.red.shade100),
       ),
       child: InkWell(
         onTap: () {
           // Navigate to return details
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -291,7 +290,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
                             color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            borderRadius: BorderRadius.circular(AppRadius.sm6),
                           ),
                           child: const Icon(
                             Icons.assignment_return,
@@ -309,7 +308,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF111827),
+                                  color: AppColors.gray900,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -336,7 +335,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: const Text(
                       'مردود',
@@ -355,7 +354,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppRadius.sm6),
                   ),
                   child: Row(
                     children: [
@@ -452,7 +451,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppRadius.sm6),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -517,7 +516,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
           Card(
             elevation: 0,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               side: BorderSide(color: Colors.grey.shade200),
             ),
             child: Padding(
@@ -530,7 +529,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
+                      color: AppColors.gray900,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -554,7 +553,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: color.withOpacity(0.2)),
       ),
       child: Padding(
@@ -565,7 +564,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(icon, color: color, size: 24),
             ),
@@ -587,7 +586,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
+                      color: AppColors.gray900,
                     ),
                   ),
                 ],
@@ -635,7 +634,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
         title: const Row(
           children: [
             Icon(Icons.assignment_return, color: Colors.red),
@@ -656,7 +655,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.orange.shade50,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Row(
                 children: [
@@ -719,7 +718,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF111827),
+              color: AppColors.gray900,
             ),
           ),
           const SizedBox(height: 8),
@@ -739,7 +738,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
               backgroundColor: Colors.red,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
           ),

@@ -8,17 +8,26 @@ class SqfliteDataSource implements DatabaseService {
   SqfliteDataSource(this.db);
   
   @override
-  Future<void> addData({required String path, required Map<String, String> data, String? documentId}) {
-    // TODO: implement addData
-    throw UnimplementedError();
-  }
-  
-  @override
-  Future getData({required String path, String? documentId, Map<String, dynamic>? query}) {
-    // TODO: implement getData
-    throw UnimplementedError();
+  Future<void> addData({required String path, required Map<String, String> data, String? documentId}) async {
+    final values = Map<String, Object?>.from(data);
+    if (documentId != null) {
+      values['id'] = int.tryParse(documentId) ?? documentId;
+    }
+    await db.insert(path, values, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
+  @override
+  Future<List<Map<String, Object?>>> getData({required String path, String? documentId, Map<String, dynamic>? query}) {
+    final filters = <String, Object?>{};
+    if (query != null) {
+      filters.addAll(query);
+    }
+    if (documentId != null) {
+      filters['id'] = int.tryParse(documentId) ?? documentId;
+    }
+    final where = filters.isEmpty ? null : filters.keys.map((key) => '$key = ?').join(' AND ');
+    return db.query(path, where: where, whereArgs: filters.values.toList());
+  }
   // @override
   // Future<List<User>> getUsers() async {
   //   try {

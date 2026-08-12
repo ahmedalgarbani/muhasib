@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Helper class for account colors based on type and master status
 class AccountColorHelper {
@@ -13,38 +14,38 @@ class AccountColorHelper {
     // Master accounts always get yellow/amber colors
     if (account.isMaster) {
       return (
-        background: const Color(0xFFFEF3C7),
-        border: const Color(0xFFF59E0B),
-        icon: const Color(0xFFF59E0B),
+        background: AppColors.amber100,
+        border: AppColors.warning,
+        icon: AppColors.warning,
       );
     }
 
     // Sub accounts get colors based on their type
     return switch (account.type) {
       0 => (
-        background: const Color(0xFFDCFCE7),
-        border: const Color(0xFF10B981),
-        icon: const Color(0xFF10B981),
+        background: AppColors.green100,
+        border: AppColors.success,
+        icon: AppColors.success,
       ), // أصول - Green
       1 => (
-        background: const Color(0xFFFEE2E2),
-        border: const Color(0xFFEF4444),
-        icon: const Color(0xFFEF4444),
+        background: AppColors.red100,
+        border: AppColors.error,
+        icon: AppColors.error,
       ), // خصوم - Red
       2 => (
-        background: const Color(0xFFE0E7FF),
-        border: const Color(0xFF6366F1),
-        icon: const Color(0xFF6366F1),
+        background: AppColors.indigo100,
+        border: AppColors.indigo500,
+        icon: AppColors.indigo500,
       ), // إيرادات - Indigo
       3 => (
-        background: const Color(0xFFDCFCE7),
-        border: const Color(0xFF10B981),
-        icon: const Color(0xFF10B981),
+        background: AppColors.green100,
+        border: AppColors.success,
+        icon: AppColors.success,
       ), // مصروفات - Green
       4 => (
-        background: const Color(0xFFFEE2E2),
-        border: const Color(0xFFEF4444),
-        icon: const Color(0xFFEF4444),
+        background: AppColors.red100,
+        border: AppColors.error,
+        icon: AppColors.error,
       ), // أخرى - Red
       _ => (
         background: Colors.grey[100]!,

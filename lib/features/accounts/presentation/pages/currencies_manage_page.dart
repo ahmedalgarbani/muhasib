@@ -1,7 +1,9 @@
 import "package:flutter/material.dart";
-import "package:hasib_lib/base/entity.dart";
-import "package:hasib_lib/form/form_field.dart";
-import "package:hasib_lib/hasib_lib.dart";
+import "package:muhasib/core/models/entity.dart";
+import "package:muhasib/core/widgets/text_input_field.dart";
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_text_style.dart';
 
 class CurrencyManagerApp extends StatelessWidget {
   const CurrencyManagerApp({Key? key}) : super(key: key);
@@ -117,7 +119,7 @@ class _CurrencyListScreenState extends State<CurrencyListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Column(
           children: [
@@ -175,7 +177,7 @@ class _CurrencyListScreenState extends State<CurrencyListScreen> {
                 const SizedBox(width: 8),
                 const Text(
                   'العملات',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: AppTextStyles.heading1,
                 ),
               ],
             ),
@@ -239,7 +241,7 @@ class CurrencyCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -251,7 +253,7 @@ class CurrencyCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           onTap: () {},
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -324,7 +326,7 @@ class AnimatedToggleSwitch extends StatelessWidget {
         width: 56,
         height: 28,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.sm14),
           color: value ? Colors.blue : Colors.grey[300],
         ),
         child: AnimatedAlign(
@@ -375,7 +377,7 @@ class AppButton extends StatelessWidget {
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           elevation: 4,
         ),
@@ -434,7 +436,7 @@ class _AddCurrencyModalState extends State<AddCurrencyModal> {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -459,7 +461,7 @@ class _AddCurrencyModalState extends State<AddCurrencyModal> {
         children: [
           const Text(
             ' إضافة عملة',
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: AppTextStyles.heading1,
           ),
           IconButton(
             icon: const Icon(Icons.close),
@@ -589,19 +591,19 @@ class AppTextField extends StatelessWidget {
             suffixIcon: suffixIcon != null ? Icon(suffixIcon) : null,
             counterText: maxLength != null ? "" : null,
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide(color: Colors.grey[300]!),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide(color: Colors.grey[300]!),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: const BorderSide(color: Colors.blue, width: 2),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: const BorderSide(color: Colors.red),
             ),
             filled: true,

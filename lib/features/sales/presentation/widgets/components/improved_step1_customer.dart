@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 class ImprovedStep1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -71,7 +75,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF111827),
+              color: AppColors.gray900,
             ),
           ),
           const SizedBox(height: 8),
@@ -110,19 +114,19 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                 color: Colors.white,
                                 border: Border.all(
                                   color: widget.invoice.customer != null
-                                      ? const Color(0xFF10B981)
-                                      : const Color(0xFFD1D5DB),
+                                      ? AppColors.success
+                                      : AppColors.gray300,
                                   width: 2,
                                 ),
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(AppRadius.sm),
                               ),
                               child: Row(
                                 children: [
                                   Icon(
                                     Icons.person,
                                     color: widget.invoice.customer != null
-                                        ? const Color(0xFF10B981)
-                                        : const Color(0xFF6B7280),
+                                        ? AppColors.success
+                                        : AppColors.gray500,
                                     size: 20,
                                   ),
                                   const SizedBox(width: 8),
@@ -143,7 +147,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                                   widget.invoice.customer!.phone!,
                                                   style: const TextStyle(
                                                     fontSize: 12,
-                                                    color: Color(0xFF6B7280),
+                                                    color: AppColors.gray500,
                                                   ),
                                                 ),
                                               Text(
@@ -161,7 +165,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                             'اختر عميل من القائمة',
                                             style: TextStyle(
                                               fontSize: 14,
-                                              color: Color(0xFF9CA3AF),
+                                              color: AppColors.gray400,
                                             ),
                                           ),
                                   ),
@@ -169,7 +173,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                     _showCustomersList
                                         ? Icons.keyboard_arrow_up
                                         : Icons.keyboard_arrow_down,
-                                    color: const Color(0xFF6B7280),
+                                    color: AppColors.gray500,
                                   ),
                                 ],
                               ),
@@ -183,8 +187,8 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                               constraints: const BoxConstraints(maxHeight: 300),
                               decoration: BoxDecoration(
                                 color: Colors.white,
-                                border: Border.all(color: const Color(0xFFE5E7EB)),
-                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: AppColors.gray200),
+                                borderRadius: BorderRadius.circular(AppRadius.sm),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.05),
@@ -227,11 +231,11 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                         
                                         return ListTile(
                                           leading: CircleAvatar(
-                                            backgroundColor: const Color(0xFFEFF6FF),
+                                            backgroundColor: AppColors.blue50,
                                             child: Text(
                                               customer.name.substring(0, 1),
                                               style: const TextStyle(
-                                                color: Color(0xFF2563EB),
+                                                color: AppColors.primary,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
@@ -265,7 +269,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                                       'الحد: ${NumberFormatter.formatCurrency(customer.creditLimit)}',
                                                       style: const TextStyle(
                                                         fontSize: 11,
-                                                        color: Color(0xFF6B7280),
+                                                        color: AppColors.gray500,
                                                       ),
                                                     ),
                                                   ],
@@ -314,8 +318,8 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2563EB),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: IconButton(
                   onPressed: () async {
@@ -357,7 +361,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       'التاريخ',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.gray500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -379,15 +383,15 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          border: Border.all(color: const Color(0xFFE5E7EB)),
-                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppColors.gray200),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Row(
                           children: [
                             const Icon(
                               Icons.calendar_today,
                               size: 18,
-                              color: Color(0xFF6B7280),
+                              color: AppColors.gray500,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -410,30 +414,30 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       'العملة',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.gray500,
                       ),
                     ),
                     const SizedBox(height: 4),
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF9FAFB),
-                        border: Border.all(color: const Color(0xFFE5E7EB)),
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.gray50,
+                        border: Border.all(color: AppColors.gray200),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(
                         children: [
                           const Icon(
                             Icons.attach_money,
                             size: 18,
-                            color: Color(0xFF6B7280),
+                            color: AppColors.gray500,
                           ),
                           const SizedBox(width: 8),
                           Text(
                             widget.invoice.currency,
                             style: const TextStyle(
                               fontSize: 14,
-                              color: Color(0xFF374151),
+                              color: AppColors.gray700,
                             ),
                           ),
                         ],
@@ -458,7 +462,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       'المخزن',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.gray500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -467,7 +471,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.warehouse, size: 18),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 12,
@@ -510,7 +514,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                 decoration: InputDecoration(
                   hintText: 'أضف ملاحظات...',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   contentPadding: const EdgeInsets.all(12),
                 ),
@@ -531,10 +535,10 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
             child: ElevatedButton(
               onPressed: widget.invoice.customer != null ? widget.onNext : null,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF10B981),
+                backgroundColor: AppColors.success,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
               ),
               child: const Row(

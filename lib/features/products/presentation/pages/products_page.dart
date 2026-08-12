@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
@@ -46,11 +48,8 @@ class _ProductsPageState extends State<ProductsPage> {
         textDirection: TextDirection.rtl,
         child: Scaffold(
           key: _scaffoldKey,
-          backgroundColor: const Color(0xFFF9FAFB),
-          drawer: const MainAppDrawer(),
-          appBar: CustomAppBar(
-            onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
-          ),
+          backgroundColor: AppColors.gray50,
+          appBar: const CustomAppBar(),
           body: Column(
             children: [
               _buildHeader(),
@@ -68,7 +67,11 @@ class _ProductsPageState extends State<ProductsPage> {
                       );
                     } else if (state is ProductsLoaded) {
                       if (state.products.isEmpty) {
-                        return _buildEmptyState();
+                        return const EmptyStateWidget(
+                          title: 'لا توجد منتجات',
+                          subtitle: 'ابدأ بإضافة منتج جديد',
+                          icon: Icons.inventory_2_outlined,
+                        );
                       }
                       return _isGridView
                           ? _buildProductsGrid(state.products)
@@ -84,7 +87,7 @@ class _ProductsPageState extends State<ProductsPage> {
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _showProductDialog(context),
-            backgroundColor: const Color(0xFF2563EB),
+            backgroundColor: AppColors.primary,
             icon: const Icon(Icons.add),
             label: const Text('منتج جديد'),
           ),
@@ -111,7 +114,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF111827),
+                  color: AppColors.gray900,
                 ),
               ),
               Row(
@@ -165,11 +168,11 @@ class _ProductsPageState extends State<ProductsPage> {
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide(color: Colors.grey.shade300),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide(color: Colors.grey.shade300),
               ),
             ),
@@ -200,12 +203,12 @@ class _ProductsPageState extends State<ProductsPage> {
         final product = products[index];
         return Card(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             side: BorderSide(color: Colors.grey.shade200),
           ),
           child: InkWell(
             onTap: () => _showProductDialog(context, product: product),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -213,7 +216,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   height: 120,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
                   ),
                   child: Center(
                     child: Icon(
@@ -253,7 +256,7 @@ class _ProductsPageState extends State<ProductsPage> {
                               '${product.sellAmount?.toStringAsFixed(0) ?? '0'} ر.س',
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF2563EB),
+                                color: AppColors.primary,
                               ),
                             ),
                             Container(
@@ -265,7 +268,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                 color: product.quantity > 0
                                     ? Colors.green.shade50
                                     : Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(AppRadius.xs),
                               ),
                               child: Text(
                                 '${product.quantity.toStringAsFixed(0)}',
@@ -300,7 +303,7 @@ class _ProductsPageState extends State<ProductsPage> {
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             side: BorderSide(color: Colors.grey.shade200),
           ),
           child: ListTile(
@@ -310,7 +313,7 @@ class _ProductsPageState extends State<ProductsPage> {
               height: 48,
               decoration: BoxDecoration(
                 color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(
                 Icons.inventory,
@@ -338,7 +341,7 @@ class _ProductsPageState extends State<ProductsPage> {
                     color: product.quantity > 0
                         ? Colors.green.shade50
                         : Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(AppRadius.xs),
                   ),
                   child: Text(
                     'المخزون: ${product.quantity.toStringAsFixed(0)}',
@@ -385,38 +388,6 @@ class _ProductsPageState extends State<ProductsPage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.inventory_2_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد منتجات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'ابدأ بإضافة منتج جديد',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

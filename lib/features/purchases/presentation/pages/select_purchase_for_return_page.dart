@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
@@ -96,7 +97,7 @@ class _SelectPurchaseForReturnPageState extends State<SelectPurchaseForReturnPag
     return BlocProvider(
       create: (_) => getIt<PurchasesCubit>()..loadPurchaseInvoices(),
       child: Scaffold(
-        appBar: AppBar(title: const Text('اختر فاتورة مشتريات للمردود')),
+        appBar: CustomAppBar(title: 'اختر فاتورة مشتريات للمردود'),
         body: Column(
           children: [
             Padding(

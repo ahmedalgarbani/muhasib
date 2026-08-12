@@ -1,6 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 class StickyInvoiceHeader extends StatelessWidget {
   final Invoice invoice;
@@ -35,7 +39,7 @@ class StickyInvoiceHeader extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(invoice.number, style: AppTextStyles.title),
+                  Text(invoice.number, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4)),
                   const SizedBox(width: AppSpacing.sm),
                   InkWell(
                     onTap: onCustomerTap,
@@ -46,11 +50,11 @@ class StickyInvoiceHeader extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(AppRadius.xs),
                       ),
                       child: Text(
-                        invoice.customer?.name ?? '�?�?�?�? �?�?�?�?�?�?',
-                        style: AppTextStyles.caption.copyWith(
+                        invoice.customer?.name ?? 'ï؟½?ï؟½?ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4).copyWith(
                           color: AppColors.primary,
                         ),
                       ),
@@ -60,15 +64,15 @@ class StickyInvoiceHeader extends StatelessWidget {
               ),
               Text(
                 DateFormat('yyyy-MM-dd').format(invoice.date),
-                style: AppTextStyles.small,
+                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4),
               ),
             ],
           ),
           if (invoice.customer?.hasDebt ?? false) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              '�?�?���?�?: �?�?�?�?�?�? �?�?�?�? �?�?�?�?�?�?�? ${NumberFormatter.formatCurrency(invoice.customer!.balance.abs())}',
-              style: AppTextStyles.small.copyWith(color: AppColors.error),
+              'ï؟½?ï؟½?ï؟½ï؟½ï؟½?ï؟½?: ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½? ${NumberFormatter.formatCurrency(invoice.customer!.balance.abs())}',
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4).copyWith(color: AppColors.error),
             ),
           ],
           const SizedBox(height: AppSpacing.sm),
@@ -76,17 +80,17 @@ class StickyInvoiceHeader extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               _buildAmountInfo(
-                '�?�?�?�?�?�?�?�?',
+                'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
                 invoice.total,
                 AppColors.grey900,
               ),
               _buildAmountInfo(
-                '�?�?�?�?�?�?�?',
+                'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
                 invoice.paid,
                 AppColors.success,
               ),
               _buildAmountInfo(
-                '�?�?�?�?�?�?�?',
+                'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
                 invoice.remaining,
                 AppColors.warning,
               ),
@@ -101,10 +105,10 @@ class StickyInvoiceHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.small),
+        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4)),
         Text(
           NumberFormatter.formatNumber(amount),
-          style: AppTextStyles.body.copyWith(
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.gray900, height: 1.5).copyWith(
             fontWeight: FontWeight.bold,
             color: color,
           ),

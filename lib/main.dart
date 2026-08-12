@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/cubit/local_cubit.dart';
 import 'package:muhasib/core/helpers/cubit/theme_cubit.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/helpers/responsive_text.dart';
 import 'package:muhasib/core/route/app_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/widgets/root_shell.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
@@ -30,10 +32,14 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:muhasib/features/accounts/accounts.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:muhasib/core/database/database_initializer.dart';
 import 'generated/l10n.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize database factory for Web/Desktop FFI support
+  await initializeDatabaseFactory();
 
   // Initialize GetIt dependencies
   await GetItHelper.init();
@@ -41,7 +47,7 @@ void main() async {
   final storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
         ? HydratedStorage.webStorageDirectory
-        : await getTemporaryDirectory(),
+        : await getApplicationSupportDirectory(),
   );
   HydratedBloc.storage = storage;
   runApp(
@@ -94,7 +100,7 @@ class MohasebFinanceApp extends StatelessWidget {
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
               ],
-              supportedLocales: const [Locale('en'), Locale('ar')],
+              supportedLocales: S.delegate.supportedLocales,
               debugShowCheckedModeBanner: false,
               title: 'محاسب',
               routerConfig: router,
@@ -103,6 +109,10 @@ class MohasebFinanceApp extends StatelessWidget {
                 primarySwatch: Colors.blue,
                 fontFamily: 'Tajawal',
                 scaffoldBackgroundColor: Colors.white,
+              ),
+              builder: (context, child) => Directionality(
+                textDirection: TextDirection.rtl,
+                child: ResponsiveTextScale(child: RootShell(child: child!)),
               ),
             );
           },

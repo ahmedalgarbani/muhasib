@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/dummy/dummy_data.dart';
+import 'package:muhasib/features/main/presentation/models/card_data.dart';
 import 'package:muhasib/features/main/presentation/widgets/carousel_indicators.dart';
 import 'package:muhasib/features/main/presentation/widgets/finance_card.dart';
 

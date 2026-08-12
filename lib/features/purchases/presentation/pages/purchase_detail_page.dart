@@ -5,10 +5,11 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class PurchaseDetailPage extends StatefulWidget {
   final InvoiceEntity invoice;
@@ -28,10 +29,8 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
       create: (_) => getIt<PurchasesCubit>(),
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: const Color(0xFFF5F5F5),
-        drawer: const MainAppDrawer(),
+        backgroundColor: AppColors.neutral100,
         appBar: CustomAppBar(
-          onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -64,7 +63,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -78,12 +77,12 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFF10B981).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.success.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: const Icon(
               Icons.receipt_long,
-              color: Color(0xFF10B981),
+              color: AppColors.success,
               size: 24,
             ),
           ),
@@ -97,7 +96,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827),
+                    color: AppColors.gray900,
                   ),
                 ),
                 const SizedBox(height: 4),
@@ -143,7 +142,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
         border: Border.all(color: color.withOpacity(0.3)),
       ),
       child: Row(
@@ -168,7 +167,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -181,7 +180,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
             const SizedBox(height: 16),
@@ -228,7 +227,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: color ?? const Color(0xFF111827),
+              color: color ?? AppColors.gray900,
             ),
           ),
         ),
@@ -240,7 +239,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -253,7 +252,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
             const SizedBox(height: 16),
@@ -263,7 +262,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: const Icon(
                     Icons.business,
@@ -281,7 +280,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                         style: const TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
+                          color: AppColors.gray900,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -308,7 +307,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -324,21 +323,21 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827),
+                    color: AppColors.gray900,
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF10B981).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.success.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Text(
                     '${widget.invoice.lines.length} منتج',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF10B981),
+                      color: AppColors.success,
                     ),
                   ),
                 ),
@@ -381,7 +380,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,8 +391,8 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
+                  color: AppColors.success.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.sm6),
                 ),
                 child: Center(
                   child: Text(
@@ -401,7 +400,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF10B981),
+                      color: AppColors.success,
                     ),
                   ),
                 ),
@@ -416,7 +415,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: Color(0xFF111827),
+                        color: AppColors.gray900,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -447,7 +446,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF10B981),
+                  color: AppColors.success,
                 ),
               ),
             ],
@@ -458,7 +457,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(AppRadius.xs),
               ),
               child: Text(
                 'خصم: ${_formatCurrency(line.discountAmt!)}',
@@ -479,7 +478,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -492,7 +491,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
             const SizedBox(height: 16),
@@ -526,7 +525,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
           style: TextStyle(
             fontSize: isTotal ? 14 : 12,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: color ?? (isTotal ? const Color(0xFF111827) : Colors.grey[700]),
+            color: color ?? (isTotal ? AppColors.gray900 : Colors.grey[700]),
           ),
         ),
         Text(
@@ -534,7 +533,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
           style: TextStyle(
             fontSize: isTotal ? 16 : 13,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: color ?? (isTotal ? const Color(0xFF10B981) : Colors.grey[700]),
+            color: color ?? (isTotal ? AppColors.success : Colors.grey[700]),
           ),
         ),
       ],
@@ -545,7 +544,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -562,7 +561,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827),
+                    color: AppColors.gray900,
                   ),
                 ),
               ],
@@ -572,13 +571,13 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Text(
                 widget.invoice.statement!,
                 style: const TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF374151),
+                  color: AppColors.gray700,
                   height: 1.5,
                 ),
               ),
@@ -606,7 +605,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
               backgroundColor: Colors.blue,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
           ),
@@ -623,10 +622,10 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
             icon: const Icon(Icons.print, size: 18),
             label: const Text('طباعة', style: TextStyle(fontSize: 13)),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
+              backgroundColor: AppColors.success,
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
           ),
@@ -640,7 +639,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               side: const BorderSide(color: Colors.red),
             ),

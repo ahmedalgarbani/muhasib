@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class CarouselIndicators extends StatelessWidget {
   final int count;
@@ -23,7 +24,7 @@ class CarouselIndicators extends StatelessWidget {
           height: 8,
           decoration: BoxDecoration(
             color: activeIndex == index ? Colors.blue : Colors.grey[300],
-            borderRadius: BorderRadius.circular(4),
+            borderRadius: BorderRadius.circular(AppRadius.xs),
           ),
         ),
       ),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/models/nav_item.dart';
+import 'package:muhasib/core/route/app_router.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/app_drawer_controller.dart';
 
 class DrawerMenuItem extends StatefulWidget {
   final NavItem item;
@@ -34,7 +37,7 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
     super.dispose();
   }
 
-  void _onTap(BuildContext context) {
+  void _onTap() {
     if (widget.item.children.isNotEmpty) {
       setState(() {
         _isExpanded = !_isExpanded;
@@ -44,78 +47,83 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
           _rotationController.reverse();
         }
       });
-    } else {
-      GoRouter.of(context).push(widget.item.route);
+      return;
     }
+
+    closeAppDrawer();
+    router.push(widget.item.route);
   }
 
   @override
   Widget build(BuildContext context) {
     final item = widget.item;
     final hasChildren = item.children.isNotEmpty;
-    final bool isChild = widget.isChild;
+    final isChild = widget.isChild;
 
     return Column(
       children: [
-        InkWell(
-          onTap: () => _onTap(context),
-          borderRadius: BorderRadius.circular(8),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isChild ? 32 : 16,
-              vertical: isChild ? 8 : 14,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: isChild
-                  ? null
-                  : Border(
-                      bottom: BorderSide(
-                        style: _isExpanded
-                            ? BorderStyle.none
-                            : BorderStyle.solid,
-                        color: Colors.grey[200]!,
-                        width: 0.8,
-                      ),
-                    ),
-            ),
-            child: Row(
-              textDirection: TextDirection.rtl,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
+        Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: isChild ? 28 : 8,
+            vertical: 2,
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _onTap,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              splashColor: AppColors.blue100,
+              highlightColor: AppColors.blue50.withValues(alpha: 0.5),
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: isChild ? 10 : 12,
+                ),
+                decoration: BoxDecoration(
+                  color: _isExpanded ? AppColors.blue50 : Colors.transparent,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Row(
                   children: [
-                    Icon(item.icon, size: isChild ? 15 : 18),
+                    _DrawerItemIcon(icon: item.icon, isChild: isChild),
                     const SizedBox(width: 12),
-                    Text(
-                      item.title,
-                      style: TextStyle(
-                        fontSize: isChild ? 12 : 14,
-                        fontWeight: isChild ? FontWeight.bold : FontWeight.bold,
-                        color: Colors.black,
+                    Expanded(
+                      child: Text(
+                        item.title,
+                        style: TextStyle(
+                          fontSize: isChild ? 13 : 14.5,
+                          fontWeight: FontWeight.w600,
+                          color: isChild
+                              ? AppColors.textSecondary
+                              : AppColors.textPrimary,
+                        ),
                       ),
                     ),
+                    if (hasChildren)
+                      AnimatedBuilder(
+                        animation: _rotationController,
+                        builder: (_, child) => Transform.rotate(
+                          angle: _rotationController.value * 3.14159 / 2,
+                          child: child,
+                        ),
+                        child: const Icon(
+                          Icons.chevron_left,
+                          size: 18,
+                          color: AppColors.gray400,
+                        ),
+                      ),
                   ],
                 ),
-                if (hasChildren)
-                  AnimatedBuilder(
-                    animation: _rotationController,
-                    builder: (_, child) => Transform.rotate(
-                      angle: _rotationController.value * 3.14 / 2,
-                      child: child,
-                    ),
-                    child: const Icon(Icons.chevron_left, size: 20),
-                  ),
-              ],
+              ),
             ),
           ),
         ),
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
           secondChild: Column(
-            children: item.children.map((child) {
-              return DrawerMenuItem(item: child, isChild: true);
-            }).toList(),
+            children: item.children
+                .map((child) => DrawerMenuItem(item: child, isChild: true))
+                .toList(),
           ),
           crossFadeState: _isExpanded
               ? CrossFadeState.showSecond
@@ -123,6 +131,30 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
           duration: const Duration(milliseconds: 200),
         ),
       ],
+    );
+  }
+}
+
+class _DrawerItemIcon extends StatelessWidget {
+  final IconData icon;
+  final bool isChild;
+
+  const _DrawerItemIcon({required this.icon, required this.isChild});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: isChild ? AppColors.gray100 : AppColors.blue100,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(
+        icon,
+        size: isChild ? 16 : 18,
+        color: isChild ? AppColors.textSecondary : AppColors.blue700,
+      ),
     );
   }
 }

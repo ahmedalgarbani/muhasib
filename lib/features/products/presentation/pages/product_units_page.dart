@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/products/domain/entities/product_unit_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
 
@@ -31,10 +32,8 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
         textDirection: TextDirection.rtl,
         child: Scaffold(
           key: _scaffoldKey,
-          backgroundColor: const Color(0xFFF9FAFB),
-          drawer: const MainAppDrawer(),
+          backgroundColor:  AppColors.gray50,
           appBar: CustomAppBar(
-            onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
           body: Column(
             children: [
@@ -67,7 +66,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _showUnitDialog(context),
-            backgroundColor: const Color(0xFF2563EB),
+            backgroundColor:  AppColors.primary,
             icon: const Icon(Icons.add),
             label: const Text('وحدة جديدة'),
           ),
@@ -91,7 +90,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: AppColors.gray900,
             ),
           ),
           const SizedBox(height: 16),
@@ -103,11 +102,11 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide(color: Colors.grey.shade300),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide(color: Colors.grey.shade300),
               ),
             ),
@@ -133,7 +132,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             side: BorderSide(color: Colors.grey.shade200),
           ),
           child: ListTile(
@@ -141,12 +140,12 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFF10B981).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color:  AppColors.success.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Icon(
                 Icons.square_foot,
-                color: Color(0xFF10B981),
+                color: AppColors.success,
               ),
             ),
             title: Row(
@@ -160,7 +159,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(4),
+                    borderRadius: BorderRadius.circular(AppRadius.xs),
                   ),
                   child: Text(
                     unit.short,
@@ -185,7 +184,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppRadius.xs),
                     ),
                     child: const Text(
                       'غير نشط',
@@ -357,7 +356,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                   Navigator.pop(dialogContext);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2563EB),
+                  backgroundColor:  AppColors.primary,
                 ),
                 child: Text(unit == null ? 'إضافة' : 'حفظ'),
               ),

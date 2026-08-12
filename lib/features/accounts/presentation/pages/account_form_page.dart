@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/constant/account_constants.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class AccountFormPage extends StatefulWidget {
   final AccountEntity? account;
@@ -69,10 +70,8 @@ class _AccountFormPageState extends State<AccountFormPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.account == null ? 'إضافة حساب جديد' : 'تعديل الحساب',
-        ),
+      appBar: CustomAppBar(
+        title: (widget.account == null ? 'إضافة حساب جديد' : 'تعديل الحساب'),
       ),
       body: BlocListener<AccountsCubit, AccountsState>(
         listener: (context, state) {

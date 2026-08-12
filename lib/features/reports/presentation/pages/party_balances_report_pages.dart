@@ -6,6 +6,8 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class CustomerBalancesReportPage extends StatefulWidget {
   const CustomerBalancesReportPage({super.key});
@@ -20,7 +22,7 @@ class _CustomerBalancesReportPageState extends State<CustomerBalancesReportPage>
     return ReportBasePage(
       title: 'أرصدة العملاء الحالية',
       icon: Icons.people_outline,
-      color: const Color(0xFF2E7D32),
+      color: AppColors.materialGreen800,
       showDateFilter: false,
       onPrint: _lastRows == null ? null : () => ExportService.printData(title: 'أرصدة العملاء', headers: ['العميل', 'الرصيد'], data: _lastRows!.map((r) => [r.name, r.balance.toStringAsFixed(2)]).toList()),
       onExportExcel: _lastRows == null ? null : () => ExportService.exportToExcel(fileName: 'customer_balances', headers: ['الاسم', 'الرصيد الحالي'], data: _lastRows!.map((r) => [r.name, r.balance.toStringAsFixed(2)]).toList()),
@@ -42,7 +44,7 @@ class _SupplierBalancesReportPageState extends State<SupplierBalancesReportPage>
     return ReportBasePage(
       title: 'أرصدة الموردين الحالية',
       icon: Icons.local_shipping_outlined,
-      color: const Color(0xFF1565C0),
+      color: AppColors.materialBlue800,
       showDateFilter: false,
       onPrint: _lastRows == null ? null : () => ExportService.printData(title: 'أرصدة الموردين', headers: ['المورد', 'الرصيد'], data: _lastRows!.map((r) => [r.name, r.balance.toStringAsFixed(2)]).toList()),
       onExportExcel: _lastRows == null ? null : () => ExportService.exportToExcel(fileName: 'supplier_balances', headers: ['الاسم', 'الرصيد المستحق'], data: _lastRows!.map((r) => [r.name, r.balance.toStringAsFixed(2)]).toList()),
@@ -80,7 +82,7 @@ class _PartyBalancesContent extends StatelessWidget {
             final r = rows[index];
             return Card(
               elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey[100]!)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: BorderSide(color: Colors.grey[100]!)),
               margin: const EdgeInsets.only(bottom: 12),
               child: ListTile(title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)), trailing: Text('${fmt.format(r.balance.abs())} ر.س', style: TextStyle(fontWeight: FontWeight.bold, color: r.balance >= 0 ? Colors.green[700] : Colors.red[700], fontSize: 14)), subtitle: Text(r.balance >= 0 ? 'رصيد لصالحنا' : 'رصيد مطالبات', style: TextStyle(fontSize: 10, color: Colors.grey[500]))),
             );

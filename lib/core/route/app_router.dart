@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/pages/account_link_page.dart';
@@ -91,7 +93,7 @@ import 'package:muhasib/features/settings_entities/settings_entities.dart'
 
 final router = GoRouter(
   debugLogDiagnostics: true,
-  initialLocation: AppRoutes.home,
+  initialLocation: AppRoutes.splash,
   redirect: (context, state) {
     // final authService = locator<AuthService>();
     // final isLoggedIn = authService.isLoggedIn;
@@ -285,7 +287,7 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.sales,
       name: AppRoutes.sales,
-      builder: (context, state) => const PlaceholderWidget(""),
+      builder: (context, state) => BlocProvider(create: (context) => getIt<SalesCubit>(), child: const SalePageBody()),
     ),
     GoRoute(
       path: AppRoutes.salesAddInvoice,
@@ -387,7 +389,7 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.items,
       name: AppRoutes.items,
-      builder: (context, state) => const PlaceholderWidget('Items'),
+      builder: (context, state) => const ProductsPage(),
     ),
     GoRoute(
       path: AppRoutes.itemsGroups,
@@ -565,7 +567,7 @@ final router = GoRouter(
           titleEn: 'More Reports',
           descriptionAr: 'تقارير إضافية سيتم توفيرها قريباً',
           icon: Icons.more_horiz,
-          color: Color(0xFF607D8B),
+          color: AppColors.blueGrey500,
           route: AppRoutes.reportsMore,
           category: ReportCategory.accounting,
         );
@@ -632,7 +634,7 @@ final router = GoRouter(
       builder: (context, state) => const InvoicesListReportPage(
         title: 'تقرير الفواتير',
         icon: Icons.receipt,
-        color: Color(0xFFFF5722),
+        color: AppColors.materialDeepOrange500,
         invoiceTypes: [1, 2],
       ),
     ),
@@ -642,7 +644,7 @@ final router = GoRouter(
       builder: (context, state) => const InvoicesListReportPage(
         title: 'تقرير العروض',
         icon: Icons.request_quote,
-        color: Color(0xFF795548),
+        color: AppColors.brown500,
         invoiceTypes: [3],
       ),
     ),
@@ -652,7 +654,7 @@ final router = GoRouter(
       builder: (context, state) => const InvoicesListReportPage(
         title: 'مرتجعات المبيعات',
         icon: Icons.assignment_return,
-        color: Color(0xFFF44336),
+        color: AppColors.materialRed500,
         invoiceTypes: [4],
       ),
     ),
@@ -679,7 +681,7 @@ final router = GoRouter(
       builder: (context, state) => const InvoicesListReportPage(
         title: 'مرتجعات المشتريات',
         icon: Icons.assignment_return,
-        color: Color(0xFFF44336),
+        color: AppColors.materialRed500,
         invoiceTypes: [5],
       ),
     ),
@@ -800,7 +802,7 @@ class PlaceholderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: CustomAppBar(title: title),
       body: Center(child: Text(title)),
     );
   }

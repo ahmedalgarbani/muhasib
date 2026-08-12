@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 
 class InventoryItemCard extends StatelessWidget {
@@ -29,11 +30,11 @@ class InventoryItemCard extends StatelessWidget {
       elevation: 1,
       margin: const EdgeInsets.symmetric(vertical: 4),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
           color: isPositive
-              ? Colors.green.withOpacity(0.3)
-              : Colors.red.withOpacity(0.3),
+              ? Colors.green.withValues(alpha: 0.3)
+              : Colors.red.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -48,8 +49,8 @@ class InventoryItemCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: isPositive
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.red.withOpacity(0.1),
+                      ? Colors.green.withValues(alpha: 0.1)
+                      : Colors.red.withValues(alpha: 0.1),
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(
@@ -59,11 +60,11 @@ class InventoryItemCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Expanded(
+                const Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'صنف',
                         style: TextStyle(
                           fontSize: 16,
@@ -86,27 +87,33 @@ class InventoryItemCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: _buildQuantityColumn(
-                    'الكمية المتوقعة',
-                    item.quantity,
-                    Colors.blue,
-                    Icons.inventory_2,
+                  child: QuantityColumnWidget(
+                    label: 'الكمية المتوقعة',
+                    quantity: item.quantity,
+                    color: Colors.blue,
+                    icon: Icons.inventory_2,
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: isCountMode
-                      ? _buildEditableQuantity()
-                      : _buildQuantityColumn(
-                          'الكمية الفعلية',
-                          item.actualQuantity,
-                          Colors.orange,
-                          Icons.fact_check,
+                      ? EditableQuantityWidget(
+                          actualQuantity: item.actualQuantity,
+                          onQuantityChanged: onQuantityChanged,
+                        )
+                      : QuantityColumnWidget(
+                          label: 'الكمية الفعلية',
+                          quantity: item.actualQuantity,
+                          color: Colors.orange,
+                          icon: Icons.fact_check,
                         ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: _buildDifferenceColumn(difference, percentageDiff),
+                  child: DifferenceColumnWidget(
+                    difference: difference,
+                    percentageDiff: percentageDiff,
+                  ),
                 ),
               ],
             ),
@@ -148,7 +155,7 @@ class InventoryItemCard extends StatelessWidget {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
                   children: [
@@ -172,14 +179,30 @@ class InventoryItemCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildQuantityColumn(String label, double quantity, Color color, IconData icon) {
+class QuantityColumnWidget extends StatelessWidget {
+  final String label;
+  final double quantity;
+  final Color color;
+  final IconData icon;
+
+  const QuantityColumnWidget({
+    super.key,
+    required this.label,
+    required this.quantity,
+    required this.color,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -202,19 +225,57 @@ class InventoryItemCard extends StatelessWidget {
               color: color,
             ),
           ),
-          // Unit name is not available on InventoryLineEntity
         ],
       ),
     );
   }
+}
 
-  Widget _buildEditableQuantity() {
+class EditableQuantityWidget extends StatefulWidget {
+  final double actualQuantity;
+  final ValueChanged<double>? onQuantityChanged;
+
+  const EditableQuantityWidget({
+    super.key,
+    required this.actualQuantity,
+    this.onQuantityChanged,
+  });
+
+  @override
+  State<EditableQuantityWidget> createState() => _EditableQuantityWidgetState();
+}
+
+class _EditableQuantityWidgetState extends State<EditableQuantityWidget> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.actualQuantity.toString());
+  }
+
+  @override
+  void didUpdateWidget(covariant EditableQuantityWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.actualQuantity != widget.actualQuantity) {
+      _controller.text = widget.actualQuantity.toString();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.orange.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.orange.withOpacity(0.2)),
+        color: Colors.orange.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -232,12 +293,13 @@ class InventoryItemCard extends StatelessWidget {
           SizedBox(
             height: 36,
             child: TextField(
+              controller: _controller,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
               decoration: InputDecoration(
                 hintText: '0',
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 contentPadding: const EdgeInsets.symmetric(horizontal: 8),
                 filled: true,
@@ -245,26 +307,37 @@ class InventoryItemCard extends StatelessWidget {
               ),
               onChanged: (value) {
                 final qty = double.tryParse(value) ?? 0;
-                onQuantityChanged?.call(qty);
+                widget.onQuantityChanged?.call(qty);
               },
-              controller: TextEditingController(text: item.actualQuantity.toString()),
             ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildDifferenceColumn(double difference, double percentageDiff) {
+class DifferenceColumnWidget extends StatelessWidget {
+  final double difference;
+  final double percentageDiff;
+
+  const DifferenceColumnWidget({
+    super.key,
+    required this.difference,
+    required this.percentageDiff,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     final isPositive = difference >= 0;
     final color = isPositive ? Colors.green : Colors.red;
-    
+
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: color.withOpacity(0.2)),
+        color: color.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [

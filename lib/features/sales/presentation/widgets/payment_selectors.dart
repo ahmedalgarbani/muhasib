@@ -5,6 +5,7 @@ import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.d
 import 'package:muhasib/features/settings_entities/domain/entities/cashbox_entity.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/banks_cubit.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/cashboxes_cubit.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 /// Dynamic bank selector that loads banks from database
 class BankSelectorDropdown extends StatelessWidget {
@@ -52,7 +53,7 @@ class BankSelectorDropdown extends StatelessWidget {
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
             items: banks.map((bank) {
@@ -98,7 +99,7 @@ class BankSelectorDropdown extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
       ),
       items: const [],
@@ -117,7 +118,7 @@ class BankSelectorDropdown extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
       ),
       items: const [],
@@ -172,7 +173,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
             items: cashboxes.map((cashbox) {
@@ -211,7 +212,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
       ),
       items: const [],
@@ -230,7 +231,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
       ),
       items: const [],

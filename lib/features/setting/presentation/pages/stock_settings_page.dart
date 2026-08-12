@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/settings_card.dart';
+import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -70,22 +74,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text(
-          'إعدادات المخزون والفواتير',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.arrow_forward_ios),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
+      appBar: const CustomAppBar(title: 'إعدادات المخزون والفواتير'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           return SingleChildScrollView(
@@ -108,7 +97,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.amber[50],
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(color: Colors.amber[200]!),
                   ),
                   child: Row(
@@ -129,118 +118,120 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _buildCard([
-                  _buildSwitchField(
-                    label: 'السماح بالارجاع بدون فاتورة',
-                    value: allowReturnWithoutInvoice,
-                    icon: Icons.assignment_return,
-                    onChanged: (value) {
-                      setState(() {
-                        allowReturnWithoutInvoice = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'اظهار الرصيد الحالي في الفاتورة',
-                    value: showCustomerBalanceInInvoice,
-                    icon: Icons.account_balance_wallet,
-                    enabled: false,
-                    onChanged: (value) {
-                      setState(() {
-                        showCustomerBalanceInInvoice = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'منع البيع في حالة ان سعر البيع أقل من سعر التكلفة',
-                    value: preventWhenSaleLessThanCost,
-                    icon: Icons.price_check,
-                    onChanged: (value) {
-                      setState(() {
-                        preventWhenSaleLessThanCost = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'اظهار رقم موبايل العميل في الفواتير',
-                    value: showCustomPhoneInInvoice,
-                    icon: Icons.phone,
-                    onChanged: (value) {
-                      setState(() {
-                        showCustomPhoneInInvoice = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'انتسار بترتيب نحدى في الفاتورة',
-                    value: false,
-                    icon: Icons.sort,
-                    enabled: false,
-                    onChanged: (value) {},
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'اظهار الفواتير النقدية في حساب العميل او المورد من خلال عمل قيد منتج للفاتورة',
-                    value: showMonetaryInvoiceInCustomerAccount,
-                    icon: Icons.receipt_long,
-                    onChanged: (value) {
-                      setState(() {
-                        showMonetaryInvoiceInCustomerAccount = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'اظهار سعر التكلفة للاصناف في شاشة الفواتير',
-                    value: showCostAmountInCategoryWhenAddInvoice,
-                    icon: Icons.attach_money,
-                    onChanged: (value) {
-                      setState(() {
-                        showCostAmountInCategoryWhenAddInvoice = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'اظهار سعر التكلفة للاصناف في شاشة الفواتير بالنسبة لنقاط البيع',
-                    value: showCostAmountInCategoryWhenAddInvoicePOS,
-                    icon: Icons.point_of_sale,
-                    enabled: false,
-                    onChanged: (value) {
-                      setState(() {
-                        showCostAmountInCategoryWhenAddInvoicePOS = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'فحص رصيد الصندوق او البنك في المشتريات ومردود المبيعات',
-                    value: checkFundAndBankBalanceEnabledInInvoice,
-                    icon: Icons.account_balance,
-                    enabled: false,
-                    onChanged: (value) {
-                      setState(() {
-                        checkFundAndBankBalanceEnabledInInvoice = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'السماح بالبيع بالسالب بكمية لاصناف',
-                    value: isStockNegativeAllowed,
-                    icon: Icons.remove_circle_outline,
-                    enabled: false,
-                    onChanged: (value) {
-                      setState(() {
-                        isStockNegativeAllowed = value;
-                      });
-                    },
-                  ),
-                ]),
+                SettingsCard(
+                  children: [
+                    SettingsSwitchTile(
+                      title: 'السماح بالارجاع بدون فاتورة',
+                      value: allowReturnWithoutInvoice,
+                      icon: Icons.assignment_return,
+                      onChanged: (value) {
+                        setState(() {
+                          allowReturnWithoutInvoice = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'اظهار الرصيد الحالي في الفاتورة',
+                      value: showCustomerBalanceInInvoice,
+                      icon: Icons.account_balance_wallet,
+                      enabled: false,
+                      onChanged: (value) {
+                        setState(() {
+                          showCustomerBalanceInInvoice = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'منع البيع في حالة ان سعر البيع أقل من سعر التكلفة',
+                      value: preventWhenSaleLessThanCost,
+                      icon: Icons.price_check,
+                      onChanged: (value) {
+                        setState(() {
+                          preventWhenSaleLessThanCost = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'اظهار رقم موبايل العميل في الفواتير',
+                      value: showCustomPhoneInInvoice,
+                      icon: Icons.phone,
+                      onChanged: (value) {
+                        setState(() {
+                          showCustomPhoneInInvoice = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'انتسار بترتيب نحدى في الفاتورة',
+                      value: false,
+                      icon: Icons.sort,
+                      enabled: false,
+                      onChanged: (value) {},
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'اظهار الفواتير النقدية في حساب العميل او المورد من خلال عمل قيد منتج للفاتورة',
+                      value: showMonetaryInvoiceInCustomerAccount,
+                      icon: Icons.receipt_long,
+                      onChanged: (value) {
+                        setState(() {
+                          showMonetaryInvoiceInCustomerAccount = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'اظهار سعر التكلفة للاصناف في شاشة الفواتير',
+                      value: showCostAmountInCategoryWhenAddInvoice,
+                      icon: Icons.attach_money,
+                      onChanged: (value) {
+                        setState(() {
+                          showCostAmountInCategoryWhenAddInvoice = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'اظهار سعر التكلفة للاصناف في شاشة الفواتير بالنسبة لنقاط البيع',
+                      value: showCostAmountInCategoryWhenAddInvoicePOS,
+                      icon: Icons.point_of_sale,
+                      enabled: false,
+                      onChanged: (value) {
+                        setState(() {
+                          showCostAmountInCategoryWhenAddInvoicePOS = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'فحص رصيد الصندوق او البنك في المشتريات ومردود المبيعات',
+                      value: checkFundAndBankBalanceEnabledInInvoice,
+                      icon: Icons.account_balance,
+                      enabled: false,
+                      onChanged: (value) {
+                        setState(() {
+                          checkFundAndBankBalanceEnabledInInvoice = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'السماح بالبيع بالسالب بكمية لاصناف',
+                      value: isStockNegativeAllowed,
+                      icon: Icons.remove_circle_outline,
+                      enabled: false,
+                      onChanged: (value) {
+                        setState(() {
+                          isStockNegativeAllowed = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -250,7 +241,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
                     child: const Text(
@@ -269,53 +260,6 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildSwitchField({
-    required String label,
-    required bool value,
-    required IconData icon,
-    required ValueChanged<bool> onChanged,
-    bool enabled = true,
-  }) {
-    return SwitchListTile(
-      secondary: Icon(icon, size: 20, color: enabled ? Colors.grey[600] : Colors.grey[400]),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          color: enabled ? Colors.black87 : Colors.grey[400],
-        ),
-      ),
-      subtitle: Text(
-        value ? 'مفعل' : 'غير مفعل',
-        style: TextStyle(
-          fontSize: 11,
-          color: enabled ? Colors.grey : Colors.grey[400],
-        ),
-      ),
-      value: value,
-      onChanged: enabled ? onChanged : null,
-      activeColor: Theme.of(context).primaryColor,
-      dense: true,
     );
   }
 }

@@ -1,4 +1,3 @@
-// ==================== FILE 1: models/voucher_model.dart ====================
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
@@ -10,301 +9,19 @@ import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:hasib_lib/base/entity.dart';
-import 'package:hasib_lib/form/form_field.dart';
-import 'package:hasib_lib/theme/app_colors.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/section_header.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+import 'package:muhasib/core/theme/app_text_style.dart';
 
-// ==================== PaymentMethod Enum ====================
-enum PaymentMethod { cash, bankTransfer }
 
-// ==================== FILE 3: constants/app_text_styles.dart ====================
-
-class AppTextStyles {
-  static const TextStyle heading1 = TextStyle(
-    fontSize: 24,
-    fontWeight: FontWeight.bold,
-    color: AppColors.gray800,
-  );
-
-  static const TextStyle heading2 = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.bold,
-    color: AppColors.gray800,
-  );
-
-  static const TextStyle label = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.gray700,
-  );
-
-  static const TextStyle body = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.normal,
-    color: AppColors.gray700,
-  );
-
-  static const TextStyle caption = TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.normal,
-    color: AppColors.gray500,
-  );
-
-  static const TextStyle buttonLarge = TextStyle(
-    fontSize: 18,
-    fontWeight: FontWeight.bold,
-    color: AppColors.white,
-  );
-
-  static const TextStyle radioActive = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.blue600,
-  );
-
-  static const TextStyle radioInactive = TextStyle(
-    fontSize: 14,
-    fontWeight: FontWeight.w600,
-    color: AppColors.gray700,
-  );
-}
-
-// ==================== FILE 4: constants/app_dimensions.dart ====================
-class AppDimensions {
-  static const double paddingSmall = 8.0;
-  static const double paddingMedium = 16.0;
-  static const double paddingLarge = 20.0;
-
-  static const double borderRadiusSmall = 8.0;
-  static const double borderRadiusMedium = 12.0;
-  static const double borderRadiusLarge = 16.0;
-  static const double borderRadiusXLarge = 20.0;
-
-  static const double borderWidth = 2.0;
-
-  static const double iconSizeSmall = 16.0;
-  static const double iconSizeMedium = 20.0;
-  static const double iconSizeLarge = 24.0;
-
-  static const double radioSize = 24.0;
-  static const double radioInnerSize = 12.0;
-
-  static const double inputHeight = 48.0;
-  static const double buttonHeight = 56.0;
-
-  static const double maxWidth = 600.0;
-}
-
-class CustomRadioButton<T> extends StatelessWidget {
-  final T value;
-  final T groupValue;
-  final String label;
-  final ValueChanged<T> onChanged;
-
-  const CustomRadioButton({
-    Key? key,
-    required this.value,
-    required this.groupValue,
-    required this.label,
-    required this.onChanged,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    final bool isSelected = value == groupValue;
-
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onChanged(value),
-        child: Row(
-          children: [
-            Container(
-              width: AppDimensions.radioSize,
-              height: AppDimensions.radioSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected ? AppColors.blue50 : AppColors.white,
-                border: Border.all(
-                  color: isSelected ? AppColors.blue600 : AppColors.gray300,
-                  width: AppDimensions.borderWidth,
-                ),
-              ),
-              child: isSelected
-                  ? Center(
-                      child: Container(
-                        width: AppDimensions.radioInnerSize,
-                        height: AppDimensions.radioInnerSize,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.blue600,
-                        ),
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              label,
-              style: isSelected
-                  ? AppTextStyles.radioActive
-                  : AppTextStyles.radioInactive,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ==================== FILE 8: widgets/section_header.dart ====================
-
-class SectionHeader extends StatelessWidget {
-  final String title;
-  final bool showChevron;
-
-  const SectionHeader({Key? key, required this.title, this.showChevron = true})
-    : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: AppTextStyles.heading2),
-          if (showChevron)
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.blue600,
-              size: AppDimensions.iconSizeSmall,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-// ==================== FILE 9: widgets/card_container.dart ====================
-
-class CardContainer extends StatelessWidget {
-  final Widget child;
-  final Color? backgroundColor;
-  final Color? borderColor;
-
-  const CardContainer({
-    Key? key,
-    required this.child,
-    this.backgroundColor = AppColors.white,
-    this.borderColor = AppColors.gray100,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 20),
-      padding: const EdgeInsets.all(AppDimensions.paddingLarge),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusXLarge),
-        border: Border.all(color: borderColor!, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.gray200.withOpacity(0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: child,
-    );
-  }
-}
-
-// ==================== FILE 10: widgets/primary_button.dart ====================
-
-class PrimaryButton extends StatelessWidget {
-  final String text;
-  final VoidCallback onPressed;
-
-  const PrimaryButton({Key? key, required this.text, required this.onPressed})
-    : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      height: AppDimensions.buttonHeight,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppColors.blue600, AppColors.blue700],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusXLarge),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.blue600.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusXLarge),
-          child: Center(child: Text(text, style: AppTextStyles.buttonLarge)),
-        ),
-      ),
-    );
-  }
-}
-
-// ==================== TextFieldSelect Widget ====================
-
-class TextFieldSelect<T> extends StatelessWidget {
-  final String hint;
-  final List<DropdownMenuItem<T>> items;
-  final T? selectedValue;
-  final ValueChanged<T?> onChanged;
-  final bool showHint;
-  final bool isRequired;
-  final String? errorText;
-
-  const TextFieldSelect({
-    Key? key,
-    required this.hint,
-    required this.items,
-    required this.selectedValue,
-    required this.onChanged,
-    this.showHint = false,
-    this.isRequired = false,
-    this.errorText,
-  }) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return DropdownButtonFormField<T>(
-      value: selectedValue,
-      decoration: InputDecoration(
-        labelText: hint,
-        errorText: errorText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusMedium),
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16,
-          vertical: 12,
-        ),
-      ),
-      validator: isRequired ? (value) => value == null ? 'مطلوب' : null : null,
-      items: items,
-      onChanged: onChanged,
-    );
-  }
-}
+part 'voucher_form_screen_models.dart';
+part 'voucher_form_screen_widgets.dart';
 
 // ==================== FILE 11: screens/voucher_form_screen.dart ====================
 
@@ -317,7 +34,7 @@ class VoucherFormScreen extends StatefulWidget {
 
 class _VoucherFormScreenState extends State<VoucherFormScreen> {
   VoucherType _voucherType = VoucherType.payment;
-  PaymentMethod _paymentMethod = PaymentMethod.cash;
+  VoucherPaymentMethod _paymentMethod = VoucherPaymentMethod.cash;
 
   // Data lists
   List<AccountEntity> _accounts = [];
@@ -426,7 +143,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
                       child: Center(
                         child: ConstrainedBox(
                           constraints: const BoxConstraints(
-                            maxWidth: AppDimensions.maxWidth,
+                            maxWidth: 600,
                           ),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),
@@ -462,9 +179,10 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
   Widget _buildSaveButton() {
     return Builder(
       builder: (context) {
-        return PrimaryButton(
-          text: _isSaving ? 'جاري الحفظ...' : 'حفظ',
-          onPressed: _isSaving ? () {} : () => _handleSave(context),
+        return HasibButton(
+          label: _isSaving ? 'جاري الحفظ...' : 'حفظ',
+          onPressed: _isSaving ? null : () => _handleSave(context),
+          loading: _isSaving,
         );
       },
     );
@@ -484,7 +202,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
   }
 
   Widget _buildVoucherTypeSection() {
-    return CardContainer(
+    return CustomCardContainer(
       child: Row(
         children: [
           CustomRadioButton<VoucherType>(
@@ -511,7 +229,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
   }
 
   Widget _buildBasicInformationSection() {
-    return CardContainer(
+    return CustomCardContainer(
       child: Column(
         children: [
           Row(
@@ -537,10 +255,10 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
           ),
           const SizedBox(height: 16),
           const SizedBox(height: 16),
-          TextFieldSelect<AccountEntity>(
-            showHint: true,
+          CustomDropdownField<AccountEntity>(
+            
             isRequired: true,
-            selectedValue: _selectedAccount,
+            value: _selectedAccount,
             items: _accounts
                 .where((a) => !a.isMaster)
                 .map(
@@ -559,7 +277,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
   }
 
   Widget _buildNotesAndImageSection() {
-    return CardContainer(
+    return CustomCardContainer(
       child: Column(
         children: [
           TextInputField(
@@ -582,7 +300,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
       onTap: () {
         // Handle image upload
       },
-      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+       borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
@@ -592,7 +310,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             width: 2,
             style: BorderStyle.solid,
           ),
-          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusLarge),
+           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -616,20 +334,20 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(title: 'طرق الدفع'),
-        CardContainer(
+        const SectionHeader(title: 'طرق الدفع', showChevron: true),
+        CustomCardContainer(
           backgroundColor: AppColors.blue50,
           borderColor: AppColors.blue200,
           child: Row(
             children: [
-              CustomRadioButton<PaymentMethod>(
-                value: PaymentMethod.cash,
+              CustomRadioButton<VoucherPaymentMethod>(
+                value: VoucherPaymentMethod.cash,
                 groupValue: _paymentMethod,
                 label: 'نقداً',
                 onChanged: (value) => setState(() => _paymentMethod = value),
               ),
-              CustomRadioButton<PaymentMethod>(
-                value: PaymentMethod.bankTransfer,
+              CustomRadioButton<VoucherPaymentMethod>(
+                value: VoucherPaymentMethod.bankTransfer,
                 groupValue: _paymentMethod,
                 label: 'حواله بنكية',
                 onChanged: (value) => setState(() => _paymentMethod = value),
@@ -646,11 +364,12 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          title: _paymentMethod == PaymentMethod.cash
+          title: _paymentMethod == VoucherPaymentMethod.cash
               ? 'تفاصيل الدفع النقدي'
               : 'تفاصيل التحويل البنكي',
+          showChevron: true,
         ),
-        _paymentMethod == PaymentMethod.cash
+            _paymentMethod == VoucherPaymentMethod.cash
             ? _buildCashPaymentSection()
             : _buildBankTransferSection(),
       ],
@@ -658,15 +377,15 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
   }
 
   Widget _buildCashPaymentSection() {
-    return CardContainer(
+    return CustomCardContainer(
       child: Column(
         children: [
           _buildAmountField(),
           const SizedBox(height: 16),
           const SizedBox(height: 16),
-          TextFieldSelect<AccountEntity>(
+          CustomDropdownField<AccountEntity>(
             hint: 'الصندوق',
-            selectedValue: _selectedBoxBank,
+            value: _selectedBoxBank,
             items: _accounts
                 .where(
                   (a) =>
@@ -678,10 +397,10 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             onChanged: (value) => setState(() => _selectedBoxBank = value),
           ),
           const SizedBox(height: 16),
-          TextFieldSelect<CurrencyEntity>(
+          CustomDropdownField<CurrencyEntity>(
             hint: 'العملة',
-            showHint: true,
-            selectedValue: _selectedCurrency,
+            
+            value: _selectedCurrency,
             items: _currencies
                 .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                 .toList(),
@@ -693,25 +412,25 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
   }
 
   Widget _buildBankTransferSection() {
-    return CardContainer(
+    return CustomCardContainer(
       child: Column(
         children: [
           _buildAmountField(),
           const SizedBox(height: 16),
-          TextFieldSelect<CurrencyEntity>(
+          CustomDropdownField<CurrencyEntity>(
             hint: 'العملة',
             isRequired: true,
-            selectedValue: _selectedCurrency,
+            value: _selectedCurrency,
             items: _currencies
                 .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                 .toList(),
             onChanged: (value) => setState(() => _selectedCurrency = value),
           ),
           const SizedBox(height: 16),
-          TextFieldSelect<AccountEntity>(
-            showHint: true,
+          CustomDropdownField<AccountEntity>(
+            
             isRequired: true,
-            selectedValue: _selectedBoxBank,
+            value: _selectedBoxBank,
             items: _accounts
                 .where(
                   (a) =>
@@ -777,7 +496,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: AppColors.blue600,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: const Icon(Icons.attach_money, color: AppColors.white, size: 20),
       ),
@@ -819,7 +538,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: AppColors.darkSecondary,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Icon(
                 Icons.attach_money,
@@ -829,10 +548,10 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             ),
           ),
           const SizedBox(height: 16),
-          TextFieldSelect<CurrencyEntity>(
-            showHint: true,
+          CustomDropdownField<CurrencyEntity>(
+            
             hint: 'عملة عمولة الحوالة',
-            selectedValue: _selectedCurrency,
+            value: _selectedCurrency,
             items: _currencies
                 .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
                 .toList(),
@@ -899,16 +618,4 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
 
     context.read<VouchersCubit>().saveVoucher(voucher);
   }
-}
-
-class Boxess extends Entity {
-  String? name;
-  Boxess(this.name);
-  @override
-  // TODO: implement route
-  String? get route => 'throw UnimplementedError()';
-
-  @override
-  // TODO: implement toJson
-  Map get toJson => throw UnimplementedError();
 }

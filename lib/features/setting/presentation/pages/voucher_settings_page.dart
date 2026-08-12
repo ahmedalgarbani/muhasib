@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/settings_card.dart';
+import 'package:muhasib/core/widgets/settings_switch_tile.dart';
+import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -117,22 +122,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text(
-          'إعدادات السندات',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.arrow_forward_ios),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
+      appBar: const CustomAppBar(title: 'إعدادات السندات'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           return SingleChildScrollView(
@@ -151,39 +141,23 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  _buildListTile(
-                    title: 'السطر 1',
-                    value: paymentLine1Controller.text,
-                    icon: Icons.text_fields,
-                    child: TextField(
+                SettingsCard(
+                  children: [
+                    SettingsTextFieldTile(
+                      title: 'السطر 1',
                       controller: paymentLine1Controller,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        hintText: 'الاخ',
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                      hintText: 'الاخ',
+                      icon: Icons.text_fields,
                     ),
-                  ),
-                  const Divider(),
-                  _buildListTile(
-                    title: 'السطر 2',
-                    value: paymentLine2Controller.text,
-                    icon: Icons.text_fields,
-                    child: TextField(
+                    const Divider(),
+                    SettingsTextFieldTile(
+                      title: 'السطر 2',
                       controller: paymentLine2Controller,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        hintText: 'عليكم مبلغ',
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                      hintText: 'عليكم مبلغ',
+                      icon: Icons.text_fields,
                     ),
-                  ),
-                ]),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
@@ -196,39 +170,23 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  _buildListTile(
-                    title: 'السطر 1',
-                    value: receiptLine1Controller.text,
-                    icon: Icons.text_fields,
-                    child: TextField(
+                SettingsCard(
+                  children: [
+                    SettingsTextFieldTile(
+                      title: 'السطر 1',
                       controller: receiptLine1Controller,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        hintText: 'الاخ',
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                      hintText: 'الاخ',
+                      icon: Icons.text_fields,
                     ),
-                  ),
-                  const Divider(),
-                  _buildListTile(
-                    title: 'السطر 2',
-                    value: receiptLine2Controller.text,
-                    icon: Icons.text_fields,
-                    child: TextField(
+                    const Divider(),
+                    SettingsTextFieldTile(
+                      title: 'السطر 2',
                       controller: receiptLine2Controller,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        hintText: 'لكم مبلغ',
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
+                      hintText: 'لكم مبلغ',
+                      icon: Icons.text_fields,
                     ),
-                  ),
-                ]),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
@@ -241,93 +199,50 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  SwitchListTile(
-                    secondary: const Icon(Icons.draw, size: 20, color: Colors.grey),
-                    title: const Text(
-                      'إظهار التوقيع اسفل السند',
-                      style: TextStyle(fontSize: 13, color: Colors.black87),
+                SettingsCard(
+                  children: [
+                    SettingsSwitchTile(
+                      icon: Icons.draw,
+                      title: 'إظهار التوقيع اسفل السند',
+                      value: paymentVoucherSignature,
+                      onChanged: (value) {
+                        setState(() {
+                          paymentVoucherSignature = value;
+                        });
+                      },
                     ),
-                    subtitle: Text(
-                      paymentVoucherSignature ? 'مفعل' : 'غير مفعل',
-                      style: const TextStyle(fontSize: 11, color: Colors.grey),
-                    ),
-                    value: paymentVoucherSignature,
-                    onChanged: (value) {
-                      setState(() {
-                        paymentVoucherSignature = value;
-                      });
-                    },
-                    activeColor: Theme.of(context).primaryColor,
-                    dense: true,
-                  ),
-                  if (paymentVoucherSignature) ...[
-                    const Divider(),
-                    _buildListTile(
-                      title: 'التوقيع الأول',
-                      value: paymentFirstSignatureController.text,
-                      icon: Icons.draw_outlined,
-                      child: TextField(
+                    if (paymentVoucherSignature) ...[
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        title: 'التوقيع الأول',
                         controller: paymentFirstSignatureController,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: const InputDecoration(
-                          hintText: 'المستلم',
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                        hintText: 'المستلم',
+                        icon: Icons.draw_outlined,
                       ),
-                    ),
-                    const Divider(),
-                    _buildListTile(
-                      title: 'التوقيع الثاني',
-                      value: paymentSecondSignatureController.text,
-                      icon: Icons.draw_outlined,
-                      child: TextField(
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        title: 'التوقيع الثاني',
                         controller: paymentSecondSignatureController,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: const InputDecoration(
-                          hintText: 'مدير الحسابات',
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                        hintText: 'مدير الحسابات',
+                        icon: Icons.draw_outlined,
                       ),
-                    ),
-                    const Divider(),
-                    _buildListTile(
-                      title: 'التوقيع الثالث',
-                      value: paymentThirdSignatureController.text,
-                      icon: Icons.draw_outlined,
-                      child: TextField(
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        title: 'التوقيع الثالث',
                         controller: paymentThirdSignatureController,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: const InputDecoration(
-                          hintText: 'الصندوق',
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                        hintText: 'الصندوق',
+                        icon: Icons.draw_outlined,
                       ),
-                    ),
-                    const Divider(),
-                    _buildListTile(
-                      title: 'التوقيع الرابع',
-                      value: paymentFourthSignatureController.text,
-                      icon: Icons.draw_outlined,
-                      child: TextField(
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        title: 'التوقيع الرابع',
                         controller: paymentFourthSignatureController,
-                        style: const TextStyle(fontSize: 13),
-                        decoration: const InputDecoration(
-                          hintText: 'المدير العام',
-                          border: InputBorder.none,
-                          isDense: true,
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                        hintText: 'المدير العام',
+                        icon: Icons.draw_outlined,
                       ),
-                    ),
+                    ],
                   ],
-                ]),
+                ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: double.infinity,
@@ -337,7 +252,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
                     child: const Text(
@@ -356,42 +271,6 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildListTile({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Widget child,
-  }) {
-    return ListTile(
-      leading: Icon(icon, size: 20, color: Colors.grey[600]),
-      title: Text(
-        title,
-        style: const TextStyle(
-          fontSize: 12,
-          color: Colors.grey,
-        ),
-      ),
-      subtitle: child,
     );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class CardButton extends StatelessWidget {
   final String label;
@@ -12,7 +13,7 @@ class CardButton extends StatelessWidget {
       height: 56,
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: TextButton(
         onPressed: () {},

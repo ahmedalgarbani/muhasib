@@ -7,6 +7,8 @@ import 'package:muhasib/features/reports/presentation/cubit/stock_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class StockReportPage extends StatefulWidget {
   const StockReportPage({super.key});
@@ -29,7 +31,7 @@ class _StockReportPageState extends State<StockReportPage> {
           return ReportBasePage(
             title: 'تقرير جرد المخزون',
             icon: Icons.warehouse,
-            color: const Color(0xFF455A64),
+            color: AppColors.blueGrey600,
             showDateFilter: false,
             onPrint: _lastState == null ? null : () => _exportPdf(),
             onExportExcel: _lastState == null ? null : () => _exportExcel(),
@@ -92,7 +94,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: TextField(
                   controller: _searchController,
-                  decoration: InputDecoration(hintText: 'بحث في الأصناف...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey[50], border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)),
+                  decoration: InputDecoration(hintText: 'بحث في الأصناف...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey[50], border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg), borderSide: BorderSide.none)),
                   onChanged: (v) => context.read<StockCubit>().updateSearch(v),
                 ),
               ),
@@ -104,10 +106,10 @@ class _StockReportContentState extends State<_StockReportContent> {
                     final item = stocks[index];
                     return Card(
                       elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: item.currentStock <= item.minStock ? Colors.orange.withOpacity(0.3) : Colors.grey[100]!)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: BorderSide(color: item.currentStock <= item.minStock ? Colors.orange.withOpacity(0.3) : Colors.grey[100]!)),
                       margin: const EdgeInsets.only(bottom: 12),
                       child: ListTile(
-                        leading: Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.blueGrey[50], borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.inventory_2, color: Colors.blueGrey)),
+                        leading: Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.blueGrey[50], borderRadius: BorderRadius.circular(AppRadius.sm)), child: const Icon(Icons.inventory_2, color: Colors.blueGrey)),
                         title: Text(item.productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                         subtitle: Text('كود: ${item.productCode}', style: const TextStyle(fontSize: 10)),
                         trailing: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${item.currentStock.toInt()}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: item.currentStock <= item.minStock ? Colors.orange : Colors.blueGrey)), Text('${_numberFormat.format(item.stockValue)} ر.س', style: const TextStyle(fontSize: 9, color: Colors.grey))]),

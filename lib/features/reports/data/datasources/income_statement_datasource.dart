@@ -61,7 +61,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
       $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
@@ -94,7 +94,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
         AND (
           a.code LIKE '42%' OR 
           a.code LIKE '43%' OR
@@ -133,7 +133,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.code LIKE '311%' AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 3 AND a.c_id IN (3110, 3190, 3160) AND a.is_active = 1 AND je.is_posted = 1
       $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
@@ -165,7 +165,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND (
+      WHERE a.type = 3 AND (
         a.code LIKE '312%' OR
         a.code LIKE '313%' OR
         a.code LIKE '314%' OR
@@ -202,8 +202,8 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
-        AND a.code NOT LIKE '311%'
+      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+        AND a.c_id NOT IN (3110, 3190, 3160)
         AND a.code NOT LIKE '312%'
         AND a.code NOT LIKE '313%'
         AND a.code NOT LIKE '314%'
@@ -240,7 +240,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
         AND (
           a.code LIKE '316%' OR
           a.name LIKE '%ضريبة الدخل%' OR
@@ -314,30 +314,30 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     final summaryQuery = '''
       SELECT 
         CASE 
-          WHEN a.type = 3 AND (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%فروق صرف%') THEN 'other_income'
-          WHEN a.type = 3 THEN 'revenue'
-          WHEN a.type = 4 AND a.code LIKE '311%' THEN 'cost_of_sales'
-          WHEN a.type = 4 AND (
+          WHEN a.type = 4 AND (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%فروق صرف%') THEN 'other_income'
+          WHEN a.type = 4 THEN 'revenue'
+          WHEN a.type = 3 AND a.c_id IN (3110, 3190, 3160) THEN 'cost_of_sales'
+          WHEN a.type = 3 AND (
             a.code LIKE '312%' OR
             a.code LIKE '313%' OR
             a.code LIKE '314%' OR
             a.code LIKE '315%'
           ) THEN 'operating_expenses'
-          WHEN a.type = 4 AND (a.code LIKE '316%' OR a.name LIKE '%ضريبة الدخل%' OR a.name LIKE '%ضريبة أرباح%') THEN 'tax_expense'
-          WHEN a.type = 4 THEN 'other_expenses'
+          WHEN a.type = 3 AND (a.code LIKE '316%' OR a.name LIKE '%ضريبة الدخل%' OR a.name LIKE '%ضريبة أرباح%') THEN 'tax_expense'
+          WHEN a.type = 3 THEN 'other_expenses'
           ELSE 'other'
         END as category,
         COALESCE(SUM(
           CASE 
-            WHEN a.type = 3 THEN jel.credit_amount - jel.debit_amount
-            WHEN a.type = 4 THEN jel.debit_amount - jel.credit_amount
+            WHEN a.type = 4 THEN jel.credit_amount - jel.debit_amount
+            WHEN a.type = 3 THEN jel.debit_amount - jel.credit_amount
             ELSE 0
           END
         ), 0) as amount
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1 AND (a.type = 3 OR a.type = 4)
+      WHERE a.is_active = 1 AND je.is_posted = 1 AND (a.type = 4 OR a.type = 3)
       $referenceExclusion
       $dateFilter
       GROUP BY category

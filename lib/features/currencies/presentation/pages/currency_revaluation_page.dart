@@ -3,6 +3,9 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/currency_exchange_service.dart';
 import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 /// Page for revaluating foreign currency balances
 class CurrencyRevaluationPage extends StatefulWidget {
@@ -96,20 +99,8 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: const Text(
-            'إعادة تقييم العملات',
-            style: TextStyle(
-              color: Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
-        ),
+        backgroundColor: AppColors.background,
+        appBar: CustomAppBar(title: 'إعادة تقييم العملات'),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
@@ -137,16 +128,16 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   Widget _buildInfoCard() {
     return Card(
       elevation: 0,
-      color: const Color(0xFF3B82F6).withOpacity(0.05),
+      color: AppColors.info.withOpacity(0.05),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: const Color(0xFF3B82F6).withOpacity(0.2)),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(color: AppColors.info.withOpacity(0.2)),
       ),
       child: const Padding(
         padding: EdgeInsets.all(16),
         child: Row(
           children: [
-            Icon(Icons.info_outline, color: Color(0xFF3B82F6)),
+            Icon(Icons.info_outline, color: AppColors.info),
             SizedBox(width: 12),
             Expanded(
               child: Column(
@@ -156,7 +147,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
                     'ما هي إعادة التقييم؟',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                   SizedBox(height: 4),
@@ -164,7 +155,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
                     'إعادة تقييم الأرصدة بالعملات الأجنبية عند تغير سعر الصرف، ينتج عنها أرباح أو خسائر فروق صرف تُسجل في قائمة الدخل.',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Color(0xFF64748B),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
@@ -180,7 +171,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(color: Colors.grey[200]!),
       ),
       child: Padding(
@@ -193,7 +184,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -201,9 +192,9 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               value: selectedCurrencyId,
               decoration: InputDecoration(
                 labelText: 'العملة الأجنبية',
-                prefixIcon: const Icon(Icons.monetization_on, color: Color(0xFF3B82F6)),
+                prefixIcon: const Icon(Icons.monetization_on, color: AppColors.info),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
               ),
               items: currencies.map((currency) {
@@ -227,9 +218,9 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               value: selectedAccountId,
               decoration: InputDecoration(
                 labelText: 'الحساب',
-                prefixIcon: const Icon(Icons.account_balance_wallet, color: Color(0xFF3B82F6)),
+                prefixIcon: const Icon(Icons.account_balance_wallet, color: AppColors.info),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
               ),
               items: accounts.map((account) {
@@ -249,9 +240,9 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               value: gainLossAccountId,
               decoration: InputDecoration(
                 labelText: 'حساب أرباح/خسائر فروق الصرف',
-                prefixIcon: const Icon(Icons.swap_horiz, color: Color(0xFF3B82F6)),
+                prefixIcon: const Icon(Icons.swap_horiz, color: AppColors.info),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 helperText: 'سيتم احتسابه تلقائياً بناءً على نوع الفرق',
               ),
@@ -276,7 +267,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(color: Colors.grey[200]!),
       ),
       child: Padding(
@@ -289,7 +280,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 16),
@@ -298,15 +289,15 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, size: 18, color: Color(0xFF64748B)),
+                    const Icon(Icons.info_outline, size: 18, color: AppColors.textSecondary),
                     const SizedBox(width: 8),
                     Text(
                       'السعر الحالي: ${currentRate!.toStringAsFixed(4)}',
-                      style: const TextStyle(color: Color(0xFF64748B)),
+                      style: const TextStyle(color: AppColors.textSecondary),
                     ),
                   ],
                 ),
@@ -317,9 +308,9 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'سعر الصرف الجديد',
-                prefixIcon: const Icon(Icons.trending_up, color: Color(0xFF3B82F6)),
+                prefixIcon: const Icon(Icons.trending_up, color: AppColors.info),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
               ),
               onChanged: (_) => _calculateDifference(),
@@ -346,9 +337,9 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               child: InputDecorator(
                 decoration: InputDecoration(
                   labelText: 'تاريخ إعادة التقييم',
-                  prefixIcon: const Icon(Icons.calendar_today, color: Color(0xFF3B82F6)),
+                  prefixIcon: const Icon(Icons.calendar_today, color: AppColors.info),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                 ),
                 child: Text(DateFormat('yyyy-MM-dd').format(revaluationDate)),
@@ -367,7 +358,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
       elevation: 0,
       color: isProfit ? Colors.green.withOpacity(0.05) : Colors.red.withOpacity(0.05),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(
           color: isProfit ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3),
         ),
@@ -445,7 +436,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),
@@ -466,10 +457,10 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
                 : const Icon(Icons.save),
             label: Text(isLoading ? 'جاري الحفظ...' : 'إنشاء قيد التسوية'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
+              backgroundColor: AppColors.info,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),
@@ -506,7 +497,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('تم إنشاء قيد التسوية رقم $journalId بنجاح'),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AppColors.success,
           ),
         );
         Navigator.pop(context);

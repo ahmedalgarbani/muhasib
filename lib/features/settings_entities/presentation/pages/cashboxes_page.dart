@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_switch_tile.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/cashbox_entity.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/cashboxes_cubit.dart';
+import 'package:muhasib/features/settings_entities/presentation/widgets/cashboxes_list_widget.dart';
 
 class CashboxesPage extends StatelessWidget {
   const CashboxesPage({super.key});
@@ -37,12 +45,14 @@ class _CashboxesViewState extends State<_CashboxesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.background,
       appBar: CustomAppBar(
-        title: 'الصناديق',
+        title: 'الصناديق المالية',
         actions: [
           IconButton(
-            icon: Icon(_showActiveOnly ? Icons.filter_alt : Icons.filter_alt_outlined),
+            icon: Icon(
+              _showActiveOnly ? Icons.filter_alt : Icons.filter_alt_outlined,
+            ),
             onPressed: () {
               setState(() => _showActiveOnly = !_showActiveOnly);
               if (_showActiveOnly) {
@@ -64,7 +74,11 @@ class _CashboxesViewState extends State<_CashboxesView> {
           } else if (state is CashboxDeleted) {
             _showSnackBar(context, 'تم حذف الصندوق بنجاح', Colors.green);
           } else if (state is MainCashboxSet) {
-            _showSnackBar(context, 'تم تعيين الصندوق الرئيسي بنجاح', Colors.green);
+            _showSnackBar(
+              context,
+              'تم تعيين الصندوق الرئيسي بنجاح',
+              Colors.green,
+            );
           } else if (state is CashboxesError) {
             _showSnackBar(context, state.message, Colors.red);
           }
@@ -76,9 +90,34 @@ class _CashboxesViewState extends State<_CashboxesView> {
 
           if (state is CashboxesLoaded) {
             if (state.cashboxes.isEmpty) {
-              return _buildEmptyState();
+              return const EmptyStateWidget(
+                title: 'لا توجد صناديق مضافة',
+                subtitle: 'اضغط على الزر أدناه لإضافة صندوق مال جديد',
+                icon: Icons.point_of_sale_outlined,
+              );
             }
-            return _buildCashboxesList(state.cashboxes);
+            return CashboxesListWidget(
+              cashboxes: state.cashboxes,
+              searchController: _searchController,
+              onSearchChanged: (value) {
+                if (value.isEmpty) {
+                  context.read<CashboxesCubit>().loadCashboxes();
+                } else {
+                  context.read<CashboxesCubit>().searchCashboxes(value);
+                }
+              },
+              onClearSearch: () {
+                _searchController.clear();
+                context.read<CashboxesCubit>().loadCashboxes();
+              },
+              onCashboxTap: (cashbox) =>
+                  _showCashboxDialog(context, cashbox: cashbox),
+              onCashboxEdit: (cashbox) =>
+                  _showCashboxDialog(context, cashbox: cashbox),
+              onCashboxSetMain: (cashbox) =>
+                  _showSetMainDialog(context, cashbox),
+              onCashboxDelete: (cashbox) => _showDeleteDialog(context, cashbox),
+            );
           }
 
           return const SizedBox.shrink();
@@ -88,237 +127,15 @@ class _CashboxesViewState extends State<_CashboxesView> {
         onPressed: () => _showCashboxDialog(context),
         icon: const Icon(Icons.add),
         label: const Text('صندوق جديد'),
-        backgroundColor: const Color(0xFF00897B),
+        backgroundColor: AppColors.materialTeal600,
       ),
     );
   }
 
   void _showSnackBar(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
-    );
-  }
-
-  Widget _buildCashboxesList(List<CashboxEntity> cashboxes) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'بحث في الصناديق...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        context.read<CashboxesCubit>().loadCashboxes();
-                      },
-                    )
-                  : null,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            onChanged: (value) {
-              if (value.isEmpty) {
-                context.read<CashboxesCubit>().loadCashboxes();
-              } else {
-                context.read<CashboxesCubit>().searchCashboxes(value);
-              }
-            },
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: cashboxes.length,
-            itemBuilder: (context, index) => _buildCashboxCard(cashboxes[index]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCashboxCard(CashboxEntity cashbox) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () => _showCashboxDialog(context, cashbox: cashbox),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: cashbox.isMainFund
-                          ? const Color(0xFF1976D2).withOpacity(0.1)
-                          : const Color(0xFF00897B).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      cashbox.isMainFund ? Icons.account_balance_wallet : Icons.point_of_sale,
-                      color: cashbox.isMainFund ? const Color(0xFF1976D2) : const Color(0xFF00897B),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                cashbox.name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            if (cashbox.isMainFund)
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF1976D2),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: const Text(
-                                  'رئيسي',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              cashbox.isActive ? Icons.check_circle : Icons.cancel,
-                              size: 16,
-                              color: cashbox.isActive ? Colors.green : Colors.grey,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              cashbox.isActive ? 'نشط' : 'غير نشط',
-                              style: TextStyle(
-                                color: cashbox.isActive ? Colors.green : Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuButton(
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 8),
-                            Text('تعديل'),
-                          ],
-                        ),
-                      ),
-                      if (!cashbox.isMainFund)
-                        const PopupMenuItem(
-                          value: 'setMain',
-                          child: Row(
-                            children: [
-                              Icon(Icons.star, size: 20),
-                              SizedBox(width: 8),
-                              Text('تعيين كرئيسي'),
-                            ],
-                          ),
-                        ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('حذف', style: TextStyle(color: Colors.red)),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        _showCashboxDialog(context, cashbox: cashbox);
-                      } else if (value == 'setMain') {
-                        _showSetMainDialog(context, cashbox);
-                      } else if (value == 'delete') {
-                        _showDeleteDialog(context, cashbox);
-                      }
-                    },
-                  ),
-                ],
-              ),
-              if (cashbox.currentBalance != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.monetization_on, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      'الرصيد: ${cashbox.currentBalance?.toStringAsFixed(2)}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.point_of_sale_outlined, size: 80, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد صناديق',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'اضغط على الزر أدناه لإضافة صندوق جديد',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-        ],
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
   }
 
   void _showCashboxDialog(BuildContext context, {CashboxEntity? cashbox}) {
@@ -330,56 +147,47 @@ class _CashboxesViewState extends State<_CashboxesView> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-          title: Row(
+        builder: (context, setState) => CustomDialog(
+          title: isEditing ? 'تعديل الصندوق' : 'إضافة صندوق جديد',
+          icon: Icons.point_of_sale,
+          headerColor: AppColors.materialTeal600,
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00897B).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.point_of_sale, color: Color(0xFF00897B), size: 28),
+              TextInputField(
+                label: 'اسم الصندوق',
+                isRequired: true,
+                textEditingController: nameController,
               ),
-              const SizedBox(width: 12),
-              Text(isEditing ? 'تعديل الصندوق' : 'إضافة صندوق جديد'),
+              const SizedBox(height: 16),
+              CustomSwitchTile(
+                title: 'نشط',
+                value: isActive,
+                onChanged: (value) => setState(() => isActive = value),
+              ),
+              CustomSwitchTile(
+                title: 'صندوق رئيسي',
+                value: isMainFund,
+                onChanged: (value) => setState(() => isMainFund = value),
+              ),
             ],
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم الصندوق *',
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text('نشط'),
-                  value: isActive,
-                  onChanged: (value) => setState(() => isActive = value),
-                ),
-                SwitchListTile(
-                  title: const Text('صندوق رئيسي'),
-                  value: isMainFund,
-                  onChanged: (value) => setState(() => isMainFund = value),
-                ),
-              ],
-            ),
-          ),
           actions: [
-            TextButton(
+            HasibButton(
+              label: 'إلغاء',
+              variant: HasibButtonVariant.secondary,
               onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('إلغاء'),
             ),
-            ElevatedButton(
+            const SizedBox(width: 12),
+            HasibButton(
+              label: isEditing ? 'تحديث' : 'إضافة',
               onPressed: () {
                 if (nameController.text.isEmpty) {
-                  _showSnackBar(context, 'الرجاء إدخال اسم الصندوق', Colors.red);
+                  _showSnackBar(
+                    context,
+                    'الرجاء إدخال اسم الصندوق',
+                    Colors.red,
+                  );
                   return;
                 }
 
@@ -398,11 +206,6 @@ class _CashboxesViewState extends State<_CashboxesView> {
                   this.context.read<CashboxesCubit>().createCashbox(newCashbox);
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF00897B),
-                foregroundColor: Colors.white,
-              ),
-              child: Text(isEditing ? 'تحديث' : 'إضافة'),
             ),
           ],
         ),
@@ -413,40 +216,14 @@ class _CashboxesViewState extends State<_CashboxesView> {
   void _showSetMainDialog(BuildContext context, CashboxEntity cashbox) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF1976D2).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.star_rounded, color: Color(0xFF1976D2), size: 28),
-            ),
-            const SizedBox(width: 12),
-            const Text('تعيين كصندوق رئيسي'),
-          ],
-        ),
-        content: Text('هل تريد تعيين "${cashbox.name}" كصندوق رئيسي؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              this.context.read<CashboxesCubit>().setMainCashbox(cashbox.id!);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF1976D2),
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('تعيين كرئيسي'),
-          ),
-        ],
+      builder: (dialogContext) => CustomConfirmDialog(
+        title: 'تعيين كصندوق رئيسي',
+        message: 'هل تريد تعيين "${cashbox.name}" كصندوق رئيسي؟',
+        confirmLabel: 'تعيين كرئيسي',
+        icon: Icons.star_rounded,
+        onConfirm: () {
+          this.context.read<CashboxesCubit>().setMainCashbox(cashbox.id!);
+        },
       ),
     );
   }
@@ -454,42 +231,15 @@ class _CashboxesViewState extends State<_CashboxesView> {
   void _showDeleteDialog(BuildContext context, CashboxEntity cashbox) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.warning_rounded, color: Colors.red, size: 28),
-            ),
-            const SizedBox(width: 12),
-            const Text('حذف الصندوق'),
-          ],
-        ),
-        content: Text('هل أنت متأكد من حذف الصندوق "${cashbox.name}"؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              this.context.read<CashboxesCubit>().deleteCashbox(cashbox.id!);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('حذف'),
-          ),
-        ],
+      builder: (dialogContext) => CustomConfirmDialog(
+        title: 'حذف الصندوق',
+        message: 'هل أنت متأكد من حذف الصندوق "${cashbox.name}"؟',
+        confirmLabel: 'حذف',
+        isDanger: true,
+        onConfirm: () {
+          this.context.read<CashboxesCubit>().deleteCashbox(cashbox.id!);
+        },
       ),
     );
   }
 }
-

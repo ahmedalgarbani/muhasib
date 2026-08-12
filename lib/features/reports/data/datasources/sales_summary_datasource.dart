@@ -134,7 +134,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
       )),
     );
 
-    final netSales = totalSales - totalReturns - totalDiscounts;
+    final netSales = totalSales - totalReturns;
 
     return SalesSummaryEntity(
       totalSales: totalSales,

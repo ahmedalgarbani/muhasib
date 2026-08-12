@@ -9,6 +9,8 @@ import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class WarehouseFormPage extends StatefulWidget {
   final WarehouseEntity? warehouse;
@@ -135,7 +137,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
           }
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFFF5F5F5),
+          backgroundColor: AppColors.neutral100,
           appBar: CustomAppBar(
             title: isEditing ? 'تعديل المخزن' : 'إضافة مخزن جديد',
             actions: [
@@ -171,7 +173,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                       Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -252,7 +254,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                       Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -300,7 +302,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                       Card(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -343,7 +345,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                                   labelText: 'الحساب المرتبط',
                                   prefixIcon: const Icon(Icons.account_balance),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[50],
@@ -377,7 +379,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                                   vertical: 16,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(AppRadius.md),
                                 ),
                               ),
                               child: _isLoading
@@ -415,7 +417,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                                   vertical: 16,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(AppRadius.md),
                                 ),
                                 side: BorderSide(color: colorScheme.primary),
                               ),

@@ -5,6 +5,8 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class CashFlowReportPage extends StatefulWidget {
   const CashFlowReportPage({super.key});
@@ -20,7 +22,7 @@ class _CashFlowReportPageState extends State<CashFlowReportPage> {
     return ReportBasePage(
       title: 'تقرير التدفقات النقدية',
       icon: Icons.water_drop,
-      color: const Color(0xFF00ACC1),
+      color: AppColors.materialCyan700,
       onPrint: _lastResult == null ? null : () => _exportPdf(),
       onExportExcel: _lastResult == null ? null : () => _exportExcel(),
       reportBuilder: (filter) => _CashFlowContent(filter: filter, onLoad: (r) => setState(() => _lastResult = r)),
@@ -86,7 +88,7 @@ class _CashFlowContent extends StatelessWidget {
   Widget _buildQuickStat(_CashFlowResult d) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.blue[900], borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.2), blurRadius: 10)]),
+      decoration: BoxDecoration(color: Colors.blue[900], borderRadius: BorderRadius.circular(AppRadius.xl), boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.2), blurRadius: 10)]),
       child: Column(children: [
         const Text('صافي التدفق النقدي', style: TextStyle(color: Colors.white70, fontSize: 12)),
         const SizedBox(height: 8),
@@ -105,7 +107,7 @@ class _CashFlowContent extends StatelessWidget {
   Widget _buildSection(String l, double v, Color c, IconData i) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey[100]!)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppRadius.lg20), border: Border.all(color: Colors.grey[100]!)),
       child: Row(children: [
         Icon(i, color: c, size: 24),
         const SizedBox(width: 12),
@@ -118,7 +120,7 @@ class _CashFlowContent extends StatelessWidget {
   Widget _buildFinalSummary(_CashFlowResult d) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey[200]!)),
+      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(AppRadius.lg20), border: Border.all(color: Colors.grey[200]!)),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         const Text('التوافق مع أرصدة النقد', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
         Text(d.closingBalance.toStringAsFixed(2) == d.actualCashBalance.toStringAsFixed(2) ? 'متطابق ✓' : 'فرق: ${(d.closingBalance - d.actualCashBalance).abs().toStringAsFixed(1)}', style: TextStyle(color: d.closingBalance.toStringAsFixed(2) == d.actualCashBalance.toStringAsFixed(2) ? Colors.green : Colors.red, fontWeight: FontWeight.bold)),

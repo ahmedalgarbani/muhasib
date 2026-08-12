@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 class Step4Review extends StatelessWidget {
   final Invoice invoice;
@@ -56,12 +61,22 @@ class Step4Review extends StatelessWidget {
                       const SizedBox(height: AppSpacing.md),
                       const Text(
                         'مراجعة الفاتورة',
-                        style: AppTextStyles.headline2,
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.gray900,
+                          height: 1.3,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       const Text(
                         'تأكد من صحة البيانات قبل الحفظ',
-                        style: AppTextStyles.caption,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                          color: AppColors.gray600,
+                          height: 1.4,
+                        ),
                         textAlign: TextAlign.center,
                       ),
                     ],
@@ -74,7 +89,7 @@ class Step4Review extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     border: Border.all(color: AppColors.grey200),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Column(
                     children: [
@@ -127,82 +142,123 @@ class Step4Review extends StatelessWidget {
 
                 // Payment Summary (hidden for quotations)
                 if (!isQuotation)
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.successLight,
-                    border: Border.all(color: AppColors.success),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('ملخص الدفع', style: AppTextStyles.bodyMedium),
-                      const SizedBox(height: AppSpacing.md),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('المدفوع', style: AppTextStyles.caption),
-                          Text(
-                            NumberFormatter.formatCurrency(invoice.paid),
-                            style: AppTextStyles.title.copyWith(
-                              color: AppColors.success,
-                            ),
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppColors.successLight,
+                      border: Border.all(color: AppColors.success),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'ملخص الدفع',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.normal,
+                            color: AppColors.gray900,
+                            height: 1.5,
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const Text('المتبقي', style: AppTextStyles.caption),
-                          Text(
-                            NumberFormatter.formatCurrency(invoice.remaining),
-                            style: AppTextStyles.title.copyWith(
-                              color: AppColors.warning,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'المدفوع',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                                color: AppColors.gray600,
+                                height: 1.4,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      if (invoice.payments.isNotEmpty) ...[
-                        const Divider(height: AppSpacing.lg),
-                        ...invoice.payments.map((payment) {
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  _getPaymentMethodLabel(payment.method),
-                                  style: AppTextStyles.small,
-                                ),
-                                Text(
-                                  NumberFormatter.formatCurrency(
-                                    payment.amount,
-                                  ),
-                                  style: AppTextStyles.small.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
+                            Text(
+                              NumberFormatter.formatCurrency(invoice.paid),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.gray900,
+                                height: 1.4,
+                              ).copyWith(color: AppColors.success),
                             ),
-                          );
-                        }).toList(),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'المتبقي',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.normal,
+                                color: AppColors.gray600,
+                                height: 1.4,
+                              ),
+                            ),
+                            Text(
+                              NumberFormatter.formatCurrency(invoice.remaining),
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.gray900,
+                                height: 1.4,
+                              ).copyWith(color: AppColors.warning),
+                            ),
+                          ],
+                        ),
+                        if (invoice.payments.isNotEmpty) ...[
+                          const Divider(height: AppSpacing.lg),
+                          ...invoice.payments.map((payment) {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    _getPaymentMethodLabel(payment.method),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.normal,
+                                      color: AppColors.gray600,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  Text(
+                                    NumberFormatter.formatCurrency(
+                                      payment.amount,
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.normal,
+                                      color: AppColors.gray600,
+                                      height: 1.4,
+                                    ).copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
 
                 if (!isQuotation &&
                     invoice.remaining > 0 &&
-                    invoice.payments.any((p) => p.method == PaymentMethod.deferred)) ...[
+                    invoice.payments.any(
+                      (p) => p.method == PaymentMethod.deferred,
+                    )) ...[
                   const SizedBox(height: AppSpacing.md),
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: AppColors.warningLight,
                       border: Border.all(color: AppColors.warning),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Row(
                       children: [
@@ -214,11 +270,21 @@ class Step4Review extends StatelessWidget {
                             children: [
                               const Text(
                                 'فاتورة آجلة',
-                                style: AppTextStyles.bodyMedium,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.normal,
+                                  color: AppColors.gray900,
+                                  height: 1.5,
+                                ),
                               ),
                               Text(
                                 'المبلغ المتبقي ${NumberFormatter.formatCurrency(invoice.remaining)} سيتم إضافته كمديونية على حساب العميل',
-                                style: AppTextStyles.small,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.normal,
+                                  color: AppColors.gray600,
+                                  height: 1.4,
+                                ),
                               ),
                             ],
                           ),
@@ -242,15 +308,20 @@ class Step4Review extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: SecondaryButton(text: 'رجوع', onPressed: onPrevious),
+                child: HasibButton(
+                  label: 'رجوع',
+                  onPressed: onPrevious,
+                  variant: HasibButtonVariant.secondary,
+                ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 flex: 2,
-                child: PrimaryButton(
-                  text: 'حفظ الفاتورة',
-                  icon: const Icon(Icons.check, size: 24),
+                child: HasibButton(
+                  label: isQuotation ? 'حفظ عرض السعر' : 'حفظ الفاتورة',
                   onPressed: onSave,
+                  leading: const Icon(Icons.check, size: 20, color: Colors.white),
+                  variant: HasibButtonVariant.success,
                 ),
               ),
             ],
@@ -271,16 +342,38 @@ class Step4Review extends StatelessWidget {
       children: [
         Text(
           label,
-          style: isHighlight ? AppTextStyles.title : AppTextStyles.caption,
+          style: isHighlight
+              ? const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.gray900,
+                  height: 1.4,
+                )
+              : const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                  color: AppColors.gray600,
+                  height: 1.4,
+                ),
         ),
         Text(
           value,
           style: isHighlight
-              ? AppTextStyles.title.copyWith(
+              ? const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.gray900,
+                  height: 1.4,
+                ).copyWith(
                   fontWeight: FontWeight.bold,
                   color: AppColors.primary,
                 )
-              : AppTextStyles.bodyMedium.copyWith(color: valueColor),
+              : const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.gray900,
+                  height: 1.5,
+                ).copyWith(color: valueColor),
         ),
       ],
     );

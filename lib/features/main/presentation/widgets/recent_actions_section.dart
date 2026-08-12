@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/accounts/presentation/pages/account_detail_old.dart';
 import 'package:muhasib/features/main/presentation/widgets/recent_action_item.dart';
 
@@ -12,7 +13,7 @@ class RecentActionsSection extends StatelessWidget {
       padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),

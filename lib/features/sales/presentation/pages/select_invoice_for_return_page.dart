@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class SelectInvoiceForReturnPage extends StatefulWidget {
   const SelectInvoiceForReturnPage({Key? key}) : super(key: key);
@@ -46,12 +49,8 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: const Text('اختر الفاتورة لإنشاء مرتجع'),
-        elevation: 0,
-        backgroundColor: Colors.white,
-      ),
+      backgroundColor: AppColors.gray50,
+      appBar: CustomAppBar(title: 'اختر الفاتورة لإنشاء مرتجع'),
       body: Column(
         children: [
           // Search Bar
@@ -65,18 +64,18 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                 hintText: 'ابحث برقم الفاتورة أو اسم العميل...',
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: const Color(0xFFF3F4F6),
+                fillColor: AppColors.gray100,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide.none,
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide.none,
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Color(0xFFEF4444), width: 2),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  borderSide: const BorderSide(color: AppColors.error, width: 2),
                 ),
               ),
             ),
@@ -146,7 +145,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
           color: hasReturn ? Colors.orange.shade200 : Colors.grey.shade200,
         ),
@@ -159,7 +158,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
             queryParameters: {'invoiceId': invoice.id.toString()},
           );
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -177,7 +176,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                             const Icon(
                               Icons.receipt_long,
                               size: 20,
-                              color: Color(0xFF2563EB),
+                              color: AppColors.primary,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -185,7 +184,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
+                                color: AppColors.gray900,
                               ),
                             ),
                           ],
@@ -206,7 +205,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: Colors.orange.shade100,
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(AppRadius.lg20),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
@@ -264,7 +263,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF111827),
+                          color: AppColors.gray900,
                         ),
                       ),
                     ],
@@ -274,8 +273,8 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
-                      color: const Color(0xFFF3F4F6),
-                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.gray100,
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Row(
                       children: [
@@ -297,7 +296,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                     border: Border.all(color: Colors.orange.shade200),
                   ),
                   child: Row(

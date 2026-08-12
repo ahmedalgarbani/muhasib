@@ -9,12 +9,15 @@ import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.da
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class WarehousesInventoryPage extends StatefulWidget {
   const WarehousesInventoryPage({super.key});
 
   @override
-  State<WarehousesInventoryPage> createState() => _WarehousesInventoryPageState();
+  State<WarehousesInventoryPage> createState() =>
+      _WarehousesInventoryPageState();
 }
 
 class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
@@ -22,18 +25,38 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   final _inventoryNumberController = TextEditingController();
   final _statementController = TextEditingController();
   final _searchController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now();
   String _inventoryType = 'spot'; // 'periodic', 'cycle', 'spot', 'annual'
   WarehouseEntity? _selectedWarehouse;
   final List<InventoryLineEntity> _inventoryLines = [];
   bool _isCountMode = false;
-  
+
   final List<Map<String, dynamic>> _inventoryTypes = [
-    {'value': 'spot', 'label': 'جرد فوري', 'icon': Icons.flash_on, 'color': Colors.orange},
-    {'value': 'periodic', 'label': 'جرد دوري', 'icon': Icons.schedule, 'color': Colors.blue},
-    {'value': 'cycle', 'label': 'جرد دائري', 'icon': Icons.autorenew, 'color': Colors.green},
-    {'value': 'annual', 'label': 'جرد سنوي', 'icon': Icons.event_available, 'color': Colors.purple},
+    {
+      'value': 'spot',
+      'label': 'جرد فوري',
+      'icon': Icons.flash_on,
+      'color': Colors.orange,
+    },
+    {
+      'value': 'periodic',
+      'label': 'جرد دوري',
+      'icon': Icons.schedule,
+      'color': Colors.blue,
+    },
+    {
+      'value': 'cycle',
+      'label': 'جرد دائري',
+      'icon': Icons.autorenew,
+      'color': Colors.green,
+    },
+    {
+      'value': 'annual',
+      'label': 'جرد سنوي',
+      'icon': Icons.event_available,
+      'color': Colors.purple,
+    },
   ];
 
   @override
@@ -41,10 +64,11 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     super.initState();
     _generateInventoryNumber();
   }
-  
+
   void _generateInventoryNumber() {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    _inventoryNumberController.text = 'INV-${timestamp.substring(timestamp.length - 8)}';
+    _inventoryNumberController.text =
+        'INV-${timestamp.substring(timestamp.length - 8)}';
   }
 
   @override
@@ -58,7 +82,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -69,7 +93,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
         ),
       ],
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: AppColors.neutral100,
         appBar: CustomAppBar(
           title: 'جرد المخزون',
           actions: [
@@ -82,7 +106,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
             ),
             IconButton(
               icon: const Icon(Icons.print),
-              onPressed: _inventoryLines.isEmpty ? null : () => _printInventoryReport(),
+              onPressed: _inventoryLines.isEmpty
+                  ? null
+                  : () => _printInventoryReport(),
               tooltip: 'طباعة التقرير',
             ),
           ],
@@ -97,31 +123,29 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                 // Inventory Type Selection
                 _buildInventoryTypeSelection(),
                 const SizedBox(height: 16),
-                
+
                 // Document Header Card
                 _buildDocumentHeaderCard(colorScheme),
                 const SizedBox(height: 16),
-                
+
                 // Warehouse Selection Card
                 _buildWarehouseSelectionCard(colorScheme),
                 const SizedBox(height: 16),
-                
+
                 // Product Search & Count Card
-                if (_isCountMode)
-                  _buildProductCountCard(colorScheme),
-                
+                if (_isCountMode) _buildProductCountCard(colorScheme),
+
                 // Inventory Lines Card
                 _buildInventoryLinesCard(colorScheme),
                 const SizedBox(height: 16),
-                
+
                 // Summary Card
-                if (_inventoryLines.isNotEmpty)
-                  _buildSummaryCard(colorScheme),
-                
+                if (_inventoryLines.isNotEmpty) _buildSummaryCard(colorScheme),
+
                 // Notes Card
                 _buildNotesCard(colorScheme),
                 const SizedBox(height: 24),
-                
+
                 // Action Buttons
                 _buildActionButtons(colorScheme),
                 const SizedBox(height: 24),
@@ -132,7 +156,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
       ),
     );
   }
-  
+
   Widget _buildInventoryTypeSelection() {
     return SizedBox(
       height: 90,
@@ -151,12 +175,12 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
               duration: const Duration(milliseconds: 200),
               width: 100,
               decoration: BoxDecoration(
-                color: isSelected 
+                color: isSelected
                     ? (type['color'] as Color).withOpacity(0.1)
                     : Colors.white,
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
-                  color: isSelected 
+                  color: isSelected
                       ? type['color'] as Color
                       : Colors.grey[300]!,
                   width: isSelected ? 2 : 1,
@@ -167,7 +191,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                 children: [
                   Icon(
                     type['icon'] as IconData,
-                    color: isSelected 
+                    color: isSelected
                         ? type['color'] as Color
                         : Colors.grey[600],
                     size: 28,
@@ -177,11 +201,11 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                     type['label'],
                     style: TextStyle(
                       fontSize: 12,
-                      color: isSelected 
+                      color: isSelected
                           ? type['color'] as Color
                           : Colors.grey[600],
-                      fontWeight: isSelected 
-                          ? FontWeight.bold 
+                      fontWeight: isSelected
+                          ? FontWeight.bold
                           : FontWeight.normal,
                     ),
                     textAlign: TextAlign.center,
@@ -198,9 +222,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildDocumentHeaderCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -208,10 +230,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.receipt_long,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.receipt_long, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'بيانات المستند',
@@ -242,7 +261,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                         labelText: 'التاريخ',
                         prefixIcon: const Icon(Icons.calendar_today),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         filled: true,
                         fillColor: Colors.grey[50],
@@ -264,9 +283,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildWarehouseSelectionCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -274,10 +291,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.warehouse,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.warehouse, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'المخزن',
@@ -294,14 +308,14 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                 if (state is WarehousesLoaded) {
                   warehouses = state.warehouses;
                 }
-                
+
                 return DropdownButtonFormField<WarehouseEntity>(
                   initialValue: _selectedWarehouse,
                   decoration: InputDecoration(
                     labelText: 'اختر المخزن',
                     prefixIcon: const Icon(Icons.store),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     filled: true,
                     fillColor: Colors.grey[50],
@@ -336,9 +350,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildProductCountCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -346,10 +358,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.qr_code_scanner,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.qr_code_scanner, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'إضافة منتج للجرد',
@@ -380,7 +389,10 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                   icon: const Icon(Icons.add),
                   label: const Text('إضافة'),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 16,
+                    ),
                     backgroundColor: colorScheme.primary,
                     foregroundColor: Colors.white,
                   ),
@@ -396,9 +408,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildInventoryLinesCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -409,10 +419,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
               children: [
                 Row(
                   children: [
-                    Icon(
-                      Icons.inventory,
-                      color: colorScheme.primary,
-                    ),
+                    Icon(Icons.inventory, color: colorScheme.primary),
                     const SizedBox(width: 8),
                     Text(
                       'قائمة الجرد',
@@ -447,9 +454,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                     const SizedBox(height: 8),
                     Text(
                       'لا توجد أصناف للجرد',
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(color: Colors.grey[600]),
                     ),
                     if (!_isCountMode)
                       Padding(
@@ -485,10 +490,10 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     final line = _inventoryLines[index];
     final difference = line.actualQuantity - line.quantity;
     final isPositive = difference >= 0;
-    
+
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: isPositive 
+        backgroundColor: isPositive
             ? Colors.green.withOpacity(0.1)
             : Colors.red.withOpacity(0.1),
         child: Text(
@@ -499,7 +504,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
           ),
         ),
       ),
-      title: Text(line.statement.isNotEmpty ? line.statement : 'صنف ${index + 1}') ,
+      title: Text(
+        line.statement.isNotEmpty ? line.statement : 'صنف ${index + 1}',
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -526,9 +533,12 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                 decoration: InputDecoration(
                   hintText: '0',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
                 ),
                 onChanged: (value) {
                   final qty = double.tryParse(value) ?? 0;
@@ -539,7 +549,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                     );
                   });
                 },
-                controller: TextEditingController(text: line.actualQuantity.toString()),
+                controller: TextEditingController(
+                  text: line.actualQuantity.toString(),
+                ),
               ),
             )
           : IconButton(
@@ -555,17 +567,19 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
   Widget _buildSummaryCard(ColorScheme colorScheme) {
     final totalExpected = _inventoryLines.fold<double>(
-      0, (sum, line) => sum + line.quantity);
+      0,
+      (sum, line) => sum + line.quantity,
+    );
     final totalActual = _inventoryLines.fold<double>(
-      0, (sum, line) => sum + line.actualQuantity);
+      0,
+      (sum, line) => sum + line.actualQuantity,
+    );
     final totalDifference = totalActual - totalExpected;
-    
+
     return Card(
       elevation: 2,
       color: colorScheme.primaryContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -599,13 +613,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildSummaryItem(String label, String value, Color color) {
     return Column(
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
         const SizedBox(height: 4),
         Text(
           value,
@@ -622,9 +630,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildNotesCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -632,10 +638,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.note,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.note, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'ملاحظات',
@@ -670,7 +673,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),
@@ -686,7 +689,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),
@@ -711,9 +714,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
   void _scanBarcode() {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('سيتم إضافة ماسح الباركود قريباً'),
-      ),
+      const SnackBar(content: Text('سيتم إضافة ماسح الباركود قريباً')),
     );
   }
 
@@ -727,17 +728,27 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
       );
       return;
     }
-    
-    // Add mock product for now
+
+    final productName = _searchController.text.trim();
+    if (productName.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('يرجى أدخال اسم المنتج أو الباركود'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _inventoryLines.add(
         InventoryLineEntity(
-          statement: 'منتج ${_inventoryLines.length + 1}',
-          quantity: 10,
+          statement: productName,
+          quantity: 0,
           actualQuantity: 0,
-          difference: -10,
-          costAmount: 100,
-          categoryId: _inventoryLines.length + 1,
+          difference: 0,
+          costAmount: 0,
+          categoryId: 0,
           groupId: 1,
           unitId: 1,
           categorySubUnitId: 1,
@@ -750,7 +761,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
   void _saveInventory() {
     if (!_formKey.currentState!.validate()) return;
-    
+
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('تم حفظ الجرد كمسودة'),
@@ -761,14 +772,16 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
   void _postInventory() {
     if (!_formKey.currentState!.validate()) return;
-    
+
     _showPostConfirmation();
   }
 
   void _showPostConfirmation() {
     final totalDifference = _inventoryLines.fold<double>(
-      0, (sum, line) => sum + (line.actualQuantity - line.quantity));
-    
+      0,
+      (sum, line) => sum + (line.actualQuantity - line.quantity),
+    );
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -831,10 +844,8 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   void _printInventoryReport() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('طباعة تقرير الجرد...'),
-      ),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('طباعة تقرير الجرد...')));
   }
 }

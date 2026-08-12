@@ -587,6 +587,7 @@ class SalesInvoiceAccountingService {
     final customersAccountId = await _getConnectedAccountId(txn, 2, 1120);
     final customerAccountId = await _getCustomerAccountId(txn, customerId, customersAccountId);
     final salesAccountId = await _getConnectedAccountId(txn, 7, 4110);
+    final taxAccountId = await _getConnectedAccountId(txn, 4, 2140);
     
     // Insert payment record for remaining balance
     await txn.insert(_invoicePaymentsTable, {
@@ -602,6 +603,65 @@ class SalesInvoiceAccountingService {
       'creation_time': now,
       'last_modification_time': now,
     });
+    
+    // IMPORTANT FIX: Create the actual journal entry for the receivable.
+    // Previously this only recorded a payment row without a journal entry,
+    // leaving the books unbalanced for partial/credit sales.
+    //
+    // The remaining unpaid balance should be recorded as:
+    // Dr. Customers (A/R)   amount
+    //     Cr. Sales Revenue    amount
+    // (Tax was already allocated proportionally in the payment entries)
+    final journalNumber = await _nextJournalNumber(txn, 'SI');
+    final journalEntryId = await txn.insert(_journalEntriesTable, {
+      'number': journalNumber,
+      'entry_date': now,
+      'description': 'رصيد مستحق - فاتورة $invoiceNumber',
+      'reference_type': 'sales_invoice',
+      'reference_id': invoiceId,
+      'reference_number': invoiceNumber,
+      'status': 1,
+      'is_posted': 1,
+      'total_debit': amount,
+      'total_credit': amount,
+      'difference': 0.0,
+      'creation_time': now,
+      'last_modification_time': now,
+    });
+    
+    // Debit: Customer Account (increase A/R)
+    await txn.insert(_journalLinesTable, {
+      'journal_entry_id': journalEntryId,
+      'line_number': 1,
+      'account_id': customerAccountId,
+      'account_code': (await _getAccountMeta(txn, customerAccountId))['code'],
+      'account_name': (await _getAccountMeta(txn, customerAccountId))['name'],
+      'debit_amount': amount,
+      'credit_amount': 0.0,
+      'description': 'رصيد مستحق - فاتورة $invoiceNumber',
+    });
+    
+    // Credit: Sales Revenue (recognize revenue on the unpaid portion)
+    await txn.insert(_journalLinesTable, {
+      'journal_entry_id': journalEntryId,
+      'line_number': 2,
+      'account_id': salesAccountId,
+      'account_code': (await _getAccountMeta(txn, salesAccountId))['code'],
+      'account_name': (await _getAccountMeta(txn, salesAccountId))['name'],
+      'debit_amount': 0.0,
+      'credit_amount': amount,
+      'description': 'رصيد مستحق - فاتورة $invoiceNumber',
+    });
+    
+    // Update account balances
+    await txn.rawUpdate(
+      'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) + ? WHERE id = ?',
+      [amount, customerAccountId],
+    );
+    await txn.rawUpdate(
+      'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) - ? WHERE id = ?',
+      [amount, salesAccountId],
+    );
     
     return customerAccountId;
   }

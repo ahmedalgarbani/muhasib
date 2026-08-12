@@ -1,4 +1,4 @@
-import 'package:hasib_lib/base/entity.dart';
+import 'package:muhasib/core/models/entity.dart';
 
 /// Lightweight [Entity] implementation for wrapping simple string options.
 class SimpleEntity extends Entity {

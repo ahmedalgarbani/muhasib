@@ -5,8 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
-import 'package:hasib_lib/form/form_button.dart';
-import 'package:hasib_lib/form/form_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 /// Bottom Sheet لإضافة حساب جديد بشكل مبسط
 void showAddAccountBottomSheet(
@@ -145,7 +147,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
         ),
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -165,7 +167,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                       height: 4,
                       decoration: BoxDecoration(
                         color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: BorderRadius.circular(AppRadius.xxs),
                       ),
                     ),
                   ),
@@ -176,12 +178,12 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                       Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF2563EB).withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: AppColors.primary.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: const Icon(
                           Icons.account_balance,
-                          color: Color(0xFF2563EB),
+                          color: AppColors.primary,
                           size: 24,
                         ),
                       ),
@@ -237,7 +239,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         color: Colors.blue[50],
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(color: Colors.blue[200]!),
                       ),
                       child: Row(

@@ -5,6 +5,9 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 /// Quotation Detail Page
 /// Displays complete quotation information with convert and edit actions
@@ -50,11 +53,9 @@ class QuotationDetailPage extends StatelessWidget {
         }
       },
       child: Scaffold(
-        backgroundColor: const Color(0xFFF9FAFB),
-        appBar: AppBar(
-          title: Text(quotation.number),
-          elevation: 0,
-          backgroundColor: Colors.white,
+        backgroundColor: AppColors.gray50,
+        appBar: CustomAppBar(
+          title: quotation.number,
           actions: [
             if (!isConverted)
               IconButton(
@@ -103,7 +104,7 @@ class QuotationDetailPage extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -130,7 +131,7 @@ class QuotationDetailPage extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
+                        color: AppColors.gray900,
                       ),
                     ),
                   ],
@@ -139,9 +140,9 @@ class QuotationDetailPage extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
                     color: status == InvoiceStatus.converted
-                        ? const Color(0xFFF3E8FF)
-                        : const Color(0xFFDBEAFE),
-                    borderRadius: BorderRadius.circular(12),
+                        ? AppColors.purple100
+                        : AppColors.blue100,
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Text(
                     status.displayName,
@@ -149,8 +150,8 @@ class QuotationDetailPage extends StatelessWidget {
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                       color: status == InvoiceStatus.converted
-                          ? const Color(0xFF6B21A8)
-                          : const Color(0xFF1E40AF),
+                          ? AppColors.purple800
+                          : AppColors.blue800,
                     ),
                   ),
                 ),
@@ -185,7 +186,7 @@ class QuotationDetailPage extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -198,7 +199,7 @@ class QuotationDetailPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
             const SizedBox(height: 16),
@@ -223,7 +224,7 @@ class QuotationDetailPage extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -236,7 +237,7 @@ class QuotationDetailPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
             const SizedBox(height: 16),
@@ -264,11 +265,11 @@ class QuotationDetailPage extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFFF3F4F6),
-            borderRadius: BorderRadius.circular(8),
+            color: AppColors.gray100,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: const Center(
-            child: Icon(Icons.inventory_2, size: 20, color: Color(0xFF6B7280)),
+            child: Icon(Icons.inventory_2, size: 20, color: AppColors.gray500),
           ),
         ),
         const SizedBox(width: 12),
@@ -281,7 +282,7 @@ class QuotationDetailPage extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF111827),
+                  color: AppColors.gray900,
                 ),
               ),
               const SizedBox(height: 4),
@@ -300,7 +301,7 @@ class QuotationDetailPage extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF111827),
+            color: AppColors.gray900,
           ),
         ),
       ],
@@ -311,7 +312,7 @@ class QuotationDetailPage extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -342,10 +343,10 @@ class QuotationDetailPage extends StatelessWidget {
   Widget _buildConvertedInfoCard() {
     return Card(
       elevation: 0,
-      color: const Color(0xFFF3E8FF),
+      color: AppColors.purple100,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFF8B5CF6), width: 1),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        side: const BorderSide(color: AppColors.violet500, width: 1),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -354,14 +355,14 @@ class QuotationDetailPage extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.check_circle, color: Color(0xFF8B5CF6), size: 24),
+                const Icon(Icons.check_circle, color: AppColors.violet500, size: 24),
                 const SizedBox(width: 12),
                 const Text(
                   'تم تحويل العرض',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF6B21A8),
+                    color: AppColors.purple800,
                   ),
                 ),
               ],
@@ -371,7 +372,7 @@ class QuotationDetailPage extends StatelessWidget {
               'تم تحويل هذا العرض إلى فاتورة مبيعات رقم: ${quotation.nextInvoiceNumber}',
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF6B21A8),
+                color: AppColors.purple800,
               ),
             ),
             const SizedBox(height: 12),
@@ -380,8 +381,8 @@ class QuotationDetailPage extends StatelessWidget {
                 // Navigate to sales invoice
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF8B5CF6),
-                side: const BorderSide(color: Color(0xFF8B5CF6)),
+                foregroundColor: AppColors.violet500,
+                side: const BorderSide(color: AppColors.violet500),
               ),
               icon: const Icon(Icons.receipt_long, size: 18),
               label: const Text('عرض الفاتورة'),
@@ -413,7 +414,7 @@ class QuotationDetailPage extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
           ],
@@ -431,7 +432,7 @@ class QuotationDetailPage extends StatelessWidget {
           style: TextStyle(
             fontSize: isFinal ? 16 : 14,
             fontWeight: isFinal ? FontWeight.bold : FontWeight.w500,
-            color: isFinal ? const Color(0xFF111827) : Colors.grey.shade700,
+            color: isFinal ? AppColors.gray900 : Colors.grey.shade700,
           ),
         ),
         Text(
@@ -440,10 +441,10 @@ class QuotationDetailPage extends StatelessWidget {
             fontSize: isFinal ? 20 : 14,
             fontWeight: isFinal ? FontWeight.bold : FontWeight.w600,
             color: isFinal
-                ? const Color(0xFF2563EB)
+                ? AppColors.primary
                 : isDiscount
-                    ? const Color(0xFFEF4444)
-                    : const Color(0xFF111827),
+                    ? AppColors.error
+                    : AppColors.gray900,
           ),
         ),
       ],
@@ -469,11 +470,11 @@ class QuotationDetailPage extends StatelessWidget {
             _showConvertDialog(context);
           },
           style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: AppColors.success,
             foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+              borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
           ),
           icon: const Icon(Icons.transform),
@@ -492,7 +493,7 @@ class QuotationDetailPage extends StatelessWidget {
       builder: (dialogContext) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.transform, color: Color(0xFF10B981)),
+            Icon(Icons.transform, color: AppColors.success),
             SizedBox(width: 8),
             Text('تحويل عرض السعر'),
           ],
@@ -509,7 +510,7 @@ class QuotationDetailPage extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(color: Colors.blue.shade200),
               ),
               child: Row(
@@ -564,7 +565,7 @@ class QuotationDetailPage extends StatelessWidget {
             },
             icon: const Icon(Icons.check),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
+              backgroundColor: AppColors.success,
             ),
             label: const Text('تأكيد التحويل'),
           ),

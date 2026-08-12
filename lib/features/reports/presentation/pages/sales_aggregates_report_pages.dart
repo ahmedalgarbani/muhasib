@@ -5,6 +5,8 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class SalesByCustomerReportPage extends StatefulWidget {
   const SalesByCustomerReportPage({super.key});
@@ -19,7 +21,7 @@ class _SalesByCustomerReportPageState extends State<SalesByCustomerReportPage> {
     return ReportBasePage(
       title: 'مبيعات حسب العميل',
       icon: Icons.people,
-      color: const Color(0xFF388E3C),
+      color: AppColors.materialGreen700,
       onPrint: _lastRows == null ? null : () => _exportPdf('تقرير مبيعات العملاء', ['العميل', 'العدد', 'الإجمالي']),
       onExportExcel: _lastRows == null ? null : () => _exportExcel('customers_sales', ['اسم العميل', 'عدد الفواتير', 'إجمالي المبيعات']),
       reportBuilder: (filter) => _AggregateByPartyContent(filter: filter, invoiceType: 1, titleLabel: 'العميل', onLoad: (rows) => setState(() => _lastRows = rows)),
@@ -42,7 +44,7 @@ class _PurchaseBySupplierReportPageState extends State<PurchaseBySupplierReportP
     return ReportBasePage(
       title: 'مشتريات حسب المورد',
       icon: Icons.local_shipping,
-      color: const Color(0xFFF57C00),
+      color: AppColors.materialOrange700,
       onPrint: _lastRows == null ? null : () => _exportPdf('تقرير مشتريات الموردين', ['المورد', 'العدد', 'الإجمالي']),
       onExportExcel: _lastRows == null ? null : () => _exportExcel('suppliers_purchases', ['اسم المورد', 'عدد الفواتير', 'إجمالي المشتريات']),
       reportBuilder: (filter) => _AggregateByPartyContent(filter: filter, invoiceType: 2, titleLabel: 'المورد', onLoad: (rows) => setState(() => _lastRows = rows)),
@@ -65,7 +67,7 @@ class _DailySalesReportPageState extends State<DailySalesReportPage> {
     return ReportBasePage(
       title: 'المبيعات اليومية',
       icon: Icons.today,
-      color: const Color(0xFF00ACC1),
+      color: AppColors.materialCyan700,
       onPrint: _lastRows == null ? null : () => _exportPdf(),
       onExportExcel: _lastRows == null ? null : () => _exportExcel(),
       reportBuilder: (filter) => _DailyTotalsContent(filter: filter, invoiceType: 1, onLoad: (rows) => setState(() => _lastRows = rows)),
@@ -88,7 +90,7 @@ class _SalesByProductReportPageState extends State<SalesByProductReportPage> {
     return ReportBasePage(
       title: 'مبيعات حسب المنتج',
       icon: Icons.inventory_2,
-      color: const Color(0xFF7B1FA2),
+      color: AppColors.materialPurple700,
       onPrint: _lastRows == null ? null : () => _exportPdf(),
       onExportExcel: _lastRows == null ? null : () => _exportExcel(),
       reportBuilder: (filter) => _AggregateByProductContent(filter: filter, invoiceType: 1, onLoad: (rows) => setState(() => _lastRows = rows)),
@@ -111,7 +113,7 @@ class _PurchaseByProductReportPageState extends State<PurchaseByProductReportPag
     return ReportBasePage(
       title: 'مشتريات حسب المنتج',
       icon: Icons.category,
-      color: const Color(0xFFE91E63),
+      color: AppColors.materialPink500,
       onPrint: _lastRows == null ? null : () => _exportPdf(),
       onExportExcel: _lastRows == null ? null : () => _exportExcel(),
       reportBuilder: (filter) => _AggregateByProductContent(filter: filter, invoiceType: 2, onLoad: (rows) => setState(() => _lastRows = rows)),
@@ -156,7 +158,7 @@ class _AggregateByPartyContent extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final r = rows[index];
                   return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
                       title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -229,7 +231,7 @@ class _AggregateByProductContent extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final r = rows[index];
                   return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
                       title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -297,7 +299,7 @@ class _DailyTotalsContent extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final r = rows[index];
                   return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
                       title: Text(r.day, style: const TextStyle(fontWeight: FontWeight.bold)),

@@ -6,6 +6,9 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class ReturnsPage extends StatefulWidget {
   const ReturnsPage({Key? key}) : super(key: key);
@@ -32,12 +35,8 @@ class _ReturnsPageState extends State<ReturnsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: const Text('مرتجعات المبيعات'),
-        elevation: 0,
-        backgroundColor: Colors.white,
-      ),
+      backgroundColor: AppColors.gray50,
+      appBar: CustomAppBar(title: 'مرتجعات المبيعات'),
       body: Column(
         children: [
           _buildHeader(),
@@ -82,7 +81,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
           // Navigate to select invoice page first
           context.pushNamed('select-invoice-for-return');
         },
-        backgroundColor: const Color(0xFFEF4444),
+        backgroundColor: AppColors.error,
         icon: const Icon(Icons.assignment_return),
         label: const Text('مرتجع جديد'),
       ),
@@ -107,17 +106,17 @@ class _ReturnsPageState extends State<ReturnsPage> {
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   borderSide: const BorderSide(
-                    color: Color(0xFFEF4444),
+                    color: AppColors.error,
                     width: 2,
                   ),
                 ),
@@ -136,7 +135,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
             style: IconButton.styleFrom(
               backgroundColor: Colors.grey.shade100,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
           ),
@@ -165,7 +164,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: InkWell(
@@ -173,7 +172,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
           // Navigate to return detail
           // Navigator.pushNamed(context, '/returns/detail', arguments: returnInvoice.id);
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -201,7 +200,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
+                                color: AppColors.gray900,
                               ),
                             ),
                           ],
@@ -228,15 +227,15 @@ class _ReturnsPageState extends State<ReturnsPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFEF3C7),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.amber100,
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.receipt_long,
                       size: 18,
-                      color: Color(0xFF92400E),
+                      color: AppColors.amber800,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -247,7 +246,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
                             'الفاتورة الأصلية',
                             style: TextStyle(
                               fontSize: 10,
-                              color: Color(0xFF92400E),
+                              color: AppColors.amber800,
                             ),
                           ),
                           Text(
@@ -255,7 +254,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
                             style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF92400E),
+                              color: AppColors.amber800,
                             ),
                           ),
                         ],
@@ -301,7 +300,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFFEF4444),
+                          color: AppColors.error,
                         ),
                       ),
                     ],
@@ -311,10 +310,10 @@ class _ReturnsPageState extends State<ReturnsPage> {
                       // View accounting entries
                     },
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF2563EB),
-                      side: const BorderSide(color: Color(0xFF2563EB)),
+                      foregroundColor: AppColors.primary,
+                      side: const BorderSide(color: AppColors.primary),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
                     icon: const Icon(Icons.account_balance, size: 18),

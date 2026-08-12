@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/features/accounts/data/models/account_model.dart';
+import 'package:muhasib/features/accounts/domain/enums/account_type.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class AccountCard extends StatelessWidget {
   final AccountModel account;
@@ -30,14 +32,14 @@ class AccountCard extends StatelessWidget {
       builder: (context, constraints) {
         return InkWell(
           onTap: account.isMaster ? onTap : null,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Container(
             margin: EdgeInsets.only(bottom: 8),
             width: double.infinity,
             decoration: BoxDecoration(
               color: colors.background,
               border: Border.all(color: colors.border, width: 1.5),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
             padding: EdgeInsets.all(padding),
             child: Column(
@@ -51,7 +53,7 @@ class AccountCard extends StatelessWidget {
                       padding: EdgeInsets.all(isTablet ? 10 : 8),
                       decoration: BoxDecoration(
                         color: colors.background,
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Icon(
                         account.isMaster
@@ -94,7 +96,7 @@ class AccountCard extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: colors.background,
                         border: Border.all(color: colors.border),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(AppRadius.lg20),
                       ),
                       child: Text(
                         account.isMaster

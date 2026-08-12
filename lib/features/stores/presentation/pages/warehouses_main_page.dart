@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class WarehousesMainPage extends StatelessWidget {
   const WarehousesMainPage({super.key});
@@ -8,8 +10,8 @@ class WarehousesMainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar:  CustomAppBar(title: 'إدارة المخازن', onMenuPressed: () => Navigator.pop(context)),
+      backgroundColor: AppColors.neutral100,
+      appBar:  const CustomAppBar(title: 'إدارة المخازن'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.count(
@@ -22,28 +24,28 @@ class WarehousesMainPage extends StatelessWidget {
               context,
               title: 'المخازن',
               icon: Icons.warehouse,
-              color: const Color(0xFF1976D2),
+              color: AppColors.materialBlue700,
               route: '/warehouses/list',
             ),
             _buildMenuCard(
               context,
               title: 'الجرد',
               icon: Icons.inventory,
-              color: const Color(0xFF00897B),
+              color: AppColors.materialTeal600,
               route: '/warehouses/inventory',
             ),
             _buildMenuCard(
               context,
               title: 'التسويات',
               icon: Icons.tune,
-              color: const Color(0xFFFF9800),
+              color: AppColors.materialOrange500,
               route: '/warehouses/adjustment',
             ),
             _buildMenuCard(
               context,
               title: 'التحويلات',
               icon: Icons.swap_horiz,
-              color: const Color(0xFF9C27B0),
+              color: AppColors.materialPurple500,
               route: '/warehouses/transfer',
             ),
           ],
@@ -62,22 +64,15 @@ class WarehousesMainPage extends StatelessWidget {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: InkWell(
         onTap: () => context.pushNamed(route),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                color,
-                color.withOpacity(0.7),
-              ],
-            ),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            color: color,
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,

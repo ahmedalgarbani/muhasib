@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class AddCustomerDialog extends StatefulWidget {
   /// partyType: 1 = customer, 2 = supplier
@@ -89,7 +91,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
     final isSupplier = widget.partyType == 2;
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -217,7 +219,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                       ElevatedButton(
                         onPressed: _isLoading ? null : _saveCustomer,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
+                          backgroundColor: AppColors.primary,
                         ),
                         child: _isLoading
                             ? const SizedBox(

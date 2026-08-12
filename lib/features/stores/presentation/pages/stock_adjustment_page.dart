@@ -11,6 +11,8 @@ import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart
 import 'package:muhasib/features/stores/presentation/cubit/stock_adjustments_cubit.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class StockAdjustmentPage extends StatefulWidget {
   const StockAdjustmentPage({super.key});
@@ -78,7 +80,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
           ),
       ],
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: AppColors.neutral100,
         appBar: CustomAppBar(
           title: 'تسوية مخزنية',
           actions: [
@@ -100,7 +102,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -143,7 +145,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                     labelText: 'التاريخ',
                                     prefixIcon: const Icon(Icons.calendar_today),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(AppRadius.md),
                                     ),
                                     filled: true,
                                     fillColor: Colors.grey[50],
@@ -166,7 +168,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -236,7 +238,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                       labelText: 'المخزن',
                                       prefixIcon: const Icon(Icons.warehouse),
                                       border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(AppRadius.md),
                                       ),
                                       filled: true,
                                       fillColor: Colors.grey[50],
@@ -268,7 +270,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   labelText: 'السبب',
                                   prefixIcon: const Icon(Icons.help_outline),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[50],
@@ -296,7 +298,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -401,7 +403,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -450,7 +452,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                         ),
                       ),
@@ -466,7 +468,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                         ),
                       ),

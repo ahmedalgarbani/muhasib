@@ -7,6 +7,8 @@ import 'package:muhasib/features/reports/presentation/cubit/sales_summary_cubit.
 import 'package:muhasib/features/reports/presentation/cubit/sales_summary_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class SalesSummaryReportPage extends StatefulWidget {
   const SalesSummaryReportPage({super.key});
@@ -29,7 +31,7 @@ class _SalesSummaryReportPageState extends State<SalesSummaryReportPage> {
           return ReportBasePage(
             title: 'ملخص مبيعات شامل',
             icon: Icons.analytics,
-            color: const Color(0xFF0D47A1),
+            color: AppColors.materialBlue900,
             onPrint: _lastState == null ? null : () => _exportPdf(),
             onExportExcel: _lastState == null ? null : () => _exportExcel(),
             reportBuilder: (filter) => _SalesSummaryContent(filter: filter),
@@ -116,7 +118,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
   Widget _buildMainTile(dynamic s) {
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(gradient: const LinearGradient(colors: [Color(0xFF0D47A1), Color(0xFF1976D2)]), borderRadius: BorderRadius.circular(24), boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))]),
+      decoration: BoxDecoration(color: AppColors.materialBlue900, borderRadius: BorderRadius.circular(AppRadius.xl), boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))]),
       child: Column(children: [
         const Text('صافي مبيعات الفترة', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
@@ -141,13 +143,13 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
     ]);
   }
 
-  Widget _infoCard(String l, double v, Color c, IconData i) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: c.withOpacity(0.1))), child: Row(children: [Icon(i, color: c, size: 20), const SizedBox(width: 12), Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(l, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)), Text(_format(v), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: c))])]));
+  Widget _infoCard(String l, double v, Color c, IconData i) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppRadius.lg20), border: Border.all(color: c.withOpacity(0.1))), child: Row(children: [Icon(i, color: c, size: 20), const SizedBox(width: 12), Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(l, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)), Text(_format(v), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: c))])]));
 
   Widget _buildProductExpansion(dynamic s) {
     if (s.topProducts.isEmpty) return const SizedBox.shrink();
     return Card(
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.grey[200]!)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20), side: BorderSide(color: Colors.grey[200]!)),
       child: ExpansionTile(
         initiallyExpanded: true,
         leading: const Icon(Icons.star, color: Colors.amber),

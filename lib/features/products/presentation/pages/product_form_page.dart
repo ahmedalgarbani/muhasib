@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_text_style.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
@@ -121,14 +125,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
         child: Directionality(
           textDirection: TextDirection.rtl,
           child: Scaffold(
-            backgroundColor: const Color(0xFFF9FAFB),
-            appBar: AppBar(
-              title: Text(
-                widget.product == null ? 'منتج جديد' : 'تعديل المنتج',
-              ),
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              elevation: 0,
+            backgroundColor: AppColors.gray50,
+            appBar: CustomAppBar(
+              title: widget.product == null ? 'منتج جديد' : 'تعديل المنتج',
             ),
             body: Form(
               key: _formKey,
@@ -394,9 +393,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _saveProduct,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2563EB),
+                        backgroundColor: AppColors.primary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                       ),
                       child: _isLoading
@@ -434,7 +433,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     required List<Widget> children,
   }) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -442,14 +441,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
           children: [
             Row(
               children: [
-                Icon(icon, size: 20, color: const Color(0xFF2563EB)),
+                Icon(icon, size: 20, color: AppColors.primary),
                 const SizedBox(width: 8),
                 Text(
                   title,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: AppTextStyles.labelLarge,
                 ),
               ],
             ),

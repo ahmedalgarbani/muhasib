@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/products/domain/entities/product_sub_unit_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
@@ -38,10 +40,8 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
         child: Builder(
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
-            backgroundColor: const Color(0xFFF9FAFB),
-            drawer: const MainAppDrawer(),
+            backgroundColor:  AppColors.gray50,
             appBar: CustomAppBar(
-              onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             body: Column(
               children: [
@@ -80,7 +80,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
             ),
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () => _showSubUnitDialog(innerContext),
-              backgroundColor: const Color(0xFF2563EB),
+                  backgroundColor:  AppColors.primary,
               icon: const Icon(Icons.add),
               label: const Text('وحدة فرعية جديدة'),
             ),
@@ -108,7 +108,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF111827),
+                  color: AppColors.gray900,
                 ),
               ),
               Flexible(
@@ -200,7 +200,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
             return Card(
               margin: const EdgeInsets.only(bottom: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
                 side: BorderSide(color: Colors.grey.shade200),
               ),
               child: Padding(
@@ -210,10 +210,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                   children: [
                     Text(
                       productName,
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style:  AppTextStyles.titleMedium,
                     ),
                     const SizedBox(height: 12),
                     ...productSubUnits.map(
@@ -255,7 +252,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
             color: subUnit.isMainUnit
                 ? Colors.blue.shade50
                 : Colors.grey.shade50,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(AppRadius.sm),
             border: Border.all(
               color: subUnit.isMainUnit
                   ? Colors.blue.shade200
@@ -288,7 +285,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                             ),
                             decoration: BoxDecoration(
                               color: Colors.blue,
-                              borderRadius: BorderRadius.circular(4),
+                              borderRadius: BorderRadius.circular(AppRadius.xs),
                             ),
                             child: const Text(
                               'رئيسية',
@@ -560,7 +557,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                     Navigator.pop(dialogContext);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+              backgroundColor:  AppColors.primary,
                   ),
                   child: Text(subUnit == null ? 'إضافة' : 'حفظ'),
                 ),

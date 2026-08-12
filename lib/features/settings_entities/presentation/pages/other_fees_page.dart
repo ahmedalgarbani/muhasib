@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/other_fee_entity.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/other_fees_cubit.dart';
+import 'package:muhasib/features/settings_entities/presentation/widgets/other_fees_list_widget.dart';
 
 class OtherFeesPage extends StatelessWidget {
   const OtherFeesPage({super.key});
@@ -39,7 +43,7 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.neutral100,
       appBar: CustomAppBar(
         title: 'أدوات أخرى',
         actions: [
@@ -76,9 +80,31 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
 
           if (state is OtherFeesLoaded) {
             if (state.otherFees.isEmpty) {
-              return _buildEmptyState();
+              return const EmptyStateWidget(
+                title: 'لا توجد أدوات',
+                subtitle: 'اضغط على الزر أدناه لإضافة أداة جديدة',
+                icon: Icons.build_outlined,
+              );
             }
-            return _buildOtherFeesList(state.otherFees);
+            return OtherFeesListWidget(
+              otherFees: state.otherFees,
+              toolTypes: _toolTypes,
+              searchController: _searchController,
+              onSearchChanged: (value) {
+                if (value.isEmpty) {
+                  context.read<OtherFeesCubit>().loadOtherFees();
+                } else {
+                  context.read<OtherFeesCubit>().searchOtherFees(value);
+                }
+              },
+              onClearSearch: () {
+                _searchController.clear();
+                context.read<OtherFeesCubit>().loadOtherFees();
+              },
+              onOtherFeeTap: (otherFee) => _showOtherFeeDialog(context, otherFee: otherFee),
+              onOtherFeeEdit: (otherFee) => _showOtherFeeDialog(context, otherFee: otherFee),
+              onOtherFeeDelete: (otherFee) => _showDeleteDialog(context, otherFee),
+            );
           }
 
           return const SizedBox.shrink();
@@ -88,7 +114,7 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
         onPressed: () => _showOtherFeeDialog(context),
         icon: const Icon(Icons.add),
         label: const Text('أداة جديدة'),
-        backgroundColor: const Color(0xFF9C27B0),
+        backgroundColor: AppColors.materialPurple500,
       ),
     );
   }
@@ -96,203 +122,6 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
   void _showSnackBar(BuildContext context, String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: color),
-    );
-  }
-
-  Widget _buildOtherFeesList(List<OtherFeeEntity> otherFees) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'بحث في الأدوات...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        context.read<OtherFeesCubit>().loadOtherFees();
-                      },
-                    )
-                  : null,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            onChanged: (value) {
-              if (value.isEmpty) {
-                context.read<OtherFeesCubit>().loadOtherFees();
-              } else {
-                context.read<OtherFeesCubit>().searchOtherFees(value);
-              }
-            },
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: otherFees.length,
-            itemBuilder: (context, index) => _buildOtherFeeCard(otherFees[index]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildOtherFeeCard(OtherFeeEntity otherFee) {
-    final typeColors = [Colors.red, Colors.green, Colors.blue];
-    final typeIcons = [Icons.trending_down, Icons.trending_up, Icons.more_horiz];
-    final typeIndex = otherFee.toolType.clamp(0, 2);
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () => _showOtherFeeDialog(context, otherFee: otherFee),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: typeColors[typeIndex].withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      typeIcons[typeIndex],
-                      color: typeColors[typeIndex],
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                otherFee.name,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: typeColors[typeIndex].withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                _toolTypes[typeIndex],
-                                style: TextStyle(
-                                  color: typeColors[typeIndex],
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              otherFee.isActive ? Icons.check_circle : Icons.cancel,
-                              size: 16,
-                              color: otherFee.isActive ? Colors.green : Colors.grey,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              otherFee.isActive ? 'نشط' : 'غير نشط',
-                              style: TextStyle(
-                                color: otherFee.isActive ? Colors.green : Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuButton(
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 8),
-                            Text('تعديل'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('حذف', style: TextStyle(color: Colors.red)),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        _showOtherFeeDialog(context, otherFee: otherFee);
-                      } else if (value == 'delete') {
-                        _showDeleteDialog(context, otherFee);
-                      }
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.build_outlined, size: 80, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد أدوات',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'اضغط على الزر أدناه لإضافة أداة جديدة',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-        ],
-      ),
     );
   }
 
@@ -306,16 +135,16 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
           title: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF9C27B0).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.materialPurple500.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: const Icon(Icons.build, color: Color(0xFF9C27B0), size: 28),
+                child: const Icon(Icons.build, color: AppColors.materialPurple500, size: 28),
               ),
               const SizedBox(width: 12),
               Text(isEditing ? 'تعديل الأداة' : 'إضافة أداة جديدة'),
@@ -383,7 +212,7 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF9C27B0),
+                backgroundColor: AppColors.materialPurple500,
                 foregroundColor: Colors.white,
               ),
               child: Text(isEditing ? 'تحديث' : 'إضافة'),
@@ -398,14 +227,14 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: const Icon(Icons.warning_rounded, color: Colors.red, size: 28),
             ),
@@ -435,4 +264,3 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
     );
   }
 }
-

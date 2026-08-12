@@ -9,6 +9,8 @@ import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubi
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class AccountLimitsScreen extends StatefulWidget {
   const AccountLimitsScreen({super.key});
@@ -30,22 +32,9 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          title: const Text(
-            'إدارة سقوف الحسابات',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 18,
-              color: Colors.white,
-            ),
-          ),
-          iconTheme: const IconThemeData(color: Colors.white),
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: AppColors.gradientPrimary),
-            ),
-          ),
+        backgroundColor: AppColors.background,
+        appBar: CustomAppBar(
+          title: 'إدارة سقوف الحسابات',
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -191,7 +180,7 @@ class _AccountLimitCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
@@ -259,7 +248,7 @@ class _AccountLimitCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: color.withOpacity(0.05),
               borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(20),
+                bottom: Radius.circular(AppRadius.lg20),
               ),
             ),
             child: Row(
@@ -310,7 +299,7 @@ class _AccountLimitCard extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         ClipRRect(
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(AppRadius.xs),
           child: LinearProgressIndicator(
             value: percentage / 100,
             backgroundColor: Colors.grey.shade100,
@@ -366,7 +355,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl30)),
       ),
       child: Column(
         children: [
@@ -376,7 +365,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
             height: 4,
             decoration: BoxDecoration(
               color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(2),
+              borderRadius: BorderRadius.circular(AppRadius.xxs),
             ),
           ),
           Padding(
@@ -441,7 +430,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                       backgroundColor: AppColors.primary,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                     ),
                     onPressed: _save,
@@ -469,7 +458,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(color: Colors.grey.shade200),
         ),
         child: Row(
@@ -512,7 +501,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: color, size: 18),
             hintText: '0.00',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
           ),
         ),
       ],
@@ -581,7 +570,7 @@ class _AccountSearchSheetState extends State<_AccountSearchSheet> {
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl30)),
       ),
       child: Column(
         children: [
@@ -594,7 +583,7 @@ class _AccountSearchSheetState extends State<_AccountSearchSheet> {
                 hintText: 'ابحث عن حساب...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
                 ),
               ),
             ),

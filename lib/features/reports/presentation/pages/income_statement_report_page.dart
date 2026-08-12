@@ -8,6 +8,8 @@ import 'package:muhasib/features/reports/presentation/cubit/income_statement_cub
 import 'package:muhasib/features/reports/presentation/cubit/income_statement_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class IncomeStatementReportPage extends StatefulWidget {
   const IncomeStatementReportPage({super.key});
@@ -30,7 +32,7 @@ class _IncomeStatementReportPageState extends State<IncomeStatementReportPage> {
           return ReportBasePage(
             title: 'قائمة الدخل الشامل',
             icon: Icons.trending_up,
-            color: const Color(0xFF2E7D32),
+            color: AppColors.materialGreen800,
             onPrint: _lastState == null ? null : () => _exportPdf(context),
             onExportExcel: _lastState == null ? null : () => _exportExcel(context),
             reportBuilder: (filter) => _IncomeStatementContent(filter: filter),
@@ -115,7 +117,7 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
                 const SizedBox(height: 20),
                 Card(
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: Colors.grey[200]!)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20), side: BorderSide(color: Colors.grey[200]!)),
                   child: Column(
                     children: [
                       ...categories.map((cat) => _buildCategorySection(cat)),
@@ -145,7 +147,7 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
   Widget _buildMiniCard(String title, double v, Color c) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: c.withOpacity(0.05), borderRadius: BorderRadius.circular(16), border: Border.all(color: c.withOpacity(0.1))),
+      decoration: BoxDecoration(color: c.withOpacity(0.05), borderRadius: BorderRadius.circular(AppRadius.lg), border: Border.all(color: c.withOpacity(0.1))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(title, style: TextStyle(color: c, fontSize: 12, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Text(_formatCurrency(v), style: TextStyle(color: c, fontSize: 16, fontWeight: FontWeight.bold))]),
     );
   }
@@ -166,7 +168,7 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
     final isProfit = s.netIncome >= 0;
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: isProfit ? Colors.green[50] : Colors.red[50], borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20))),
+      decoration: BoxDecoration(color: isProfit ? Colors.green[50] : Colors.red[50], borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.lg20))),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [

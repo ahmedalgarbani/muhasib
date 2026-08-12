@@ -1,5 +1,10 @@
-import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 class AddItemBottomSheet extends StatefulWidget {
   final InvoiceItem item;
@@ -55,7 +60,7 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -63,7 +68,7 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('�?�?�?�?�? ���?�?', style: AppTextStyles.title),
+              const Text('ï؟½?ï؟½?ï؟½?ï؟½?ï؟½? ï؟½ï؟½ï؟½?ï؟½?', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4)),
               IconButton(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.close),
@@ -76,16 +81,16 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
               color: AppColors.grey50,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.item.name, style: AppTextStyles.title),
+                Text(widget.item.name, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4)),
                 const SizedBox(height: 4),
                 Text(
-                  '�?�?�?�?�?: ${NumberFormatter.formatCurrency(widget.item.price)} | �?�?�?�?�?: ${widget.item.stock} ${widget.item.unit}',
-                  style: AppTextStyles.small,
+                  'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?: ${NumberFormatter.formatCurrency(widget.item.price)} | ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?: ${widget.item.stock} ${widget.item.unit}',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4),
                 ),
               ],
             ),
@@ -93,7 +98,7 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
           const SizedBox(height: AppSpacing.lg),
           const Align(
             alignment: Alignment.centerRight,
-            child: Text('�?�?�?�?�?�?', style: AppTextStyles.body),
+            child: Text('ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.gray900, height: 1.5)),
           ),
           const SizedBox(height: AppSpacing.sm),
           Row(
@@ -125,7 +130,7 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
           TextField(
             controller: _priceController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: '�?�?�?�?�?'),
+            decoration: const InputDecoration(labelText: 'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?'),
             onChanged: (value) =>
                 setState(() => _price = double.tryParse(value) ?? _price),
           ),
@@ -135,22 +140,22 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
             decoration: BoxDecoration(
               color: AppColors.primary.withOpacity(0.1),
               border: Border.all(color: AppColors.primary.withOpacity(0.3)),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text('�?�?�?�?�?�?�?�?:', style: AppTextStyles.body),
+                const Text('ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?:', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.gray900, height: 1.5)),
                 Text(
                   NumberFormatter.formatCurrency(_price * _quantity),
-                  style: AppTextStyles.title.copyWith(color: AppColors.primary),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4).copyWith(color: AppColors.primary),
                 ),
               ],
             ),
           ),
           const SizedBox(height: AppSpacing.lg),
-          PrimaryButton(
-            text: '�?�?�?�?�? �?�?�? �?�?�?�?�?�?�?�?',
+          HasibButton(
+            label: 'إضافة الصنف',
             onPressed: () {
               widget.onAdd(
                 widget.item.copyWith(quantity: _quantity, price: _price),
@@ -173,7 +178,7 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
       height: 56,
       decoration: BoxDecoration(
         color: isPrimary ? AppColors.primary : AppColors.grey200,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: IconButton(
         onPressed: onPressed,

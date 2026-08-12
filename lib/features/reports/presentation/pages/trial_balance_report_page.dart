@@ -8,6 +8,8 @@ import 'package:muhasib/features/reports/presentation/cubit/trial_balance_cubit.
 import 'package:muhasib/features/reports/presentation/cubit/trial_balance_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class TrialBalanceReportPage extends StatefulWidget {
   const TrialBalanceReportPage({super.key});
@@ -30,7 +32,7 @@ class _TrialBalanceReportPageState extends State<TrialBalanceReportPage> {
           return ReportBasePage(
             title: 'ميزان المراجعة بالمجاميع والأرصدة',
             icon: Icons.balance,
-            color: const Color(0xFF1565C0),
+            color: AppColors.materialBlue800,
             onPrint: _lastState == null ? null : () => _exportPdf(),
             onExportExcel: _lastState == null ? null : () => _exportExcel(),
             reportBuilder: (filter) => _TrialBalanceContent(filter: filter),
@@ -111,7 +113,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                 const SizedBox(height: 20),
                 Card(
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey[200]!)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: BorderSide(color: Colors.grey[200]!)),
                   child: Column(
                     children: [
                       _buildHeader(),
@@ -132,7 +134,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
   Widget _buildSummary(TrialBalanceSummary s) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.blue.withOpacity(0.1))),
+      decoration: BoxDecoration(color: Colors.blue[50], borderRadius: BorderRadius.circular(AppRadius.lg), border: Border.all(color: Colors.blue.withOpacity(0.1))),
       child: Row(children: [
         _miniItem('الافتتاحي', s.openingDifference, s.openingDifference.abs() < 0.01),
         const Spacer(),
@@ -150,7 +152,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
   Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: Colors.grey[100], borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
+      decoration: BoxDecoration(color: Colors.grey[100], borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg))),
       child: const Row(children: [
         Expanded(flex: 3, child: Text('الحساب', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
         Expanded(flex: 2, child: Text('بداية الفترة', textAlign: TextAlign.center, style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold))),
@@ -187,7 +189,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
   Widget _buildFooter(TrialBalanceSummary s) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16))),
+      decoration: BoxDecoration(color: Colors.grey[50], borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.lg))),
       child: Row(children: [
         const Expanded(flex: 3, child: Text('الإجمالي العام', style: TextStyle(fontWeight: FontWeight.bold))),
         Expanded(flex: 2, child: _dualValue(s.openingDebit, s.openingCredit)),

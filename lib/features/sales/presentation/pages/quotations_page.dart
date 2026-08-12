@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
@@ -12,6 +11,8 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class QuotationsPage extends StatefulWidget {
   const QuotationsPage({Key? key}) : super(key: key);
@@ -49,10 +50,8 @@ class _QuotationsPageState extends State<QuotationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: const Color(0xFFF9FAFB),
-      drawer: const MainAppDrawer(),
+      backgroundColor: AppColors.gray50,
       appBar: CustomAppBar(
-        onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
       ),
       body: Column(
         children: [
@@ -110,7 +109,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
             ),
           );
         },
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add),
         label: const Text('عرض سعر جديد'),
       ),
@@ -137,16 +136,16 @@ class _QuotationsPageState extends State<QuotationsPage> {
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
                 ),
                 enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: const BorderSide(color: Color(0xFF2563EB), width: 2),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
                 ),
               ),
               onChanged: (value) {
@@ -161,7 +160,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
             style: IconButton.styleFrom(
               backgroundColor: Colors.grey.shade100,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
           ),
@@ -191,8 +190,8 @@ class _QuotationsPageState extends State<QuotationsPage> {
               });
             },
             backgroundColor: Colors.grey.shade100,
-            selectedColor: const Color(0xFFDBEAFE),
-            checkmarkColor: const Color(0xFF2563EB),
+            selectedColor: AppColors.blue100,
+            checkmarkColor: AppColors.primary,
           ),
           const SizedBox(width: 8),
           FilterChip(
@@ -205,8 +204,8 @@ class _QuotationsPageState extends State<QuotationsPage> {
               });
             },
             backgroundColor: Colors.grey.shade100,
-            selectedColor: const Color(0xFFDBEAFE),
-            checkmarkColor: const Color(0xFF2563EB),
+            selectedColor: AppColors.blue100,
+            checkmarkColor: AppColors.primary,
           ),
         ],
       ),
@@ -236,7 +235,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: InkWell(
@@ -244,7 +243,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
           // Navigate to quotation detail
           // Navigator.pushNamed(context, '/quotations/detail', arguments: quotation.id);
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -270,7 +269,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF111827),
+                                color: AppColors.gray900,
                               ),
                             ),
                           ],
@@ -323,7 +322,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF2563EB),
+                          color: AppColors.primary,
                         ),
                       ),
                     ],
@@ -334,10 +333,10 @@ class _QuotationsPageState extends State<QuotationsPage> {
                         _showConvertDialog(quotation);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
+                        backgroundColor: AppColors.success,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                       ),
                       icon: const Icon(Icons.transform, size: 18),
@@ -350,19 +349,19 @@ class _QuotationsPageState extends State<QuotationsPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF3E8FF),
-                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.purple100,
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: Color(0xFF8B5CF6), size: 20),
+                      const Icon(Icons.check_circle, color: AppColors.violet500, size: 20),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           'تم التحويل إلى فاتورة: ${quotation.nextInvoiceNumber}',
                           style: const TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF6B21A8),
+                            color: AppColors.purple800,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -416,7 +415,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
       builder: (dialogContext) => AlertDialog(
         title: const Row(
           children: [
-            Icon(Icons.transform, color: Color(0xFF10B981)),
+            Icon(Icons.transform, color: AppColors.success),
             SizedBox(width: 8),
             Text('تحويل عرض السعر'),
           ],
@@ -433,7 +432,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 border: Border.all(color: Colors.blue.shade200),
               ),
               child: Row(
@@ -485,7 +484,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
             },
             icon: const Icon(Icons.check),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
+              backgroundColor: AppColors.success,
             ),
             label: const Text('تأكيد التحويل'),
           ),

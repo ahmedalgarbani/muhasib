@@ -5,6 +5,8 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class JournalReportPage extends StatefulWidget {
   const JournalReportPage({super.key});
@@ -21,7 +23,7 @@ class _JournalReportPageState extends State<JournalReportPage> {
     return ReportBasePage(
       title: 'تقرير اليومية العامة',
       icon: Icons.auto_stories,
-      color: const Color(0xFF455A64),
+      color: AppColors.blueGrey600,
       onPrint: _lastResult == null ? null : () => _exportPdf(context),
       onExportExcel: _lastResult == null ? null : () => _exportExcel(context),
       reportBuilder: (filter) => _JournalReportContent(
@@ -160,7 +162,7 @@ class _JournalReportContent extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(AppRadius.sm10),
         border: Border.all(color: color.withOpacity(0.2)),
       ),
       child: Column(
@@ -176,7 +178,7 @@ class _JournalReportContent extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.red.withOpacity(0.2))),
+      decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(AppRadius.sm10), border: Border.all(color: Colors.red.withOpacity(0.2))),
       child: Row(children: [const Icon(Icons.error, color: Colors.red, size: 18), const SizedBox(width: 8), Text(message, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12))]),
     );
   }
@@ -186,12 +188,12 @@ class _JournalReportContent extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey[200]!)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: BorderSide(color: Colors.grey[200]!)),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: entry.isPosted ? const Color(0xFF546E7A) : Colors.orange.withOpacity(0.8), borderRadius: const BorderRadius.vertical(top: Radius.circular(16))),
+            decoration: BoxDecoration(color: entry.isPosted ? AppColors.blueGrey700 : Colors.orange.withOpacity(0.8), borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg))),
             child: Row(
               children: [
                 Text(entry.number ?? '#${entry.id}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -214,13 +216,13 @@ class _JournalReportContent extends StatelessWidget {
           )),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.grey[50], borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16))),
+            decoration: BoxDecoration(color: Colors.grey[50], borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.lg))),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: isBalanced ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
+                  decoration: BoxDecoration(color: isBalanced ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(AppRadius.sm6)),
                   child: Text(isBalanced ? 'قيد متوازن ✓' : 'غير متوازن ⚠', style: TextStyle(color: isBalanced ? Colors.green[700] : Colors.red[700], fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
                 Row(

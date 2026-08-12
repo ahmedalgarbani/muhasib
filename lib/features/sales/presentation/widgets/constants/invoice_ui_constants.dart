@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 /// UI Constants and helpers for Invoice Types
 class InvoiceTypeUI {
@@ -25,17 +27,17 @@ class InvoiceTypeUI {
   static Color getColor(InvoiceType type) {
     switch (type) {
       case InvoiceType.salesInvoice:
-        return const Color(0xFF2563EB); // Blue
+        return AppColors.primary; // Blue
       case InvoiceType.purchaseInvoice:
-        return const Color(0xFF7C3AED); // Purple
+        return AppColors.violet700; // Purple
       case InvoiceType.quotation:
-        return const Color(0xFFF59E0B); // Orange
+        return AppColors.warning; // Orange
       case InvoiceType.salesReturn:
-        return const Color(0xFFEF4444); // Red
+        return AppColors.error; // Red
       case InvoiceType.purchaseReturn:
-        return const Color(0xFFDC2626); // Dark Red
+        return AppColors.red600; // Dark Red
       case InvoiceType.quickInvoice:
-        return const Color(0xFF10B981); // Green
+        return AppColors.success; // Green
     }
   }
 
@@ -43,17 +45,17 @@ class InvoiceTypeUI {
   static Color getBackgroundColor(InvoiceType type) {
     switch (type) {
       case InvoiceType.salesInvoice:
-        return const Color(0xFFDBEAFE);
+        return AppColors.blue100;
       case InvoiceType.purchaseInvoice:
-        return const Color(0xFFF3E8FF);
+        return AppColors.purple100;
       case InvoiceType.quotation:
-        return const Color(0xFFFEF3C7);
+        return AppColors.amber100;
       case InvoiceType.salesReturn:
-        return const Color(0xFFFEE2E2);
+        return AppColors.red100;
       case InvoiceType.purchaseReturn:
-        return const Color(0xFFFECDD3);
+        return AppColors.red200;
       case InvoiceType.quickInvoice:
-        return const Color(0xFFD1FAE5);
+        return AppColors.emerald100;
     }
   }
 }
@@ -80,15 +82,15 @@ class InvoiceStatusUI {
   static Color getColor(InvoiceStatus status) {
     switch (status) {
       case InvoiceStatus.draft:
-        return const Color(0xFF6B7280); // Gray
+        return AppColors.gray500; // Gray
       case InvoiceStatus.open:
-        return const Color(0xFF3B82F6); // Blue
+        return AppColors.info; // Blue
       case InvoiceStatus.approved:
-        return const Color(0xFF10B981); // Green
+        return AppColors.success; // Green
       case InvoiceStatus.cancelled:
-        return const Color(0xFFEF4444); // Red
+        return AppColors.error; // Red
       case InvoiceStatus.converted:
-        return const Color(0xFF8B5CF6); // Purple
+        return AppColors.violet500; // Purple
     }
   }
 
@@ -96,15 +98,15 @@ class InvoiceStatusUI {
   static Color getBackgroundColor(InvoiceStatus status) {
     switch (status) {
       case InvoiceStatus.draft:
-        return const Color(0xFFF3F4F6);
+        return AppColors.gray100;
       case InvoiceStatus.open:
-        return const Color(0xFFDBEAFE);
+        return AppColors.blue100;
       case InvoiceStatus.approved:
-        return const Color(0xFFD1FAE5);
+        return AppColors.emerald100;
       case InvoiceStatus.cancelled:
-        return const Color(0xFFFEE2E2);
+        return AppColors.red100;
       case InvoiceStatus.converted:
-        return const Color(0xFFF3E8FF);
+        return AppColors.purple100;
     }
   }
 
@@ -112,15 +114,15 @@ class InvoiceStatusUI {
   static Color getTextColor(InvoiceStatus status) {
     switch (status) {
       case InvoiceStatus.draft:
-        return const Color(0xFF374151);
+        return AppColors.gray700;
       case InvoiceStatus.open:
-        return const Color(0xFF1E40AF);
+        return AppColors.blue800;
       case InvoiceStatus.approved:
-        return const Color(0xFF065F46);
+        return AppColors.emerald800;
       case InvoiceStatus.cancelled:
-        return const Color(0xFF991B1B);
+        return AppColors.red800;
       case InvoiceStatus.converted:
-        return const Color(0xFF6B21A8);
+        return AppColors.purple800;
     }
   }
 }
@@ -142,7 +144,7 @@ class InvoiceStatusBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: InvoiceStatusUI.getBackgroundColor(status),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: InvoiceStatusUI.getColor(status).withOpacity(0.3),
           width: 1,
@@ -190,7 +192,7 @@ class InvoiceTypeBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: InvoiceTypeUI.getBackgroundColor(type),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: InvoiceTypeUI.getColor(type).withOpacity(0.3),
           width: 1,

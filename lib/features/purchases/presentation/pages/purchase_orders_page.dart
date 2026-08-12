@@ -3,10 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
   const PurchaseOrdersPage({Key? key}) : super(key: key);
@@ -32,10 +33,8 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
       child: Builder(
         builder: (innerContext) => Scaffold(
           key: _scaffoldKey,
-          backgroundColor: const Color(0xFFF9FAFB),
-          drawer: const MainAppDrawer(),
+          backgroundColor: AppColors.gray50,
           appBar: CustomAppBar(
-            onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
           ),
           body: Column(
             children: [
@@ -63,7 +62,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                               icon: const Icon(Icons.refresh, size: 18),
                               label: const Text('إعادة المحاولة', style: TextStyle(fontSize: 13)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF10B981),
+                                backgroundColor: AppColors.success,
                               ),
                             ),
                           ],
@@ -92,7 +91,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                 ),
               );
             },
-            backgroundColor: const Color(0xFF3B82F6),
+            backgroundColor: AppColors.info,
             icon: const Icon(Icons.add_shopping_cart, size: 20),
             label: const Text('طلب شراء جديد', style: TextStyle(fontSize: 13)),
           ),
@@ -124,12 +123,12 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF3B82F6).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  color: AppColors.info.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: const Icon(
                   Icons.shopping_basket,
-                  color: Color(0xFF3B82F6),
+                  color: AppColors.info,
                   size: 24,
                 ),
               ),
@@ -143,7 +142,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
+                        color: AppColors.gray900,
                       ),
                     ),
                     SizedBox(height: 2),
@@ -151,7 +150,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                       'إدارة طلبات الشراء والموافقات',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF6B7280),
+                        color: AppColors.gray500,
                       ),
                     ),
                   ],
@@ -163,7 +162,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.grey.shade100,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                 ),
               ),
@@ -177,18 +176,18 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
               hintStyle: const TextStyle(fontSize: 13),
               prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
               filled: true,
-              fillColor: const Color(0xFFF9FAFB),
+              fillColor: AppColors.gray50,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFF3B82F6), width: 1),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+                borderSide: const BorderSide(color: AppColors.info, width: 1),
               ),
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
@@ -224,7 +223,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
           color: isConverted ? Colors.green.shade200 : Colors.grey.shade200,
         ),
@@ -233,7 +232,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
         onTap: () {
           // Navigate to order details
         },
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -248,13 +247,13 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF3B82F6).withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(6),
+                            color: AppColors.info.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(AppRadius.sm6),
                           ),
                           child: const Icon(
                             Icons.description,
                             size: 18,
-                            color: Color(0xFF3B82F6),
+                            color: AppColors.info,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -267,7 +266,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF111827),
+                                  color: AppColors.gray900,
                                 ),
                               ),
                               const SizedBox(height: 2),
@@ -333,7 +332,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF10B981),
+                          color: AppColors.success,
                         ),
                       ),
                     ],
@@ -344,10 +343,10 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                       icon: const Icon(Icons.transform, size: 16),
                       label: const Text('تحويل لفاتورة', style: TextStyle(fontSize: 12)),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
+                        backgroundColor: AppColors.success,
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(AppRadius.sm6),
                         ),
                       ),
                     )
@@ -370,7 +369,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(AppRadius.sm6),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,7 +404,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: Colors.green.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(color: Colors.green.withOpacity(0.3)),
         ),
         child: const Row(
@@ -429,7 +428,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
           color: Colors.orange.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(color: Colors.orange.withOpacity(0.3)),
         ),
         child: const Row(
@@ -455,10 +454,10 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
         title: const Row(
           children: [
-            Icon(Icons.transform, color: Color(0xFF10B981)),
+            Icon(Icons.transform, color: AppColors.success),
             SizedBox(width: 8),
             Text('تحويل طلب الشراء'),
           ],
@@ -476,7 +475,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Row(
                 children: [
@@ -530,7 +529,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             icon: const Icon(Icons.check, size: 18),
             label: const Text('تحويل'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF10B981),
+              backgroundColor: AppColors.success,
             ),
           ),
         ],
@@ -546,13 +545,13 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: const Color(0xFF3B82F6).withOpacity(0.05),
+              color: AppColors.info.withOpacity(0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.shopping_basket_outlined,
               size: 64,
-              color: const Color(0xFF3B82F6).withOpacity(0.3),
+              color: AppColors.info.withOpacity(0.3),
             ),
           ),
           const SizedBox(height: 20),
@@ -561,7 +560,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF111827),
+              color: AppColors.gray900,
             ),
           ),
           const SizedBox(height: 8),
@@ -583,10 +582,10 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             icon: const Icon(Icons.add, size: 18),
             label: const Text('إنشاء طلب شراء'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF3B82F6),
+              backgroundColor: AppColors.info,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
             ),
           ),

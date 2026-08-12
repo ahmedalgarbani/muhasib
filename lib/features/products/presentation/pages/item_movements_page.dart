@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/products/domain/entities/item_movement_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/item_movements_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
@@ -41,10 +42,9 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: const Color(0xFFF9FAFB),
-        drawer: const MainAppDrawer(),
+        backgroundColor: 
+AppColors.gray50,
         appBar: CustomAppBar(
-          onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
         ),
         body: Column(
           children: [
@@ -92,7 +92,7 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: AppColors.gray900,
             ),
           ),
           const SizedBox(height: 16),
@@ -107,11 +107,11 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                       borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                     enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                       borderSide: BorderSide(color: Colors.grey.shade300),
                     ),
                   ),
@@ -230,7 +230,7 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             side: BorderSide(color: Colors.grey.shade200),
           ),
           child: Padding(
@@ -249,7 +249,7 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
                             color: movement.transInOut
                                 ? Colors.green.shade50
                                 : Colors.red.shade50,
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Icon(
                             movement.transInOut
@@ -328,7 +328,7 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade100,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(
                         children: [
@@ -384,7 +384,7 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
       ),
       child: Row(
         children: [

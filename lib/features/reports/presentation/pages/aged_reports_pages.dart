@@ -5,6 +5,8 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class AgedReceivablesReportPage extends StatefulWidget {
   const AgedReceivablesReportPage({super.key});
@@ -19,7 +21,7 @@ class _AgedReceivablesReportPageState extends State<AgedReceivablesReportPage> {
     return ReportBasePage(
       title: 'أعمار ديون العملاء',
       icon: Icons.hourglass_top,
-      color: const Color(0xFFF44336),
+      color: AppColors.materialRed500,
       onPrint: _lastResult == null ? null : () => _exportPdf('تقرير أعمار ديون العملاء'),
       onExportExcel: _lastResult == null ? null : () => _exportExcel('aged_receivables'),
       reportBuilder: (filter) => _AgedInvoicesContent(filter: filter, titleLabel: 'العملاء', customerType: 1, invoiceTypes: const [1], onLoad: (r) => setState(() => _lastResult = r)),
@@ -42,7 +44,7 @@ class _AgedPayablesReportPageState extends State<AgedPayablesReportPage> {
     return ReportBasePage(
       title: 'أعمار مستحقات الموردين',
       icon: Icons.hourglass_bottom,
-      color: const Color(0xFFE64A19),
+      color: AppColors.materialDeepOrange700,
       onPrint: _lastResult == null ? null : () => _exportPdf('تقرير أعمار مستحقات الموردين'),
       onExportExcel: _lastResult == null ? null : () => _exportExcel('aged_payables'),
       reportBuilder: (filter) => _AgedInvoicesContent(filter: filter, titleLabel: 'الموردين', customerType: 2, invoiceTypes: const [2], onLoad: (r) => setState(() => _lastResult = r)),
@@ -83,7 +85,7 @@ class _AgedInvoicesContent extends StatelessWidget {
                 padding: const EdgeInsets.all(16),
                 children: data.buckets.map((b) => Card(
                   elevation: 0,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey[200]!)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: BorderSide(color: Colors.grey[200]!)),
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
                     title: Text(b.label, style: const TextStyle(fontWeight: FontWeight.bold)),

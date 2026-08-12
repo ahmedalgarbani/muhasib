@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_prices_cubit.dart';
@@ -37,10 +38,8 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
         child: Builder(
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
-            backgroundColor: const Color(0xFFF9FAFB),
-            drawer: const MainAppDrawer(),
+            backgroundColor:  AppColors.gray50,
             appBar: CustomAppBar(
-              onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             body: Column(
               children: [
@@ -52,7 +51,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
             ),
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () => _showPricingDialog(innerContext),
-              backgroundColor: const Color(0xFF2563EB),
+              backgroundColor:  AppColors.primary,
               icon: const Icon(Icons.add),
               label: const Text('سعر جديد'),
             ),
@@ -77,7 +76,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: AppColors.gray900,
             ),
           ),
           const SizedBox(height: 16),
@@ -176,7 +175,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             side: BorderSide(color: Colors.grey.shade200),
           ),
           child: ExpansionTile(
@@ -211,7 +210,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                   icon: const Icon(Icons.add),
                   label: const Text('إضافة مستوى سعر'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor:  AppColors.primary,
                   ),
                 ),
               ),
@@ -231,7 +230,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: hasPrice ? Colors.green.shade50 : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Icon(
           Icons.attach_money,
@@ -466,7 +465,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                     Navigator.pop(dialogContext);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor:  AppColors.primary,
                   ),
                   child: const Text('حفظ'),
                 ),

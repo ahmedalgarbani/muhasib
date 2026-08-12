@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class RecentActionItem extends StatelessWidget {
   final IconData icon;
@@ -23,7 +24,7 @@ class RecentActionItem extends StatelessWidget {
       padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: Colors.grey[100]!),
       ),
       child: Row(
@@ -69,7 +70,7 @@ class RecentActionItem extends StatelessWidget {
             height: 48,
             decoration: BoxDecoration(
               color: isIncome ? Colors.green[50] : Colors.red[50],
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(
               icon,

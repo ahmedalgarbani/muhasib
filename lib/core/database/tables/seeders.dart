@@ -82,7 +82,7 @@ Future<void> seedDefaultCustomers(Database db) async {
 Future<void> seedDefaultAccounts(Database db) async {
   await db.delete('accounts');
 
-  await db.execute('DELETE FROM sqlite_sequence WHERE name="accounts"');
+  await db.execute("DELETE FROM sqlite_sequence WHERE name='accounts'");
 
   await _seedAssets(db);
   await _seedLiabilitiesAndEquity(db);

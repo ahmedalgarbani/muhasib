@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 
 class ExpandableSection extends StatefulWidget {
   final String title;
@@ -46,7 +47,7 @@ class _ExpandableSectionState extends State<ExpandableSection> {
                 const SizedBox(width: AppSpacing.xs),
                 Text(
                   widget.title,
-                  style: AppTextStyles.caption.copyWith(
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4).copyWith(
                     color: AppColors.primary,
                   ),
                 ),

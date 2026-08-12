@@ -3,6 +3,7 @@ import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_balance_row.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_card_divider.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_card_header.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 /// Card widget for master accounts with sub-accounts indicator
 class MainCardAccount extends StatelessWidget {
@@ -29,13 +30,13 @@ class MainCardAccount extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
           color: backgroundColor,
           border: Border.all(color: borderColor, width: 1.5),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         padding: const EdgeInsets.all(16),
         child: Column(

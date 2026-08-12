@@ -480,6 +480,70 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       });
     }
 
+    // Post cost of goods sold using the cost captured on each invoice line.
+    // If a line has no captured cost, use the warehouse average cost at posting time.
+    double totalCogs = 0.0;
+    final costLines = await txn.query(
+      _linesTable,
+      columns: ['category_id', 'stock_id', 'quantity', 'base_quantity', 'cost_price', 'cost_total'],
+      where: 'invoice_id = ?',
+      whereArgs: [invoiceId],
+    );
+    for (final line in costLines) {
+      final productId = line['category_id'] as int?;
+      final warehouseId = (line['stock_id'] as int?) ?? (invoiceData['stock_id'] as int?);
+      if (productId == null || warehouseId == null) continue;
+
+      final quantity = ((line['base_quantity'] as num?) ?? (line['quantity'] as num?) ?? 0).toDouble();
+      if (quantity <= 0) continue;
+
+      var lineCost = (line['cost_total'] as num?)?.toDouble() ?? 0.0;
+      if (lineCost <= 0) {
+        final unitCost = (line['cost_price'] as num?)?.toDouble() ?? 0.0;
+        lineCost = quantity * unitCost;
+      }
+      if (lineCost <= 0) {
+        final stockRows = await txn.query(
+          'warehouse_stocks',
+          columns: ['avg_cost'],
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [productId, warehouseId],
+          limit: 1,
+        );
+        final averageCost = stockRows.isEmpty
+            ? 0.0
+            : ((stockRows.first['avg_cost'] as num?)?.toDouble() ?? 0.0);
+        lineCost = quantity * averageCost;
+      }
+      totalCogs += lineCost;
+    }
+
+    if (totalCogs > 0) {
+      final cogsAccountId = await _resolveConnectedAccountId(
+        txn,
+        AccountConnectTypes.costOfGoodsSold,
+        label: 'تكلفة البضاعة المباعة',
+      );
+      final inventoryAccountId = await _resolveConnectedAccountId(
+        txn,
+        AccountConnectTypes.inventory,
+        label: 'المخزون',
+      );
+      rawLines.add({
+        'account_id': cogsAccountId,
+        'debit_amount': totalCogs,
+        'credit_amount': 0.0,
+        'notes': statement,
+        'description': 'تكلفة البضاعة المباعة - $invoiceNumber',
+      });
+      rawLines.add({
+        'account_id': inventoryAccountId,
+        'debit_amount': 0.0,
+        'credit_amount': totalCogs,
+        'notes': statement,
+        'description': 'تخفيض المخزون - $invoiceNumber',
+      });
+    }
     // Validate balance
     final totalDebit = rawLines.fold<double>(
       0.0,

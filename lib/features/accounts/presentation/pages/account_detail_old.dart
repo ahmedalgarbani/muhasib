@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class AccountTransactionPage extends StatefulWidget {
   const AccountTransactionPage({Key? key}) : super(key: key);
@@ -113,7 +114,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
       onChanged: (a) {},
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.xs)),
       ),
     );
   }
@@ -142,7 +143,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[300]!),
-        borderRadius: BorderRadius.circular(4),
+        borderRadius: BorderRadius.circular(AppRadius.xs),
         color: Colors.grey[50],
       ),
       child: Row(
@@ -201,7 +202,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black12),
               color: Colors.amber[100],
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,

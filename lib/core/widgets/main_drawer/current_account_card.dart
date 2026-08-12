@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_tree_view.dart';
 
 class CurrentAccountCard extends StatelessWidget {
@@ -24,7 +25,7 @@ class CurrentAccountCard extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Row(
             children: const [

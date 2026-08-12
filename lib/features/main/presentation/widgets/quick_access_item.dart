@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class QuickAccessItem extends StatelessWidget {
   final IconData icon;
@@ -24,12 +25,12 @@ class QuickAccessItem extends StatelessWidget {
           GoRouter.of(context).push(route!);
         }
       },
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(AppRadius.lg),
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(color: Colors.grey[200]!),
         ),
         child: Column(
@@ -40,7 +41,7 @@ class QuickAccessItem extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: Icon(icon, color: color, size: 24),
             ),

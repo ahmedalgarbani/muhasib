@@ -1,5 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 class ItemCard extends StatelessWidget {
   final InvoiceItem item;
@@ -21,14 +25,14 @@ class ItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(AppRadius.md),
       child: Container(
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           color: Colors.white,
           border: Border.all(color: AppColors.grey200, width: 2),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Column(
           children: [
@@ -39,11 +43,11 @@ class ItemCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(item.name, style: AppTextStyles.bodyMedium),
+                      Text(item.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.gray900, height: 1.5)),
                       const SizedBox(height: 4),
                       Text(
-                        '${NumberFormatter.formatCurrency(item.price)} �? ${item.quantity} = ${NumberFormatter.formatCurrency(item.total)}',
-                        style: AppTextStyles.small,
+                        '${NumberFormatter.formatCurrency(item.price)} ï؟½? ${item.quantity} = ${NumberFormatter.formatCurrency(item.total)}',
+                        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4),
                       ),
                     ],
                   ),
@@ -74,7 +78,7 @@ class ItemCard extends StatelessWidget {
                   child: Center(
                     child: Text(
                       '${item.quantity}',
-                      style: AppTextStyles.title.copyWith(fontSize: 24),
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4).copyWith(fontSize: 24),
                     ),
                   ),
                 ),
@@ -110,7 +114,7 @@ class _QuantityButton extends StatelessWidget {
       height: 48,
       decoration: BoxDecoration(
         color: isPrimary ? AppColors.primary : AppColors.grey100,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: IconButton(
         onPressed: onPressed,

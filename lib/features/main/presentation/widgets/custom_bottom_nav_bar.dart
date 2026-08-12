@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -19,7 +20,7 @@ class CustomBottomNavBar extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
       decoration: BoxDecoration(
         color: Colors.transparent,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppRadius.xl28),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -29,7 +30,7 @@ class CustomBottomNavBar extends StatelessWidget {
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(AppRadius.xl28),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: Container(
@@ -37,7 +38,7 @@ class CustomBottomNavBar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.85),
-              borderRadius: BorderRadius.circular(28),
+              borderRadius: BorderRadius.circular(AppRadius.xl28),
               border: Border.all(
                 color: Colors.white.withOpacity(0.2),
                 width: 1.5,
@@ -117,7 +118,7 @@ class _NavBarItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isActive ? primaryColor.withOpacity(0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,

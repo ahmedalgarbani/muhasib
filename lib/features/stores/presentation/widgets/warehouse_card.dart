@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class WarehouseCard extends StatelessWidget {
   final WarehouseEntity warehouse;
@@ -24,11 +26,11 @@ class WarehouseCard extends StatelessWidget {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -43,14 +45,14 @@ class WarehouseCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: warehouse.isMainStock
                           ? colorScheme.primary.withOpacity(0.1)
-                          : const Color(0xFF00897B).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                          : AppColors.materialTeal600.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Icon(
                       warehouse.isMainStock ? Icons.star : Icons.warehouse,
                       color: warehouse.isMainStock
                           ? colorScheme.primary
-                          : const Color(0xFF00897B),
+                          : AppColors.materialTeal600,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -79,7 +81,7 @@ class WarehouseCard extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(AppRadius.md),
                                 ),
                                 child: const Text(
                                   'رئيسي',

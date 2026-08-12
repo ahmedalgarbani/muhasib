@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class ReportBasePage extends StatefulWidget {
   final String title;
@@ -66,7 +67,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
       setState(() {
         _filter = _filter.copyWith(
           startDate: picked.start,
-          endDate: picked.end,
+          endDate: DateTime(picked.end.year, picked.end.month, picked.end.day, 23, 59, 59, 999),
         );
       });
     }
@@ -109,7 +110,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
+        backgroundColor: AppColors.background,
         appBar: CustomAppBar(
           title: widget.title,
           actions: [
@@ -141,11 +142,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [widget.color, widget.color.withOpacity(0.8)],
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomLeft,
-                ),
+                color: widget.color,
                 boxShadow: [
                   BoxShadow(
                     color: widget.color.withOpacity(0.3),
@@ -160,7 +157,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Icon(widget.icon, color: Colors.white, size: 32),
                   ),
@@ -199,7 +196,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                   if (widget.showDateFilter)
                     Material(
                       color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                       child: IconButton(
                         icon: const Icon(Icons.calendar_month, color: Colors.white),
                         onPressed: _selectDateRange,

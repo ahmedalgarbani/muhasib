@@ -1,18 +1,17 @@
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/journal_entry_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/journal_line_entity.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
 
-/// قالب محاسبي محسّن للمبيعات
+/// قالب محاسبي محُسّن للمبيعات
 /// يدعم جميع سيناريوهات الدفع والترحيل المحاسبي
 class ImprovedSalesAccountingTemplate {
   
   /// إنشاء قيود محاسبية لفاتورة مبيعات مع دفعات متعددة
-  /// إنشاء قيود محاسبية لفاتورة مبيعات مع دفعات متعددة
   static List<JournalEntryEntity> createSalesInvoiceEntries({
     required InvoiceEntity invoice,
-    required List<dynamic> payments, // Keeping dynamic for payments to avoid import, or define Payment interface
+    required List<dynamic> payments,
     required String customerName,
     required int customerId,
     required SalesAccountConfig config,
@@ -33,13 +32,9 @@ class ImprovedSalesAccountingTemplate {
     double deferredPayments = 0;
     
     for (final payment in payments) {
-      // Assuming payment has method and amount properties
-      // We need to handle dynamic type safely or map it before calling this
-      final method = payment.method; // This assumes payment object has method enum/property
+      final method = payment.method;
       final amount = payment.amount as double;
       
-      // We need to map PaymentMethod enum from presentation to something domain understands or check string/index
-      // Assuming PaymentMethod is available or we check index/name
       if (method.toString().contains('cash')) {
         cashPayments += amount;
       } else if (method.toString().contains('bank')) {
@@ -78,7 +73,6 @@ class ImprovedSalesAccountingTemplate {
     }
     
     if (remainingAmount > 0 || deferredPayments > 0) {
-      // مبلغ آجل أو متبقي
       final deferredAmount = remainingAmount > 0 ? remainingAmount : deferredPayments;
       lines.add(JournalLineEntity(
         accountId: config.customersAccountId,
@@ -113,7 +107,7 @@ class ImprovedSalesAccountingTemplate {
       ));
     }
     
-    // الخصم المسموح (إن وجد)
+    // الخصم المسموح به (إن وجد)
     if (discountAmount > 0) {
       lines.add(JournalLineEntity(
         accountId: config.discountAllowedAccountId,
@@ -135,7 +129,7 @@ class ImprovedSalesAccountingTemplate {
       status: 'posted',
     ));
     
-    // 2. قيد تكلفة البضاعة المباعة (إن وجد)
+    // 2. قيد تكلفة البضاعة المباعة (إن وجدت)
     if (inventoryCost != null && inventoryCost > 0) {
       entries.add(JournalEntryEntity(
         date: invoice.date,
@@ -339,10 +333,8 @@ class ImprovedSalesAccountingTemplate {
     for (final invoice in invoices) {
       if (invoice.customerId == customerId) {
         if (invoice.invoiceType == 1 && invoice.invoiceTransType == 1) {
-          // فاتورة مبيعات آجلة
           balance += invoice.finalAmt ?? invoice.amount;
         } else if (invoice.invoiceType == 4) {
-          // مردود مبيعات يقلل الرصيد
           balance -= invoice.finalAmt ?? invoice.amount;
         }
       }
@@ -355,9 +347,9 @@ class ImprovedSalesAccountingTemplate {
             line.partnerType == 'customer' &&
             line.accountId == config.customersAccountId) {
           if (line.credit > 0) {
-            balance -= line.credit; // سداد من العميل
+            balance -= line.credit;
           } else if (line.debit > 0) {
-            balance += line.debit; // زيادة في الذمة
+            balance += line.debit;
           }
         }
       }
@@ -376,7 +368,6 @@ class ImprovedSalesAccountingTemplate {
       totalCredit += line.credit;
     }
     
-    // السماح بفرق بسيط بسبب التقريب
     return (totalDebit - totalCredit).abs() < 0.01;
   }
 
@@ -388,7 +379,7 @@ class ImprovedSalesAccountingTemplate {
       impact['item_${line.groupId}'] = {
         'quantity': line.quantity,
         'warehouse_id': invoice.stockId,
-        'action': invoice.invoiceType == 4 ? 'increase' : 'decrease', // 4 = sales return
+        'action': invoice.invoiceType == 4 ? 'increase' : 'decrease',
       };
     }
     

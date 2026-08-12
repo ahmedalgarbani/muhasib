@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/features/accounts/domain/services/account_connect_validator.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 /// Mixin to add account connection validation to Cubits
 mixin AccountConnectValidationMixin {
@@ -162,7 +163,7 @@ mixin AccountConnectValidationMixin {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.blue[50],
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                   border: Border.all(color: Colors.blue[200]!),
                 ),
                 child: Row(
@@ -229,7 +230,7 @@ mixin AccountConnectValidationMixin {
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Column(
                   children: [
@@ -281,7 +282,7 @@ mixin AccountConnectValidationMixin {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                         border: Border.all(color: Colors.orange[200]!),
                       ),
                       child: Row(
@@ -333,7 +334,7 @@ mixin AccountConnectValidationMixin {
         backgroundColor: Colors.green[600],
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.sm10),
         ),
       ),
     );

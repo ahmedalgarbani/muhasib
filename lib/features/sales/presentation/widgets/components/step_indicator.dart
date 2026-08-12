@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 
 class StepIndicator extends StatelessWidget {
   final int currentStep;
@@ -34,7 +35,7 @@ class StepIndicator extends StatelessWidget {
                     height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isActive ? AppColors.primary : AppColors.grey200,
+                      color: isActive ? AppColors.primary : AppColors.gray200,
                     ),
                     child: Center(
                       child: isCompleted
@@ -48,7 +49,7 @@ class StepIndicator extends StatelessWidget {
                               style: TextStyle(
                                 color: isActive
                                     ? Colors.white
-                                    : AppColors.grey600,
+                                    : AppColors.gray600,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -57,8 +58,8 @@ class StepIndicator extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     steps[stepIndex],
-                    style: AppTextStyles.small.copyWith(
-                      color: isActive ? AppColors.primary : AppColors.grey600,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4).copyWith(
+                      color: isActive ? AppColors.primary : AppColors.gray600,
                       fontWeight: isActive
                           ? FontWeight.w600
                           : FontWeight.normal,
@@ -73,7 +74,7 @@ class StepIndicator extends StatelessWidget {
               child: Container(
                 height: 2,
                 margin: const EdgeInsets.only(bottom: 28),
-                color: isActive ? AppColors.primary : AppColors.grey200,
+                color: isActive ? AppColors.primary : AppColors.gray200,
               ),
             );
           }

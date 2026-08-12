@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
 import 'package:muhasib/features/products/domain/entities/product_group_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
 
@@ -32,10 +33,8 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
         child: Builder(
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
-            backgroundColor: const Color(0xFFF9FAFB),
-            drawer: const MainAppDrawer(),
+            backgroundColor:  AppColors.gray50,
             appBar: CustomAppBar(
-              onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
             ),
             body: Column(
               children: [
@@ -68,7 +67,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
             ),
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () => _showGroupDialog(innerContext),
-              backgroundColor: const Color(0xFF2563EB),
+                backgroundColor:  AppColors.primary,
               icon: const Icon(Icons.add),
               label: const Text('مجموعة جديدة'),
             ),
@@ -93,7 +92,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF111827),
+              color: AppColors.gray900,
             ),
           ),
           const SizedBox(height: 16),
@@ -105,11 +104,11 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide(color: Colors.grey.shade300),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide(color: Colors.grey.shade300),
               ),
             ),
@@ -135,7 +134,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             side: BorderSide(color: Colors.grey.shade200),
           ),
           child: ListTile(
@@ -143,12 +142,12 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: const Color(0xFF2563EB).withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                color:  AppColors.primary.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Icon(
                 Icons.category,
-                color: Color(0xFF2563EB),
+                color: AppColors.primary,
               ),
             ),
             title: Text(
@@ -169,7 +168,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(4),
+                      borderRadius: BorderRadius.circular(AppRadius.xs),
                     ),
                     child: const Text(
                       'فرعية',
@@ -313,7 +312,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
                 Navigator.pop(dialogContext);
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF2563EB),
+              backgroundColor:  AppColors.primary,
               ),
               child: Text(group == null ? 'إضافة' : 'حفظ'),
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class Bill {
   final String id;
@@ -8,7 +9,7 @@ class Bill {
   final double paid;
   final double remaining;
   final BillStatus status;
-  final PaymentMethod paymentMethod;
+  final BillPaymentMethod paymentMethod;
   final int itemsCount;
 
   Bill({
@@ -31,7 +32,7 @@ class Bill {
     double? paid,
     double? remaining,
     BillStatus? status,
-    PaymentMethod? paymentMethod,
+    BillPaymentMethod? paymentMethod,
     int? itemsCount,
   }) {
     return Bill(
@@ -50,7 +51,7 @@ class Bill {
 
 enum BillStatus { paid, partial, unpaid }
 
-enum PaymentMethod { cash, bank, deferred, mixed }
+enum BillPaymentMethod { cash, bank, deferred, mixed }
 
 class BillStats {
   final int total;
@@ -76,38 +77,38 @@ class BillConstants {
   static const Map<BillStatus, BillStatusConfig> statusConfig = {
     BillStatus.paid: BillStatusConfig(
       label: 'الفاتورة مدفوعة',
-      color: Color(0xFFD1FAE5),
-      textColor: Color(0xFF065F46),
+      color: AppColors.emerald100,
+      textColor: AppColors.emerald800,
       icon: '✅',
     ),
     BillStatus.partial: BillStatusConfig(
       label: 'دفعة جزئية',
-      color: Color(0xFFFEF3C7),
-      textColor: Color(0xFF92400E),
+      color: AppColors.amber100,
+      textColor: AppColors.amber800,
       icon: '🌓',
     ),
     BillStatus.unpaid: BillStatusConfig(
       label: 'غير مدفوعة',
-      color: Color(0xFFFEE2E2),
-      textColor: Color(0xFF991B1B),
+      color: AppColors.red100,
+      textColor: AppColors.red800,
       icon: '⛔',
     ),
   };
 
-  static const Map<PaymentMethod, PaymentMethodConfig> paymentMethodConfig = {
-    PaymentMethod.cash: PaymentMethodConfig(
+  static const Map<BillPaymentMethod, PaymentMethodConfig> paymentMethodConfig = {
+    BillPaymentMethod.cash: PaymentMethodConfig(
       label: 'نقداً',
       icon: '💵',
     ),
-    PaymentMethod.bank: PaymentMethodConfig(
+    BillPaymentMethod.bank: PaymentMethodConfig(
       label: 'حوالة بنكية',
       icon: '🏦',
     ),
-    PaymentMethod.deferred: PaymentMethodConfig(
+    BillPaymentMethod.deferred: PaymentMethodConfig(
       label: 'آجل',
       icon: '⏳',
     ),
-    PaymentMethod.mixed: PaymentMethodConfig(
+    BillPaymentMethod.mixed: PaymentMethodConfig(
       label: 'مدفوع مختلط',
       icon: '🔄',
     ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
@@ -13,7 +13,9 @@ import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart'
 import 'package:muhasib/features/sales/presentation/widgets/components/improved_step1_customer.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_dialog.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 class ImprovedSalesInvoiceScreen extends StatefulWidget {
   final InvoiceType invoiceType;
@@ -43,7 +45,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
       items: [],
       discount: Discount(type: DiscountType.amount, value: 0),
       payments: [],
-      currency: 'ريال سعودي',
+      currency: 'ريال يمني',
       warehouse: 'المخزن الرئيسي',
     );
   }
@@ -77,53 +79,46 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
     }
 
     final invoiceEntity = _buildInvoiceEntity();
-    // Accounting (journal posting + balances + limits) is handled atomically
-    // in InvoiceLocalDataSource when saving the invoice.
     context.read<SalesCubit>().addInvoice(invoiceEntity);
   }
 
   InvoiceEntity _buildInvoiceEntity() {
-    // Calculate amounts
     final discountAmount = _invoice.discount.type == DiscountType.percent
         ? _invoice.subtotal * _invoice.discount.value / 100
         : _invoice.discount.value;
-    final taxAmount = _invoice.subtotal * 0.15; // 15% VAT
+    final taxAmount = _invoice.subtotal * 0.15;
     final totalAfterDiscount = _invoice.subtotal - discountAmount;
     final finalAmount = totalAfterDiscount + taxAmount;
 
-    // Determine invoice type and transaction type
     final isQuotation = widget.invoiceType.isQuotation;
     final hasDeferred = _payments.any((p) => p.method == PaymentMethod.deferred);
     final totalPaid = _payments.fold(0.0, (sum, p) => sum + p.amount);
     final isFullyPaid = totalPaid >= finalAmount;
     final transType = isQuotation ? 0 : (hasDeferred || !isFullyPaid ? 1 : 0);
 
-    // Create invoice lines
     final invoiceLines = _invoice.items.map((item) {
       return InvoiceLineEntity(
-        invoiceType: isQuotation ? 3 : 1, // 3=quotation, 1=sales
+        invoiceType: isQuotation ? 3 : 1,
         amount: item.price * item.quantity,
         totalAmount: item.total,
         quantity: item.quantity.toDouble(),
         groupId: int.parse(item.id),
         unitId: 1,
         categorySubUnitId: 1,
-        stockId: 1, // Will be set from warehouse
+        stockId: 1,
         customerId: int.parse(_invoice.customer!.id),
         date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
-        // For quotations: keep trans type = 0 to avoid mixing with purchase orders
-        invoiceTransType: transType, // 1=credit, 0=cash
+        invoiceTransType: transType,
         netRevenueAmt: item.total,
-        invoiceId: 0, // Will be set after creation
+        invoiceId: 0,
       );
     }).toList();
 
-    // Create invoice entity
     return InvoiceEntity(
       number: _invoice.number,
       date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
       customerId: int.parse(_invoice.customer!.id),
-      stockId: 1, // Default warehouse
+      stockId: 1,
       amount: _invoice.subtotal,
       discountAmt: discountAmount,
       taxAmt: taxAmount,
@@ -140,9 +135,6 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
   Future<void> _handleInvoiceCreated(int id) async {
     try {
       final isQuotation = widget.invoiceType.isQuotation;
-      
-      // Accounting (journal posting + balances + limits) is handled in SalesCubit
-      // via createInvoiceWithAccounting.
 
       setState(() => _isSaving = false);
       _showSuccessSnackBar(
@@ -224,10 +216,9 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
         },
         child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: const Color(0xFFF5F5F5),
-        drawer: const MainAppDrawer(),
+        backgroundColor: AppColors.neutral100,
         appBar: CustomAppBar(
-          onMenuPressed: () => _scaffoldKey.currentState?.openDrawer(),
+          title: isQuotation ? 'عرض سعر جديد' : 'فاتورة مبيعات جديدة',
         ),
         body: Column(
           children: [
@@ -249,8 +240,8 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                         height: 40,
                         decoration: BoxDecoration(
                           color: isActive 
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFFE5E7EB),
+                              ? AppColors.success
+                              : AppColors.gray200,
                           shape: BoxShape.circle,
                         ),
                         child: Center(
@@ -265,7 +256,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                                   style: TextStyle(
                                     color: isActive 
                                         ? Colors.white 
-                                        : const Color(0xFF6B7280),
+                                        : AppColors.gray500,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -276,8 +267,8 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                           width: 60,
                           height: 2,
                           color: isCompleted
-                              ? const Color(0xFF10B981)
-                              : const Color(0xFFE5E7EB),
+                              ? AppColors.success
+                              : AppColors.gray200,
                         ),
                     ],
                   );
@@ -297,7 +288,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
+                      color: AppColors.gray900,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -305,7 +296,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                     _getStepSubtitle(),
                     style: const TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF6B7280),
+                      color: AppColors.gray500,
                     ),
                   ),
                 ],
@@ -339,7 +330,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                         style: OutlinedButton.styleFrom(
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                         ),
                         child: const Row(
@@ -363,11 +354,11 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                           : (_currentStep == maxStep ? _saveInvoice : _handleNext),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _currentStep == maxStep 
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFF2563EB),
+                            ? AppColors.success
+                            : AppColors.primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                       ),
                       child: _isSaving
@@ -462,57 +453,68 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
   }
 
   Widget _buildStep2Products() {
-    // Implement products selection step
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.inventory_2,
-            size: 64,
-            color: Color(0xFF9CA3AF),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'إضافة المنتجات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'هذه الخطوة قيد التطوير',
-            style: TextStyle(
-              fontSize: 14,
-              color: Color(0xFF6B7280),
-            ),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton.icon(
-            onPressed: () {
-              // Add dummy items for testing
-              setState(() {
-                _invoice = _invoice.copyWith(
-                  items: [
-                    InvoiceItem(
-                      id: '1',
-                      name: 'منتج تجريبي',
-                      barcode: '123456',
-                      price: 100,
-                      unit: 'قطعة',
-                      stock: 50,
-                      quantity: 2,
-                    ),
-                  ],
-                );
-              });
+    return BlocBuilder<ProductsCubit, ProductsState>(
+      builder: (context, state) {
+        if (state is ProductsInitial) {
+          context.read<ProductsCubit>().loadProducts();
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is ProductsLoading) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (state is ProductsError) {
+          return Center(child: Text('خطأ في تحميل المنتجات: ${state.message}'));
+        } else if (state is ProductsLoaded) {
+          final products = state.products.where((p) => p.isActive).toList();
+          if (products.isEmpty) {
+            return const Center(
+              child: Text(
+                'لا توجد منتجات متاحة',
+                style: TextStyle(fontSize: 16, color: AppColors.gray500),
+              ),
+            );
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: products.length,
+            separatorBuilder: (context, index) => const SizedBox(height: 8),
+            itemBuilder: (context, index) {
+              final product = products[index];
+              final isAdded = _invoice.items.any((item) => item.id == product.id.toString());
+              return Card(
+                elevation: 1,
+                child: ListTile(
+                  title: Text(product.name),
+                  subtitle: Text(
+                    'السعر: ${product.sellAmount ?? product.sellLocalAmount ?? 0} | المتوفر: ${product.quantity}',
+                  ),
+                  trailing: isAdded
+                      ? const Icon(Icons.check_circle, color: AppColors.success)
+                      : IconButton(
+                          icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+                          onPressed: () {
+                            final newItem = InvoiceItem(
+                              id: product.id.toString(),
+                              name: product.name,
+                              barcode: product.barcodeNo ?? '',
+                              price: (product.sellAmount ?? product.sellLocalAmount ?? 0).toDouble(),
+                              costPrice: product.costAmount,
+                              unit: 'قطعة',
+                              stock: product.quantity.toInt(),
+                              quantity: 1,
+                            );
+                            setState(() {
+                              _invoice = _invoice.copyWith(
+                                items: [..._invoice.items, newItem],
+                              );
+                            });
+                          },
+                        ),
+                ),
+              );
             },
-            icon: const Icon(Icons.add),
-            label: const Text('إضافة منتج تجريبي'),
-          ),
-        ],
-      ),
+          );
+        }
+        return const SizedBox();
+      },
     );
   }
 
@@ -607,7 +609,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                       : payment.method == PaymentMethod.bank
                           ? Icons.account_balance
                           : Icons.schedule,
-                  color: const Color(0xFF2563EB),
+                  color: AppColors.primary,
                 ),
                 title: Text(_getPaymentMethodName(payment.method)),
                 trailing: Text(
@@ -643,7 +645,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
             style: TextStyle(
               fontSize: isTotal ? 16 : 14,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: color ?? (isTotal ? const Color(0xFF10B981) : null),
+              color: color ?? (isTotal ? AppColors.success : null),
             ),
           ),
         ],
@@ -663,7 +665,6 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
   }
 
   void _handleNext() {
-    // Validate current step before moving to next
     switch (_currentStep) {
       case 1:
         if (_invoice.customer == null) {

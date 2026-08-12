@@ -3,6 +3,9 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class AccountTransactionsPage extends StatefulWidget {
   final AccountEntity account;
@@ -130,30 +133,8 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.account.name,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            Text(
-              'كود: ${widget.account.code}',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-        iconTheme: const IconThemeData(color: Colors.black),
+      appBar: CustomAppBar(
+        title: '${widget.account.name} - كود: ${widget.account.code}',
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -193,7 +174,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey[300]!),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -425,8 +406,8 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF2563EB) : Colors.grey[100],
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? AppColors.primary : Colors.grey[100],
+          borderRadius: BorderRadius.circular(AppRadius.lg20),
         ),
         child: Text(
           label,
@@ -532,7 +513,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: Colors.amber[50],
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                     border: Border.all(color: Colors.amber[200]!),
                   ),
                   child: Row(
@@ -562,7 +543,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
       ),
       builder: (context) {
         final date = DateTime.fromMillisecondsSinceEpoch((transaction['date'] as int) * 1000);

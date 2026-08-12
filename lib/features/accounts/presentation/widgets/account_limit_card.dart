@@ -22,11 +22,11 @@
 //       margin: const EdgeInsets.only(bottom: 12),
 //       elevation: 2,
 //       shape: RoundedRectangleBorder(
-//         borderRadius: BorderRadius.circular(12),
+//         borderRadius: BorderRadius.circular(AppRadius.md),
 //       ),
 //       child: InkWell(
 //         onTap: () => _showEditDialog(context),
-//         borderRadius: BorderRadius.circular(12),
+//         borderRadius: BorderRadius.circular(AppRadius.md),
 //         child: Padding(
 //           padding: const EdgeInsets.all(16),
 //           child: Column(
@@ -64,7 +64,7 @@
 //                     ),
 //                     decoration: BoxDecoration(
 //                       color: _getStatusColor(usagePercentage).withOpacity(0.1),
-//                       borderRadius: BorderRadius.circular(20),
+//                       borderRadius: BorderRadius.circular(AppRadius.lg20),
 //                       border: Border.all(
 //                         color: _getStatusColor(usagePercentage),
 //                         width: 1,
@@ -156,7 +156,7 @@
 //               ),
 //               const SizedBox(height: 12),
 //               ClipRRect(
-//                 borderRadius: BorderRadius.circular(4),
+//                 borderRadius: BorderRadius.circular(AppRadius.xs),
 //                 child: LinearProgressIndicator(
 //                   value: usagePercentage.clamp(0.0, 1.0),
 //                   backgroundColor: Colors.grey[300],
@@ -201,7 +201,7 @@
 //             decoration: InputDecoration(
 //               labelText: 'الحد الائتماني الجديد',
 //               border: OutlineInputBorder(
-//                 borderRadius: BorderRadius.circular(8),
+//                 borderRadius: BorderRadius.circular(AppRadius.sm),
 //               ),
 //               prefixIcon: const Icon(Icons.attach_money),
 //               suffixText: 'ر.س',

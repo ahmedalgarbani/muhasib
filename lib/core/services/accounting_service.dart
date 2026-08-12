@@ -1,5 +1,5 @@
 import 'package:muhasib/core/services/database_service.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:sqflite/sqflite.dart';
 
 class AccountingService {
@@ -16,24 +16,15 @@ class AccountingService {
       final db = await _databaseService.database;
       
       return await db.transaction((txn) async {
-        // 1. Create the sales invoice record
         final invoiceId = await _createSalesInvoice(txn, invoice, userId);
-        
-        // 2. Create invoice items
         await _createInvoiceItems(txn, invoiceId, invoice.items);
-        
-        // 3. Process payments and create journal entries
         await _processPayments(txn, invoiceId, invoice);
         
-        // 4. Update customer balance if needed
         if (invoice.customer != null) {
           await _updateCustomerBalance(txn, invoice);
         }
         
-        // 5. Update inventory
         await _updateInventory(txn, invoice.items);
-        
-        // 6. Create accounting journal entries
         await _createJournalEntries(txn, invoice, invoiceId);
         
         return true;
@@ -100,7 +91,6 @@ class AccountingService {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
     for (final payment in invoice.payments) {
-      // Create payment record
       await txn.insert('payments', {
         'invoice_id': invoiceId,
         'payment_method': _getPaymentMethodString(payment.method),
@@ -110,7 +100,6 @@ class AccountingService {
         'creation_time': now,
       });
       
-      // Update cash box or bank account based on payment method
       if (payment.method == PaymentMethod.cash) {
         await _updateCashBox(txn, payment);
       } else if (payment.method == PaymentMethod.bank) {
@@ -118,13 +107,11 @@ class AccountingService {
       }
     }
     
-    // Handle overpayment (add to customer credit)
     if (invoice.paid > invoice.total) {
       final overpayment = invoice.paid - invoice.total;
       await _addCustomerCredit(txn, invoice.customer!, overpayment);
     }
     
-    // Handle underpayment (add to customer debt)
     if (invoice.remaining > 0) {
       await _addCustomerDebt(txn, invoice.customer!, invoice.remaining);
     }
@@ -138,7 +125,6 @@ class AccountingService {
     
     final customerId = int.parse(invoice.customer!.id);
     
-    // Get current customer balance
     final customerData = await txn.query(
       'customers',
       where: 'id = ?',
@@ -150,17 +136,14 @@ class AccountingService {
       final currentBalance = (customerData.first['current_balance'] as num?)?.toDouble() ?? 0.0;
       double newBalance = currentBalance;
       
-      // Add debt if invoice is not fully paid
       if (invoice.remaining > 0) {
         newBalance += invoice.remaining;
       }
       
-      // Subtract credit if overpaid
       if (invoice.paid > invoice.total) {
         newBalance -= (invoice.paid - invoice.total);
       }
       
-      // Update customer balance
       await txn.update(
         'customers',
         {
@@ -171,7 +154,6 @@ class AccountingService {
         whereArgs: [customerId],
       );
       
-      // Update account balance
       if (customerData.first['account_id'] != null) {
         await txn.update(
           'accounts',
@@ -194,7 +176,6 @@ class AccountingService {
     for (final item in items) {
       final productId = int.parse(item.id);
       
-      // Get current stock
       final productData = await txn.query(
         'products',
         where: 'id = ?',
@@ -206,7 +187,6 @@ class AccountingService {
         final currentStock = (productData.first['quantity'] as num?)?.toDouble() ?? 0.0;
         final newStock = currentStock - item.quantity;
         
-        // Update product quantity
         await txn.update(
           'products',
           {
@@ -217,7 +197,6 @@ class AccountingService {
           whereArgs: [productId],
         );
         
-        // Create inventory transaction record
         await txn.insert('inventory_transactions', {
           'product_id': productId,
           'transaction_type': 'sale',
@@ -240,7 +219,6 @@ class AccountingService {
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
-    // Create journal entry header
     final journalId = await txn.insert('journal_entries', {
       'entry_date': invoice.date.millisecondsSinceEpoch ~/ 1000,
       'description': 'فاتورة مبيعات رقم ${invoice.number}',
@@ -251,9 +229,7 @@ class AccountingService {
       'creation_time': now,
     });
     
-    // Debit entries (what we receive)
     if (invoice.paid > 0) {
-      // Cash/Bank account (debit)
       for (final payment in invoice.payments) {
         int accountId;
         if (payment.method == PaymentMethod.cash) {
@@ -261,7 +237,7 @@ class AccountingService {
         } else if (payment.method == PaymentMethod.bank) {
           accountId = await _getBankAccountId(txn, payment.details?['bank']);
         } else {
-          continue; // Skip deferred payments for now
+          continue;
         }
         
         await txn.insert('journal_entry_lines', {
@@ -274,7 +250,6 @@ class AccountingService {
       }
     }
     
-    // Customer account (debit) for remaining amount
     if (invoice.remaining > 0 && invoice.customer != null) {
       final customerAccountId = await _getCustomerAccountId(txn, invoice.customer!);
       await txn.insert('journal_entry_lines', {
@@ -286,18 +261,15 @@ class AccountingService {
       });
     }
     
-    // Credit entries (what we give)
-    // Sales revenue account (credit)
     final salesAccountId = await _getSalesAccountId(txn);
     await txn.insert('journal_entry_lines', {
       'journal_entry_id': journalId,
       'account_id': salesAccountId,
       'debit_amount': 0,
       'credit_amount': invoice.subtotal,
-      'description': 'إيرادات مبيعات',
+      'description': 'إيرادات المبيعات',
     });
     
-    // Discount account (debit) if applicable
     if (invoice.discountAmount > 0) {
       final discountAccountId = await _getDiscountAccountId(txn);
       await txn.insert('journal_entry_lines', {
@@ -309,7 +281,6 @@ class AccountingService {
       });
     }
     
-    // Other charges account (credit) if applicable
     if (invoice.otherCharges > 0) {
       final otherChargesAccountId = await _getOtherChargesAccountId(txn);
       await txn.insert('journal_entry_lines', {
@@ -326,7 +297,6 @@ class AccountingService {
     final cashBoxName = payment.details?['cashBox'] ?? 'الصندوق الرئيسي';
     final accountId = await _getCashAccountId(txn, cashBoxName);
     
-    // Update cash account balance
     await txn.rawUpdate('''
       UPDATE accounts 
       SET balance = balance + ?, 
@@ -340,7 +310,6 @@ class AccountingService {
     final bankName = payment.details?['bank'] ?? 'الراجحي';
     final accountId = await _getBankAccountId(txn, bankName);
     
-    // Update bank account balance
     await txn.rawUpdate('''
       UPDATE accounts 
       SET balance = balance + ?, 
@@ -353,7 +322,6 @@ class AccountingService {
   Future<void> _addCustomerCredit(Transaction txn, Customer customer, double amount) async {
     final customerId = int.parse(customer.id);
     
-    // Update customer balance (negative means credit)
     await txn.rawUpdate('''
       UPDATE customers 
       SET current_balance = current_balance - ?,
@@ -365,7 +333,6 @@ class AccountingService {
   Future<void> _addCustomerDebt(Transaction txn, Customer customer, double amount) async {
     final customerId = int.parse(customer.id);
     
-    // Update customer balance (positive means debt)
     await txn.rawUpdate('''
       UPDATE customers 
       SET current_balance = current_balance + ?,
@@ -387,14 +354,13 @@ class AccountingService {
       return accounts.first['id'] as int;
     }
     
-    // Create cash account if not exists
     return await txn.insert('accounts', {
       'c_id': 111,
       'code': '111',
       'name': name,
       'is_master': 0,
-      'master_id': 11, // Cash parent account
-      'type': 1, // Assets
+      'master_id': 11,
+      'type': 1,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,
@@ -417,14 +383,13 @@ class AccountingService {
       return accounts.first['id'] as int;
     }
     
-    // Create bank account if not exists
     return await txn.insert('accounts', {
       'c_id': 112,
       'code': '112',
       'name': name,
       'is_master': 0,
-      'master_id': 11, // Banks parent account
-      'type': 1, // Assets
+      'master_id': 11,
+      'type': 1,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,
@@ -462,14 +427,13 @@ class AccountingService {
       return accounts.first['id'] as int;
     }
     
-    // Create sales revenue account if not exists
     return await txn.insert('accounts', {
       'c_id': 411,
       'code': '411',
       'name': 'إيرادات المبيعات',
       'is_master': 0,
-      'master_id': 41, // Revenue parent account
-      'type': 4, // Revenue
+      'master_id': 41,
+      'type': 4,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,
@@ -491,14 +455,13 @@ class AccountingService {
       return accounts.first['id'] as int;
     }
     
-    // Create discount account if not exists
     return await txn.insert('accounts', {
       'c_id': 412,
       'code': '412',
       'name': 'خصومات ممنوحة',
       'is_master': 0,
-      'master_id': 41, // Revenue parent account
-      'type': 4, // Revenue (contra)
+      'master_id': 41,
+      'type': 4,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,
@@ -520,14 +483,13 @@ class AccountingService {
       return accounts.first['id'] as int;
     }
     
-    // Create other charges account if not exists
     return await txn.insert('accounts', {
       'c_id': 419,
       'code': '419',
       'name': 'إيرادات أخرى',
       'is_master': 0,
-      'master_id': 41, // Revenue parent account
-      'type': 4, // Revenue
+      'master_id': 41,
+      'type': 4,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,

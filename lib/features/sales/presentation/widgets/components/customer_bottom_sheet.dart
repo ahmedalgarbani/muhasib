@@ -1,5 +1,9 @@
-import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 class CustomerBottomSheet extends StatefulWidget {
   final List<Customer> customers;
@@ -49,7 +53,7 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       child: Column(
         children: [
@@ -64,8 +68,8 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text(
-                      '�?�?�?�?�?�? �?�?�?�?�?�?',
-                      style: AppTextStyles.title,
+                      'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4),
                     ),
                     IconButton(
                       onPressed: () => Navigator.pop(context),
@@ -82,7 +86,7 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
                   controller: _searchController,
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: const InputDecoration(
-                    hintText: '�?�?�?� �?�? �?�?�?�?...',
+                    hintText: 'ï؟½?ï؟½?ï؟½?ï؟½ ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½?...',
                     prefixIcon: Icon(Icons.search),
                   ),
                 ),
@@ -91,7 +95,7 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
           ),
           Expanded(
             child: filteredCustomers.isEmpty
-                ? const Center(child: Text('�?�? �?�?�?�? �?�?�?�?�?'))
+                ? const Center(child: Text('ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?'))
                 : ListView.builder(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     itemCount: filteredCustomers.length,
@@ -110,28 +114,28 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
                               color: AppColors.grey200,
                               width: 2,
                             ),
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(customer.name, style: AppTextStyles.body),
+                              Text(customer.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.gray900, height: 1.5)),
                               const SizedBox(height: 4),
                               Row(
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    '�?�?�?���?�?: ${NumberFormatter.formatCurrency(customer.balance)}',
-                                    style: AppTextStyles.small.copyWith(
+                                    'ï؟½?ï؟½?ï؟½?ï؟½ï؟½ï؟½?ï؟½?: ${NumberFormatter.formatCurrency(customer.balance)}',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4).copyWith(
                                       color: customer.hasDebt
                                           ? AppColors.error
                                           : AppColors.success,
                                     ),
                                   ),
                                   Text(
-                                    '�?�?�?�?: ${NumberFormatter.formatCurrency(customer.creditLimit)}',
-                                    style: AppTextStyles.small,
+                                    'ï؟½?ï؟½?ï؟½?ï؟½?: ${NumberFormatter.formatCurrency(customer.creditLimit)}',
+                                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4),
                                   ),
                                 ],
                               ),

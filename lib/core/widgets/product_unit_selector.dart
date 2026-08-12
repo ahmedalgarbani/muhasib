@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/services/unit_conversion_service.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 /// Widget for selecting product unit in invoice lines
 /// Displays available units for a product and handles conversion
@@ -108,7 +109,7 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           border: Border.all(color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: const Text(
           'وحدة',
@@ -123,7 +124,7 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Text(
           _units.first.unitShort,
@@ -137,7 +138,7 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
       decoration: InputDecoration(
         labelText: 'الوحدة',
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
       ),
       items: _units.map((unit) => DropdownMenuItem(
         value: unit,

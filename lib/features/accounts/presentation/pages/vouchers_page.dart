@@ -7,6 +7,12 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
 import '../cubit/vouchers_cubit.dart';
 import 'voucher_form_page.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_text_style.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+
+
+part 'vouchers_widgets.dart';
 
 class VouchersPage extends StatefulWidget {
   const VouchersPage({super.key});
@@ -49,22 +55,9 @@ class _VouchersPageState extends State<VouchersPage>
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          title: const Text(
-            'سندات القبض والصرف',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-              color: Colors.white,
-            ),
-          ),
-          iconTheme: const IconThemeData(color: Colors.white),
-          flexibleSpace: Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: AppColors.gradientPrimary),
-            ),
-          ),
+        backgroundColor: AppColors.background,
+        appBar: CustomAppBar(
+          title: 'سندات القبض والصرف',
           actions: [
             IconButton(
               icon: const Icon(Icons.download_for_offline_outlined),
@@ -72,20 +65,6 @@ class _VouchersPageState extends State<VouchersPage>
               tooltip: 'تصدير البيانات',
             ),
           ],
-          bottom: TabBar(
-            controller: _tabController,
-            indicatorColor: Colors.white,
-            indicatorWeight: 4,
-            labelStyle: const TextStyle(fontWeight: FontWeight.bold),
-            unselectedLabelStyle: const TextStyle(
-              fontWeight: FontWeight.normal,
-            ),
-            tabs: const [
-              Tab(text: 'الكل'),
-              Tab(text: 'سندات القبض'),
-              Tab(text: 'سندات الصرف'),
-            ],
-          ),
         ),
         floatingActionButton: FloatingActionButton.extended(
           onPressed: _onAddVoucher,
@@ -189,7 +168,7 @@ class _VouchersPageState extends State<VouchersPage>
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
       ),
       builder: (context) => Directionality(
         textDirection: ui.TextDirection.rtl,
@@ -201,7 +180,7 @@ class _VouchersPageState extends State<VouchersPage>
                 padding: EdgeInsets.all(16),
                 child: Text(
                   'خيارات التصدير والطباعة',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                  style: AppTextStyles.titleMedium,
                 ),
               ),
               ListTile(
@@ -284,7 +263,7 @@ class _VouchersPageState extends State<VouchersPage>
         textDirection: ui.TextDirection.rtl,
         child: AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.lg20),
           ),
           title: const Text('تأكيد الحذف'),
           content: Text(
@@ -299,7 +278,7 @@ class _VouchersPageState extends State<VouchersPage>
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.sm10),
                 ),
               ),
               onPressed: () {
@@ -318,415 +297,3 @@ class _VouchersPageState extends State<VouchersPage>
   }
 }
 
-class _VoucherListItem extends StatelessWidget {
-  final VoucherEntity voucher;
-  final intl.NumberFormat numberFormat;
-  final VoidCallback onTap;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
-
-  const _VoucherListItem({
-    required this.voucher,
-    required this.numberFormat,
-    required this.onTap,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isReceipt = voucher.type == VoucherType.receipt;
-    final color = isReceipt ? Colors.green : Colors.red;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: color.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      isReceipt ? Icons.arrow_downward : Icons.arrow_upward,
-                      color: color,
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          voucher.type.label,
-                          style: TextStyle(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13,
-                          ),
-                        ),
-                        Text(
-                          'رقم ${voucher.number}',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Text(
-                    numberFormat.format(voucher.amount),
-                    style: TextStyle(
-                      color: color,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                ],
-              ),
-              const Divider(height: 24),
-              Row(
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 14,
-                    color: Colors.grey.shade500,
-                  ),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      voucher.accountName ?? 'حساب غير معروف',
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontSize: 13,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Icon(
-                    Icons.calendar_today_outlined,
-                    size: 14,
-                    color: Colors.grey.shade500,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    intl.DateFormat('yyyy/MM/dd').format(voucher.date),
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  IconButton(
-                    onPressed: onEdit,
-                    icon: const Icon(
-                      Icons.edit_outlined,
-                      size: 18,
-                      color: Colors.blue,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: onDelete,
-                    icon: const Icon(
-                      Icons.delete_outline,
-                      size: 18,
-                      color: Colors.red,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Icon(
-                    Icons.arrow_forward_ios,
-                    size: 12,
-                    color: Colors.grey.shade300,
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _VoucherDetailsSheet extends StatelessWidget {
-  final VoucherEntity voucher;
-  final intl.NumberFormat numberFormat;
-
-  const _VoucherDetailsSheet({
-    required this.voucher,
-    required this.numberFormat,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isReceipt = voucher.type == VoucherType.receipt;
-    final color = isReceipt ? Colors.green : Colors.red;
-
-    return Directionality(
-      textDirection: ui.TextDirection.rtl,
-      child: DraggableScrollableSheet(
-        initialChildSize: 0.8,
-        maxChildSize: 0.95,
-        minChildSize: 0.5,
-        builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-          ),
-          child: Column(
-            children: [
-              const SizedBox(height: 12),
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    Text(
-                      'تفاصيل ${voucher.type.label}',
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(),
-              Expanded(
-                child: ListView(
-                  controller: scrollController,
-                  padding: const EdgeInsets.all(24),
-                  children: [
-                    _buildInfoCard(color),
-                    const SizedBox(height: 24),
-                    const Text(
-                      'الأسطر والتوزيع المالي',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (voucher.lines.isNotEmpty)
-                      ...voucher.lines.map(
-                        (line) => _buildLineItem(line, color),
-                      )
-                    else
-                      _buildSingleLineItem(color),
-                    const SizedBox(height: 32),
-                    _buildStatementCard(),
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoCard(Color color) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withOpacity(0.1)),
-      ),
-      child: Column(
-        children: [
-          _DetailRow(
-            label: 'رقم السند',
-            value: voucher.number.toString(),
-            icon: Icons.tag,
-          ),
-          const SizedBox(height: 12),
-          _DetailRow(
-            label: 'تاريخ السند',
-            value: intl.DateFormat('yyyy/MM/dd').format(voucher.date),
-            icon: Icons.calendar_today,
-          ),
-          const SizedBox(height: 12),
-          _DetailRow(
-            label: 'الحساب الرئيسي',
-            value: voucher.accountName ?? '',
-            icon: Icons.account_balance_wallet,
-            isBold: true,
-          ),
-          const Divider(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'إجمالي المبلغ',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              Text(
-                numberFormat.format(voucher.amount),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 24,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLineItem(VoucherLineEntity line, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  line.accountName ?? '',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                if (line.statement.isNotEmpty)
-                  Text(
-                    line.statement,
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                  ),
-              ],
-            ),
-          ),
-          Text(
-            numberFormat.format(line.amount ?? 0),
-            style: TextStyle(fontWeight: FontWeight.bold, color: color),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSingleLineItem(Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: const Text(
-        'هذا السند لا يحتوي على أسطر تفصيلية، تم تسجيل المبلغ بالكامل على الحساب الرئيسي.',
-        style: TextStyle(fontSize: 13, color: Colors.grey),
-      ),
-    );
-  }
-
-  Widget _buildStatementCard() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'البيان العام',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        const SizedBox(height: 12),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.amber.shade50.withOpacity(0.3),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.amber.shade100),
-          ),
-          child: Text(
-            voucher.statement.isEmpty
-                ? 'لا يوجد بيان مسجل لهذا السند.'
-                : voucher.statement,
-            style: const TextStyle(fontSize: 14, height: 1.5),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _DetailRow extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-  final bool isBold;
-
-  const _DetailRow({
-    required this.label,
-    required this.value,
-    required this.icon,
-    this.isBold = false,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: Colors.grey),
-        const SizedBox(width: 8),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-        const Spacer(),
-        Text(
-          value,
-          style: TextStyle(
-            fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
-  }
-}

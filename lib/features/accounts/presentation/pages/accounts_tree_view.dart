@@ -8,6 +8,10 @@ import 'package:muhasib/features/accounts/presentation/widgets/account_color_hel
 import 'package:muhasib/features/accounts/presentation/widgets/add_account_bottom_sheet.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/main_card_account.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/sub_card_account.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_text_style.dart';
 
 class AccountsTreeScreen extends StatelessWidget {
   const AccountsTreeScreen({Key? key}) : super(key: key);
@@ -103,6 +107,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      appBar: const CustomAppBar(title: 'دليل الحسابات'),
       body: BlocListener<AccountsCubit, AccountsState>(
         listener: (context, state) {
           if (state is AccountCreated ||
@@ -126,7 +131,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddAccountDialog(),
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -157,14 +162,12 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
   Widget _buildHeader(AccountsState state, int count) {
     return Container(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-        ),
+        color: AppColors.primary,
       ),
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -190,7 +193,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                         ),
                         Text(
                           '$count حساباً',
-                          style: const TextStyle(color: Color(0xFFBFDBFE)),
+                          style: const TextStyle(color: AppColors.blue200),
                         ),
                       ],
                     ),
@@ -218,23 +221,23 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                     },
                     decoration: InputDecoration(
                       hintText: 'ابحث عن حساب...',
-                      hintStyle: const TextStyle(color: Color(0xFFBFDBFE)),
+                      hintStyle: const TextStyle(color: AppColors.blue200),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                         borderSide: BorderSide(
                           color: Colors.white.withOpacity(0.2),
                         ),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                         borderSide: BorderSide(
                           color: Colors.white.withOpacity(0.2),
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                         borderSide: BorderSide(
                           color: Colors.white.withOpacity(0.3),
                           width: 2,
@@ -242,7 +245,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                       ),
                       prefixIcon: const Icon(
                         Icons.search,
-                        color: Color(0xFFBFDBFE),
+                        color: AppColors.blue200,
                       ),
                     ),
                     style: const TextStyle(color: Colors.white),
@@ -343,7 +346,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
             const SizedBox(height: 16),
             const Text(
               'لا توجد حسابات حتى الآن',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: AppTextStyles.titleMedium,
             ),
             const SizedBox(height: 8),
             const Text(
@@ -382,26 +385,9 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF2563EB),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'الحسابات الفرعية',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              widget.masterAccount.name,
-              style: const TextStyle(color: Color(0xFFBFDBFE), fontSize: 14),
-            ),
-          ],
-        ),
-        iconTheme: const IconThemeData(color: Colors.white),
+      appBar: CustomAppBar(
+        title: 'الحسابات الفرعية - ${widget.masterAccount.name}',
+        showBack: true,
       ),
       body: BlocBuilder<AccountsCubit, AccountsState>(
         builder: (context, state) {
@@ -471,7 +457,7 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
             masterAccount: widget.masterAccount,
           );
         },
-        backgroundColor: const Color(0xFF2563EB),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
@@ -539,14 +525,14 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
               width: 120,
               height: 120,
               decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
+                color: AppColors.amber100,
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFF59E0B), width: 3),
+                border: Border.all(color: AppColors.warning, width: 3),
               ),
               child: const Icon(
                 Icons.folder_open,
                 size: 60,
-                color: Color(0xFFF59E0B),
+                color: AppColors.warning,
               ),
             ),
             const SizedBox(height: 32),

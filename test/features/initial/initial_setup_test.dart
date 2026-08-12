@@ -8,6 +8,7 @@ import 'package:muhasib/features/initial/domain/usecases/check_initial_setup_sta
 import 'package:muhasib/features/initial/domain/usecases/mark_initial_setup_complete.dart';
 import 'package:muhasib/features/initial/domain/usecases/save_opening_balances.dart';
 import 'package:muhasib/features/initial/domain/usecases/get_opening_balances.dart';
+import 'package:muhasib/core/database/database_initializer.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -20,6 +21,7 @@ void main() {
     late OpeningBalanceAccountingTemplate accountingTemplate;
     
     setUpAll(() async {
+      await initializeDatabaseFactory();
       // Setup test database
       databaseService = DatabaseService();
       await databaseService.database;
@@ -42,6 +44,13 @@ void main() {
     });
     
     test('Should check initial setup status', () async {
+      final db = await databaseService.database;
+      await db.update(
+        'settings',
+        {'setting_value': 'false'},
+        where: 'setting_key = ?',
+        whereArgs: ['initial_setup_done'],
+      );
       // Arrange
       final useCase = CheckInitialSetupStatus(repository);
       
@@ -173,11 +182,20 @@ void main() {
       final testBalance = [
         OpeningBalanceEntity(
           accountId: 1,
-          accountName: 'Test Account',
+          accountName: 'Test Account 1',
           accountCode: '9999',
           debitAmount: 1000,
           creditAmount: 0,
           balance: 1000,
+          date: DateTime.now(),
+        ),
+        OpeningBalanceEntity(
+          accountId: 2,
+          accountName: 'Test Account 2',
+          accountCode: '9998',
+          debitAmount: 0,
+          creditAmount: 1000,
+          balance: -1000,
           date: DateTime.now(),
         ),
       ];

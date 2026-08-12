@@ -1,7 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart'
-    hide SalesInvoiceScreen;
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/step1_customer.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/step2_items.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/step3_payment.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/step4_review.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/sticky_invoice_header.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/step_indicator.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/customer_bottom_sheet.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
@@ -192,12 +200,10 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: Text(
-            widget.invoiceType == InvoiceType.quotation
-                ? 'عرض سعر جديد'
-                : 'فاتورة مبيعات جديدة',
-          ),
+        appBar: CustomAppBar(
+          title: widget.invoiceType == InvoiceType.quotation
+              ? 'عرض سعر جديد'
+              : 'فاتورة مبيعات جديدة',
         ),
         body: SafeArea(
           child: BlocBuilder<CustomersCubit, CustomersState>(

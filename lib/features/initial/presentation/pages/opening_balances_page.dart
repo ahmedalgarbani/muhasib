@@ -5,6 +5,8 @@ import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart
 import '../../domain/entities/opening_balance_entity.dart';
 import '../cubit/initial_cubit.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class OpeningBalancesPage extends StatefulWidget {
   const OpeningBalancesPage({super.key});
@@ -40,8 +42,8 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('الأرصدة الافتتاحية'),
+      appBar: CustomAppBar(
+        title: 'الأرصدة الافتتاحية',
         actions: [
           IconButton(
             icon: const Icon(Icons.calendar_month),
@@ -305,7 +307,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Row(
                 children: [

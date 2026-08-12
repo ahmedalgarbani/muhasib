@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/dummy/dummy_data.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class AddEntryDialog extends StatefulWidget {
   const AddEntryDialog({Key? key}) : super(key: key);
@@ -32,7 +33,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
           child: Column(
@@ -40,12 +41,10 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
               // Header
               Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                  ),
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(16),
-                    topRight: Radius.circular(16),
+                    topLeft: Radius.circular(AppRadius.lg),
+                    topRight: Radius.circular(AppRadius.lg),
                   ),
                 ),
                 padding: const EdgeInsets.all(24),
@@ -67,7 +66,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           Text(
                             'سجل قيد يومية جديد',
                             style: TextStyle(
-                              color: Color(0xFFBFDBFE),
+                              color: AppColors.blue200,
                               fontSize: 14,
                             ),
                           ),
@@ -121,7 +120,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -157,21 +156,21 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                             filled: true,
                             fillColor: Colors.grey[100],
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             disabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
@@ -197,23 +196,23 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           decoration: InputDecoration(
                             hintText: 'وصف القيد...',
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: const BorderSide(
-                                color: Color(0xFF2563EB),
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                             ),
@@ -235,23 +234,23 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           value: selectedDebitAccount,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: const BorderSide(
-                                color: Color(0xFF2563EB),
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                             ),
@@ -291,23 +290,23 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           decoration: InputDecoration(
                             hintText: '0.00',
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: const BorderSide(
-                                color: Color(0xFF2563EB),
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                             ),
@@ -329,23 +328,23 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           value: selectedCreditAccount,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: const BorderSide(
-                                color: Color(0xFF2563EB),
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                             ),
@@ -385,23 +384,23 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           decoration: InputDecoration(
                             hintText: '0.00',
                             border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
                                 color: Colors.grey[300]!,
                                 width: 2,
                               ),
                             ),
                             focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: const BorderSide(
-                                color: Color(0xFF2563EB),
+                                color: AppColors.primary,
                                 width: 2,
                               ),
                             ),
@@ -426,13 +425,13 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF2563EB),
+                                  backgroundColor: AppColors.primary,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 16,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
                                   ),
                                 ),
                                 child: const Text(
@@ -455,7 +454,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                     vertical: 16,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
                                   ),
                                 ),
                                 child: const Text(

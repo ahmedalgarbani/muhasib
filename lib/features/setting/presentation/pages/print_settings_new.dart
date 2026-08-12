@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -130,20 +133,8 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: const Text('إعدادات الطباعة'),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0.5,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.arrow_forward_ios),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
+      backgroundColor: AppColors.neutral100,
+      appBar: CustomAppBar(title: 'إعدادات الطباعة'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           if (state is SettingsLoading) {
@@ -171,7 +162,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Column(
                     children: [
@@ -227,7 +218,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Column(
                     children: [
@@ -269,7 +260,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                       backgroundColor: Theme.of(context).primaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
                     child: const Text(

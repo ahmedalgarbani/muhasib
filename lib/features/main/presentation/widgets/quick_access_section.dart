@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/main/presentation/widgets/quick_access_item.dart';
 
 class QuickAccessSection extends StatelessWidget {
@@ -9,18 +11,22 @@ class QuickAccessSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.all(8),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue[50]!, Colors.purple[50]!],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: AppColors.gray200),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Column(
         children: [
-          Text(
+          const Text(
             'الوصول السريع',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
@@ -63,13 +69,11 @@ class QuickAccessSection extends StatelessWidget {
                 icon: Icons.people,
                 label: 'الزبائن',
                 color: Colors.pink,
-                // TODO: Add customers route when available
               ),
               const QuickAccessItem(
                 icon: Icons.handshake,
                 label: 'الموردين',
                 color: Colors.indigo,
-                // TODO: Add suppliers route when available
               ),
               QuickAccessItem(
                 icon: Icons.bar_chart,

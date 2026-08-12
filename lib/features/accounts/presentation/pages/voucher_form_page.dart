@@ -7,6 +7,8 @@ import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import '../cubit/vouchers_cubit.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class VoucherFormPage extends StatefulWidget {
   final VoucherEntity? voucher;
@@ -113,24 +115,10 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
           }
         },
         child: Scaffold(
-          backgroundColor: const Color(0xFFF8FAFC),
-          appBar: AppBar(
-            title: Text(
-              widget.voucher == null
-                  ? 'إضافة ${_type.label}'
-                  : 'تعديل ${_type.label}',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: Colors.white,
-              ),
-            ),
-            iconTheme: const IconThemeData(color: Colors.white),
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(colors: AppColors.gradientPrimary),
-              ),
-            ),
+          backgroundColor:  AppColors.background,
+          appBar: CustomAppBar(
+            title:
+                (widget.voucher == null ? 'إضافة ${_type.label}' : 'تعديل ${_type.label}'),
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.all(20),
@@ -162,7 +150,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
@@ -188,7 +176,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                           horizontal: 16,
                         ),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                       ),
                       validator: (v) => (v?.isEmpty ?? true) ? 'مطلوب' : null,
@@ -215,7 +203,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                         ),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.grey.shade400),
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -252,7 +240,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(AppRadius.sm14),
       ),
       child: Row(
         children: [
@@ -288,7 +276,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(AppRadius.sm10),
           boxShadow: isSelected
               ? [
                   BoxShadow(
@@ -321,7 +309,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
         border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
@@ -356,7 +344,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                 color: AppColors.primary,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               hintText: '0.00',
             ),
@@ -377,7 +365,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
         fillColor: Colors.white,
         filled: true,
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
           borderSide: BorderSide.none,
         ),
         prefixIcon: const Icon(Icons.description_outlined),
@@ -428,7 +416,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(color: Colors.grey.shade100),
       ),
       child: Column(
@@ -448,7 +436,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                   decoration: InputDecoration(
                     labelText: 'المبلغ',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppRadius.sm10),
                     ),
                   ),
                 ),
@@ -461,7 +449,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                   decoration: InputDecoration(
                     labelText: 'بيان السطر',
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(AppRadius.sm10),
                     ),
                   ),
                 ),
@@ -489,7 +477,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primary,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
               elevation: 4,
             ),
@@ -515,7 +503,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       builder: (context) => _AccountSelectorSheet(
         onSelected: (account) {
@@ -592,7 +580,7 @@ class _AccountPickerField extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           border: Border.all(color: Colors.grey.shade300),
         ),
         child: Row(
@@ -649,7 +637,7 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
         ),
         child: Column(
           children: [
@@ -659,7 +647,7 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
               height: 4,
               decoration: BoxDecoration(
                 color: Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(2),
+                borderRadius: BorderRadius.circular(AppRadius.xxs),
               ),
             ),
             Padding(
@@ -678,7 +666,7 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                       hintText: 'ابحث عن حساب...',
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        borderRadius: BorderRadius.circular(AppRadius.sm14),
                       ),
                     ),
                   ),

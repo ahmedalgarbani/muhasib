@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/dummy/dummy_data.dart';
+import 'package:muhasib/features/main/presentation/models/card_data.dart';
 import 'package:muhasib/features/main/presentation/widgets/card_actions.dart';
 import 'package:muhasib/features/main/presentation/widgets/card_balance.dart';
 import 'package:muhasib/features/main/presentation/widgets/card_header.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class FinanceCard extends StatelessWidget {
   final CardData data;
@@ -35,8 +36,8 @@ class FinanceCard extends StatelessWidget {
             width: cardWidth,
             height: cardHeight,
             decoration: BoxDecoration(
-              gradient: data.gradient,
-              borderRadius: BorderRadius.circular(20),
+              color: data.backgroundColor,
+              borderRadius: BorderRadius.circular(AppRadius.lg20),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.15),

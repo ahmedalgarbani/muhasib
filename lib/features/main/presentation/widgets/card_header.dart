@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class CardHeader extends StatelessWidget {
   final String title;
@@ -28,7 +29,7 @@ class CardHeader extends StatelessWidget {
             height: 56,
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: const Icon(Icons.description, color: Colors.white, size: 26),
           ),

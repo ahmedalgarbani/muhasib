@@ -1,4 +1,4 @@
-import 'package:hasib_lib/utils/app_logs.dart';
+import 'package:muhasib/core/helpers/app_logs.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/account_connect_model.dart';
 

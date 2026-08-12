@@ -1,7 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:muhasib/features/customers/domain/repositories/customer_repository.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 
 part 'customers_state.dart';
 
@@ -56,7 +56,6 @@ class CustomersCubit extends Cubit<CustomersState> {
         return null;
       },
       (customerEntity) {
-        // Reload the correct list based on created party type
         if (customerEntity.type == 2) {
           loadSuppliers();
         } else {

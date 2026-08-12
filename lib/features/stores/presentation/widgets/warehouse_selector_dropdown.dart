@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class WarehouseSelectorDropdown extends StatefulWidget {
   final WarehouseEntity? selectedWarehouse;
@@ -82,7 +83,7 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
             hintText: widget.hint ?? 'اختر المخزن',
             prefixIcon: widget.prefixIcon ?? const Icon(Icons.warehouse),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             filled: true,
             fillColor: widget.enabled ? Colors.grey[50] : Colors.grey[200],
@@ -125,7 +126,7 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
                       ),
                       decoration: BoxDecoration(
                         color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: const Text(
                         'غير نشط',
@@ -236,12 +237,12 @@ class _WarehouseSearchableDropdownState extends State<WarehouseSearchableDropdow
         width: size.width,
         child: Material(
           elevation: 4,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(AppRadius.md),
           child: Container(
             constraints: const BoxConstraints(maxHeight: 200),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
               border: Border.all(color: Colors.grey[300]!),
             ),
             child: ListView.builder(
@@ -326,7 +327,7 @@ class _WarehouseSearchableDropdownState extends State<WarehouseSearchableDropdow
                     },
                   ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             filled: true,
             fillColor: Colors.grey[50],

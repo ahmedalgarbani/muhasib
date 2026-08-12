@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 class PaymentDialog extends StatefulWidget {
   final double totalAmount;
@@ -149,7 +152,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -161,8 +164,8 @@ class _PaymentDialogState extends State<PaymentDialog> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: const BoxDecoration(
-                color: Color(0xFF2563EB),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                color: AppColors.primary,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg)),
               ),
               child: Column(
                 children: [
@@ -188,7 +191,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -336,7 +339,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
                                   : payment.method == PaymentMethod.bank
                                       ? Icons.account_balance
                                       : Icons.schedule,
-                              color: const Color(0xFF2563EB),
+                              color: AppColors.primary,
                             ),
                             title: Text(
                               _getPaymentMethodName(payment.method),
@@ -375,7 +378,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: Colors.grey.shade50,
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.lg)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -388,7 +391,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
                   ElevatedButton(
                     onPressed: _savePayments,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isFullyPaid ? Colors.green : const Color(0xFF2563EB),
+                      backgroundColor: _isFullyPaid ? Colors.green : AppColors.primary,
                     ),
                     child: Text(_isFullyPaid ? 'تأكيد الدفع' : 'حفظ الدفعات'),
                   ),
@@ -441,7 +444,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
           setState(() => _selectedMethod = method);
         }
       },
-      selectedColor: const Color(0xFF2563EB).withOpacity(0.2),
+      selectedColor: AppColors.primary.withOpacity(0.2),
     );
   }
 

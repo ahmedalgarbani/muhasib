@@ -7,6 +7,8 @@ import 'package:muhasib/features/reports/presentation/cubit/account_statement_cu
 import 'package:muhasib/features/reports/presentation/cubit/account_statement_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class AccountStatementReportPage extends StatefulWidget {
   const AccountStatementReportPage({super.key});
@@ -32,7 +34,7 @@ class _AccountStatementReportPageState extends State<AccountStatementReportPage>
           return ReportBasePage(
             title: 'كشف حساب تفصيلي',
             icon: Icons.account_balance_wallet,
-            color: const Color(0xFFE65100),
+            color: AppColors.materialDeepOrange900,
             onPrint: _lastState == null || _lastState!.transactions.isEmpty ? null : () => _exportPdf(context),
             onExportExcel: _lastState == null || _lastState!.transactions.isEmpty ? null : () => _exportExcel(context),
             additionalFilters: [
@@ -54,7 +56,7 @@ class _AccountStatementReportPageState extends State<AccountStatementReportPage>
           decoration: InputDecoration(
             labelText: 'اختر الحساب المطلوب',
             prefixIcon: const Icon(Icons.account_tree),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
             filled: true,
             fillColor: Colors.grey[50],
           ),
@@ -199,7 +201,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
       width: 140,
       margin: const EdgeInsets.only(left: 10),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), border: Border.all(color: color.withOpacity(0.1)), boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10)]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppRadius.lg20), border: Border.all(color: color.withOpacity(0.1)), boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10)]),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
@@ -215,7 +217,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
   Widget _buildTransactionCard(dynamic t) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8)]),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppRadius.lg), boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8)]),
       child: Column(
         children: [
           ListTile(
@@ -259,7 +261,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
   Widget _buildAmountBadge(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.05), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: color.withOpacity(0.05), borderRadius: BorderRadius.circular(AppRadius.sm)),
       child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }

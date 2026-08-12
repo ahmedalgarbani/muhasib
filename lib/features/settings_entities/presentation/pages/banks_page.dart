@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/banks_cubit.dart';
+import 'package:muhasib/features/settings_entities/presentation/widgets/banks_list_widget.dart';
 
 class BanksPage extends StatelessWidget {
   const BanksPage({super.key});
@@ -37,7 +41,7 @@ class _BanksViewState extends State<_BanksView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: AppColors.neutral100,
       appBar: CustomAppBar(
         title: 'البنوك',
         actions: [
@@ -74,9 +78,30 @@ class _BanksViewState extends State<_BanksView> {
 
           if (state is BanksLoaded) {
             if (state.banks.isEmpty) {
-              return _buildEmptyState();
+              return const EmptyStateWidget(
+                title: 'لا توجد بنوك',
+                subtitle: 'اضغط على الزر أدناه لإضافة بنك جديد',
+                icon: Icons.account_balance_outlined,
+              );
             }
-            return _buildBanksList(state.banks);
+            return BanksListWidget(
+              banks: state.banks,
+              searchController: _searchController,
+              onSearchChanged: (value) {
+                if (value.isEmpty) {
+                  context.read<BanksCubit>().loadBanks();
+                } else {
+                  context.read<BanksCubit>().searchBanks(value);
+                }
+              },
+              onClearSearch: () {
+                _searchController.clear();
+                context.read<BanksCubit>().loadBanks();
+              },
+              onBankTap: (bank) => _showBankDialog(context, bank: bank),
+              onBankEdit: (bank) => _showBankDialog(context, bank: bank),
+              onBankDelete: (bank) => _showDeleteDialog(context, bank),
+            );
           }
 
           return const SizedBox.shrink();
@@ -86,7 +111,7 @@ class _BanksViewState extends State<_BanksView> {
         onPressed: () => _showBankDialog(context),
         icon: const Icon(Icons.add),
         label: const Text('بنك جديد'),
-        backgroundColor: const Color(0xFF1976D2),
+        backgroundColor: AppColors.materialBlue700,
       ),
     );
   }
@@ -94,204 +119,6 @@ class _BanksViewState extends State<_BanksView> {
   void _showSnackBar(BuildContext context, String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message), backgroundColor: color),
-    );
-  }
-
-  Widget _buildBanksList(List<BankEntity> banks) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: TextField(
-            controller: _searchController,
-            decoration: InputDecoration(
-              hintText: 'بحث في البنوك...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () {
-                        _searchController.clear();
-                        context.read<BanksCubit>().loadBanks();
-                      },
-                    )
-                  : null,
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            onChanged: (value) {
-              if (value.isEmpty) {
-                context.read<BanksCubit>().loadBanks();
-              } else {
-                context.read<BanksCubit>().searchBanks(value);
-              }
-            },
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: banks.length,
-            itemBuilder: (context, index) => _buildBankCard(banks[index]),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBankCard(BankEntity bank) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: () => _showBankDialog(context, bank: bank),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF1976D2).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(
-                      Icons.account_balance,
-                      color: Color(0xFF1976D2),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          bank.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Icon(
-                              bank.isActive ? Icons.check_circle : Icons.cancel,
-                              size: 16,
-                              color: bank.isActive ? Colors.green : Colors.grey,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              bank.isActive ? 'نشط' : 'غير نشط',
-                              style: TextStyle(
-                                color: bank.isActive ? Colors.green : Colors.grey,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuButton(
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'edit',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit, size: 20),
-                            SizedBox(width: 8),
-                            Text('تعديل'),
-                          ],
-                        ),
-                      ),
-                      const PopupMenuItem(
-                        value: 'delete',
-                        child: Row(
-                          children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
-                            SizedBox(width: 8),
-                            Text('حذف', style: TextStyle(color: Colors.red)),
-                          ],
-                        ),
-                      ),
-                    ],
-                    onSelected: (value) {
-                      if (value == 'edit') {
-                        _showBankDialog(context, bank: bank);
-                      } else if (value == 'delete') {
-                        _showDeleteDialog(context, bank);
-                      }
-                    },
-                  ),
-                ],
-              ),
-              if (bank.branchName != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(Icons.location_on, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      'الفرع: ${bank.branchName}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ],
-              if (bank.accountNumber != null) ...[
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    const Icon(Icons.numbers, size: 16, color: Colors.grey),
-                    const SizedBox(width: 4),
-                    Text(
-                      'رقم الحساب: ${bank.accountNumber}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.account_balance_outlined, size: 80, color: Colors.grey[300]),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد بنوك',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'اضغط على الزر أدناه لإضافة بنك جديد',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
-          ),
-        ],
-      ),
     );
   }
 
@@ -308,16 +135,16 @@ class _BanksViewState extends State<_BanksView> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
           title: Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1976D2).withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  color: AppColors.materialBlue700.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: const Icon(Icons.account_balance, color: Color(0xFF1976D2), size: 28),
+                child: const Icon(Icons.account_balance, color: AppColors.materialBlue700, size: 28),
               ),
               const SizedBox(width: 12),
               Text(isEditing ? 'تعديل البنك' : 'إضافة بنك جديد'),
@@ -406,7 +233,7 @@ class _BanksViewState extends State<_BanksView> {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1976D2),
+                backgroundColor: AppColors.materialBlue700,
                 foregroundColor: Colors.white,
               ),
               child: Text(isEditing ? 'تحديث' : 'إضافة'),
@@ -421,14 +248,14 @@ class _BanksViewState extends State<_BanksView> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
         title: Row(
           children: [
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.red.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: const Icon(Icons.warning_rounded, color: Colors.red, size: 28),
             ),
@@ -458,4 +285,3 @@ class _BanksViewState extends State<_BanksView> {
     );
   }
 }
-

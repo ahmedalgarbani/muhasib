@@ -5,6 +5,9 @@ import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/domain/templates/sales_accounting_template.dart';
 import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
 import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 /// Return Invoice Detail Page
 /// Displays complete return information with accounting entries preview
@@ -19,11 +22,9 @@ class ReturnDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FAFB),
-      appBar: AppBar(
-        title: Text(returnInvoice.number),
-        elevation: 0,
-        backgroundColor: Colors.white,
+      backgroundColor: AppColors.gray50,
+      appBar: CustomAppBar(
+        title: returnInvoice.number,
         actions: [
           IconButton(
             onPressed: () {
@@ -60,7 +61,7 @@ class ReturnDetailPage extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -87,7 +88,7 @@ class ReturnDetailPage extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
+                        color: AppColors.gray900,
                       ),
                     ),
                   ],
@@ -123,10 +124,10 @@ class ReturnDetailPage extends StatelessWidget {
   Widget _buildOriginalInvoiceCard() {
     return Card(
       elevation: 0,
-      color: const Color(0xFFFEF3C7),
+      color: AppColors.amber100,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: Color(0xFFF59E0B), width: 2),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        side: const BorderSide(color: AppColors.warning, width: 2),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -137,7 +138,7 @@ class ReturnDetailPage extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.receipt_long,
-                  color: Color(0xFF92400E),
+                  color: AppColors.amber800,
                   size: 24,
                 ),
                 const SizedBox(width: 12),
@@ -146,7 +147,7 @@ class ReturnDetailPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF92400E),
+                    color: AppColors.amber800,
                   ),
                 ),
               ],
@@ -156,7 +157,7 @@ class ReturnDetailPage extends StatelessWidget {
               'رقم الفاتورة: ${returnInvoice.parentInvoiceNumber ?? "غير محدد"}',
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF92400E),
+                color: AppColors.amber800,
               ),
             ),
             const SizedBox(height: 8),
@@ -165,8 +166,8 @@ class ReturnDetailPage extends StatelessWidget {
                 // Navigate to original invoice
               },
               style: OutlinedButton.styleFrom(
-                foregroundColor: const Color(0xFF92400E),
-                side: const BorderSide(color: Color(0xFF92400E)),
+                foregroundColor: AppColors.amber800,
+                side: const BorderSide(color: AppColors.amber800),
               ),
               icon: const Icon(Icons.open_in_new, size: 18),
               label: const Text('عرض الفاتورة الأصلية'),
@@ -181,7 +182,7 @@ class ReturnDetailPage extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -194,7 +195,7 @@ class ReturnDetailPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
             const SizedBox(height: 16),
@@ -213,7 +214,7 @@ class ReturnDetailPage extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -226,7 +227,7 @@ class ReturnDetailPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
             const SizedBox(height: 16),
@@ -254,11 +255,11 @@ class ReturnDetailPage extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFFFEE2E2),
-            borderRadius: BorderRadius.circular(8),
+            color: AppColors.red100,
+            borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: const Center(
-            child: Icon(Icons.assignment_return, size: 20, color: Color(0xFFEF4444)),
+            child: Icon(Icons.assignment_return, size: 20, color: AppColors.error),
           ),
         ),
         const SizedBox(width: 12),
@@ -271,7 +272,7 @@ class ReturnDetailPage extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF111827),
+                  color: AppColors.gray900,
                 ),
               ),
               const SizedBox(height: 4),
@@ -290,7 +291,7 @@ class ReturnDetailPage extends StatelessWidget {
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: Color(0xFFEF4444),
+            color: AppColors.error,
           ),
         ),
       ],
@@ -301,7 +302,7 @@ class ReturnDetailPage extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
@@ -393,7 +394,7 @@ class ReturnDetailPage extends StatelessWidget {
         return Card(
           elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
             side: BorderSide(color: Colors.grey.shade200),
           ),
           child: Padding(
@@ -409,14 +410,14 @@ class ReturnDetailPage extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF111827),
+                        color: AppColors.gray900,
                       ),
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: isBalanced ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
-                        borderRadius: BorderRadius.circular(6),
+                        color: isBalanced ? AppColors.emerald100 : AppColors.red100,
+                        borderRadius: BorderRadius.circular(AppRadius.sm6),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -424,7 +425,7 @@ class ReturnDetailPage extends StatelessWidget {
                           Icon(
                             isBalanced ? Icons.check_circle : Icons.error,
                             size: 16,
-                            color: isBalanced ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                            color: isBalanced ? AppColors.emerald800 : AppColors.red800,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -432,7 +433,7 @@ class ReturnDetailPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isBalanced ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                              color: isBalanced ? AppColors.emerald800 : AppColors.red800,
                             ),
                           ),
                         ],
@@ -445,7 +446,7 @@ class ReturnDetailPage extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                     border: Border.all(color: Colors.grey.shade200),
                   ),
                   child: Column(
@@ -468,7 +469,7 @@ class ReturnDetailPage extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF2563EB),
+                              color: AppColors.primary,
                             ),
                           ),
                         ],
@@ -509,7 +510,7 @@ class ReturnDetailPage extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: debit > 0 ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                color: debit > 0 ? AppColors.emerald600 : AppColors.red600,
               ),
             ),
           ],
@@ -539,7 +540,7 @@ class ReturnDetailPage extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF111827),
+                color: AppColors.gray900,
               ),
             ),
           ],
@@ -557,7 +558,7 @@ class ReturnDetailPage extends StatelessWidget {
           style: TextStyle(
             fontSize: isFinal ? 16 : 14,
             fontWeight: isFinal ? FontWeight.bold : FontWeight.w500,
-            color: isFinal ? const Color(0xFF111827) : Colors.grey.shade700,
+            color: isFinal ? AppColors.gray900 : Colors.grey.shade700,
           ),
         ),
         Text(
@@ -565,7 +566,7 @@ class ReturnDetailPage extends StatelessWidget {
           style: TextStyle(
             fontSize: isFinal ? 20 : 14,
             fontWeight: isFinal ? FontWeight.bold : FontWeight.w600,
-            color: const Color(0xFFEF4444),
+            color: AppColors.error,
           ),
         ),
       ],

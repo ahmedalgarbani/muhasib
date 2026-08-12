@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
 
 class Step1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -31,7 +37,7 @@ class _Step1CustomerState extends State<Step1Customer> {
   @override
   void initState() {
     super.initState();
-    _notesController = TextEditingController(text: widget.invoice.notes);
+    _notesController = TextEditingController(text: widget.invoice.notes ?? '');
   }
 
   @override
@@ -42,250 +48,220 @@ class _Step1CustomerState extends State<Step1Customer> {
 
   @override
   Widget build(BuildContext context) {
+    final hasCustomer = widget.invoice.customer != null;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('�?�?�?�?�?�? *', style: AppTextStyles.body),
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            children: [
-              Expanded(
-                child: InkWell(
-                  onTap: widget.onShowCustomerSheet,
-                  child: Container(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border: Border.all(
-                        color: widget.invoice.customer != null
-                            ? AppColors.primary
-                            : AppColors.grey300,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: widget.invoice.customer != null
-                        ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                widget.invoice.customer!.name,
-                                style: AppTextStyles.bodyMedium,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '�?�?�?���?�?: ${NumberFormatter.formatCurrency(widget.invoice.customer!.balance)} | �?�?�?�?: ${NumberFormatter.formatCurrency(widget.invoice.customer!.creditLimit)}',
-                                style: AppTextStyles.small,
-                              ),
-                            ],
-                          )
-                        : Text(
-                            '�?�?�?�? �?�?�?�?�?�?',
-                            style: AppTextStyles.body.copyWith(
-                              color: AppColors.grey400,
-                            ),
-                          ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppColors.primary,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: IconButton(
-                  onPressed: () async {
-                    final newCustomer = await showDialog<Customer>(
-                      context: context,
-                      builder: (context) => BlocProvider(
-                        create: (_) => getIt<CustomersCubit>(),
-                        child: const AddCustomerDialog(),
-                      ),
-                    );
-
-                    if (newCustomer != null) {
-                      // Update the invoice with the new customer
-                      widget.onInvoiceUpdate(
-                        widget.invoice.copyWith(customer: newCustomer),
-                      );
-
-                      // Add the new customer to the customers list if needed
-                      if (!widget.customers.any(
-                        (c) => c.id == newCustomer.id,
-                      )) {
-                        widget.customers.add(newCustomer);
-                      }
-                    }
-                  },
-                  icon: const Icon(Icons.add, color: Colors.white, size: 28),
-                  tooltip: 'إضافة عميل جديد',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('�?�?�?�?�?�?�?', style: AppTextStyles.caption),
-                    const SizedBox(height: AppSpacing.sm),
-                    InkWell(
-                      onTap: () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: widget.invoice.date,
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2030),
-                        );
-                        if (date != null) {
-                          widget.onInvoiceUpdate(
-                            widget.invoice.copyWith(date: date),
-                          );
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.all(AppSpacing.md),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: AppColors.grey300,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(
-                              Icons.calendar_today,
-                              size: 20,
-                              color: AppColors.grey600,
-                            ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Text(
-                              '${widget.invoice.date.year}-${widget.invoice.date.month.toString().padLeft(2, '0')}-${widget.invoice.date.day.toString().padLeft(2, '0')}',
-                              style: AppTextStyles.body,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('�?�?�?�?�?�?', style: AppTextStyles.caption),
-                    const SizedBox(height: AppSpacing.sm),
-                    Container(
-                      padding: const EdgeInsets.all(AppSpacing.md),
-                      decoration: BoxDecoration(
-                        color: AppColors.grey50,
-                        border: Border.all(color: AppColors.grey200, width: 2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        widget.invoice.currency,
-                        style: AppTextStyles.body.copyWith(
-                          color: AppColors.grey700,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          ExpandableSection(
-            title: '�?�?�?�?�?�? �?�?�?�?�?�?',
+          // Customer Selection Card
+          Card(
             child: Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.md),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('�?�?�?�?�?�?�?', style: AppTextStyles.caption),
-                  const SizedBox(height: AppSpacing.sm),
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    decoration: BoxDecoration(
-                      color: AppColors.grey50,
-                      border: Border.all(color: AppColors.grey200, width: 2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              widget.invoice.notes,
-                              style: AppTextStyles.bodyMedium,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'العميل',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.person_add),
+                        onPressed: () async {
+                          final cubit = getIt<CustomersCubit>();
+                          final newCustomer = await showDialog<Customer>(
+                            context: context,
+                            builder: (_) => BlocProvider.value(
+                              value: cubit,
+                              child: const AddCustomerDialog(partyType: 1),
                             ),
-                            const Icon(
-                              Icons.chevron_right,
-                              color: AppColors.grey400,
+                          );
+
+                          if (newCustomer != null && mounted) {
+                            widget.onInvoiceUpdate(
+                              widget.invoice.copyWith(customer: newCustomer),
+                            );
+                          }
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  InkWell(
+                    onTap: widget.onShowCustomerSheet,
+                    child: Container(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: AppColors.grey300),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.person_outline),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  hasCustomer
+                                      ? widget.invoice.customer!.name
+                                      : 'اختر العميل',
+                                  style: TextStyle(
+                                    fontWeight: hasCustomer
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                    color: hasCustomer
+                                        ? AppColors.grey900
+                                        : AppColors.grey600,
+                                  ),
+                                ),
+                                if (hasCustomer &&
+                                    widget.invoice.customer!.phone != null)
+                                  Text(
+                                    widget.invoice.customer!.phone!,
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: AppColors.grey600,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down),
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (hasCustomer) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Container(
+                      padding: const EdgeInsets.all(AppSpacing.sm),
+                      decoration: BoxDecoration(
+                        color: AppColors.blue50,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('الرصيد الحالي:'),
+                          Text(
+                            NumberFormatter.formatCurrency(
+                              widget.invoice.customer!.balance,
+                            ),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: widget.invoice.customer!.balance > 0
+                                  ? Colors.red
+                                  : Colors.green,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Invoice Details Card
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'تفاصيل الفاتورة',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'رقم الفاتورة',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.grey600,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              widget.invoice.number,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          '�?�?�?�?�?�? �?�?�?�?: �?�?�?�?�?�?�?�?',
-                          style: AppTextStyles.small,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  const Text(
-                    '�?�?�?�?�?�?�?�? �?�?�?�?�?�?�?�?',
-                    style: AppTextStyles.caption,
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  DropdownButtonFormField<String>(
-                    value: widget.invoice.warehouse,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: '�?�?�?�?�?�?�? ���?�?�?�?',
-                        child: Text('�?�?�?�?�?�?�? ���?�?�?�?'),
                       ),
-                      DropdownMenuItem(
-                        value: '�?�?�?�?�?�?�? ���?�?�?�? 2',
-                        child: Text('�?�?�?�?�?�?�? ���?�?�?�? 2'),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'التاريخ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: AppColors.grey600,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.xs),
+                            Text(
+                              DateFormatter.formatDate(widget.invoice.date),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
-                    onChanged: (value) {
-                      if (value != null) {
-                        widget.onInvoiceUpdate(
-                          widget.invoice.copyWith(warehouse: value),
-                        );
-                      }
-                    },
                   ),
-                  const SizedBox(height: AppSpacing.md),
-                  const Text('�?�?�?�?�?�?�?', style: AppTextStyles.caption),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+
+          // Additional Notes Card
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'ملاحظات',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   const SizedBox(height: AppSpacing.sm),
                   TextField(
                     controller: _notesController,
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: '��?�? �?�?�?�?�?�?�?...',
+                      hintText: 'أضف ملاحظات...',
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                     ),
                     onChanged: (value) {
@@ -299,9 +275,10 @@ class _Step1CustomerState extends State<Step1Customer> {
             ),
           ),
           const SizedBox(height: AppSpacing.xl),
-          PrimaryButton(
-            text: '�?�?�?�?�?�?: �?�?�?�?�? �?�?����?�?�?',
+          HasibButton(
+            label: 'التالي: إضافة الأصناف',
             onPressed: widget.invoice.customer != null ? widget.onNext : null,
+            variant: HasibButtonVariant.primary,
           ),
         ],
       ),

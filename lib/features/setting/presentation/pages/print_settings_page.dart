@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -126,22 +128,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        title: const Text(
-          'إعدادات الطباعة',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.arrow_forward_ios),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ],
-      ),
+      appBar: CustomAppBar(title: 'إعدادات الطباعة'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           return SingleChildScrollView(
@@ -322,7 +309,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
                     child: const Text(
@@ -348,7 +335,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),

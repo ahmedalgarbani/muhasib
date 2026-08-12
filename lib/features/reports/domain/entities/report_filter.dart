@@ -46,7 +46,7 @@ class ReportFilter {
     final now = DateTime.now();
     return ReportFilter(
       startDate: DateTime(now.year, now.month, 1),
-      endDate: DateTime(now.year, now.month + 1, 0),
+      endDate: DateTime(now.year, now.month + 1, 0, 23, 59, 59, 999),
     );
   }
 
@@ -55,7 +55,7 @@ class ReportFilter {
     final now = DateTime.now();
     return ReportFilter(
       startDate: DateTime(now.year, 1, 1),
-      endDate: DateTime(now.year, 12, 31),
+      endDate: DateTime(now.year, 12, 31, 23, 59, 59, 999),
     );
   }
 }

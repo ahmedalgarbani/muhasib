@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class BottomActionCard extends StatelessWidget {
   const BottomActionCard({Key? key}) : super(key: key);
@@ -10,7 +11,7 @@ class BottomActionCard extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
             color: Colors.grey.withOpacity(0.1),
@@ -21,7 +22,7 @@ class BottomActionCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {},
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -30,7 +31,7 @@ class BottomActionCard extends StatelessWidget {
               height: 48,
               decoration: BoxDecoration(
                 color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: const Icon(Icons.menu, color: Colors.grey),
             ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class AnnualClosePage extends StatefulWidget {
   const AnnualClosePage({Key? key}) : super(key: key);
@@ -58,19 +61,9 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF8FAFC),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          elevation: 0,
-          title: const Text(
-            'الإقفال السنوي',
-            style: TextStyle(
-              color: Color(0xFF1E293B),
-              fontWeight: FontWeight.bold,
-              fontSize: 20,
-            ),
-          ),
-          iconTheme: const IconThemeData(color: Color(0xFF1E293B)),
+        backgroundColor: AppColors.background,
+        appBar: CustomAppBar(
+          title: 'الإقفال السنوي',
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -95,7 +88,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(color: Colors.grey[200]!),
       ),
       child: Padding(
@@ -106,10 +99,8 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
               width: 56,
               height: 56,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF6366F1), Color(0xFF4F46E5)],
-                ),
-                borderRadius: BorderRadius.circular(14),
+                color: AppColors.indigo500,
+                borderRadius: BorderRadius.circular(AppRadius.sm14),
               ),
               child: const Icon(Icons.date_range, color: Colors.white, size: 28),
             ),
@@ -122,7 +113,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
                     'السنة المالية',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Color(0xFF64748B),
+                      color: AppColors.textSecondary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -131,7 +122,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
                     style: const TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
+                      color: AppColors.textPrimary,
                     ),
                   ),
                 ],
@@ -172,7 +163,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
             'إجمالي الإيرادات',
             '0.00',
             Icons.trending_up,
-            const Color(0xFF10B981),
+            AppColors.success,
           ),
         ),
         const SizedBox(width: 12),
@@ -181,7 +172,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
             'إجمالي المصروفات',
             '0.00',
             Icons.trending_down,
-            const Color(0xFFEF4444),
+            AppColors.error,
           ),
         ),
         const SizedBox(width: 12),
@@ -190,7 +181,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
             'صافي الربح/الخسارة',
             '0.00',
             Icons.account_balance_wallet,
-            const Color(0xFF6366F1),
+            AppColors.indigo500,
           ),
         ),
       ],
@@ -201,7 +192,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(color: Colors.grey[200]!),
       ),
       child: Padding(
@@ -214,7 +205,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
               height: 40,
               decoration: BoxDecoration(
                 color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.sm10),
               ),
               child: Icon(icon, color: color, size: 20),
             ),
@@ -245,7 +236,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(color: Colors.grey[200]!),
       ),
       child: Padding(
@@ -258,7 +249,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF1E293B),
+                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 20),
@@ -279,15 +270,15 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
 
     switch (step.status) {
       case StepStatus.completed:
-        statusColor = const Color(0xFF10B981);
+        statusColor = AppColors.success;
         statusIcon = Icons.check_circle;
         break;
       case StepStatus.inProgress:
-        statusColor = const Color(0xFF6366F1);
+        statusColor = AppColors.indigo500;
         statusIcon = Icons.sync;
         break;
       case StepStatus.error:
-        statusColor = const Color(0xFFEF4444);
+        statusColor = AppColors.error;
         statusIcon = Icons.error;
         break;
       default:
@@ -305,7 +296,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
               height: 40,
               decoration: BoxDecoration(
                 color: statusColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(AppRadius.sm10),
                 border: Border.all(color: statusColor, width: 2),
               ),
               child: Icon(step.icon, color: statusColor, size: 20),
@@ -332,7 +323,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const Spacer(),
@@ -366,9 +357,9 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              side: const BorderSide(color: Color(0xFF6366F1), width: 2),
+              side: const BorderSide(color: AppColors.indigo500, width: 2),
             ),
           ),
         ),
@@ -389,10 +380,10 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
                 : const Icon(Icons.play_arrow),
             label: Text(isProcessing ? 'جاري الإقفال...' : 'بدء الإقفال'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: AppColors.indigo500,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),
@@ -451,7 +442,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
               Navigator.pop(context);
               _performClosing();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6366F1)),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.indigo500),
             child: const Text('تأكيد'),
           ),
         ],
@@ -480,7 +471,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('تم إقفال السنة المالية بنجاح'),
-          backgroundColor: Color(0xFF10B981),
+          backgroundColor: AppColors.success,
         ),
       );
     }

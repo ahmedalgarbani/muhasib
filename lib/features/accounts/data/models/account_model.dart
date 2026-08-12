@@ -125,6 +125,4 @@ class AccountModel extends AccountEntity {
   }
 }
 
-enum AccountType { assets, liabilities, equity, revenue, expenses }
-
 enum AccountNature { debit, credit }

@@ -5,6 +5,7 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class InvoicesListReportPage extends StatefulWidget {
   final String title;
@@ -194,7 +195,7 @@ class _InvoicesListContent extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
         boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
         border: Border.all(color: color.withOpacity(0.1)),
       ),
@@ -222,7 +223,7 @@ class _InvoicesListContent extends StatelessWidget {
      padding: const EdgeInsets.all(12),
      decoration: BoxDecoration(
        color: data.withoutJournalEntry == 0 ? Colors.green.withOpacity(0.05) : Colors.orange.withOpacity(0.05),
-       borderRadius: BorderRadius.circular(12),
+       borderRadius: BorderRadius.circular(AppRadius.md),
        border: Border.all(color: data.withoutJournalEntry == 0 ? Colors.green.withOpacity(0.2) : Colors.orange.withOpacity(0.2)),
      ),
      child: Row(
@@ -244,7 +245,7 @@ class _InvoicesListContent extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8, offset: const Offset(0, 2))],
       ),
       child: ListTile(
@@ -252,7 +253,7 @@ class _InvoicesListContent extends StatelessWidget {
         leading: Container(
           width: 48,
           height: 48,
-          decoration: BoxDecoration(color: _getStatusColor(r.status).withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+          decoration: BoxDecoration(color: _getStatusColor(r.status).withOpacity(0.1), borderRadius: BorderRadius.circular(AppRadius.md)),
           child: Icon(_getStatusIcon(r.status), color: _getStatusColor(r.status)),
         ),
         title: Row(
@@ -294,7 +295,7 @@ class _InvoicesListContent extends StatelessWidget {
   Widget _buildBadge(String label, Color color) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(8)),
+      decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(AppRadius.sm)),
       child: Text(label, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
     );
   }

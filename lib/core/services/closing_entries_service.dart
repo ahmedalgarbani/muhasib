@@ -107,19 +107,19 @@ class ClosingEntriesService {
     required int retainedEarningsAccountId,
   }) async {
     try {
-      // Get all revenue accounts (type = 3) balances
+      // Get all revenue accounts (type = 4) balances
       final revenueQuery = await database.rawQuery('''
         SELECT a.id, a.name, a.balance
         FROM accounts a
-        WHERE a.type = 3 AND a.is_active = 1 AND a.is_master = 0
+        WHERE a.type = 4 AND a.is_active = 1 AND a.is_master = 0
         AND a.balance != 0
       ''');
 
-      // Get all expense accounts (type = 4) balances
+      // Get all expense accounts (type = 3) balances
       final expenseQuery = await database.rawQuery('''
         SELECT a.id, a.name, a.balance
         FROM accounts a
-        WHERE a.type = 4 AND a.is_active = 1 AND a.is_master = 0
+        WHERE a.type = 3 AND a.is_active = 1 AND a.is_master = 0
         AND a.balance != 0
       ''');
 

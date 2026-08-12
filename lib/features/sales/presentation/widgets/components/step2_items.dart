@@ -1,5 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/add_item_bottom_sheet.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/item_card.dart';
 
 class Step2Items extends StatefulWidget {
   final Invoice invoice;
@@ -96,10 +105,10 @@ class _Step2ItemsState extends State<Step2Items> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'ابحث عن صنف أو امسح الباركود...',
+                    hintText: 'ابحث عن صنف أو امسح البار كود...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                   ),
                   onChanged: (_) => setState(() {}),
@@ -111,7 +120,7 @@ class _Step2ItemsState extends State<Step2Items> {
                 height: 56,
                 decoration: BoxDecoration(
                   color: _isScanning ? AppColors.warning : AppColors.success,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: IconButton(
                   onPressed: _isScanning ? null : _simulateScan,
@@ -152,8 +161,8 @@ class _Step2ItemsState extends State<Step2Items> {
           ),
         Expanded(
           child: widget.invoice.items.isEmpty
-              ? const EmptyState(
-                  emoji: '📦',
+              ? const EmptyStateWidget(
+                  icon: Icons.inventory_2_outlined,
                   title: 'لم تتم إضافة أصناف بعد',
                   subtitle: 'ابحث أو امسح باركود لإضافة صنف',
                 )
@@ -174,7 +183,7 @@ class _Step2ItemsState extends State<Step2Items> {
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
                           color: AppColors.grey50,
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Column(
                           children: [
@@ -183,13 +192,13 @@ class _Step2ItemsState extends State<Step2Items> {
                               children: [
                                 const Text(
                                   'المجموع الفرعي:',
-                                  style: AppTextStyles.title,
+                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4),
                                 ),
                                 Text(
                                   NumberFormatter.formatCurrency(
                                     widget.invoice.subtotal,
                                   ),
-                                  style: AppTextStyles.title.copyWith(
+                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4).copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -289,13 +298,13 @@ class _Step2ItemsState extends State<Step2Items> {
                                 children: [
                                   const Text(
                                     'الإجمالي النهائي:',
-                                    style: AppTextStyles.headline3,
+                                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.gray900, height: 1.3),
                                   ),
                                   Text(
                                     NumberFormatter.formatCurrency(
                                       widget.invoice.total,
                                     ),
-                                    style: AppTextStyles.headline3.copyWith(
+                                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.gray900, height: 1.3).copyWith(
                                       color: AppColors.primary,
                                     ),
                                   ),
@@ -315,19 +324,21 @@ class _Step2ItemsState extends State<Step2Items> {
           child: Row(
             children: [
               Expanded(
-                child: SecondaryButton(
-                  text: 'رجوع',
+                child: HasibButton(
+                  label: 'رجوع',
                   onPressed: widget.onPrevious,
+                  variant: HasibButtonVariant.secondary,
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 flex: 2,
-                child: PrimaryButton(
-                  text: 'التالي: الدفع',
+                child: HasibButton(
+                  label: 'التالي: الدفع',
                   onPressed: widget.invoice.items.isNotEmpty
                       ? widget.onNext
                       : null,
+                  variant: HasibButtonVariant.primary,
                 ),
               ),
             ],
@@ -337,4 +348,3 @@ class _Step2ItemsState extends State<Step2Items> {
     );
   }
 }
-// lib/screens/sales_invoice/steps/step_3_payment.dart

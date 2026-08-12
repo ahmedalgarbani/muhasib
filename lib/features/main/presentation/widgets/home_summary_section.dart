@@ -17,8 +17,6 @@ class HomeSummarySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -36,7 +34,7 @@ class HomeSummarySection extends StatelessWidget {
                       icon: Icons.account_balance_rounded,
                       title: AppStrings.drawerAccounts,
                       value: count,
-                      gradient: AppColors.gradientPrimary,
+                      cardColor: AppColors.primary,
                       onTap: () =>
                           GoRouter.of(context).push(AppRoutes.accountsGuide),
                     );
@@ -54,7 +52,7 @@ class HomeSummarySection extends StatelessWidget {
                       icon: Icons.receipt_long_rounded,
                       title: AppStrings.salesListTitle,
                       value: count,
-                      gradient: AppColors.gradientSuccess,
+                      cardColor: AppColors.materialTeal600,
                       onTap: () =>
                           GoRouter.of(context).push(AppRoutes.salesList),
                     );
@@ -77,7 +75,7 @@ class HomeSummarySection extends StatelessWidget {
                       icon: Icons.inventory_2_rounded,
                       title: AppStrings.drawerProducts,
                       value: count,
-                      gradient: AppColors.gradientWarning,
+                      cardColor: AppColors.materialDeepOrange500,
                       onTap: () =>
                           GoRouter.of(context).push(AppRoutes.itemsManage),
                     );
@@ -91,7 +89,7 @@ class HomeSummarySection extends StatelessWidget {
                   title: AppStrings.drawerReports,
                   value: '',
                   labelOverride: AppStrings.homeViewAll,
-                  gradient: AppColors.gradientInfo,
+                  cardColor: AppColors.materialPurple500,
                   onTap: () => GoRouter.of(context).push(AppRoutes.reports),
                 ),
               ),
@@ -111,14 +109,14 @@ class _SummaryCard extends StatelessWidget {
   final String title;
   final String value;
   final String? labelOverride;
-  final List<Color> gradient;
+  final Color cardColor;
   final VoidCallback? onTap;
 
   const _SummaryCard({
     required this.icon,
     required this.title,
     required this.value,
-    required this.gradient,
+    required this.cardColor,
     this.labelOverride,
     this.onTap,
   });
@@ -130,17 +128,13 @@ class _SummaryCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: gradient,
-            begin: AlignmentDirectional.topStart,
-            end: AlignmentDirectional.bottomEnd,
-          ),
+          color: cardColor,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           boxShadow: [
             BoxShadow(
-              color: gradient.first.withAlpha(60),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              color: cardColor.withValues(alpha: 0.25),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -152,7 +146,7 @@ class _SummaryCard extends StatelessWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: Colors.white.withAlpha(50),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(icon, color: Colors.white, size: 22),
@@ -162,7 +156,7 @@ class _SummaryCard extends StatelessWidget {
             Text(
               title,
               style: AppTextStyles.labelMedium.copyWith(
-                color: Colors.white.withAlpha(200),
+                color: Colors.white.withValues(alpha: 0.85),
               ),
             ),
             const SizedBox(height: 4),

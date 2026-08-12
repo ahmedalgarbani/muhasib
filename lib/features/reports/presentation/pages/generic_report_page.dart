@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class GenericReportPage extends StatelessWidget {
   final ReportItem report;
@@ -36,7 +37,7 @@ class _GenericReportContent extends StatelessWidget {
               height: 120,
               decoration: BoxDecoration(
                 color: report.color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(AppRadius.xl),
               ),
               child: Icon(
                 report.icon,
@@ -67,7 +68,7 @@ class _GenericReportContent extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.amber.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(color: Colors.amber.withOpacity(0.3)),
               ),
               child: const Row(
@@ -95,7 +96,7 @@ class _GenericReportContent extends StatelessWidget {
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
               ),
             ),

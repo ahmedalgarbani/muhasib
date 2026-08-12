@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/detail_row.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 
 class CustomersProfilePage extends StatelessWidget {
   const CustomersProfilePage({super.key});
@@ -22,7 +26,8 @@ class _CustomersProfileContent extends StatefulWidget {
   const _CustomersProfileContent();
 
   @override
-  State<_CustomersProfileContent> createState() => _CustomersProfileContentState();
+  State<_CustomersProfileContent> createState() =>
+      _CustomersProfileContentState();
 }
 
 class _CustomersProfileContentState extends State<_CustomersProfileContent> {
@@ -52,7 +57,6 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
             ),
           ],
         ),
-        drawer: const MainAppDrawer(),
         body: Column(
           children: [
             // Search bar
@@ -83,7 +87,7 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
                         )
                       : null,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -106,12 +110,20 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.error_outline, size: 64, color: colorScheme.error),
+                          Icon(
+                            Icons.error_outline,
+                            size: 64,
+                            color: colorScheme.error,
+                          ),
                           const SizedBox(height: 16),
-                          Text(state.message, style: TextStyle(color: colorScheme.error)),
+                          Text(
+                            state.message,
+                            style: TextStyle(color: colorScheme.error),
+                          ),
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
-                            onPressed: () => context.read<CustomersCubit>().loadCustomers(),
+                            onPressed: () =>
+                                context.read<CustomersCubit>().loadCustomers(),
                             icon: const Icon(Icons.refresh),
                             label: const Text('إعادة المحاولة'),
                           ),
@@ -122,8 +134,13 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
 
                   if (state is CustomersLoaded) {
                     final customers = state.customers
-                        .where((c) => c.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                            (c.phone?.contains(_searchQuery) ?? false))
+                        .where(
+                          (c) =>
+                              c.name.toLowerCase().contains(
+                                _searchQuery.toLowerCase(),
+                              ) ||
+                              (c.phone?.contains(_searchQuery) ?? false),
+                        )
                         .toList();
 
                     if (customers.isEmpty) {
@@ -131,11 +148,20 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.person_off, size: 64, color: colorScheme.outline),
+                            Icon(
+                              Icons.person_off,
+                              size: 64,
+                              color: colorScheme.outline,
+                            ),
                             const SizedBox(height: 16),
                             Text(
-                              _searchQuery.isEmpty ? 'لا يوجد عملاء' : 'لا توجد نتائج للبحث',
-                              style: TextStyle(color: colorScheme.outline, fontSize: 16),
+                              _searchQuery.isEmpty
+                                  ? 'لا يوجد عملاء'
+                                  : 'لا توجد نتائج للبحث',
+                              style: TextStyle(
+                                color: colorScheme.outline,
+                                fontSize: 16,
+                              ),
                             ),
                           ],
                         ),
@@ -178,86 +204,77 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('إضافة عميل جديد'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم العميل *',
-                  prefixIcon: Icon(Icons.person),
-                ),
+      builder: (dialogContext) => CustomDialog(
+        title: 'إضافة عميل جديد',
+        icon: Icons.person_add,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextInputField(
+              label: 'اسم العميل',
+              isRequired: true,
+              textEditingController: nameController,
+              prefixIcon: const Icon(Icons.person),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'رقم الهاتف',
+              textEditingController: phoneController,
+              inputType: TextInputType.phone,
+              prefixIcon: const Icon(Icons.phone),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'العنوان',
+              textEditingController: addressController,
+              prefixIcon: const Icon(Icons.location_on),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'حد الائتمان',
+              textEditingController: creditLimitController,
+              inputType: TextInputType.number,
+              prefixIcon: const Icon(Icons.credit_card),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'الرصيد الافتتاحي',
+              textEditingController: openingBalanceController,
+              inputType: TextInputType.number,
+              prefixIcon: const Icon(Icons.account_balance_wallet),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'رقم الهاتف',
-                  prefixIcon: Icon(Icons.phone),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(
-                  labelText: 'العنوان',
-                  prefixIcon: Icon(Icons.location_on),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: creditLimitController,
-                decoration: const InputDecoration(
-                  labelText: 'حد الائتمان',
-                  prefixIcon: Icon(Icons.credit_card),
-                  suffixText: 'ر.س',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: openingBalanceController,
-                decoration: const InputDecoration(
-                  labelText: 'الرصيد الافتتاحي',
-                  prefixIcon: Icon(Icons.account_balance_wallet),
-                  suffixText: 'ر.س',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withAlpha(26),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.withAlpha(77)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.blue, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'سيتم إنشاء حساب تلقائياً للعميل في شجرة الحسابات',
-                        style: TextStyle(fontSize: 12, color: Colors.blue),
-                      ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.blue, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'سيتم إنشاء حساب تلقائياً للعميل في شجرة الحسابات',
+                      style: TextStyle(fontSize: 12, color: Colors.blue),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         actions: [
-          TextButton(
+          HasibButton(
+            label: 'إلغاء',
+            variant: HasibButtonVariant.secondary,
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          const SizedBox(width: 12),
+          HasibButton(
+            label: 'إضافة',
             onPressed: () async {
               if (nameController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -274,11 +291,16 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
               final cubit = context.read<CustomersCubit>();
               final customer = await cubit.addCustomer(
                 name: nameController.text.trim(),
-                phone: phoneController.text.trim().isEmpty ? null : phoneController.text.trim(),
-                address: addressController.text.trim().isEmpty ? null : addressController.text.trim(),
-                type: 1, // Customer type
+                phone: phoneController.text.trim().isEmpty
+                    ? null
+                    : phoneController.text.trim(),
+                address: addressController.text.trim().isEmpty
+                    ? null
+                    : addressController.text.trim(),
+                type: 1,
                 creditLimit: double.tryParse(creditLimitController.text) ?? 0,
-                openingBalance: double.tryParse(openingBalanceController.text) ?? 0,
+                openingBalance:
+                    double.tryParse(openingBalanceController.text) ?? 0,
               );
 
               if (customer != null && context.mounted) {
@@ -290,7 +312,6 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
                 );
               }
             },
-            child: const Text('إضافة'),
           ),
         ],
       ),
@@ -308,15 +329,18 @@ class _CustomerCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final isOverLimit = customer.creditLimit > 0 && customer.balance > customer.creditLimit;
+    final isOverLimit =
+        customer.creditLimit > 0 && customer.balance > customer.creditLimit;
     final hasDebt = customer.balance > 0;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         onTap: () => _showCustomerDetails(context),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -325,11 +349,12 @@ class _CustomerCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  // Avatar
                   CircleAvatar(
                     backgroundColor: colorScheme.primaryContainer,
                     child: Text(
-                      customer.name.isNotEmpty ? customer.name[0].toUpperCase() : '?',
+                      customer.name.isNotEmpty
+                          ? customer.name[0].toUpperCase()
+                          : '?',
                       style: TextStyle(
                         color: colorScheme.onPrimaryContainer,
                         fontWeight: FontWeight.bold,
@@ -337,7 +362,6 @@ class _CustomerCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Name and phone
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,7 +373,8 @@ class _CustomerCard extends StatelessWidget {
                             fontSize: 16,
                           ),
                         ),
-                        if (customer.phone != null && customer.phone!.isNotEmpty)
+                        if (customer.phone != null &&
+                            customer.phone!.isNotEmpty)
                           Text(
                             customer.phone!,
                             style: TextStyle(
@@ -360,7 +385,6 @@ class _CustomerCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Balance
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -386,9 +410,12 @@ class _CustomerCard extends StatelessWidget {
               if (customer.creditLimit > 0) ...[
                 const SizedBox(height: 12),
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(AppRadius.xs),
                   child: LinearProgressIndicator(
-                    value: (customer.balance / customer.creditLimit).clamp(0.0, 1.0),
+                    value: (customer.balance / customer.creditLimit).clamp(
+                      0.0,
+                      1.0,
+                    ),
                     backgroundColor: colorScheme.surfaceContainerHighest,
                     valueColor: AlwaysStoppedAnimation(
                       isOverLimit ? Colors.red : colorScheme.primary,
@@ -402,14 +429,20 @@ class _CustomerCard extends StatelessWidget {
                   children: [
                     Text(
                       'حد الائتمان: ${customer.creditLimit.toStringAsFixed(0)} ر.س',
-                      style: TextStyle(fontSize: 12, color: colorScheme.outline),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: colorScheme.outline,
+                      ),
                     ),
                     if (isOverLimit)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.red.withAlpha(26),
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(AppRadius.xs),
                         ),
                         child: const Text(
                           'تجاوز الحد',
@@ -433,7 +466,9 @@ class _CustomerCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.lg20),
+        ),
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.5,
@@ -453,18 +488,19 @@ class _CustomerCard extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
                     color: colorScheme.outline.withAlpha(77),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(AppRadius.xxs),
                   ),
                 ),
               ),
-              // Customer avatar and name
               Row(
                 children: [
                   CircleAvatar(
                     radius: 32,
                     backgroundColor: colorScheme.primaryContainer,
                     child: Text(
-                      customer.name.isNotEmpty ? customer.name[0].toUpperCase() : '?',
+                      customer.name.isNotEmpty
+                          ? customer.name[0].toUpperCase()
+                          : '?',
                       style: TextStyle(
                         fontSize: 24,
                         color: colorScheme.onPrimaryContainer,
@@ -495,17 +531,12 @@ class _CustomerCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              
-              // Balance card
+
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: customer.balance > 0
-                        ? [Colors.red.shade400, Colors.red.shade600]
-                        : [Colors.green.shade400, Colors.green.shade600],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                  color: customer.balance > 0 ? Colors.red : Colors.green,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -527,16 +558,15 @@ class _CustomerCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Credit limit
               if (customer.creditLimit > 0)
-                _DetailRow(
+                DetailRow(
                   icon: Icons.credit_card,
                   label: 'حد الائتمان',
                   value: '${customer.creditLimit.toStringAsFixed(0)} ر.س',
                 ),
 
               if (customer.address != null && customer.address!.isNotEmpty)
-                _DetailRow(
+                DetailRow(
                   icon: Icons.location_on,
                   label: 'العنوان',
                   value: customer.address!,
@@ -544,14 +574,12 @@ class _CustomerCard extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Action buttons
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
-                        // Navigate to account statement
                       },
                       icon: const Icon(Icons.article),
                       label: const Text('كشف حساب'),
@@ -562,7 +590,6 @@ class _CustomerCard extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
-                        // Navigate to add invoice
                       },
                       icon: const Icon(Icons.receipt),
                       label: const Text('فاتورة جديدة'),
@@ -578,32 +605,3 @@ class _CustomerCard extends StatelessWidget {
   }
 }
 
-class _DetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: colorScheme.primary, size: 20),
-          const SizedBox(width: 12),
-          Text(label, style: TextStyle(color: colorScheme.outline)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-}

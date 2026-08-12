@@ -46,14 +46,17 @@ dependencies:
   flutter_localization:
   flutter_bloc: ^8.1.6
   crypto: ^3.0.3
+  pdf: ^3.10.9
+  printing: ^5.14.3
+  excel: ^4.0.6
 
 
   provider: ^6.1.2
 
 
-  hasib_lib:
-    path: D:/Flutter/packages/hasib_lib
   freezed_annotation: ^3.1.0
+  sqflite_common_ffi: ^2.3.7+1
+  sqflite_common_ffi_web: ^1.0.2
 
 dev_dependencies:
   build_runner: ^2.4.15

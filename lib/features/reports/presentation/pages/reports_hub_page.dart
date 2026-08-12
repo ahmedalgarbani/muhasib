@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/features/reports/data/reports_data.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class ReportsHubPage extends StatefulWidget {
   const ReportsHubPage({super.key});
@@ -19,31 +21,31 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
     _TabInfo(
       title: 'المحاسبة',
       icon: Icons.account_balance,
-      color: Color(0xFF1976D2),
+      color: AppColors.materialBlue700,
       category: ReportCategory.accounting,
     ),
     _TabInfo(
       title: 'المبيعات',
       icon: Icons.point_of_sale,
-      color: Color(0xFF388E3C),
+      color: AppColors.materialGreen700,
       category: ReportCategory.sales,
     ),
     _TabInfo(
       title: 'المشتريات',
       icon: Icons.shopping_cart,
-      color: Color(0xFF7B1FA2),
+      color: AppColors.materialPurple700,
       category: ReportCategory.purchases,
     ),
     _TabInfo(
       title: 'المخزون',
       icon: Icons.warehouse,
-      color: Color(0xFFFF5722),
+      color: AppColors.materialDeepOrange500,
       category: ReportCategory.inventory,
     ),
     _TabInfo(
       title: 'العملاء',
       icon: Icons.people,
-      color: Color(0xFF00ACC1),
+      color: AppColors.materialCyan700,
       category: ReportCategory.customers,
     ),
   ];
@@ -74,8 +76,8 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+    return Directionality(textDirection: TextDirection.rtl, child: Scaffold(
+      backgroundColor: AppColors.neutral100,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
@@ -86,7 +88,7 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
         title: const Text(
           'التقارير',
           style: TextStyle(
-            color: Color(0xFF4A90E2),
+            color: AppColors.customBlue,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -95,9 +97,9 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
         bottom: TabBar(
           controller: _tabController,
           isScrollable: true,
-          indicatorColor: const Color(0xFF4A90E2),
+          indicatorColor: AppColors.customBlue,
           indicatorWeight: 3,
-          labelColor: const Color(0xFF4A90E2),
+          labelColor: AppColors.customBlue,
           unselectedLabelColor: Colors.grey,
           tabs: _tabs.map((tab) => Tab(
             child: Row(
@@ -133,7 +135,7 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -152,7 +154,7 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
           ),
         ],
       ),
-    );
+    ));
   }
 
   Widget _buildReportsList(List<ReportItem> reports, Color accentColor) {
@@ -188,10 +190,10 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
       child: InkWell(
         onTap: () => context.push(report.route),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
@@ -202,7 +204,7 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
                 height: 56,
                 decoration: BoxDecoration(
                   color: report.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(AppRadius.sm14),
                 ),
                 child: Icon(
                   report.icon,
@@ -244,7 +246,7 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
                 height: 36,
                 decoration: BoxDecoration(
                   color: report.color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(AppRadius.sm10),
                 ),
                 child: Icon(
                   Icons.arrow_forward_ios,

@@ -5,6 +5,8 @@ import 'package:muhasib/features/accounts/data/models/account_model.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_movements_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_movements_state.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class AccountMovementsDialog extends StatelessWidget {
   final AccountModel account;
@@ -64,7 +66,7 @@ class _AccountMovementsContent extends StatelessWidget {
     double padding = isTablet ? 20 : 12;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
       insetPadding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 100 : 16,
         vertical: 24,
@@ -76,12 +78,10 @@ class _AccountMovementsContent extends StatelessWidget {
             /// ------------------- HEADER -------------------
             Container(
               decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF2563EB), Color(0xFF1D4ED8)],
-                ),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
+                  topLeft: Radius.circular(AppRadius.lg),
+                  topRight: Radius.circular(AppRadius.lg),
                 ),
               ),
               padding: EdgeInsets.all(padding * 1.5),
@@ -103,7 +103,7 @@ class _AccountMovementsContent extends StatelessWidget {
                         Text(
                           '${account.name} - ${account.code}',
                           style: TextStyle(
-                            color: const Color(0xFFBFDBFE),
+                            color: AppColors.blue200,
                             fontSize: baseFont * 1.1,
                           ),
                         ),
@@ -291,7 +291,7 @@ class _AccountMovementsContent extends StatelessWidget {
             Container(
               decoration: BoxDecoration(
                 color: Colors.grey[50],
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -300,7 +300,7 @@ class _AccountMovementsContent extends StatelessWidget {
                   child: Table(
                     border: TableBorder.all(
                       color: Colors.grey[200]!,
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     columnWidths: const {
                       0: FlexColumnWidth(1.2),
@@ -376,7 +376,7 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         border: Border.all(color: color.withOpacity(0.3), width: 1.5),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

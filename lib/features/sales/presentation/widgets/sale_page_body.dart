@@ -5,7 +5,10 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/features/sales/presentation/models/bill_models.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class SalePageBody extends StatefulWidget {
   const SalePageBody({super.key});
@@ -242,26 +245,6 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   }
 }
 
-class BillStats {
-  final int total;
-  final int paid;
-  final int partial;
-  final int unpaid;
-  final double totalAmount;
-  final double paidAmount;
-  final double remainingAmount;
-
-  BillStats({
-    required this.total,
-    required this.paid,
-    required this.partial,
-    required this.unpaid,
-    required this.totalAmount,
-    required this.paidAmount,
-    required this.remainingAmount,
-  });
-}
-
 class BillsHeader extends StatelessWidget {
   final String searchQuery;
   final Function(String) onSearchChanged;
@@ -297,13 +280,13 @@ class BillsHeader extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF111827),
+                    color: AppColors.gray900,
                   ),
                 ),
                 ElevatedButton.icon(
                   onPressed: onNewBillPressed,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2563EB),
+                    backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
                   ),
                   icon: const Icon(Icons.add, size: 20),
@@ -323,7 +306,7 @@ class BillsHeader extends StatelessWidget {
                       filled: true,
                       fillColor: Colors.white,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
                   ),
@@ -333,7 +316,7 @@ class BillsHeader extends StatelessWidget {
                   onPressed: onFilterPressed,
                   style: OutlinedButton.styleFrom(
                     backgroundColor: isFilterOpen
-                        ? const Color(0xFFEFF6FF)
+                        ? AppColors.blue50
                         : Colors.white,
                   ),
                   icon: const Icon(Icons.filter_list, size: 20),
@@ -431,7 +414,7 @@ class StatsCards extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: color,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -499,7 +482,7 @@ class BillCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 /// Reusable header widget for account cards showing icon, name, code, and badge
 class AccountCardHeader extends StatelessWidget {
@@ -30,7 +31,7 @@ class AccountCardHeader extends StatelessWidget {
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: backgroundColor,
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Icon(
             account.isMaster ? Icons.folder_open : Icons.description,
@@ -69,7 +70,7 @@ class AccountCardHeader extends StatelessWidget {
           decoration: BoxDecoration(
             color: backgroundColor,
             border: Border.all(color: borderColor),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(AppRadius.lg20),
           ),
           child: Text(
             account.isMaster ? 'رئيسي' : 'فرعي',

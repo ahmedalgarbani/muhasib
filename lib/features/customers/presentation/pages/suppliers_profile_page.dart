@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/main_drawer/main_app_drawer.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/detail_row.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
-import 'package:muhasib/features/sales/presentation/widgets/sale_form.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 
 class SuppliersProfilePage extends StatelessWidget {
   const SuppliersProfilePage({super.key});
@@ -46,7 +50,6 @@ class _SuppliersProfileContentState extends State<_SuppliersProfileContent> {
       child: Scaffold(
         appBar: CustomAppBar(
           title: 'الموردين',
-
           actions: [
             IconButton(
               icon: const Icon(Icons.refresh),
@@ -54,7 +57,6 @@ class _SuppliersProfileContentState extends State<_SuppliersProfileContent> {
             ),
           ],
         ),
-        drawer: const MainAppDrawer(),
         body: Column(
           children: [
             // Search bar
@@ -85,7 +87,7 @@ class _SuppliersProfileContentState extends State<_SuppliersProfileContent> {
                         )
                       : null,
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(AppRadius.md),
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
@@ -202,86 +204,77 @@ class _SuppliersProfileContentState extends State<_SuppliersProfileContent> {
 
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('إضافة مورد جديد'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameController,
-                decoration: const InputDecoration(
-                  labelText: 'اسم المورد *',
-                  prefixIcon: Icon(Icons.store),
-                ),
+      builder: (dialogContext) => CustomDialog(
+        title: 'إضافة مورد جديد',
+        icon: Icons.add_business,
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextInputField(
+              label: 'اسم المورد',
+              isRequired: true,
+              textEditingController: nameController,
+              prefixIcon: const Icon(Icons.store),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'رقم الهاتف',
+              textEditingController: phoneController,
+              inputType: TextInputType.phone,
+              prefixIcon: const Icon(Icons.phone),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'العنوان',
+              textEditingController: addressController,
+              prefixIcon: const Icon(Icons.location_on),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'حد الائتمان',
+              textEditingController: creditLimitController,
+              inputType: TextInputType.number,
+              prefixIcon: const Icon(Icons.credit_card),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'الرصيد الافتتاحي',
+              textEditingController: openingBalanceController,
+              inputType: TextInputType.number,
+              prefixIcon: const Icon(Icons.account_balance_wallet),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.orange.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: phoneController,
-                decoration: const InputDecoration(
-                  labelText: 'رقم الهاتف',
-                  prefixIcon: Icon(Icons.phone),
-                ),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: addressController,
-                decoration: const InputDecoration(
-                  labelText: 'العنوان',
-                  prefixIcon: Icon(Icons.location_on),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: creditLimitController,
-                decoration: const InputDecoration(
-                  labelText: 'حد الائتمان',
-                  prefixIcon: Icon(Icons.credit_card),
-                  suffixText: 'ر.س',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: openingBalanceController,
-                decoration: const InputDecoration(
-                  labelText: 'الرصيد الافتتاحي',
-                  prefixIcon: Icon(Icons.account_balance_wallet),
-                  suffixText: 'ر.س',
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.orange.withAlpha(26),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.orange.withAlpha(77)),
-                ),
-                child: const Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.orange, size: 20),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'سيتم إنشاء حساب تلقائياً للمورد في شجرة الحسابات',
-                        style: TextStyle(fontSize: 12, color: Colors.orange),
-                      ),
+              child: const Row(
+                children: [
+                  Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'سيتم إنشاء حساب تلقائياً للمورد في شجرة الحسابات',
+                      style: TextStyle(fontSize: 12, color: Colors.orange),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
         actions: [
-          TextButton(
+          HasibButton(
+            label: 'إلغاء',
+            variant: HasibButtonVariant.secondary,
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          const SizedBox(width: 12),
+          HasibButton(
+            label: 'إضافة',
             onPressed: () async {
               if (nameController.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -304,7 +297,7 @@ class _SuppliersProfileContentState extends State<_SuppliersProfileContent> {
                 address: addressController.text.trim().isEmpty
                     ? null
                     : addressController.text.trim(),
-                type: 2, // Supplier type
+                type: 2,
                 creditLimit: double.tryParse(creditLimitController.text) ?? 0,
                 openingBalance:
                     double.tryParse(openingBalanceController.text) ?? 0,
@@ -317,11 +310,9 @@ class _SuppliersProfileContentState extends State<_SuppliersProfileContent> {
                     backgroundColor: Colors.green,
                   ),
                 );
-                // Reload suppliers
                 cubit.loadSuppliers();
               }
             },
-            child: const Text('إضافة'),
           ),
         ],
       ),
@@ -344,9 +335,9 @@ class _SupplierCard extends StatelessWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
         onTap: () => _showSupplierDetails(context),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -355,7 +346,6 @@ class _SupplierCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  // Avatar
                   CircleAvatar(
                     backgroundColor: colorScheme.secondaryContainer,
                     child: Text(
@@ -369,7 +359,6 @@ class _SupplierCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  // Name and phone
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -393,7 +382,6 @@ class _SupplierCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Balance
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
@@ -450,7 +438,7 @@ class _SupplierCard extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.5,
@@ -470,11 +458,10 @@ class _SupplierCard extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
                     color: colorScheme.outline.withAlpha(77),
-                    borderRadius: BorderRadius.circular(2),
+                    borderRadius: BorderRadius.circular(AppRadius.xxs),
                   ),
                 ),
               ),
-              // Supplier avatar and name
               Row(
                 children: [
                   CircleAvatar(
@@ -515,16 +502,11 @@ class _SupplierCard extends StatelessWidget {
               ),
               const SizedBox(height: 24),
 
-              // Balance card
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: supplier.balance > 0
-                        ? [Colors.orange.shade400, Colors.orange.shade600]
-                        : [Colors.green.shade400, Colors.green.shade600],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
+                  color: supplier.balance > 0 ? Colors.orange : Colors.green,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -546,16 +528,15 @@ class _SupplierCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // Credit limit
               if (supplier.creditLimit > 0)
-                _DetailRow(
+                DetailRow(
                   icon: Icons.credit_card,
                   label: 'حد الائتمان',
                   value: '${supplier.creditLimit.toStringAsFixed(0)} ر.س',
                 ),
 
               if (supplier.address != null && supplier.address!.isNotEmpty)
-                _DetailRow(
+                DetailRow(
                   icon: Icons.location_on,
                   label: 'العنوان',
                   value: supplier.address!,
@@ -563,14 +544,12 @@ class _SupplierCard extends StatelessWidget {
 
               const SizedBox(height: 24),
 
-              // Action buttons
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
-                        // Navigate to account statement
                       },
                       icon: const Icon(Icons.article),
                       label: const Text('كشف حساب'),
@@ -581,7 +560,6 @@ class _SupplierCard extends StatelessWidget {
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
-                        // Navigate to add purchase invoice
                       },
                       icon: const Icon(Icons.receipt),
                       label: const Text('فاتورة شراء'),
@@ -597,32 +575,3 @@ class _SupplierCard extends StatelessWidget {
   }
 }
 
-class _DetailRow extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String value;
-
-  const _DetailRow({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, color: colorScheme.secondary, size: 20),
-          const SizedBox(width: 12),
-          Text(label, style: TextStyle(color: colorScheme.outline)),
-          const Spacer(),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w500)),
-        ],
-      ),
-    );
-  }
-}

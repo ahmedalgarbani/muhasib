@@ -9,6 +9,8 @@ import 'package:muhasib/features/stores/domain/entities/stock_transfer_entity.da
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class StockTransferPage extends StatefulWidget {
   const StockTransferPage({super.key});
@@ -67,7 +69,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
         ),
       ],
       child: Scaffold(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: AppColors.neutral100,
         appBar: CustomAppBar(
           title: 'تحويل مخزني',
           actions: [
@@ -124,7 +126,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                 color: isSelected 
                     ? (type['color'] as Color).withOpacity(0.1)
                     : Colors.white,
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
                   color: isSelected 
                       ? type['color'] as Color
@@ -167,7 +169,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -210,7 +212,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                         labelText: 'التاريخ',
                         prefixIcon: const Icon(Icons.calendar_today),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         filled: true,
                         fillColor: Colors.grey[50],
@@ -233,7 +235,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -297,7 +299,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                                   hintText: 'اختر المخزن المصدر',
                                   prefixIcon: const Icon(Icons.output),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[50],
@@ -365,7 +367,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                                   hintText: 'اختر المخزن الوجهة',
                                   prefixIcon: const Icon(Icons.input),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(AppRadius.md),
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[50],
@@ -407,7 +409,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -454,7 +456,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),
@@ -470,7 +472,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
           ),

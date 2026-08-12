@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 
 class AddLineDialog extends StatefulWidget {
@@ -87,7 +89,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -127,7 +129,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                   labelStyle: const TextStyle(fontSize: 12),
                   prefixIcon: const Icon(Icons.qr_code_2, size: 20),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
@@ -157,7 +159,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                         labelStyle: const TextStyle(fontSize: 12),
                         prefixIcon: const Icon(Icons.numbers, size: 20),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
@@ -187,7 +189,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                         labelStyle: const TextStyle(fontSize: 12),
                         prefixIcon: const Icon(Icons.attach_money, size: 20),
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       ),
@@ -220,7 +222,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                   labelStyle: const TextStyle(fontSize: 12),
                   prefixIcon: const Icon(Icons.discount, size: 20),
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 ),
@@ -240,7 +242,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -257,7 +259,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                       style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF10B981),
+                        color: AppColors.success,
                       ),
                     ),
                   ],
@@ -272,10 +274,10 @@ class _AddLineDialogState extends State<AddLineDialog> {
                     child: ElevatedButton(
                       onPressed: _save,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF10B981),
+                        backgroundColor: AppColors.success,
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                       ),
                       child: Text(
@@ -291,7 +293,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                       ),
                       child: const Text(

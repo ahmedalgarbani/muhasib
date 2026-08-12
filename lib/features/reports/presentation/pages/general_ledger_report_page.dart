@@ -7,6 +7,8 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class GeneralLedgerReportPage extends StatefulWidget {
   const GeneralLedgerReportPage({super.key});
@@ -22,7 +24,7 @@ class _GeneralLedgerReportPageState extends State<GeneralLedgerReportPage> {
     return ReportBasePage(
       title: 'دفتر الأستاذ العام',
       icon: Icons.menu_book,
-      color: const Color(0xFF5D4037),
+      color: AppColors.brown700,
       onPrint: _lastResult == null ? null : () => _exportPdf(),
       onExportExcel: _lastResult == null ? null : () => _exportExcel(),
       reportBuilder: (filter) => _GeneralLedgerContent(filter: filter, onLoad: (r) => setState(() => _lastResult = r)),
@@ -80,11 +82,11 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                   final isSel = _selectedAccountId == a.id;
                   return Card(
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.grey[100]!)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: BorderSide(color: Colors.grey[100]!)),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ExpansionTile(
                       onExpansionChanged: (v) => setState(() => _selectedAccountId = v ? a.id : null),
-                      leading: Container(width: 4, height: 30, decoration: BoxDecoration(color: _getAccountTypeColor(a.type), borderRadius: BorderRadius.circular(2))),
+                      leading: Container(width: 4, height: 30, decoration: BoxDecoration(color: _getAccountTypeColor(a.type), borderRadius: BorderRadius.circular(AppRadius.xxs))),
                       title: Text('${a.code} - ${a.name}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
                       subtitle: Text('الرصيد: ${_numberFormat.format(a.balance)} ر.س', style: TextStyle(color: a.balance >= 0 ? Colors.blue : Colors.red, fontSize: 11, fontWeight: FontWeight.bold)),
                       children: [
@@ -105,7 +107,7 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
     return Container(
       padding: const EdgeInsets.all(16),
       margin: const EdgeInsets.symmetric(horizontal: 16),
-      decoration: BoxDecoration(color: Colors.brown[50], borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(color: Colors.brown[50], borderRadius: BorderRadius.circular(AppRadius.lg)),
       child: Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
         _sumItem('مدين', data.totalDebit, Colors.blue),
         _sumItem('دائن', data.totalCredit, Colors.green),
