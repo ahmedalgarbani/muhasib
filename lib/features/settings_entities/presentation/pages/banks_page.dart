@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -46,7 +47,9 @@ class _BanksViewState extends State<_BanksView> {
         title: 'البنوك',
         actions: [
           IconButton(
-            icon: Icon(_showActiveOnly ? Icons.filter_alt : Icons.filter_alt_outlined),
+            icon: Icon(
+              _showActiveOnly ? Icons.filter_alt : Icons.filter_alt_outlined,
+            ),
             onPressed: () {
               setState(() => _showActiveOnly = !_showActiveOnly);
               if (_showActiveOnly) {
@@ -62,13 +65,13 @@ class _BanksViewState extends State<_BanksView> {
       body: BlocConsumer<BanksCubit, BanksState>(
         listener: (context, state) {
           if (state is BankCreated) {
-            _showSnackBar(context, 'تم إضافة البنك بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم إضافة البنك بنجاح');
           } else if (state is BankUpdated) {
-            _showSnackBar(context, 'تم تحديث البنك بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم تحديث البنك بنجاح');
           } else if (state is BankDeleted) {
-            _showSnackBar(context, 'تم حذف البنك بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم حذف البنك بنجاح');
           } else if (state is BanksError) {
-            _showSnackBar(context, state.message, Colors.red);
+            AppToast.showError(context, state.message);
           }
         },
         builder: (context, state) {
@@ -117,25 +120,37 @@ class _BanksViewState extends State<_BanksView> {
   }
 
   void _showSnackBar(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
-    );
+    if (color == Colors.green) {
+      AppToast.showSuccess(context, message);
+    } else if (color == Colors.orange) {
+      AppToast.showWarning(context, message);
+    } else {
+      AppToast.showError(context, message);
+    }
   }
 
   void _showBankDialog(BuildContext context, {BankEntity? bank}) {
     final isEditing = bank != null;
     final nameController = TextEditingController(text: bank?.name ?? '');
     final contactController = TextEditingController(text: bank?.contact ?? '');
-    final branchController = TextEditingController(text: bank?.branchName ?? '');
-    final accountNumberController = TextEditingController(text: bank?.accountNumber ?? '');
-    final bankCodeController = TextEditingController(text: bank?.bankCode ?? '');
+    final branchController = TextEditingController(
+      text: bank?.branchName ?? '',
+    );
+    final accountNumberController = TextEditingController(
+      text: bank?.accountNumber ?? '',
+    );
+    final bankCodeController = TextEditingController(
+      text: bank?.bankCode ?? '',
+    );
     bool isActive = bank?.isActive ?? true;
 
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg20),
+          ),
           title: Row(
             children: [
               Container(
@@ -144,7 +159,11 @@ class _BanksViewState extends State<_BanksView> {
                   color: AppColors.materialBlue700.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: const Icon(Icons.account_balance, color: AppColors.materialBlue700, size: 28),
+                child: const Icon(
+                  Icons.account_balance,
+                  color: AppColors.materialBlue700,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 12),
               Text(isEditing ? 'تعديل البنك' : 'إضافة بنك جديد'),
@@ -210,7 +229,8 @@ class _BanksViewState extends State<_BanksView> {
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.isEmpty) {
-                  _showSnackBar(context, 'الرجاء إدخال اسم البنك', Colors.red);
+                  AppToast.showError(context, 'الرجاء إدخال اسم البنك');
+
                   return;
                 }
 
@@ -219,9 +239,15 @@ class _BanksViewState extends State<_BanksView> {
                   name: nameController.text,
                   contact: contactController.text,
                   contactType: 0,
-                  branchName: branchController.text.isNotEmpty ? branchController.text : null,
-                  accountNumber: accountNumberController.text.isNotEmpty ? accountNumberController.text : null,
-                  bankCode: bankCodeController.text.isNotEmpty ? bankCodeController.text : null,
+                  branchName: branchController.text.isNotEmpty
+                      ? branchController.text
+                      : null,
+                  accountNumber: accountNumberController.text.isNotEmpty
+                      ? accountNumberController.text
+                      : null,
+                  bankCode: bankCodeController.text.isNotEmpty
+                      ? bankCodeController.text
+                      : null,
                   isActive: isActive,
                 );
 
@@ -248,7 +274,9 @@ class _BanksViewState extends State<_BanksView> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg20),
+        ),
         title: Row(
           children: [
             Container(
@@ -257,7 +285,11 @@ class _BanksViewState extends State<_BanksView> {
                 color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: const Icon(Icons.warning_rounded, color: Colors.red, size: 28),
+              child: const Icon(
+                Icons.warning_rounded,
+                color: Colors.red,
+                size: 28,
+              ),
             ),
             const SizedBox(width: 12),
             const Text('حذف البنك'),

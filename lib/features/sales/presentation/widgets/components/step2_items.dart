@@ -18,13 +18,13 @@ class Step2Items extends StatefulWidget {
   final VoidCallback onPrevious;
 
   const Step2Items({
-    Key? key,
+    super.key,
     required this.invoice,
     required this.availableItems,
     required this.onInvoiceUpdate,
     required this.onNext,
     required this.onPrevious,
-  }) : super(key: key);
+  });
 
   @override
   State<Step2Items> createState() => _Step2ItemsState();
@@ -217,7 +217,7 @@ class _Step2ItemsState extends State<Step2Items> {
                                             DropdownButtonFormField<
                                               DiscountType
                                             >(
-                                              value:
+                                              initialValue:
                                                   widget.invoice.discount.type,
                                               items: const [
                                                 DropdownMenuItem(

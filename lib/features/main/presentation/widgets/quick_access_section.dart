@@ -5,7 +5,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/main/presentation/widgets/quick_access_item.dart';
 
 class QuickAccessSection extends StatelessWidget {
-  const QuickAccessSection({Key? key}) : super(key: key);
+  const QuickAccessSection({super.key});
 
   @override
   Widget build(BuildContext context) {

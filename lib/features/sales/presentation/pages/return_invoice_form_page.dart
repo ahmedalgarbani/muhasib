@@ -12,14 +12,14 @@ import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.d
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 
 class ReturnInvoiceFormPage extends StatefulWidget {
   final int? originalInvoiceId;
-  
-  const ReturnInvoiceFormPage({
-    Key? key,
-    this.originalInvoiceId,
-  }) : super(key: key);
+
+  const ReturnInvoiceFormPage({super.key, this.originalInvoiceId});
 
   @override
   State<ReturnInvoiceFormPage> createState() => _ReturnInvoiceFormPageState();
@@ -27,15 +27,15 @@ class ReturnInvoiceFormPage extends StatefulWidget {
 
 class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
   final _formKey = GlobalKey<FormState>();
-  
+
   InvoiceEntity? _originalInvoice;
   List<InvoiceLineEntity> _returnItems = [];
-  Map<int, double> _returnQuantities = {};
-  
+  final Map<int, double> _returnQuantities = {};
+
   final _returnNumberController = TextEditingController();
   final _returnDateController = TextEditingController();
   final _reasonController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now();
   double _totalReturnAmount = 0.0;
 
@@ -72,7 +72,9 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (context) => getIt<ProductsCubit>()..loadProducts()),
+        BlocProvider(
+          create: (context) => getIt<ProductsCubit>()..loadProducts(),
+        ),
         BlocProvider(create: (context) => getIt<CustomersCubit>()),
       ],
       child: Scaffold(
@@ -108,26 +110,14 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                     }
                   });
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('الفاتورة الأصلية غير موجودة')),
-                  );
+                  AppToast.showError(context, 'الفاتورة الأصلية غير موجودة');
                 }
               }
             } else if (state is ReturnInvoiceCreated) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم إنشاء المرتجع بنجاح'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              AppToast.showSuccess(context, 'تم إنشاء المرتجع بنجاح');
               Navigator.pop(context);
             } else if (state is SalesError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message),
-                  backgroundColor: Colors.red,
-                ),
-              );
+              AppToast.showError(context, state.message);
             }
           },
           child: Form(
@@ -160,33 +150,21 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                           Row(
                             children: [
                               Expanded(
-                                child: TextFormField(
-                                  controller: _returnNumberController,
+                                child: TextInputField(
+                                  label: 'رقم المرتجع',
+                                  textEditingController:
+                                      _returnNumberController,
                                   readOnly: true,
-                                  decoration: InputDecoration(
-                                    labelText: 'رقم المرتجع',
-                                    prefixIcon: const Icon(Icons.tag),
-                                    filled: true,
-                                    fillColor: Colors.grey.shade100,
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                  ),
+                                  prefixIcon: const Icon(Icons.tag),
                                 ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: TextFormField(
-                                  controller: _returnDateController,
+                                child: TextInputField(
+                                  label: 'التاريخ',
+                                  textEditingController: _returnDateController,
                                   readOnly: true,
-                                  decoration: InputDecoration(
-                                    labelText: 'التاريخ',
-                                    prefixIcon: const Icon(Icons.calendar_today),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.sm),
-                                    ),
-                                  ),
+                                  prefixIcon: const Icon(Icons.calendar_today),
                                   onTap: () async {
                                     final picked = await showDatePicker(
                                       context: context,
@@ -197,8 +175,9 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                     if (picked != null) {
                                       setState(() {
                                         _selectedDate = picked;
-                                        _returnDateController.text = 
-                                            DateFormat('yyyy-MM-dd').format(picked);
+                                        _returnDateController.text = DateFormat(
+                                          'yyyy-MM-dd',
+                                        ).format(picked);
                                       });
                                     }
                                   },
@@ -207,17 +186,11 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          TextFormField(
-                            controller: _reasonController,
+                          TextInputField(
+                            label: 'سبب المرتجع',
+                            textEditingController: _reasonController,
                             maxLines: 2,
-                            decoration: InputDecoration(
-                              labelText: 'سبب المرتجع',
-                              hintText: 'اكتب سبب إرجاع البضاعة...',
-                              alignLabelWithHint: true,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(AppRadius.sm),
-                              ),
-                            ),
+                            hint: 'اكتب سبب إرجاع البضاعة...',
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'يرجى إدخال سبب المرتجع';
@@ -256,49 +229,51 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                               builder: (context, state) {
                                 if (state is SalesLoaded) {
                                   final salesInvoices = state.invoices
-                                      .where((inv) => inv.invoiceType == InvoiceType.salesInvoice.value)
+                                      .where(
+                                        (inv) =>
+                                            inv.invoiceType ==
+                                            InvoiceType.salesInvoice.value,
+                                      )
                                       .toList();
-                                  
-                                  return DropdownButtonFormField<int>(
-                                    decoration: InputDecoration(
-                                      labelText: 'الفاتورة الأصلية',
-                                      prefixIcon: const Icon(Icons.receipt),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                                      ),
-                                    ),
+
+                                  return CustomDropdownField<int>(
+                                    label: 'الفاتورة الأصلية',
+                                    prefixIcon: const Icon(Icons.receipt),
+                                    value: null,
                                     items: salesInvoices.map((invoice) {
                                       return DropdownMenuItem(
                                         value: invoice.id,
-                                        child: Text('${invoice.number} - ${_formatDate(invoice.date)}'),
+                                        child: Text(
+                                          '${invoice.number} - ${_formatDate(invoice.date)}',
+                                        ),
                                       );
                                     }).toList(),
                                     onChanged: (value) {
                                       if (value != null) {
                                         try {
-                                          final invoice = state.invoices.firstWhere(
-                                            (inv) => inv.id == value,
-                                          );
+                                          final invoice = state.invoices
+                                              .firstWhere(
+                                                (inv) => inv.id == value,
+                                              );
                                           setState(() {
                                             _originalInvoice = invoice;
-                                            _returnItems = List.from(invoice.lines);
+                                            _returnItems = List.from(
+                                              invoice.lines,
+                                            );
                                             for (var item in _returnItems) {
-                                              _returnQuantities[item.id ?? 0] = 0;
+                                              _returnQuantities[item.id ?? 0] =
+                                                  0;
                                             }
                                           });
                                         } catch (e) {
-                                          ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('الفاتورة غير موجودة')),
+                                          AppToast.showError(
+                                            context,
+                                            'الفاتورة غير موجودة',
                                           );
                                         }
                                       }
                                     },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'يرجى اختيار الفاتورة الأصلية';
-                                      }
-                                      return null;
-                                    },
+                                    errorText: null,
                                   );
                                 }
                                 return const Center(
@@ -386,7 +361,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                       final item = _returnItems[index];
                       final itemId = item.id ?? index;
                       final returnQty = _returnQuantities[itemId] ?? 0;
-                      
+
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
                         elevation: 0,
@@ -403,7 +378,8 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'صنف #${item.categoryId ?? item.groupId}',
@@ -431,17 +407,20 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                   ),
                                   SizedBox(
                                     width: 100,
-                                    child: TextFormField(
+                                    child: TextInputField(
                                       initialValue: returnQty.toString(),
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
                                         labelText: 'كمية المرتجع',
-                                        contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 8,
-                                        ),
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                              vertical: 8,
+                                            ),
                                         border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(AppRadius.sm),
+                                          borderRadius: BorderRadius.circular(
+                                            AppRadius.sm,
+                                          ),
                                         ),
                                       ),
                                       onChanged: (value) {
@@ -452,7 +431,8 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                         });
                                       },
                                       validator: (value) {
-                                        final qty = double.tryParse(value ?? '0') ?? 0;
+                                        final qty =
+                                            double.tryParse(value ?? '0') ?? 0;
                                         if (qty < 0) {
                                           return 'كمية غير صحيحة';
                                         }
@@ -530,23 +510,13 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
   void _saveReturn() {
     if (_formKey.currentState!.validate()) {
       if (_originalInvoice == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('يرجى اختيار الفاتورة الأصلية'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppToast.showError(context, 'يرجى اختيار الفاتورة الأصلية');
         return;
       }
 
       final hasReturnItems = _returnQuantities.values.any((qty) => qty > 0);
       if (!hasReturnItems) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('يرجى إدخال كمية مرتجعة واحدة على الأقل'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppToast.showError(context, 'يرجى إدخال كمية مرتجعة واحدة على الأقل');
         return;
       }
 
@@ -603,7 +573,11 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
         customerName = customer.name;
       }
 
-      context.read<SalesCubit>().createReturn(returnInvoice, _originalInvoice!.id!, customerName);
+      context.read<SalesCubit>().createReturn(
+        returnInvoice,
+        _originalInvoice!.id!,
+        customerName,
+      );
     }
   }
 

@@ -190,7 +190,7 @@ class _ActivityItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${intl.NumberFormat('#,##0.00').format(activity.amount)}',
+                intl.NumberFormat('#,##0.00').format(activity.amount),
                 style: AppTextStyles.numberMedium.copyWith(
                   color: isSale ? AppColors.success : AppColors.error,
                   fontWeight: FontWeight.bold,

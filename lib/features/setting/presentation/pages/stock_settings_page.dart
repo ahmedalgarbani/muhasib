@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
 import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 class StockSettingsPage extends StatefulWidget {
-  const StockSettingsPage({Key? key}) : super(key: key);
+  const StockSettingsPage({super.key});
 
   @override
   State<StockSettingsPage> createState() => _StockSettingsPageState();
@@ -64,9 +65,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
     await cubit.updateSetting('stock_setting', stockSettings);
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ الإعدادات بنجاح')),
-      );
+      AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
     }
   }
 

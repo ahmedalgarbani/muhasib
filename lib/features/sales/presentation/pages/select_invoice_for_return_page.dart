@@ -9,7 +9,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class SelectInvoiceForReturnPage extends StatefulWidget {
-  const SelectInvoiceForReturnPage({Key? key}) : super(key: key);
+  const SelectInvoiceForReturnPage({super.key});
 
   @override
   State<SelectInvoiceForReturnPage> createState() => _SelectInvoiceForReturnPageState();

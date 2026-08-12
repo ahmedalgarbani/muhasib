@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
@@ -22,9 +23,9 @@ class SalesInvoiceScreen extends StatefulWidget {
   final InvoiceType invoiceType;
 
   const SalesInvoiceScreen({
-    Key? key,
+    super.key,
     this.invoiceType = InvoiceType.salesInvoice,
-  }) : super(key: key);
+  });
 
   @override
   State<SalesInvoiceScreen> createState() => _SalesInvoiceScreenState();
@@ -76,16 +77,12 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
 
   Future<void> _saveInvoice() async {
     if (_invoice.customer == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('الرجاء اختيار العميل')));
+      AppToast.showError(context, 'الرجاء اختيار العميل');
       return;
     }
 
     if (_invoice.items.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('الرجاء إضافة أصناف')));
+      AppToast.showError(context, 'الرجاء إضافة أصناف');
       return;
     }
 
@@ -188,14 +185,10 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
     return BlocListener<SalesCubit, SalesState>(
       listener: (context, state) {
         if (state is InvoiceCreated) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('تم حفظ الفاتورة بنجاح')),
-          );
+          AppToast.showSuccess(context, 'تم حفظ الفاتورة بنجاح');
           context.pop(); // Go back
         } else if (state is SalesError) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('خطأ: ${state.message}')));
+          AppToast.showError(context, state.message);
         }
       },
       child: Scaffold(

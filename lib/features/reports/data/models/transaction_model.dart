@@ -2,30 +2,18 @@ import 'package:muhasib/features/reports/domain/entities/transaction_entity.dart
 
 class TransactionModel extends TransactionEntity {
   const TransactionModel({
-    required int id,
-    required DateTime date,
-    required String description,
-    required String reference,
-    required String transactionType,
-    required double totalAmount,
-    required List<TransactionDetailEntity> details,
-    int? invoiceId,
-    int? voucherId,
-    required int createdBy,
-    required DateTime createdAt,
-  }) : super(
-          id: id,
-          date: date,
-          description: description,
-          reference: reference,
-          transactionType: transactionType,
-          totalAmount: totalAmount,
-          details: details,
-          invoiceId: invoiceId,
-          voucherId: voucherId,
-          createdBy: createdBy,
-          createdAt: createdAt,
-        );
+    required super.id,
+    required super.date,
+    required super.description,
+    required super.reference,
+    required super.transactionType,
+    required super.totalAmount,
+    required super.details,
+    super.invoiceId,
+    super.voucherId,
+    required super.createdBy,
+    required super.createdAt,
+  });
 
   factory TransactionModel.fromDatabase(Map<String, dynamic> json, List<Map<String, dynamic>> lines) {
     return TransactionModel(
@@ -86,26 +74,16 @@ class TransactionModel extends TransactionEntity {
 
 class TransactionDetailModel extends TransactionDetailEntity {
   const TransactionDetailModel({
-    required int id,
-    required int accountId,
-    required String accountName,
-    required String accountCode,
-    required double debitAmount,
-    required double creditAmount,
-    String? notes,
-    int? costCenterId,
-    String? costCenterName,
-  }) : super(
-          id: id,
-          accountId: accountId,
-          accountName: accountName,
-          accountCode: accountCode,
-          debitAmount: debitAmount,
-          creditAmount: creditAmount,
-          notes: notes,
-          costCenterId: costCenterId,
-          costCenterName: costCenterName,
-        );
+    required super.id,
+    required super.accountId,
+    required super.accountName,
+    required super.accountCode,
+    required super.debitAmount,
+    required super.creditAmount,
+    super.notes,
+    super.costCenterId,
+    super.costCenterName,
+  });
 
   factory TransactionDetailModel.fromDatabase(Map<String, dynamic> json) {
     return TransactionDetailModel(

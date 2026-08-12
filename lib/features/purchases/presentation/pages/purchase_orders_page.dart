@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
@@ -10,7 +11,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
-  const PurchaseOrdersPage({Key? key}) : super(key: key);
+  const PurchaseOrdersPage({super.key});
 
   @override
   State<PurchaseOrdersPage> createState() => _PurchaseOrdersPageState();
@@ -575,9 +576,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
           ElevatedButton.icon(
             onPressed: () {
               // Navigate to create purchase order
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('سيتم إضافة صفحة إنشاء طلب شراء قريباً')),
-              );
+              AppToast.showWarning(context, 'سيتم إضافة صفحة إنشاء طلب شراء قريباً');
             },
             icon: const Icon(Icons.add, size: 18),
             label: const Text('إنشاء طلب شراء'),

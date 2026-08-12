@@ -23,11 +23,13 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     if (filter.startDate == null || filter.endDate == null) {
       return ReportFilter();
     }
-    
+
     final duration = filter.endDate!.difference(filter.startDate!);
-    final previousStart = filter.startDate!.subtract(duration + const Duration(days: 1));
+    final previousStart = filter.startDate!.subtract(
+      duration + const Duration(days: 1),
+    );
     final previousEnd = filter.startDate!.subtract(const Duration(days: 1));
-    
+
     return ReportFilter(startDate: previousStart, endDate: previousEnd);
   }
 
@@ -48,11 +50,13 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     final List<IncomeStatementEntity> categories = [];
 
     // Reference type exclusion for opening/closing entries
-    const referenceExclusion = "AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')";
-    
+    const referenceExclusion =
+        "AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')";
+
     // ==================== REVENUE SECTION ====================
-    // Revenue: accounts.type = 3 (revenue per AccountType enum)
-    final revenueQuery = '''
+    // Revenue accounts use type 3 in the account chart.
+    final revenueQuery =
+        '''
       SELECT 
         a.id as account_id,
         a.code as account_code,
@@ -61,7 +65,8 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+        AND NOT (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%إيرادات أخرى%' OR a.name LIKE '%فروق صرف%')
       $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
@@ -71,21 +76,26 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
 
     final revenueResult = await db.rawQuery(revenueQuery, args);
     if (revenueResult.isNotEmpty) {
-      final items = revenueResult.map((row) => IncomeStatementLineItemModel.fromMap(row)).toList();
+      final items = revenueResult
+          .map((row) => IncomeStatementLineItemModel.fromMap(row))
+          .toList();
       final total = items.fold<double>(0, (sum, item) => sum + item.amount);
-      
-      categories.add(IncomeStatementModel(
-        categoryCode: '4',
-        categoryName: 'الإيرادات',
-        items: items,
-        totalAmount: total,
-      ));
+
+      categories.add(
+        IncomeStatementModel(
+          categoryCode: '4',
+          categoryName: 'الإيرادات',
+          items: items,
+          totalAmount: total,
+        ),
+      );
     }
 
     // ==================== OTHER INCOME ====================
     // Other Income: gains from asset sales, exchange rate gains, etc.
     // Looking for accounts with specific codes or patterns
-    final otherIncomeQuery = '''
+    final otherIncomeQuery =
+        '''
       SELECT 
         a.id as account_id,
         a.code as account_code,
@@ -94,7 +104,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
         AND (
           a.code LIKE '42%' OR 
           a.code LIKE '43%' OR
@@ -111,20 +121,25 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
 
     final otherIncomeResult = await db.rawQuery(otherIncomeQuery, args);
     if (otherIncomeResult.isNotEmpty) {
-      final items = otherIncomeResult.map((row) => IncomeStatementLineItemModel.fromMap(row)).toList();
+      final items = otherIncomeResult
+          .map((row) => IncomeStatementLineItemModel.fromMap(row))
+          .toList();
       final total = items.fold<double>(0, (sum, item) => sum + item.amount);
-      
-      categories.add(IncomeStatementModel(
-        categoryCode: '42',
-        categoryName: 'إيرادات أخرى',
-        items: items,
-        totalAmount: total,
-      ));
+
+      categories.add(
+        IncomeStatementModel(
+          categoryCode: '42',
+          categoryName: 'إيرادات أخرى',
+          items: items,
+          totalAmount: total,
+        ),
+      );
     }
 
     // ==================== COST OF SALES ====================
     // Cost of Sales: purchases accounts (code starts with '311')
-    final costOfSalesQuery = '''
+    final costOfSalesQuery =
+        '''
       SELECT 
         a.id as account_id,
         a.code as account_code,
@@ -133,7 +148,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.c_id IN (3110, 3190, 3160) AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 4 AND a.c_id IN (3110, 3190, 3160) AND a.is_active = 1 AND je.is_posted = 1
       $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
@@ -143,20 +158,25 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
 
     final costOfSalesResult = await db.rawQuery(costOfSalesQuery, args);
     if (costOfSalesResult.isNotEmpty) {
-      final items = costOfSalesResult.map((row) => IncomeStatementLineItemModel.fromMap(row)).toList();
+      final items = costOfSalesResult
+          .map((row) => IncomeStatementLineItemModel.fromMap(row))
+          .toList();
       final total = items.fold<double>(0, (sum, item) => sum + item.amount);
-      
-      categories.add(IncomeStatementModel(
-        categoryCode: '311',
-        categoryName: 'تكلفة المبيعات',
-        items: items,
-        totalAmount: total,
-      ));
+
+      categories.add(
+        IncomeStatementModel(
+          categoryCode: '311',
+          categoryName: 'تكلفة المبيعات',
+          items: items,
+          totalAmount: total,
+        ),
+      );
     }
 
     // ==================== OPERATING EXPENSES ====================
     // Operating Expenses: common expense accounts (312-315)
-    final operatingExpensesQuery = '''
+    final operatingExpensesQuery =
+        '''
       SELECT 
         a.id as account_id,
         a.code as account_code,
@@ -165,7 +185,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND (
+      WHERE a.type = 4 AND (
         a.code LIKE '312%' OR
         a.code LIKE '313%' OR
         a.code LIKE '314%' OR
@@ -178,22 +198,30 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       ORDER BY a.code
     ''';
 
-    final operatingExpensesResult = await db.rawQuery(operatingExpensesQuery, args);
+    final operatingExpensesResult = await db.rawQuery(
+      operatingExpensesQuery,
+      args,
+    );
     if (operatingExpensesResult.isNotEmpty) {
-      final items = operatingExpensesResult.map((row) => IncomeStatementLineItemModel.fromMap(row)).toList();
+      final items = operatingExpensesResult
+          .map((row) => IncomeStatementLineItemModel.fromMap(row))
+          .toList();
       final total = items.fold<double>(0, (sum, item) => sum + item.amount);
-      
-      categories.add(IncomeStatementModel(
-        categoryCode: '31x',
-        categoryName: 'المصروفات التشغيلية',
-        items: items,
-        totalAmount: total,
-      ));
+
+      categories.add(
+        IncomeStatementModel(
+          categoryCode: '31x',
+          categoryName: 'المصروفات التشغيلية',
+          items: items,
+          totalAmount: total,
+        ),
+      );
     }
 
     // ==================== OTHER EXPENSES ====================
     // Other Expenses: remaining expenses (type=4) not included above
-    final otherExpensesQuery = '''
+    final otherExpensesQuery =
+        '''
       SELECT 
         a.id as account_id,
         a.code as account_code,
@@ -202,13 +230,15 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
         AND a.c_id NOT IN (3110, 3190, 3160)
         AND a.code NOT LIKE '312%'
         AND a.code NOT LIKE '313%'
         AND a.code NOT LIKE '314%'
         AND a.code NOT LIKE '315%'
         AND a.code NOT LIKE '316%'
+        AND a.name NOT LIKE '%ضريبة الدخل%'
+        AND a.name NOT LIKE '%ضريبة أرباح%'
       $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
@@ -218,20 +248,25 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
 
     final otherExpensesResult = await db.rawQuery(otherExpensesQuery, args);
     if (otherExpensesResult.isNotEmpty) {
-      final items = otherExpensesResult.map((row) => IncomeStatementLineItemModel.fromMap(row)).toList();
+      final items = otherExpensesResult
+          .map((row) => IncomeStatementLineItemModel.fromMap(row))
+          .toList();
       final total = items.fold<double>(0, (sum, item) => sum + item.amount);
-      
-      categories.add(IncomeStatementModel(
-        categoryCode: '3xx',
-        categoryName: 'مصروفات أخرى',
-        items: items,
-        totalAmount: total,
-      ));
+
+      categories.add(
+        IncomeStatementModel(
+          categoryCode: '3xx',
+          categoryName: 'مصروفات أخرى',
+          items: items,
+          totalAmount: total,
+        ),
+      );
     }
 
     // ==================== TAX EXPENSE ====================
     // Tax Expense: accounts with tax-related names or codes (316x)
-    final taxExpenseQuery = '''
+    final taxExpenseQuery =
+        '''
       SELECT 
         a.id as account_id,
         a.code as account_code,
@@ -240,7 +275,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
         AND (
           a.code LIKE '316%' OR
           a.name LIKE '%ضريبة الدخل%' OR
@@ -255,15 +290,19 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
 
     final taxExpenseResult = await db.rawQuery(taxExpenseQuery, args);
     if (taxExpenseResult.isNotEmpty) {
-      final items = taxExpenseResult.map((row) => IncomeStatementLineItemModel.fromMap(row)).toList();
+      final items = taxExpenseResult
+          .map((row) => IncomeStatementLineItemModel.fromMap(row))
+          .toList();
       final total = items.fold<double>(0, (sum, item) => sum + item.amount);
-      
-      categories.add(IncomeStatementModel(
-        categoryCode: '316',
-        categoryName: 'ضريبة الدخل',
-        items: items,
-        totalAmount: total,
-      ));
+
+      categories.add(
+        IncomeStatementModel(
+          categoryCode: '316',
+          categoryName: 'ضريبة الدخل',
+          items: items,
+          totalAmount: total,
+        ),
+      );
     }
 
     return categories;
@@ -277,7 +316,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
 
     // Get current period summary
     final currentSummary = await _getPeriodSummary(db, filter);
-    
+
     // Get previous period summary for comparison
     final previousFilter = _getPreviousPeriodFilter(filter);
     final previousSummary = await _getPeriodSummary(db, previousFilter);
@@ -298,7 +337,10 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     );
   }
 
-  Future<Map<String, double>> _getPeriodSummary(dynamic db, ReportFilter filter) async {
+  Future<Map<String, double>> _getPeriodSummary(
+    dynamic db,
+    ReportFilter filter,
+  ) async {
     String dateFilter = '';
     final args = <Object?>[];
     if (filter.startDate != null && filter.endDate != null) {
@@ -308,29 +350,31 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     }
 
     // Reference type exclusion for opening/closing entries
-    const referenceExclusion = "AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')";
-    
+    const referenceExclusion =
+        "AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')";
+
     // Enhanced summary query with all categories including tax and other income
-    final summaryQuery = '''
+    final summaryQuery =
+        '''
       SELECT 
         CASE 
-          WHEN a.type = 4 AND (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%فروق صرف%') THEN 'other_income'
-          WHEN a.type = 4 THEN 'revenue'
-          WHEN a.type = 3 AND a.c_id IN (3110, 3190, 3160) THEN 'cost_of_sales'
-          WHEN a.type = 3 AND (
+          WHEN a.type = 3 AND (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%إيرادات أخرى%' OR a.name LIKE '%فروق صرف%') THEN 'other_income'
+          WHEN a.type = 3 THEN 'revenue'
+          WHEN a.type = 4 AND a.c_id IN (3110, 3190, 3160) THEN 'cost_of_sales'
+          WHEN a.type = 4 AND (
             a.code LIKE '312%' OR
             a.code LIKE '313%' OR
             a.code LIKE '314%' OR
             a.code LIKE '315%'
           ) THEN 'operating_expenses'
-          WHEN a.type = 3 AND (a.code LIKE '316%' OR a.name LIKE '%ضريبة الدخل%' OR a.name LIKE '%ضريبة أرباح%') THEN 'tax_expense'
-          WHEN a.type = 3 THEN 'other_expenses'
+          WHEN a.type = 4 AND (a.code LIKE '316%' OR a.name LIKE '%ضريبة الدخل%' OR a.name LIKE '%ضريبة أرباح%') THEN 'tax_expense'
+          WHEN a.type = 4 THEN 'other_expenses'
           ELSE 'other'
         END as category,
         COALESCE(SUM(
           CASE 
-            WHEN a.type = 4 THEN jel.credit_amount - jel.debit_amount
-            WHEN a.type = 3 THEN jel.debit_amount - jel.credit_amount
+            WHEN a.type = 3 THEN jel.credit_amount - jel.debit_amount
+            WHEN a.type = 4 THEN jel.debit_amount - jel.credit_amount
             ELSE 0
           END
         ), 0) as amount
@@ -344,7 +388,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     ''';
 
     final result = await db.rawQuery(summaryQuery, args);
-    
+
     double totalRevenue = 0;
     double totalOtherIncome = 0;
     double totalCostOfSales = 0;
@@ -380,7 +424,8 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
 
     // Calculate derived values
     final grossProfit = totalRevenue - totalCostOfSales;
-    final operatingIncome = grossProfit - totalOperatingExpenses + totalOtherIncome;
+    final operatingIncome =
+        grossProfit - totalOperatingExpenses + totalOtherIncome;
     final netIncomeBeforeTax = operatingIncome - totalOtherExpenses;
     final netIncome = netIncomeBeforeTax - taxExpense;
 

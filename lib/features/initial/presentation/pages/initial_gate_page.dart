@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/initial/presentation/cubit/initial_cubit.dart';
 import 'package:muhasib/features/initial/presentation/cubit/initial_state.dart';
 
@@ -39,9 +40,7 @@ class _InitialGatePageState extends State<InitialGatePage> {
           }
         }
         if (state is InitialError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message)),
-          );
+          AppToast.showError(context, state.message);
         }
       },
       child: Scaffold(

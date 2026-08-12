@@ -7,8 +7,6 @@ import 'package:muhasib/features/accounts/domain/entities/account_limit_entity.d
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
-import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
-import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
@@ -292,7 +290,7 @@ class _AccountLimitCard extends StatelessWidget {
           children: [
             Text(label, style: const TextStyle(fontSize: 12)),
             Text(
-              '${numberFormat.format(max)}',
+              numberFormat.format(max),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],

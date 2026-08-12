@@ -249,162 +249,113 @@ class _AddEntryModalState extends State<AddEntryModal> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 16,
-                ),
-                decoration: const BoxDecoration(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
-                  color: AppTheme.primaryColor,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.initialEntry == null
-                          ? 'إضافة تفصيل جديد'
-                          : 'تعديل تفصيل القيد',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+    return CustomDialog(
+      title: widget.initialEntry == null ? 'إضافة تفصيل جديد' : 'تعديل تفصيل القيد',
+      subtitle: 'قم بتعبئة البيانات التالية لإضافة سطر جديد إلى القيد.',
+      icon: Icons.post_add_rounded,
+      headerColor: AppTheme.primaryColor,
+      maxWidth: 480,
+      content: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            CustomDropdownField<AccountEntity>(
+              hint: 'الحساب',
+              items: widget.accounts
+                  .map(
+                    (e) => DropdownMenuItem(
+                      value: e,
+                      child: Text('${e.code} - ${e.name}'),
                     ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'قم بتعبئة البيانات التالية لإضافة سطر جديد إلى القيد.',
-                      style: TextStyle(color: Colors.white70, fontSize: 12),
-                    ),
-                  ],
+                  )
+                  .toList(),
+              value: _selectedAccount,
+              onChanged: (value) => setState(() => _selectedAccount = value),
+              isRequired: true,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextInputField(
+                    label: 'المبلغ',
+                    inputType: TextInputType.number,
+                    textEditingController: _amountController,
+                    isRequired: true,
+                    validator: (value) {
+                      final parsed = double.tryParse(value ?? '');
+                      if (parsed == null || parsed <= 0) {
+                        return 'الرجاء إدخال مبلغ صحيح';
+                      }
+                      return null;
+                    },
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    CustomDropdownField<AccountEntity>(
-                      hint: 'الحساب',
-                      items: widget.accounts
-                          .map(
-                            (e) => DropdownMenuItem(
-                              value: e,
-                              child: Text('${e.code} - ${e.name}'),
-                            ),
-                          )
-                          .toList(),
-                      value: _selectedAccount,
-                      onChanged: (value) =>
-                          setState(() => _selectedAccount = value),
-                      isRequired: true,
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: TextInputField(
-                            label: 'المبلغ',
-                            inputType: TextInputType.number,
-                            textEditingController: _amountController,
-                            isRequired: true,
-                            validator: (value) {
-                              final parsed = double.tryParse(value ?? '');
-                              if (parsed == null || parsed <= 0) {
-                                return 'الرجاء إدخال مبلغ صحيح';
-                              }
-                              return null;
-                            },
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CustomDropdownField<CurrencyEntity>(
+                    hint: 'العملة',
+                    items: widget.currencies
+                        .map(
+                          (e) => DropdownMenuItem(
+                            value: e,
+                            child: Text(e.name),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: CustomDropdownField<CurrencyEntity>(
-                            hint: 'العملة',
-                            items: widget.currencies
-                                .map(
-                                  (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(e.name),
-                                  ),
-                                )
-                                .toList(),
-                            value: _selectedCurrency,
-                            onChanged: (value) =>
-                                setState(() => _selectedCurrency = value),
-                            isRequired: true,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _DirectionChip(
-                            label: 'مدين',
-                            selected: _direction == 'debit',
-                            color: AppTheme.greenColor,
-                            onTap: () => setState(() => _direction = 'debit'),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: _DirectionChip(
-                            label: 'دائن',
-                            selected: _direction == 'credit',
-                            color: AppTheme.redColor,
-                            onTap: () => setState(() => _direction = 'credit'),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    TextInputField(
-                      label: 'ملاحظات',
-                      textEditingController: _notesController,
-                      maxLines: 3,
-                    ),
-                  ],
+                        )
+                        .toList(),
+                    value: _selectedCurrency,
+                    onChanged: (value) =>
+                        setState(() => _selectedCurrency = value),
+                    isRequired: true,
+                  ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: HasibButton(
-                        label: 'إلغاء',
-                        onPressed: () => Navigator.of(context).pop(),
-                        variant: HasibButtonVariant.secondary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: HasibButton(
-                        label: widget.initialEntry == null ? 'إضافة' : 'تحديث',
-                        onPressed: _submit,
-                        variant: HasibButtonVariant.primary,
-                      ),
-                    ),
-                  ],
+              ],
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: _DirectionChip(
+                    label: 'مدين',
+                    selected: _direction == 'debit',
+                    color: AppTheme.greenColor,
+                    onTap: () => setState(() => _direction = 'debit'),
+                  ),
                 ),
-              ),
-            ],
-          ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _DirectionChip(
+                    label: 'دائن',
+                    selected: _direction == 'credit',
+                    color: AppTheme.redColor,
+                    onTap: () => setState(() => _direction = 'credit'),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'ملاحظات',
+              textEditingController: _notesController,
+              maxLines: 3,
+            ),
+          ],
         ),
       ),
+      actions: [
+        HasibButton(
+          label: 'إلغاء',
+          onPressed: () => Navigator.of(context).pop(),
+          variant: HasibButtonVariant.secondary,
+        ),
+        const SizedBox(width: 12),
+        HasibButton(
+          label: widget.initialEntry == null ? 'إضافة' : 'تحديث',
+          onPressed: _submit,
+          variant: HasibButtonVariant.primary,
+        ),
+      ],
     );
   }
 }

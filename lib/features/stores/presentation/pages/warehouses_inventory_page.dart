@@ -3,8 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
-import 'package:muhasib/features/stores/domain/entities/inventory_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
@@ -713,30 +713,18 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   void _scanBarcode() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('سيتم إضافة ماسح الباركود قريباً')),
-    );
+    AppToast.showInfo(context, 'سيتم إضافة ماسح الباركود قريباً');
   }
 
   void _addProductToInventory() {
     if (_selectedWarehouse == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى اختيار المخزن أولاً'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      AppToast.showWarning(context, 'يرجى اختيار المخزن أولاً');
       return;
     }
 
     final productName = _searchController.text.trim();
     if (productName.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى أدخال اسم المنتج أو الباركود'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      AppToast.showWarning(context, 'يرجى أدخال اسم المنتج أو الباركود');
       return;
     }
 
@@ -762,12 +750,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   void _saveInventory() {
     if (!_formKey.currentState!.validate()) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم حفظ الجرد كمسودة'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    AppToast.showSuccess(context, 'تم حفظ الجرد كمسودة');
   }
 
   void _postInventory() {
@@ -827,12 +810,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم ترحيل الجرد بنجاح'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              AppToast.showSuccess(context, 'تم ترحيل الجرد بنجاح');
               context.pop();
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
@@ -844,8 +822,6 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   void _printInventoryReport() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('طباعة تقرير الجرد...')));
+    AppToast.showInfo(context, 'طباعة تقرير الجرد...');
   }
 }

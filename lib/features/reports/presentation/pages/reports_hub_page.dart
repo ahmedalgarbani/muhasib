@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:muhasib/core/route/safe_pop.dart';
 import 'package:muhasib/features/reports/data/reports_data.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -12,7 +13,8 @@ class ReportsHubPage extends StatefulWidget {
   State<ReportsHubPage> createState() => _ReportsHubPageState();
 }
 
-class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProviderStateMixin {
+class _ReportsHubPageState extends State<ReportsHubPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
@@ -66,7 +68,7 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
   List<ReportItem> _getFilteredReports(ReportCategory category) {
     final reports = ReportsData.getReportsByCategory(category);
     if (_searchQuery.isEmpty) return reports;
-    
+
     return reports.where((report) {
       return report.titleAr.contains(_searchQuery) ||
           report.titleEn.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -76,85 +78,95 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
-    return Directionality(textDirection: TextDirection.rtl, child: Scaffold(
-      backgroundColor: AppColors.neutral100,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: const Text(
-          'التقارير',
-          style: TextStyle(
-            color: AppColors.customBlue,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: AppColors.neutral100,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => context.safePop(),
+          ),
+          title: const Text(
+            'التقارير',
+            style: TextStyle(
+              color: AppColors.customBlue,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          centerTitle: true,
+          bottom: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            indicatorColor: AppColors.customBlue,
+            indicatorWeight: 3,
+            labelColor: AppColors.customBlue,
+            unselectedLabelColor: Colors.grey,
+            tabs: _tabs
+                .map(
+                  (tab) => Tab(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(tab.icon, size: 20),
+                        const SizedBox(width: 8),
+                        Text(tab.title),
+                      ],
+                    ),
+                  ),
+                )
+                .toList(),
           ),
         ),
-        centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          isScrollable: true,
-          indicatorColor: AppColors.customBlue,
-          indicatorWeight: 3,
-          labelColor: AppColors.customBlue,
-          unselectedLabelColor: Colors.grey,
-          tabs: _tabs.map((tab) => Tab(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(tab.icon, size: 20),
-                const SizedBox(width: 8),
-                Text(tab.title),
-              ],
-            ),
-          )).toList(),
-        ),
-      ),
-      body: Column(
-        children: [
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'بحث في التقارير...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: BorderSide.none,
+        body: Column(
+          children: [
+            // Search bar
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'بحث في التقارير...',
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
+                onChanged: (value) => setState(() => _searchQuery = value),
               ),
-              onChanged: (value) => setState(() => _searchQuery = value),
             ),
-          ),
-          
-          // Tab views
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
-              children: _tabs.map((tab) {
-                return _buildReportsList(_getFilteredReports(tab.category), tab.color);
-              }).toList(),
+
+            // Tab views
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: _tabs.map((tab) {
+                  return _buildReportsList(
+                    _getFilteredReports(tab.category),
+                    tab.color,
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildReportsList(List<ReportItem> reports, Color accentColor) {
@@ -167,10 +179,7 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
             const SizedBox(height: 16),
             Text(
               'لا توجد تقارير مطابقة',
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 18, color: Colors.grey[600]),
             ),
           ],
         ),
@@ -190,7 +199,9 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
       child: InkWell(
         onTap: () => context.push(report.route),
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -206,14 +217,10 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
                   color: report.color.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.sm14),
                 ),
-                child: Icon(
-                  report.icon,
-                  color: report.color,
-                  size: 28,
-                ),
+                child: Icon(report.icon, color: report.color, size: 28),
               ),
               const SizedBox(width: 16),
-              
+
               // Content
               Expanded(
                 child: Column(
@@ -229,17 +236,14 @@ class _ReportsHubPageState extends State<ReportsHubPage> with SingleTickerProvid
                     const SizedBox(height: 4),
                     Text(
                       report.descriptionAr,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
-              
+
               // Arrow
               Container(
                 width: 36,
@@ -275,4 +279,3 @@ class _TabInfo {
     required this.category,
   });
 }
-

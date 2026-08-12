@@ -41,7 +41,7 @@ class SettingsSwitchTile extends StatelessWidget {
       ),
       value: value,
       onChanged: enabled ? onChanged : null,
-      activeColor: Theme.of(context).primaryColor,
+      activeThumbColor: Theme.of(context).primaryColor,
       dense: true,
     );
   }

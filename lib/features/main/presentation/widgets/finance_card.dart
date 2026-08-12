@@ -12,12 +12,12 @@ class FinanceCard extends StatelessWidget {
   final VoidCallback onToggleBalance;
 
   const FinanceCard({
-    Key? key,
+    super.key,
     required this.data,
     required this.showBalance,
     required this.isActive,
     required this.onToggleBalance,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

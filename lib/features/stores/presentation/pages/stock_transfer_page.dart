@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/stores/domain/entities/stock_transfer_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
@@ -26,10 +28,10 @@ class _StockTransferPageState extends State<StockTransferPage> {
   
   DateTime _selectedDate = DateTime.now();
   String _transferType = 'regular'; // 'regular', 'return', 'adjustment'
-  String _transferStatus = 'draft'; // 'draft', 'pending', 'in_transit', 'completed'
+  final String _transferStatus = 'draft'; // 'draft', 'pending', 'in_transit', 'completed'
   WarehouseEntity? _sourceWarehouse;
   WarehouseEntity? _destinationWarehouse;
-  List<StockTransferLineEntity> _transferLines = [];
+  final List<StockTransferLineEntity> _transferLines = [];
   
   final List<Map<String, dynamic>> _transferTypes = [
     {'value': 'regular', 'label': 'تحويل عادي', 'icon': Icons.swap_horiz, 'color': Colors.blue},
@@ -294,7 +296,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                               ),
                               const SizedBox(height: 8),
                               DropdownButtonFormField<WarehouseEntity>(
-                                value: _sourceWarehouse,
+                                initialValue: _sourceWarehouse,
                                 decoration: InputDecoration(
                                   hintText: 'اختر المخزن المصدر',
                                   prefixIcon: const Icon(Icons.output),
@@ -362,7 +364,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                               ),
                               const SizedBox(height: 8),
                               DropdownButtonFormField<WarehouseEntity>(
-                                value: _destinationWarehouse,
+                                initialValue: _destinationWarehouse,
                                 decoration: InputDecoration(
                                   hintText: 'اختر المخزن الوجهة',
                                   prefixIcon: const Icon(Icons.input),
@@ -449,32 +451,20 @@ class _StockTransferPageState extends State<StockTransferPage> {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
+          child: HasibButton(
+            label: 'حفظ كمسودة',
+            leading: const Icon(Icons.save),
             onPressed: () => _saveTransfer(),
-            icon: const Icon(Icons.save),
-            label: const Text('حفظ كمسودة'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+            variant: HasibButtonVariant.secondary,
           ),
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: ElevatedButton.icon(
+          child: HasibButton(
+            label: 'إرسال',
+            leading: const Icon(Icons.send, color: Colors.white),
             onPressed: () => _submitTransfer(),
-            icon: const Icon(Icons.send),
-            label: const Text('إرسال'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+            variant: HasibButtonVariant.primary,
           ),
         ),
       ],
@@ -497,40 +487,27 @@ class _StockTransferPageState extends State<StockTransferPage> {
 
   void _saveTransfer() {
     if (!_formKey.currentState!.validate()) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم حفظ التحويل كمسودة'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    AppToast.showSuccess(context, 'تم حفظ التحويل كمسودة');
   }
 
   void _submitTransfer() {
     if (!_formKey.currentState!.validate()) return;
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم إرسال التحويل بنجاح'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    AppToast.showSuccess(context, 'تم إرسال التحويل بنجاح');
     context.pop();
   }
 
   void _showTransferHistory(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('سجل التحويلات'),
-        content: const SizedBox(
-          width: double.maxFinite,
-          child: Text('سيتم عرض سجل التحويلات السابقة هنا'),
-        ),
+      builder: (context) => CustomDialog(
+        title: 'سجل التحويلات',
+        icon: Icons.history,
+        content: const Text('سيتم عرض سجل التحويلات السابقة هنا'),
         actions: [
-          TextButton(
+          HasibButton(
+            label: 'إغلاق',
             onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
+            variant: HasibButtonVariant.secondary,
           ),
         ],
       ),

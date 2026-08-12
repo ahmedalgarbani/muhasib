@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 
 class AnnualClosePage extends StatefulWidget {
-  const AnnualClosePage({Key? key}) : super(key: key);
+  const AnnualClosePage({super.key});
 
   @override
   State<AnnualClosePage> createState() => _AnnualClosePageState();
@@ -31,7 +32,8 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
       ),
       AnnualCloseStep(
         title: 'ترحيل أرصدة الإيرادات والمصروفات',
-        description: 'نقل أرصدة حسابات الإيرادات والمصروفات إلى حساب ملخص الدخل',
+        description:
+            'نقل أرصدة حسابات الإيرادات والمصروفات إلى حساب ملخص الدخل',
         icon: Icons.swap_horiz,
         status: StepStatus.pending,
       ),
@@ -62,9 +64,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
       textDirection: TextDirection.rtl,
       child: Scaffold(
         backgroundColor: AppColors.background,
-        appBar: CustomAppBar(
-          title: 'الإقفال السنوي',
-        ),
+        appBar: CustomAppBar(title: 'الإقفال السنوي'),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -102,7 +102,11 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
                 color: AppColors.indigo500,
                 borderRadius: BorderRadius.circular(AppRadius.sm14),
               ),
-              child: const Icon(Icons.date_range, color: Colors.white, size: 28),
+              child: const Icon(
+                Icons.date_range,
+                color: Colors.white,
+                size: 28,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -188,7 +192,12 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
     );
   }
 
-  Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
+  Widget _buildSummaryCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -212,10 +221,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
             const SizedBox(height: 12),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
             const SizedBox(height: 4),
             Text(
@@ -333,10 +339,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
                 const SizedBox(height: 4),
                 Text(
                   step.description,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -442,7 +445,9 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
               Navigator.pop(context);
               _performClosing();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.indigo500),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.indigo500,
+            ),
             child: const Text('تأكيد'),
           ),
         ],
@@ -468,12 +473,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
     setState(() => isProcessing = false);
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم إقفال السنة المالية بنجاح'),
-          backgroundColor: AppColors.success,
-        ),
-      );
+      AppToast.showSuccess(context, 'تم إقفال السنة المالية بنجاح');
     }
   }
 }
@@ -507,4 +507,3 @@ class AnnualCloseStep {
     );
   }
 }
-

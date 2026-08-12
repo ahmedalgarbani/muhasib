@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
@@ -15,7 +16,8 @@ class SelectPurchaseForReturnPage extends StatefulWidget {
       _SelectPurchaseForReturnPageState();
 }
 
-class _SelectPurchaseForReturnPageState extends State<SelectPurchaseForReturnPage> {
+class _SelectPurchaseForReturnPageState
+    extends State<SelectPurchaseForReturnPage> {
   final _searchController = TextEditingController();
 
   @override
@@ -25,8 +27,9 @@ class _SelectPurchaseForReturnPageState extends State<SelectPurchaseForReturnPag
   }
 
   String _formatDate(int tsSeconds) {
-    return DateFormat('yyyy-MM-dd')
-        .format(DateTime.fromMillisecondsSinceEpoch(tsSeconds * 1000));
+    return DateFormat(
+      'yyyy-MM-dd',
+    ).format(DateTime.fromMillisecondsSinceEpoch(tsSeconds * 1000));
   }
 
   Future<void> _confirmCreateReturn(
@@ -63,7 +66,7 @@ class _SelectPurchaseForReturnPageState extends State<SelectPurchaseForReturnPag
       statement: parent.statement,
       amount: parent.amount,
       totalAmount: parent.totalAmount,
-      
+
       taxAmt: parent.taxAmt,
       taxRatio: parent.taxRatio,
       discountAmt: parent.discountAmt,
@@ -89,7 +92,10 @@ class _SelectPurchaseForReturnPageState extends State<SelectPurchaseForReturnPag
     );
 
     if (parent.id == null) return;
-    context.read<PurchasesCubit>().createPurchaseReturn(returnInvoice, parent.id!);
+    context.read<PurchasesCubit>().createPurchaseReturn(
+      returnInvoice,
+      parent.id!,
+    );
   }
 
   @override
@@ -123,21 +129,12 @@ class _SelectPurchaseForReturnPageState extends State<SelectPurchaseForReturnPag
               child: BlocConsumer<PurchasesCubit, PurchasesState>(
                 listener: (context, state) {
                   if (state is PurchaseReturnCreated) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('تم إنشاء مردود المشتريات'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
+                    AppToast.showSuccess(context, 'تم إنشاء مردود المشتريات');
+
                     Navigator.of(context).pop(true);
                   }
                   if (state is PurchasesError) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
+                    AppToast.showError(context, state.message);
                   }
                 },
                 builder: (context, state) {
@@ -148,11 +145,14 @@ class _SelectPurchaseForReturnPageState extends State<SelectPurchaseForReturnPag
                     final purchases = state.invoices
                         .where(
                           (e) =>
-                              e.invoiceType == InvoiceType.purchaseInvoice.value,
+                              e.invoiceType ==
+                              InvoiceType.purchaseInvoice.value,
                         )
                         .toList();
                     if (purchases.isEmpty) {
-                      return const Center(child: Text('لا توجد فواتير مشتريات'));
+                      return const Center(
+                        child: Text('لا توجد فواتير مشتريات'),
+                      );
                     }
                     return ListView.separated(
                       itemCount: purchases.length,
@@ -178,5 +178,3 @@ class _SelectPurchaseForReturnPageState extends State<SelectPurchaseForReturnPag
     );
   }
 }
-
-

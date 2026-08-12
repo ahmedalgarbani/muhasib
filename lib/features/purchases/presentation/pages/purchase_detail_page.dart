@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
@@ -14,7 +15,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 class PurchaseDetailPage extends StatefulWidget {
   final InvoiceEntity invoice;
 
-  const PurchaseDetailPage({Key? key, required this.invoice}) : super(key: key);
+  const PurchaseDetailPage({super.key, required this.invoice});
 
   @override
   State<PurchaseDetailPage> createState() => _PurchaseDetailPageState();
@@ -615,9 +616,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
           child: ElevatedButton.icon(
             onPressed: () {
               // TODO: Implement print functionality
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('سيتم إضافة ميزة الطباعة قريباً')),
-              );
+              AppToast.showInfo(context, 'سيتم إضافة ميزة الطباعة قريباً');
             },
             icon: const Icon(Icons.print, size: 18),
             label: const Text('طباعة', style: TextStyle(fontSize: 13)),

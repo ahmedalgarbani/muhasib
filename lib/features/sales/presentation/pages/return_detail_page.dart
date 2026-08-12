@@ -15,9 +15,9 @@ class ReturnDetailPage extends StatelessWidget {
   final InvoiceEntity returnInvoice;
 
   const ReturnDetailPage({
-    Key? key,
+    super.key,
     required this.returnInvoice,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

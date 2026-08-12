@@ -4,6 +4,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_prices_cubit.dart';
@@ -120,19 +121,9 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
     return BlocConsumer<ProductPricesCubit, ProductPricesState>(
       listener: (context, state) {
         if (state is ProductPricesSaved) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.green,
-            ),
-          );
+          AppToast.showSuccess(context, state.message);
         } else if (state is ProductPricesError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
-          );
+          AppToast.showError(context, state.message);
         }
       },
       builder: (context, pricesState) {
@@ -366,7 +357,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                         builder: (context, state) {
                           if (state is ProductSubUnitsLoaded) {
                             return DropdownButtonFormField<int>(
-                              value: selectedSubUnitId,
+                              initialValue: selectedSubUnitId,
                               decoration: const InputDecoration(
                                 labelText: 'الوحدة الفرعية',
                                 border: OutlineInputBorder(),
@@ -386,7 +377,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                       ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<int>(
-                      value: selectedPriceLevel,
+                      initialValue: selectedPriceLevel,
                       decoration: const InputDecoration(
                         labelText: 'مستوى السعر',
                         border: OutlineInputBorder(),
@@ -437,22 +428,12 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                     final minQty = double.tryParse(minQuantityController.text) ?? 1;
                     
                     if (selectedSubUnitId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('يرجى اختيار الوحدة الفرعية'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      AppToast.showError(context, 'يرجى اختيار الوحدة الفرعية');
                       return;
                     }
                     
                     if (priceValue <= 0) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('يرجى إدخال سعر صحيح'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
+                      AppToast.showError(context, 'يرجى إدخال سعر صحيح');
                       return;
                     }
                     

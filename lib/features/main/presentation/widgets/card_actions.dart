@@ -5,10 +5,10 @@ class CardActions extends StatelessWidget {
   final VoidCallback onToggleBalance;
 
   const CardActions({
-    Key? key,
+    super.key,
     required this.showBalance,
     required this.onToggleBalance,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

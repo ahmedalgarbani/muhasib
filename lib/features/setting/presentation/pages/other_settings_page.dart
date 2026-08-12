@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 class OtherSettingsPage extends StatefulWidget {
-  const OtherSettingsPage({Key? key}) : super(key: key);
+  const OtherSettingsPage({super.key});
 
   @override
   State<OtherSettingsPage> createState() => _OtherSettingsPageState();
@@ -132,9 +133,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     await cubit.updateSetting('other_setting', otherSettings);
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ الإعدادات بنجاح')),
-      );
+      AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
     }
   }
 
@@ -442,7 +441,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
       ),
       value: value,
       onChanged: enabled ? onChanged : null,
-      activeColor: Theme.of(context).primaryColor,
+      activeThumbColor: Theme.of(context).primaryColor,
       dense: true,
     );
   }

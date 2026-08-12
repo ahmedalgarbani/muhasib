@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -13,13 +13,13 @@ class ItemCard extends StatelessWidget {
   final VoidCallback? onTap;
 
   const ItemCard({
-    Key? key,
+    super.key,
     required this.item,
     required this.onIncrement,
     required this.onDecrement,
     required this.onDelete,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +46,7 @@ class ItemCard extends StatelessWidget {
                       Text(item.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.gray900, height: 1.5)),
                       const SizedBox(height: 4),
                       Text(
-                        '${NumberFormatter.formatCurrency(item.price)} ï؟½? ${item.quantity} = ${NumberFormatter.formatCurrency(item.total)}',
+                        '${NumberFormatter.formatCurrency(item.price)} × ${item.quantity} = ${NumberFormatter.formatCurrency(item.total)}',
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4),
                       ),
                     ],

@@ -10,6 +10,10 @@ import 'package:muhasib/features/accounts/presentation/cubit/opening_balance_cub
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 
 part 'open_balance_widgets.dart';
 
@@ -57,12 +61,15 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
       child: BlocConsumer<OpeningBalanceCubit, OpeningBalanceState>(
         listener: (context, state) {
           if (state is OpeningBalanceError) {
-            _showSnack(state.message, isError: true);
+            AppToast.showError(context, state.message);
           } else if (state is OpeningBalanceSaved) {
-            _showSnack('تم حفظ الرصيد الافتتاحي بنجاح');
+            AppToast.showSuccess(context, 'تم حفظ الرصيد الافتتاحي بنجاح');
             context.read<OpeningBalanceCubit>().initializeForm();
           } else if (state is OpeningBalancePosted) {
-            _showSnack('تم ترحيل الرصيد الافتتاحي واعتماده بنجاح');
+            AppToast.showSuccess(
+              context,
+              'تم ترحيل الرصيد الافتتاحي واعتماده بنجاح',
+            );
           }
         },
         builder: (context, state) {
@@ -190,15 +197,10 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
             ],
           ),
           const Divider(height: 32),
-          TextFormField(
-            controller: _descriptionController,
-            decoration: InputDecoration(
-              labelText: 'مسمى القيد أو البيان العام',
-              prefixIcon: const Icon(Icons.description_outlined),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+          TextInputField(
+            label: 'مسمى القيد أو البيان العام',
+            textEditingController: _descriptionController,
+            prefixIcon: const Icon(Icons.description_outlined),
             onChanged: (v) => context
                 .read<OpeningBalanceCubit>()
                 .updateFormData(description: v),
@@ -289,17 +291,11 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
           'توزيع الأرصدة على الحسابات',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        ElevatedButton.icon(
+        HasibButton(
+          label: 'إضافة مبلغ',
+          leading: const Icon(Icons.add_circle, size: 18, color: Colors.white),
           onPressed: () => _showAddLineDialog(context),
-          icon: const Icon(Icons.add_circle, size: 18),
-          label: const Text('إضافة مبلغ'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-          ),
+          variant: HasibButtonVariant.primary,
         ),
       ],
     );
@@ -424,24 +420,14 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
       child: Row(
         children: [
           Expanded(
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                ),
-              ),
+            child: HasibButton(
+              label: 'حفظ المسودة',
               onPressed: opening.lines.isEmpty
                   ? null
                   : () => context
                         .read<OpeningBalanceCubit>()
                         .saveOpeningBalance(),
-              child: const Text(
-                'حفظ المسودة',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
+              variant: HasibButtonVariant.primary,
             ),
           ),
         ],
@@ -497,42 +483,21 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked != null)
+    if (picked != null) {
       context.read<OpeningBalanceCubit>().updateFormData(entryDate: picked);
+    }
   }
 
   void _confirmPost(BuildContext context, OpeningBalanceCubit cubit) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('تأكيد الترحيل'),
-        content: const Text(
-          'عند ترحيل الرصيد الافتتاحي، سيتم تعميد المبالغ في الحسابات ولن تتمكن من تعديل القيد لاحقاً. هل أنت متأكد؟',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              cubit.postCurrentOpeningBalance();
-            },
-            child: const Text('نعم، ترحيل الآن'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showSnack(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
+      builder: (context) => CustomConfirmDialog(
+        title: 'تأكيد الترحيل',
+        message:
+            'عند ترحيل الرصيد الافتتاحي، سيتم تعميد المبالغ في الحسابات ولن تتمكن من تعديل القيد لاحقاً. هل أنت متأكد؟',
+        confirmLabel: 'نعم، ترحيل الآن',
+        onConfirm: () => cubit.postCurrentOpeningBalance(),
       ),
     );
   }
 }
-

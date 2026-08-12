@@ -6,6 +6,7 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/cubit/sales_summary_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/sales_summary_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -59,7 +60,7 @@ class _SalesSummaryReportPageState extends State<SalesSummaryReportPage> {
     if (_lastState == null) return;
     final s = _lastState!.summary;
     final path = await ExportService.exportToExcel(fileName: 'sales_summary', headers: ['البيان', 'المبلغ'], data: [['إجمالي المبيعات', s.totalSales.toStringAsFixed(2)], ['المرتجعات', s.totalReturns.toStringAsFixed(2)], ['صافي المبيعات', s.netSales.toStringAsFixed(2)], ['عدد الفواتير', s.invoiceCount.toString()]]);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تصدير Excel: $path')));
+    AppToast.showSuccess(context, 'تم تصدير Excel: $path');
   }
 }
 

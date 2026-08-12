@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class MainDrawerHeaderIcon extends StatelessWidget {
   final IconData icon;
 
-  const MainDrawerHeaderIcon({Key? key, required this.icon}) : super(key: key);
+  const MainDrawerHeaderIcon({super.key, required this.icon});
 
   @override
   Widget build(BuildContext context) {

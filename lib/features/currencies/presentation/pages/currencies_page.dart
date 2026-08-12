@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -14,7 +13,7 @@ import '../cubit/currencies_cubit.dart';
 import '../../domain/entities/currency_entity.dart';
 
 class CurrenciesPage extends StatelessWidget {
-  const CurrenciesPage({Key? key}) : super(key: key);
+  const CurrenciesPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 class SecuritySettingsPage extends StatefulWidget {
-  const SecuritySettingsPage({Key? key}) : super(key: key);
+  const SecuritySettingsPage({super.key});
 
   @override
   State<SecuritySettingsPage> createState() => _SecuritySettingsPageState();
@@ -42,9 +43,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     await cubit.updateSetting('security_info', securityInfo);
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ الإعدادات بنجاح')),
-      );
+      AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
     }
   }
 
@@ -88,7 +87,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                         isPasswordEnabled = value;
                       });
                     },
-                    activeColor: Theme.of(context).primaryColor,
+                    activeThumbColor: Theme.of(context).primaryColor,
                     dense: true,
                   ),
                   if (isPasswordEnabled) ...[

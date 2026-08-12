@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 class PrintSettingsPage extends StatefulWidget {
-  const PrintSettingsPage({Key? key}) : super(key: key);
+  const PrintSettingsPage({super.key});
 
   @override
   State<PrintSettingsPage> createState() => _PrintSettingsPageState();
@@ -118,9 +119,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
     await cubit.updateSetting('printer_info', printerInfo);
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ الإعدادات بنجاح')),
-      );
+      AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
     }
   }
 
@@ -410,7 +409,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
       ),
       value: value,
       onChanged: enabled ? onChanged : null,
-      activeColor: Theme.of(context).primaryColor,
+      activeThumbColor: Theme.of(context).primaryColor,
       dense: true,
     );
   }

@@ -8,12 +8,13 @@ import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/route/route_names.dart';
-import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 
 part 'journal_entry_models.dart';
 part 'journal_entry_widgets.dart';
@@ -118,47 +119,24 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   void _deleteEntry(JournalEntry entry) {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('حذف السطر'),
-        content: const Text('هل تريد حذف هذا السطر من القيد؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                _entries.removeWhere((e) => e.id == entry.id);
-              });
-              Navigator.of(context).pop();
-              _showToast('تم حذف السطر');
-            },
-            child: const Text(
-              'حذف',
-              style: TextStyle(color: AppTheme.redColor),
-            ),
-          ),
-        ],
+      builder: (_) => CustomConfirmDialog(
+        title: 'حذف السطر',
+        message: 'هل تريد حذف هذا السطر من القيد؟',
+        confirmLabel: 'حذف',
+        isDanger: true,
+        onConfirm: () {
+          setState(() {
+            _entries.removeWhere((e) => e.id == entry.id);
+          });
+          AppToast.showSuccess(context, 'تم حذف السطر');
+        },
       ),
     );
   }
 
   void _showToast(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 12),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: AppTheme.greenColor,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    AppToast.showSuccess(context, message);
   }
 
   domain.JournalEntryEntity _buildDomainEntry(JournalTotals totals) {
@@ -218,12 +196,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   void _saveJournal() {
     final totals = _calculateTotals();
     if (!totals.isBalanced) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('برجاء موازنة القيد قبل الحفظ!'),
-          backgroundColor: AppTheme.redColor,
-        ),
-      );
+      AppToast.showError(context, 'برجاء موازنة القيد قبل الحفظ!');
       return;
     }
 
@@ -231,23 +204,14 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
 
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('تأكيد الحفظ'),
-        content: const Text('هل تريد حفظ القيد المحاسبي؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              setState(() => _isSaving = true);
-              context.read<JournalEntryCubit>().saveEntry(entity);
-            },
-            child: const Text('حفظ'),
-          ),
-        ],
+      builder: (_) => CustomConfirmDialog(
+        title: 'تأكيد الحفظ',
+        message: 'هل تريد حفظ القيد المحاسبي؟',
+        confirmLabel: 'حفظ',
+        onConfirm: () {
+          setState(() => _isSaving = true);
+          context.read<JournalEntryCubit>().saveEntry(entity);
+        },
       ),
     );
   }
@@ -268,26 +232,15 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   void _clearAll() {
     showDialog(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('تأكيد المسح'),
-        content: const Text('هل تريد مسح جميع تفاصيل القيد الحالية؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _resetForm();
-              _showToast('تمت إعادة تعيين تفاصيل القيد');
-            },
-            child: const Text(
-              'مسح الكل',
-              style: TextStyle(color: AppTheme.redColor),
-            ),
-          ),
-        ],
+      builder: (_) => CustomConfirmDialog(
+        title: 'تأكيد المسح',
+        message: 'هل تريد مسح جميع تفاصيل القيد الحالية؟',
+        confirmLabel: 'مسح الكل',
+        isDanger: true,
+        onConfirm: () {
+          _resetForm();
+          _showToast('تمت إعادة تعيين تفاصيل القيد');
+        },
       ),
     );
   }
@@ -308,12 +261,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
             _resetForm();
           } else if (state is JournalEntryFailure) {
             setState(() => _isSaving = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppTheme.redColor,
-              ),
-            );
+            AppToast.showError(context, state.message);
           } else if (state is JournalEntryFormDataLoaded) {
             setState(() {
               _accounts = state.accounts;

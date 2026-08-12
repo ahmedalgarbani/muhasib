@@ -50,7 +50,9 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl30)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.xl30),
+        ),
       ),
       child: Column(
         children: [
@@ -87,47 +89,18 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
                 const SizedBox(height: 8),
                 _buildTypeSelector(),
                 const SizedBox(height: 24),
-                const Text(
-                  'قيمة الرصيد',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _amountController,
-                  keyboardType: TextInputType.number,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
-                  decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.calculate_outlined),
-                    hintText: '0.00',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
-                    ),
-                  ),
+                TextInputField(
+                  label: 'قيمة الرصيد',
+                  textEditingController: _amountController,
+                  inputType: TextInputType.number,
+                  prefixIcon: const Icon(Icons.calculate_outlined),
+                  hint: '0.00',
                 ),
                 const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 60,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                      ),
-                    ),
-                    onPressed: _submit,
-                    child: const Text(
-                      'إضافة للجدول',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
+                HasibButton(
+                  label: 'إضافة للجدول',
+                  onPressed: _submit,
+                  variant: HasibButtonVariant.primary,
                 ),
               ],
             ),
@@ -258,7 +231,9 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector> {
         height: MediaQuery.of(context).size.height * 0.8,
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl30)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.xl30),
+          ),
         ),
         child: Column(
           children: [

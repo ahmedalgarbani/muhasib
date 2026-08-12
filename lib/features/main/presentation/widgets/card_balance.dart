@@ -5,10 +5,10 @@ class CardBalance extends StatelessWidget {
   final bool showBalance;
 
   const CardBalance({
-    Key? key,
+    super.key,
     required this.balance,
     required this.showBalance,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
@@ -14,42 +15,24 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 class QuotationDetailPage extends StatelessWidget {
   final InvoiceEntity quotation;
 
-  const QuotationDetailPage({
-    Key? key,
-    required this.quotation,
-  }) : super(key: key);
+  const QuotationDetailPage({super.key, required this.quotation});
 
   @override
   Widget build(BuildContext context) {
-    final isConverted = quotation.nextInvoiceId != null && quotation.nextInvoiceId! > 0;
+    final isConverted =
+        quotation.nextInvoiceId != null && quotation.nextInvoiceId! > 0;
     final status = isConverted ? InvoiceStatus.converted : InvoiceStatus.open;
 
     return BlocListener<SalesCubit, SalesState>(
       listener: (context, state) {
         if (state is QuotationConverted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('تم تحويل عرض السعر إلى فاتورة مبيعات بنجاح'),
-              backgroundColor: Colors.green,
-              action: SnackBarAction(
-                label: 'عرض الفاتورة',
-                textColor: Colors.white,
-                onPressed: () {
-                  // Navigate to the new invoice
-                  // You can implement navigation to invoice detail page here
-                },
-              ),
-            ),
+          AppToast.showSuccess(
+            context,
+            'تم تحويل عرض السعر إلى فاتورة مبيعات بنجاح',
           );
-          // Pop back to the list after successful conversion
           Navigator.of(context).pop();
         } else if (state is SalesError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('خطأ: ${state.message}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          AppToast.showError(context, state.message);
         }
       },
       child: Scaffold(
@@ -93,9 +76,7 @@ class QuotationDetailPage extends StatelessWidget {
             ],
           ),
         ),
-        bottomNavigationBar: !isConverted
-            ? _buildBottomActions(context)
-            : null,
+        bottomNavigationBar: !isConverted ? _buildBottomActions(context) : null,
       ),
     );
   }
@@ -137,7 +118,10 @@ class QuotationDetailPage extends StatelessWidget {
                   ],
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: status == InvoiceStatus.converted
                         ? AppColors.purple100
@@ -288,16 +272,15 @@ class QuotationDetailPage extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'الكمية: ${line.quantity} × ${_formatCurrency(line.unitPrice ?? 0)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
           ),
         ),
         Text(
-          _formatCurrency(line.totalPrice ?? (line.quantity * (line.unitPrice ?? 0))),
+          _formatCurrency(
+            line.totalPrice ?? (line.quantity * (line.unitPrice ?? 0)),
+          ),
           style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
@@ -320,7 +303,8 @@ class QuotationDetailPage extends StatelessWidget {
         child: Column(
           children: [
             _buildTotalRow('المجموع الفرعي', quotation.amount),
-            if (quotation.discountAmt != null && quotation.discountAmt! > 0) ...[
+            if (quotation.discountAmt != null &&
+                quotation.discountAmt! > 0) ...[
               const SizedBox(height: 12),
               _buildTotalRow('الخصم', quotation.discountAmt!, isDiscount: true),
             ],
@@ -355,7 +339,11 @@ class QuotationDetailPage extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.check_circle, color: AppColors.violet500, size: 24),
+                const Icon(
+                  Icons.check_circle,
+                  color: AppColors.violet500,
+                  size: 24,
+                ),
                 const SizedBox(width: 12),
                 const Text(
                   'تم تحويل العرض',
@@ -370,10 +358,7 @@ class QuotationDetailPage extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'تم تحويل هذا العرض إلى فاتورة مبيعات رقم: ${quotation.nextInvoiceNumber}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.purple800,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.purple800),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
@@ -403,10 +388,7 @@ class QuotationDetailPage extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 2),
             Text(
@@ -423,7 +405,12 @@ class QuotationDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildTotalRow(String label, double amount, {bool isDiscount = false, bool isFinal = false}) {
+  Widget _buildTotalRow(
+    String label,
+    double amount, {
+    bool isDiscount = false,
+    bool isFinal = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -443,8 +430,8 @@ class QuotationDetailPage extends StatelessWidget {
             color: isFinal
                 ? AppColors.primary
                 : isDiscount
-                    ? AppColors.error
-                    : AppColors.gray900,
+                ? AppColors.error
+                : AppColors.gray900,
           ),
         ),
       ],
@@ -515,7 +502,11 @@ class QuotationDetailPage extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.blue.shade700,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
@@ -536,11 +527,12 @@ class QuotationDetailPage extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(dialogContext);
-              
+
               // Generate proper invoice number with timestamp
               final now = DateTime.now();
-              final invoiceNumber = 'INV-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch % 10000}';
-              
+              final invoiceNumber =
+                  'INV-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch % 10000}';
+
               // Create the sales invoice with all necessary data
               final salesInvoice = quotation.copyWith(
                 id: null, // Clear ID so a new one is generated
@@ -554,19 +546,17 @@ class QuotationDetailPage extends StatelessWidget {
                 nextInvoiceType: null,
                 nextInvoiceNumber: null,
               );
-              
+
               // Trigger the conversion
               context.read<SalesCubit>().convertQuotation(
                 quotation.id!,
                 salesInvoice,
               );
-              
+
               // Don't pop here, let the BlocListener handle navigation
             },
             icon: const Icon(Icons.check),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             label: const Text('تأكيد التحويل'),
           ),
         ],

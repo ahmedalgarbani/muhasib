@@ -4,6 +4,7 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -46,7 +47,7 @@ class _CashFlowReportPageState extends State<CashFlowReportPage> {
   Future<void> _exportExcel() async {
     if (_lastResult == null) return;
     final path = await ExportService.exportToExcel(fileName: 'cash_flow', headers: ['النشاط', 'صافي القيمة'], data: [['التشغيلية', _lastResult!.totalOperating.toStringAsFixed(2)], ['الاستثمارية', _lastResult!.totalInvesting.toStringAsFixed(2)], ['التمويلية', _lastResult!.totalFinancing.toStringAsFixed(2)], ['الصافي العام', _lastResult!.netCashFlow.toStringAsFixed(2)]]);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تصدير Excel: $path')));
+    AppToast.showSuccess(context, 'تم تصدير Excel: $path');
   }
 }
 
@@ -149,8 +150,9 @@ class _CashFlowContent extends StatelessWidget {
     for (final r in rows) {
       final n = (r['net'] as num).toDouble();
       final type = r['reference_type'] as String? ?? '';
-      if (type.contains('sale') || type.contains('purchase') || type.contains('receipt') || type.contains('payment')) op += n;
-      else if (type.contains('asset') || type.contains('investment')) inv += n;
+      if (type.contains('sale') || type.contains('purchase') || type.contains('receipt') || type.contains('payment')) {
+        op += n;
+      } else if (type.contains('asset') || type.contains('investment')) inv += n;
       else if (type.contains('loan') || type.contains('capital')) fin += n;
       else op += n;
     }

@@ -16,7 +16,7 @@ class MainCardAccount extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const MainCardAccount({
-    Key? key,
+    super.key,
     required this.account,
     required this.backgroundColor,
     required this.borderColor,
@@ -24,7 +24,7 @@ class MainCardAccount extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

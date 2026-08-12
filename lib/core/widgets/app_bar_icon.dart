@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 class AppBarIcon extends StatelessWidget {
   final IconData icon;
 
-  const AppBarIcon({Key? key, required this.icon}) : super(key: key);
+  const AppBarIcon({super.key, required this.icon});
 
   @override
   Widget build(BuildContext context) {

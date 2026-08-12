@@ -4,6 +4,11 @@ import 'package:muhasib/core/constant/account_constants.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/widgets/custom_switch_tile.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 
 class AccountFormPage extends StatefulWidget {
   final AccountEntity? account;
@@ -76,28 +81,13 @@ class _AccountFormPageState extends State<AccountFormPage> {
       body: BlocListener<AccountsCubit, AccountsState>(
         listener: (context, state) {
           if (state is AccountCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم إنشاء الحساب بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppToast.showSuccess(context, 'تم إنشاء الحساب بنجاح');
             Navigator.pop(context);
           } else if (state is AccountUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم تحديث الحساب بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppToast.showSuccess(context, 'تم تحديث الحساب بنجاح');
             Navigator.pop(context);
           } else if (state is AccountsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+            AppToast.showError(context, state.message);
           }
         },
         child: SingleChildScrollView(
@@ -107,13 +97,11 @@ class _AccountFormPageState extends State<AccountFormPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _cIdController,
-                  decoration: const InputDecoration(
-                    labelText: 'معرف الحساب (C_ID)',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
+                TextInputField(
+                  label: 'معرف الحساب (C_ID)',
+                  textEditingController: _cIdController,
+                  inputType: TextInputType.number,
+                  isRequired: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'الرجاء إدخال معرف الحساب';
@@ -125,12 +113,10 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _codeController,
-                  decoration: const InputDecoration(
-                    labelText: 'كود الحساب',
-                    border: OutlineInputBorder(),
-                  ),
+                TextInputField(
+                  label: 'كود الحساب',
+                  textEditingController: _codeController,
+                  isRequired: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'الرجاء إدخال كود الحساب';
@@ -139,12 +125,10 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم الحساب',
-                    border: OutlineInputBorder(),
-                  ),
+                TextInputField(
+                  label: 'اسم الحساب',
+                  textEditingController: _nameController,
+                  isRequired: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'الرجاء إدخال اسم الحساب';
@@ -153,12 +137,9 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
+                CustomDropdownField<int>(
+                  label: 'نوع الحساب',
                   value: _type,
-                  decoration: const InputDecoration(
-                    labelText: 'نوع الحساب',
-                    border: OutlineInputBorder(),
-                  ),
                   items: AccountConstants.accountTypes
                       .map((e) => DropdownMenuItem(
                             value: e['id'] as int,
@@ -166,18 +147,15 @@ class _AccountFormPageState extends State<AccountFormPage> {
                           ))
                       .toList(),
                   onChanged: (value) {
-                    setState(() {
-                      _type = value!;
-                    });
+                    if (value != null) {
+                      setState(() => _type = value);
+                    }
                   },
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
+                CustomDropdownField<int>(
+                  label: 'التصنيف الوطني',
                   value: _national,
-                  decoration: const InputDecoration(
-                    labelText: 'التصنيف الوطني',
-                    border: OutlineInputBorder(),
-                  ),
                   items: AccountConstants.classificationTypes
                       .map((e) => DropdownMenuItem(
                             value: e['id'] as int,
@@ -185,28 +163,23 @@ class _AccountFormPageState extends State<AccountFormPage> {
                           ))
                       .toList(),
                   onChanged: (value) {
-                    setState(() {
-                      _national = value!;
-                    });
+                    if (value != null) {
+                      setState(() => _national = value);
+                    }
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _statementController,
-                  decoration: const InputDecoration(
-                    labelText: 'البيان',
-                    border: OutlineInputBorder(),
-                  ),
+                TextInputField(
+                  label: 'البيان',
+                  textEditingController: _statementController,
                   maxLines: 3,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _balanceController,
-                  decoration: const InputDecoration(
-                    labelText: 'الرصيد',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
+                TextInputField(
+                  label: 'الرصيد',
+                  textEditingController: _balanceController,
+                  inputType: TextInputType.number,
+                  isRequired: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'الرجاء إدخال الرصيد';
@@ -218,13 +191,11 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
-                  controller: _localBalanceController,
-                  decoration: const InputDecoration(
-                    labelText: 'الرصيد المحلي',
-                    border: OutlineInputBorder(),
-                  ),
-                  keyboardType: TextInputType.number,
+                TextInputField(
+                  label: 'الرصيد المحلي',
+                  textEditingController: _localBalanceController,
+                  inputType: TextInputType.number,
+                  isRequired: true,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'الرجاء إدخال الرصيد المحلي';
@@ -236,55 +207,31 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   },
                 ),
                 const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text('حساب رئيسي'),
-                  subtitle: const Text(
-                    'يمكن إضافة حسابات فرعية تحت هذا الحساب',
-                    style: TextStyle(fontSize: 12),
-                  ),
+                CustomSwitchTile(
+                  title: 'حساب رئيسي',
+                  subtitle: 'يمكن إضافة حسابات فرعية تحت هذا الحساب',
                   value: _isMaster,
-                  onChanged: (value) {
-                    setState(() {
-                      _isMaster = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _isMaster = value),
                 ),
-                SwitchListTile(
-                  title: const Text('نشط'),
+                CustomSwitchTile(
+                  title: 'نشط',
                   value: _isActive,
-                  onChanged: (value) {
-                    setState(() {
-                      _isActive = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _isActive = value),
                 ),
-                SwitchListTile(
-                  title: const Text('السماح بالتعديل والحذف'),
+                CustomSwitchTile(
+                  title: 'السماح بالتعديل والحذف',
                   value: _allowUpdateDelete,
-                  onChanged: (value) {
-                    setState(() {
-                      _allowUpdateDelete = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _allowUpdateDelete = value),
                 ),
                 const SizedBox(height: 24),
                 BlocBuilder<AccountsCubit, AccountsState>(
                   builder: (context, state) {
-                    return ElevatedButton(
-                      onPressed: state is AccountsLoading
-                          ? null
-                          : () => _submitForm(context),
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: state is AccountsLoading
-                          ? const CircularProgressIndicator()
-                          : Text(
-                              widget.account == null
-                                  ? 'إضافة الحساب'
-                                  : 'تحديث الحساب',
-                              style: const TextStyle(fontSize: 16),
-                            ),
+                    final loading = state is AccountsLoading;
+                    return HasibButton(
+                      label: widget.account == null ? 'إضافة الحساب' : 'تحديث الحساب',
+                      loading: loading,
+                      onPressed: loading ? null : () => _submitForm(context),
+                      variant: HasibButtonVariant.primary,
                     );
                   },
                 ),

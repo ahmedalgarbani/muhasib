@@ -29,13 +29,18 @@ class AppRoutes {
   static const String currencies = '/currencies';
   static const String currenciesManage = '/currencies/manage';
   static const String currenciesExchange = '/currencies/exchange';
+  static const String currenciesRevaluation = '/currencies/revaluation';
 
   // ======= المبيعات =======
   static const String sales = '/sales';
   static const String salesAddInvoice = '/sales/add-invoice';
+  static const String salesImprovedInvoice = '/sales/improved-invoice';
   static const String salesList = '/sales/list';
   static const String salesQuotes = '/sales/quotes';
   static const String salesReturns = '/sales/returns';
+  static const String salesReturnsForm = '/sales-returns-form';
+  static const String selectInvoiceForReturn =
+      '/sales/select-invoice-for-return';
 
   // ======= المشتريات =======
   static const String purchases = '/purchases';
@@ -67,7 +72,7 @@ class AppRoutes {
   static const String settingsCashboxes = '/settings/cashboxes';
   static const String settingsOtherFees = '/settings/other-fees';
   static const String settingsRegions = '/settings/regions';
-  
+
   // ======= إعدادات النظام =======
   static const String settingsPersonal = '/settings/personal';
   static const String settingsPrint = '/settings/print';
@@ -83,7 +88,7 @@ class AppRoutes {
   static const String reportsTransactions = '/reports/transactions';
   static const String reportsAccountStatement = '/reports/account-statement';
   static const String reportsMore = '/reports/more';
-  
+
   // تقارير المحاسبة
   static const String reportsTrialBalance = '/reports/trial-balance';
   static const String reportsIncomeStatement = '/reports/income-statement';
@@ -91,7 +96,7 @@ class AppRoutes {
   static const String reportsCashFlow = '/reports/cash-flow';
   static const String reportsGeneralLedger = '/reports/general-ledger';
   static const String reportsJournal = '/reports/journal';
-  
+
   // تقارير المبيعات
   static const String reportsSalesSummary = '/reports/sales-summary';
   static const String reportsSalesByCustomer = '/reports/sales-by-customer';
@@ -100,19 +105,20 @@ class AppRoutes {
   static const String reportsInvoices = '/reports/invoices';
   static const String reportsQuotations = '/reports/quotations';
   static const String reportsSalesReturns = '/reports/sales-returns';
-  
+
   // تقارير المشتريات
   static const String reportsPurchaseSummary = '/reports/purchase-summary';
-  static const String reportsPurchaseBySupplier = '/reports/purchase-by-supplier';
+  static const String reportsPurchaseBySupplier =
+      '/reports/purchase-by-supplier';
   static const String reportsPurchaseByProduct = '/reports/purchase-by-product';
   static const String reportsPurchaseReturns = '/reports/purchase-returns';
-  
+
   // تقارير المخزون
   static const String reportsStock = '/reports/stock';
   static const String reportsStockMovement = '/reports/stock-movement';
   static const String reportsLowStock = '/reports/low-stock';
   static const String reportsStockValuation = '/reports/stock-valuation';
-  
+
   // تقارير العملاء والموردين
   static const String reportsCustomerStatement = '/reports/customer-statement';
   static const String reportsCustomerBalances = '/reports/customer-balances';

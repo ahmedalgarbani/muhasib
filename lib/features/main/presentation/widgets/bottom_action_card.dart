@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class BottomActionCard extends StatelessWidget {
-  const BottomActionCard({Key? key}) : super(key: key);
+  const BottomActionCard({super.key});
 
   @override
   Widget build(BuildContext context) {

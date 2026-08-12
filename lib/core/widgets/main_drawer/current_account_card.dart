@@ -3,7 +3,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_tree_view.dart';
 
 class CurrentAccountCard extends StatelessWidget {
-  const CurrentAccountCard({Key? key}) : super(key: key);
+  const CurrentAccountCard({super.key});
 
   @override
   Widget build(BuildContext context) {

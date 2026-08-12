@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/route/safe_pop.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/app_bar_icon.dart';
 import 'package:muhasib/core/widgets/app_drawer_controller.dart';
@@ -19,13 +20,13 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PreferredSizeWidget? bottom;
 
   const CustomAppBar({
-    Key? key,
+    super.key,
     this.onMenuPressed,
     this.showBack = false,
     this.title,
     this.actions,
     this.bottom,
-  }) : super(key: key);
+  });
 
   @override
   Size get preferredSize => Size.fromHeight(
@@ -42,7 +43,7 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
     if (showBack) {
       return IconButton(
         icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
-        onPressed: () => Navigator.of(context).maybePop(),
+        onPressed: () => context.safePop(),
       );
     }
     return IconButton(

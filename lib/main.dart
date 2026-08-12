@@ -5,7 +5,6 @@ import 'package:muhasib/core/helpers/cubit/theme_cubit.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/helpers/responsive_text.dart';
 import 'package:muhasib/core/route/app_router.dart';
-import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/widgets/root_shell.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
@@ -25,7 +24,6 @@ import 'package:muhasib/features/setting/presentation/cubit/setting_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/stores_cubit.dart';
 
-import 'package:muhasib/features/main/presentation/pages/home_page_view.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -84,7 +82,7 @@ void main() async {
 }
 
 class MohasebFinanceApp extends StatelessWidget {
-  const MohasebFinanceApp({Key? key}) : super(key: key);
+  const MohasebFinanceApp({super.key});
 
   @override
   Widget build(BuildContext context) {

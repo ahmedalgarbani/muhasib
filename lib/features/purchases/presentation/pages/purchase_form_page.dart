@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/widgets/add_line_dialog.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
@@ -23,10 +25,10 @@ class PurchaseFormPage extends StatefulWidget {
   final int invoiceType;
 
   const PurchaseFormPage({
-    Key? key,
+    super.key,
     this.invoice,
     this.invoiceType = 2,
-  }) : super(key: key);
+  });
 
   @override
   State<PurchaseFormPage> createState() => _PurchaseFormPageState();

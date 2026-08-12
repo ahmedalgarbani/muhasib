@@ -12,13 +12,13 @@ class ProductUnitSelector extends StatefulWidget {
   final int? initialUnitId;
 
   const ProductUnitSelector({
-    Key? key,
+    super.key,
     required this.productId,
     required this.quantity,
     required this.unitConversionService,
     required this.onUnitSelected,
     this.initialUnitId,
-  }) : super(key: key);
+  });
 
   @override
   State<ProductUnitSelector> createState() => _ProductUnitSelectorState();
@@ -134,7 +134,7 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
     }
     
     return DropdownButtonFormField<ProductUnitOption>(
-      value: _selectedUnit,
+      initialValue: _selectedUnit,
       decoration: InputDecoration(
         labelText: 'الوحدة',
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),

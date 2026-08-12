@@ -4,7 +4,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 class CardButton extends StatelessWidget {
   final String label;
 
-  const CardButton({Key? key, required this.label}) : super(key: key);
+  const CardButton({super.key, required this.label});
 
   @override
   Widget build(BuildContext context) {

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class AddEntryDialog extends StatefulWidget {
-  const AddEntryDialog({Key? key}) : super(key: key);
+  const AddEntryDialog({super.key});
 
   @override
   State<AddEntryDialog> createState() => _AddEntryDialogState();
@@ -33,7 +35,9 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 600, maxHeight: 700),
           child: Column(
@@ -149,7 +153,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        TextFormField(
+                        TextInputField(
                           enabled: false,
                           decoration: InputDecoration(
                             hintText: 'يتم إنشاؤه تلقائياً',
@@ -190,7 +194,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        TextFormField(
+                        TextInputField(
                           controller: descriptionController,
                           maxLines: 3,
                           decoration: InputDecoration(
@@ -231,7 +235,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         ),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
-                          value: selectedDebitAccount,
+                          initialValue: selectedDebitAccount,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -284,7 +288,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        TextFormField(
+                        TextInputField(
                           controller: debitAmountController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -325,7 +329,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         ),
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
-                          value: selectedCreditAccount,
+                          initialValue: selectedCreditAccount,
                           decoration: InputDecoration(
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -378,7 +382,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        TextFormField(
+                        TextInputField(
                           controller: creditAmountController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
@@ -415,11 +419,9 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                               child: ElevatedButton(
                                 onPressed: () {
                                   if (_formKey.currentState!.validate()) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('تم حفظ القيد بنجاح!'),
-                                        backgroundColor: Colors.green,
-                                      ),
+                                    AppToast.showSuccess(
+                                      context,
+                                      'تم حفظ القيد بنجاح!',
                                     );
                                     Navigator.pop(context);
                                   }
@@ -431,7 +433,9 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                     vertical: 16,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
                                   ),
                                 ),
                                 child: const Text(
@@ -454,7 +458,9 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                     vertical: 16,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
                                   ),
                                 ),
                                 child: const Text(

@@ -4,7 +4,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 class CardHeader extends StatelessWidget {
   final String title;
 
-  const CardHeader({Key? key, required this.title}) : super(key: key);
+  const CardHeader({super.key, required this.title});
 
   @override
   Widget build(BuildContext context) {

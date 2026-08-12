@@ -4,11 +4,12 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/domain/entities/product_group_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
 
 class ProductGroupsPage extends StatefulWidget {
-  const ProductGroupsPage({Key? key}) : super(key: key);
+  const ProductGroupsPage({super.key});
 
   @override
   State<ProductGroupsPage> createState() => _ProductGroupsPageState();
@@ -290,9 +291,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
             ElevatedButton(
               onPressed: () {
                 if (nameController.text.trim().isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('الرجاء إدخال اسم المجموعة')),
-                  );
+                  AppToast.showError(context, 'الرجاء إدخال اسم المجموعة');
                   return;
                 }
                 

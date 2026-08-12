@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -43,7 +42,7 @@ class _GeneralLedgerReportPageState extends State<GeneralLedgerReportPage> {
   Future<void> _exportExcel() async {
     if (_lastResult == null) return;
     final path = await ExportService.exportToExcel(fileName: 'general_ledger', headers: ['كود', 'اسم الحساب', 'إجمالي مدين', 'إجمالي دائن', 'الرصيد'], data: _lastResult!.accounts.map((a) => [a.code, a.name, a.totalDebit.toStringAsFixed(2), a.totalCredit.toStringAsFixed(2), a.balance.toStringAsFixed(2)]).toList());
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تصدير Excel: $path')));
+    AppToast.showSuccess(context, 'تم تصدير Excel: $path');
   }
 }
 

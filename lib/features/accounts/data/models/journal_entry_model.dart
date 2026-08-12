@@ -3,36 +3,21 @@ import 'journal_entry_line_model.dart';
 
 class JournalEntryModel extends JournalEntryEntity {
   const JournalEntryModel({
-    int? id,
-    required String number,
-    required DateTime entryDate,
-    String? description,
-    String? referenceNumber,
-    String? referenceType,
-    int? referenceId,
-    String? notes,
-    int status = 0,
-    bool isPosted = false,
-    required double totalDebit,
-    required double totalCredit,
-    required double difference,
-    List<JournalEntryLineEntity> lines = const [],
-  }) : super(
-          id: id,
-          number: number,
-          entryDate: entryDate,
-          description: description,
-          referenceNumber: referenceNumber,
-          referenceType: referenceType,
-          referenceId: referenceId,
-          notes: notes,
-          status: status,
-          isPosted: isPosted,
-          totalDebit: totalDebit,
-          totalCredit: totalCredit,
-          difference: difference,
-          lines: lines,
-        );
+    super.id,
+    required super.number,
+    required super.entryDate,
+    super.description,
+    super.referenceNumber,
+    super.referenceType,
+    super.referenceId,
+    super.notes,
+    super.status,
+    super.isPosted,
+    required super.totalDebit,
+    required super.totalCredit,
+    required super.difference,
+    super.lines,
+  });
 
   factory JournalEntryModel.fromJson(
     Map<String, dynamic> json, {

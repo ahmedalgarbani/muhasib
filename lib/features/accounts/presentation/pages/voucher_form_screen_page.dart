@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/vouchers_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
@@ -16,7 +16,6 @@ import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 
 
@@ -26,7 +25,7 @@ part 'voucher_form_screen_widgets.dart';
 // ==================== FILE 11: screens/voucher_form_screen.dart ====================
 
 class VoucherFormScreen extends StatefulWidget {
-  const VoucherFormScreen({Key? key}) : super(key: key);
+  const VoucherFormScreen({super.key});
 
   @override
   State<VoucherFormScreen> createState() => _VoucherFormScreenState();
@@ -99,21 +98,13 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             setState(() => _isSaving = true);
           } else if (state is VoucherActionSuccess) {
             setState(() => _isSaving = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
-            );
+           
+            AppToast.showSuccess(context,state.message);
             Navigator.pop(context);
           } else if (state is VouchersFailure) {
             setState(() => _isSaving = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+           
+            AppToast.showError(context, state.message);
           } else if (state is VoucherNumberGenerated) {
             _numberController.text = state.number.toString();
           }
@@ -564,30 +555,22 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
 
   void _handleSave(BuildContext context) {
     if (_numberController.text.isEmpty || _dateController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى ملء الحقول المطلوبة')));
+      AppToast.showError(context, 'يرجى ملء الحقول المطلوبة');
       return;
     }
 
     if (_selectedAccount == null) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الحساب')));
+      AppToast.showError(context, 'يرجى اختيار الحساب');
       return;
     }
 
     if (_selectedBoxBank == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار الصندوق أو البنك')),
-      );
+      AppToast.showError(context, 'يرجى اختيار الصندوق أو البنك');
       return;
     }
 
     if (_amountController.text.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('يرجى إدخال المبلغ')));
+      AppToast.showError(context, 'يرجى إدخال المبلغ');
       return;
     }
 

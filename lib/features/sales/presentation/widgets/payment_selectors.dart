@@ -15,12 +15,12 @@ class BankSelectorDropdown extends StatelessWidget {
   final bool isRequired;
 
   const BankSelectorDropdown({
-    Key? key,
+    super.key,
     this.selectedBank,
     required this.onChanged,
     this.labelText = 'البنك',
     this.isRequired = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -46,7 +46,7 @@ class BankSelectorDropdown extends StatelessWidget {
           }
 
           return DropdownButtonFormField<BankEntity>(
-            value: selectedBank,
+            initialValue: selectedBank,
             decoration: InputDecoration(
               labelText: labelText,
               prefixIcon: const Icon(Icons.account_balance),
@@ -88,7 +88,7 @@ class BankSelectorDropdown extends StatelessWidget {
 
   Widget _buildLoadingDropdown() {
     return DropdownButtonFormField<BankEntity>(
-      value: null,
+      initialValue: null,
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: const SizedBox(
@@ -109,7 +109,7 @@ class BankSelectorDropdown extends StatelessWidget {
 
   Widget _buildEmptyDropdown(BuildContext context) {
     return DropdownButtonFormField<BankEntity>(
-      value: null,
+      initialValue: null,
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: const Icon(Icons.account_balance),
@@ -135,12 +135,12 @@ class CashboxSelectorDropdown extends StatelessWidget {
   final bool isRequired;
 
   const CashboxSelectorDropdown({
-    Key? key,
+    super.key,
     this.selectedCashbox,
     required this.onChanged,
     this.labelText = 'الصندوق',
     this.isRequired = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -166,7 +166,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
           }
 
           return DropdownButtonFormField<CashboxEntity>(
-            value: selectedCashbox,
+            initialValue: selectedCashbox,
             decoration: InputDecoration(
               labelText: labelText,
               prefixIcon: const Icon(Icons.account_balance_wallet),
@@ -201,7 +201,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
 
   Widget _buildLoadingDropdown() {
     return DropdownButtonFormField<CashboxEntity>(
-      value: null,
+      initialValue: null,
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: const SizedBox(
@@ -222,7 +222,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
 
   Widget _buildEmptyDropdown(BuildContext context) {
     return DropdownButtonFormField<CashboxEntity>(
-      value: null,
+      initialValue: null,
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: const Icon(Icons.account_balance_wallet),

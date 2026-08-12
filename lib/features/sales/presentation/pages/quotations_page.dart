@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -15,7 +16,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class QuotationsPage extends StatefulWidget {
-  const QuotationsPage({Key? key}) : super(key: key);
+  const QuotationsPage({super.key});
 
   @override
   State<QuotationsPage> createState() => _QuotationsPageState();
@@ -51,8 +52,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
     return Scaffold(
       key: _scaffoldKey,
       backgroundColor: AppColors.gray50,
-      appBar: CustomAppBar(
-      ),
+      appBar: CustomAppBar(),
       body: Column(
         children: [
           _buildHeader(),
@@ -61,18 +61,11 @@ class _QuotationsPageState extends State<QuotationsPage> {
             child: BlocConsumer<SalesCubit, SalesState>(
               listener: (context, state) {
                 if (state is SalesError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  AppToast.showError(context, state.message);
                 } else if (state is QuotationConverted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم تحويل عرض السعر إلى فاتورة بنجاح'),
-                      backgroundColor: Colors.green,
-                    ),
+                  AppToast.showSuccess(
+                    context,
+                    'تم تحويل عرض السعر إلى فاتورة بنجاح',
                   );
                   _loadQuotations();
                 }
@@ -104,7 +97,9 @@ class _QuotationsPageState extends State<QuotationsPage> {
                   BlocProvider(create: (_) => getIt<CustomersCubit>()),
                   BlocProvider(create: (_) => getIt<ProductsCubit>()),
                 ],
-                child: const SalesInvoiceScreen(invoiceType: InvoiceType.quotation),
+                child: const SalesInvoiceScreen(
+                  invoiceType: InvoiceType.quotation,
+                ),
               ),
             ),
           );
@@ -120,9 +115,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.grey.shade200),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -145,7 +138,10 @@ class _QuotationsPageState extends State<QuotationsPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm),
-                  borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                  borderSide: const BorderSide(
+                    color: AppColors.primary,
+                    width: 2,
+                  ),
                 ),
               ),
               onChanged: (value) {
@@ -228,9 +224,10 @@ class _QuotationsPageState extends State<QuotationsPage> {
   }
 
   Widget _buildQuotationCard(InvoiceEntity quotation) {
-    final isConverted = quotation.nextInvoiceId != null && quotation.nextInvoiceId! > 0;
+    final isConverted =
+        quotation.nextInvoiceId != null && quotation.nextInvoiceId! > 0;
     final status = isConverted ? InvoiceStatus.converted : InvoiceStatus.open;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -261,7 +258,9 @@ class _QuotationsPageState extends State<QuotationsPage> {
                             Icon(
                               InvoiceTypeUI.getIcon(InvoiceType.quotation),
                               size: 20,
-                              color: InvoiceTypeUI.getColor(InvoiceType.quotation),
+                              color: InvoiceTypeUI.getColor(
+                                InvoiceType.quotation,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -291,14 +290,15 @@ class _QuotationsPageState extends State<QuotationsPage> {
               const Divider(height: 24),
               Row(
                 children: [
-                  Icon(Icons.person_outline, size: 16, color: Colors.grey.shade600),
+                  Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: Colors.grey.shade600,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'عميل #${quotation.customerId}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade700,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                   ),
                 ],
               ),
@@ -354,7 +354,11 @@ class _QuotationsPageState extends State<QuotationsPage> {
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.check_circle, color: AppColors.violet500, size: 20),
+                      const Icon(
+                        Icons.check_circle,
+                        color: AppColors.violet500,
+                        size: 20,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -399,10 +403,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
           const SizedBox(height: 8),
           Text(
             'ابدأ بإنشاء عرض سعر جديد',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -437,7 +438,11 @@ class _QuotationsPageState extends State<QuotationsPage> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline, color: Colors.blue.shade700, size: 20),
+                  Icon(
+                    Icons.info_outline,
+                    color: Colors.blue.shade700,
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
@@ -458,11 +463,12 @@ class _QuotationsPageState extends State<QuotationsPage> {
           ElevatedButton.icon(
             onPressed: () {
               Navigator.pop(dialogContext);
-              
+
               // Generate proper invoice number with timestamp
               final now = DateTime.now();
-              final invoiceNumber = 'INV-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch % 10000}';
-              
+              final invoiceNumber =
+                  'INV-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch % 10000}';
+
               // Create sales invoice from quotation
               final salesInvoice = quotation.copyWith(
                 id: null, // Clear ID so a new one is generated
@@ -476,16 +482,14 @@ class _QuotationsPageState extends State<QuotationsPage> {
                 nextInvoiceType: null,
                 nextInvoiceNumber: null,
               );
-              
+
               context.read<SalesCubit>().convertQuotation(
                 quotation.id!,
                 salesInvoice,
               );
             },
             icon: const Icon(Icons.check),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
             label: const Text('تأكيد التحويل'),
           ),
         ],

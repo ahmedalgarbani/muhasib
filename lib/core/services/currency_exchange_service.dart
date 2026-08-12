@@ -1,9 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/core/services/database_service.dart';
-import 'package:muhasib/features/accounts/data/models/journal_entry_line_model.dart';
-import 'package:muhasib/features/accounts/data/models/journal_entry_model.dart';
-import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.dart';
 import 'package:muhasib/features/currencies/data/models/currency_exchange_model.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_exchange_entity.dart';
 import 'package:sqflite/sqflite.dart';

@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/currency_exchange_service.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_exchange_entity.dart';
 import '../cubit/currencies_cubit.dart';
 
 class CurrencyExchangePageV2 extends StatefulWidget {
-  const CurrencyExchangePageV2({Key? key}) : super(key: key);
+  const CurrencyExchangePageV2({super.key});
 
   @override
   State<CurrencyExchangePageV2> createState() => _CurrencyExchangePageV2State();
@@ -66,9 +68,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
   Future<void> _loadTransactions() async {
     final result = await _exchangeService.getAllExchanges();
     result.fold(
-      (failure) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
-      ),
+      (failure) => AppToast.showError(context, failure.message),
       (exchanges) => setState(() => transactions = exchanges),
     );
   }
@@ -76,8 +76,9 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
   void _calculateExchange() {
     if (_amountController.text.isEmpty ||
         fromCurrency == null ||
-        toCurrency == null)
+        toCurrency == null) {
       return;
+    }
 
     final amount = double.tryParse(_amountController.text) ?? 0;
 
@@ -223,7 +224,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
                   flex: 2,
                   child: DropdownButtonFormField<CurrencyEntity>(
                     isExpanded: true,
-                    value: fromCurrency,
+                    initialValue: fromCurrency,
                     decoration: InputDecoration(
                       labelText: 'من العملة (بيع)',
                       prefixIcon: const Icon(
@@ -251,7 +252,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
                 const SizedBox(width: 12),
                 Expanded(
                   flex: 1,
-                  child: TextFormField(
+                  child: TextInputField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
@@ -319,7 +320,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
                   flex: 2,
                   child: DropdownButtonFormField<CurrencyEntity>(
                     isExpanded: true,
-                    value: toCurrency,
+                    initialValue: toCurrency,
                     decoration: InputDecoration(
                       labelText: 'إلى العملة (شراء)',
                       prefixIcon: const Icon(
@@ -347,7 +348,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
                 const SizedBox(width: 12),
                 Expanded(
                   flex: 1,
-                  child: TextFormField(
+                  child: TextInputField(
                     controller: _resultController,
                     readOnly: true,
                     decoration: InputDecoration(
@@ -403,7 +404,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
             ),
             if (useCustomRate) ...[
               const SizedBox(height: 12),
-              TextFormField(
+              TextInputField(
                 controller: _customRateController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
@@ -451,7 +452,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
               isExpanded: true,
-              value: fromAccountId,
+              initialValue: fromAccountId,
               decoration: InputDecoration(
                 labelText: 'حساب العملة المباعة (دائن)',
                 prefixIcon: const Icon(
@@ -474,7 +475,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
               isExpanded: true,
-              value: toAccountId,
+              initialValue: toAccountId,
               decoration: InputDecoration(
                 labelText: 'حساب العملة المشتراة (مدين)',
                 prefixIcon: const Icon(
@@ -497,7 +498,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
               isExpanded: true,
-              value: exchangeDifferenceAccountId,
+              initialValue: exchangeDifferenceAccountId,
               decoration: InputDecoration(
                 labelText: 'حساب فروق الصرف (اختياري)',
                 prefixIcon: const Icon(Icons.swap_horiz, color: AppColors.info),
@@ -657,7 +658,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            TextInputField(
               controller: _notesController,
               maxLines: 2,
               decoration: InputDecoration(
@@ -741,22 +742,12 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
     if (!_formKey.currentState!.validate()) return;
 
     if (fromCurrency == null || toCurrency == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء تحديد العملات'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppToast.showError(context, 'الرجاء تحديد العملات');
       return;
     }
 
     if (fromAccountId == null || toAccountId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء تحديد الحسابات المحاسبية'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppToast.showError(context, 'الرجاء تحديد الحسابات المحاسبية');
       return;
     }
 
@@ -785,17 +776,10 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
 
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
-        );
+        AppToast.showError(context, failure.message);
       },
       (exchange) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('تم حفظ عملية الصرف رقم ${exchange.number} بنجاح'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppToast.showSuccess(context, 'تم حفظ عملية الصرف رقم ${exchange.number} بنجاح');
         _clearForm();
         _loadTransactions();
       },

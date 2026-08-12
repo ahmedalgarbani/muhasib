@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -70,9 +71,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     await cubit.updateSetting('personal_info', updatedInfo);
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ البيانات بنجاح')),
-      );
+      AppToast.showSuccess(context, 'تم حفظ البيانات بنجاح');
     }
   }
 
@@ -94,7 +93,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               children: [
                 // Section: الاسم - العنوان
                 const Padding(
-                  padding: const EdgeInsetsDirectional.only(start: 16, end: 16, top: 8, bottom: 4),
+                  padding: EdgeInsetsDirectional.only(start: 16, end: 16, top: 8, bottom: 4),
                   child: Text(
                     'الاسم - العنوان',
                     style: TextStyle(

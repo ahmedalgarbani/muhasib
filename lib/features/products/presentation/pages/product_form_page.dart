@@ -5,16 +5,19 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
+import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 
 class ProductFormPage extends StatefulWidget {
   final ProductEntity? product;
 
-  const ProductFormPage({Key? key, this.product}) : super(key: key);
+  const ProductFormPage({super.key, this.product});
 
   @override
   State<ProductFormPage> createState() => _ProductFormPageState();
@@ -101,24 +104,15 @@ class _ProductFormPageState extends State<ProductFormPage> {
       child: BlocListener<ProductsCubit, ProductsState>(
         listener: (context, state) {
           if (state is ProductCreated || state is ProductUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  widget.product == null
-                      ? 'تم إضافة المنتج بنجاح'
-                      : 'تم تحديث المنتج بنجاح',
-                ),
-                backgroundColor: Colors.green,
-              ),
+            AppToast.showSuccess(
+              context,
+              widget.product == null
+                  ? 'تم إضافة المنتج بنجاح'
+                  : 'تم تحديث المنتج بنجاح',
             );
             Navigator.pop(context);
           } else if (state is ProductsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('خطأ: ${state.message}'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            AppToast.showError(context, 'خطأ: ${state.message}');
             setState(() => _isLoading = false);
           }
         },
@@ -132,7 +126,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
             body: Form(
               key: _formKey,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 children: [
                   _buildSectionCard(
                     title: 'المعلومات الأساسية',
@@ -182,7 +176,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   _buildSectionCard(
                     title: 'التصنيف',
                     icon: Icons.category,
@@ -191,7 +185,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                         builder: (context, state) {
                           if (state is ProductGroupsLoaded) {
                             return DropdownButtonFormField<int>(
-                              value: _selectedGroupId,
+                              initialValue: _selectedGroupId,
                               decoration: const InputDecoration(
                                 labelText: 'المجموعة',
                                 prefixIcon: Icon(Icons.folder),
@@ -222,7 +216,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                         builder: (context, state) {
                           if (state is ProductUnitsLoaded) {
                             return DropdownButtonFormField<int>(
-                              value: _selectedUnitId,
+                              initialValue: _selectedUnitId,
                               decoration: const InputDecoration(
                                 labelText: 'الوحدة',
                                 prefixIcon: Icon(Icons.straighten),
@@ -255,7 +249,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                               state.warehouses.isNotEmpty) {
                             // Set default warehouse if not selected
                             if (_selectedStockId == null) {
-                              var mainW;
+                              WarehouseEntity? mainW;
                               for (final w in state.warehouses) {
                                 if (w.isMainStock == true) {
                                   mainW = w;
@@ -267,7 +261,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                             }
 
                             return DropdownButtonFormField<int>(
-                              value: _selectedStockId,
+                              initialValue: _selectedStockId,
                               decoration: const InputDecoration(
                                 labelText: 'المخزن *',
                                 prefixIcon: Icon(Icons.store),
@@ -433,7 +427,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
     required List<Widget> children,
   }) {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -443,10 +439,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
               children: [
                 Icon(icon, size: 20, color: AppColors.primary),
                 const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: AppTextStyles.labelLarge,
-                ),
+                Text(title, style: AppTextStyles.labelLarge),
               ],
             ),
             const SizedBox(height: 16),
@@ -466,7 +459,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
     int maxLines = 1,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
+    return TextInputField(
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
@@ -487,12 +480,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
     // Ensure stockId is set
     if (_selectedStockId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('يرجى اختيار المخزن'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppToast.showError(context, 'يرجى اختيار المخزن');
       return;
     }
 

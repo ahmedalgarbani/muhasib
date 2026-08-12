@@ -5,9 +5,9 @@ class AccountCardDivider extends StatelessWidget {
   final Color color;
 
   const AccountCardDivider({
-    Key? key,
+    super.key,
     required this.color,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

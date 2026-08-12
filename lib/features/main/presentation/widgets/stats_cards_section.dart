@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/features/main/presentation/widgets/stats_card.dart';
 
 class StatsCardsSection extends StatelessWidget {
-  const StatsCardsSection({Key? key}) : super(key: key);
+  const StatsCardsSection({super.key});
 
   @override
   Widget build(BuildContext context) {

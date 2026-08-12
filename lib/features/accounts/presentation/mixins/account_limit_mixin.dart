@@ -17,8 +17,9 @@ mixin AccountLimitMixin {
     required List<JournalEntryLineValidation> lines,
     required BuildContext context,
   }) async {
-    if (_limitInterceptor == null)
+    if (_limitInterceptor == null) {
       return true; // No limit checking if not initialized
+    }
 
     final result = await _limitInterceptor!.validateJournalEntry(lines: lines);
 

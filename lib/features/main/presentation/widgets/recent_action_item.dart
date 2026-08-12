@@ -9,13 +9,13 @@ class RecentActionItem extends StatelessWidget {
   final bool isIncome;
 
   const RecentActionItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     required this.amount,
     required this.date,
     required this.isIncome,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

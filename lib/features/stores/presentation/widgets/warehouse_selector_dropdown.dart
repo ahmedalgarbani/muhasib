@@ -29,7 +29,8 @@ class WarehouseSelectorDropdown extends StatefulWidget {
   });
 
   @override
-  State<WarehouseSelectorDropdown> createState() => _WarehouseSelectorDropdownState();
+  State<WarehouseSelectorDropdown> createState() =>
+      _WarehouseSelectorDropdownState();
 }
 
 class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
@@ -50,7 +51,7 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
 
   List<WarehouseEntity> _sortWarehouses(List<WarehouseEntity> warehouses) {
     if (!widget.showMainFirst) return warehouses;
-    
+
     final sorted = List<WarehouseEntity>.from(warehouses);
     sorted.sort((a, b) {
       if (a.isMainStock && !b.isMainStock) return -1;
@@ -77,7 +78,7 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
         }
 
         return DropdownButtonFormField<WarehouseEntity>(
-          value: widget.selectedWarehouse,
+          initialValue: widget.selectedWarehouse,
           decoration: InputDecoration(
             labelText: widget.label ?? 'المخزن',
             hintText: widget.hint ?? 'اختر المخزن',
@@ -105,11 +106,7 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
               child: Row(
                 children: [
                   if (warehouse.isMainStock)
-                    const Icon(
-                      Icons.star,
-                      size: 16,
-                      color: Colors.amber,
-                    ),
+                    const Icon(Icons.star, size: 16, color: Colors.amber),
                   if (warehouse.isMainStock) const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -130,10 +127,7 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
                       ),
                       child: const Text(
                         'غير نشط',
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: Colors.white,
-                        ),
+                        style: TextStyle(fontSize: 10, color: Colors.white),
                       ),
                     ),
                 ],
@@ -166,10 +160,12 @@ class WarehouseSearchableDropdown extends StatefulWidget {
   });
 
   @override
-  State<WarehouseSearchableDropdown> createState() => _WarehouseSearchableDropdownState();
+  State<WarehouseSearchableDropdown> createState() =>
+      _WarehouseSearchableDropdownState();
 }
 
-class _WarehouseSearchableDropdownState extends State<WarehouseSearchableDropdown> {
+class _WarehouseSearchableDropdownState
+    extends State<WarehouseSearchableDropdown> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   OverlayEntry? _overlayEntry;
@@ -217,8 +213,10 @@ class _WarehouseSearchableDropdownState extends State<WarehouseSearchableDropdow
         _filteredWarehouses = _allWarehouses;
       } else {
         _filteredWarehouses = _allWarehouses
-            .where((warehouse) =>
-                warehouse.name.toLowerCase().contains(query.toLowerCase()))
+            .where(
+              (warehouse) =>
+                  warehouse.name.toLowerCase().contains(query.toLowerCase()),
+            )
             .toList();
       }
     });
@@ -259,14 +257,12 @@ class _WarehouseSearchableDropdownState extends State<WarehouseSearchableDropdow
                         : Theme.of(context).colorScheme.primary,
                   ),
                   title: Text(warehouse.name),
-                  subtitle: warehouse.address != null
-                      ? Text(
-                          warehouse.address!,
+                  subtitle: Text(
+                          warehouse.address,
                           style: const TextStyle(fontSize: 12),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                        )
-                      : null,
+                        ),
                   trailing: !warehouse.isActive
                       ? const Chip(
                           label: Text(

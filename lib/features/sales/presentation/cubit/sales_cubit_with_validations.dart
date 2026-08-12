@@ -2,6 +2,7 @@
 /// 
 /// This example shows how to use both validation systems together in a Cubit
 /// to ensure all requirements are met before allowing operations.
+library;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

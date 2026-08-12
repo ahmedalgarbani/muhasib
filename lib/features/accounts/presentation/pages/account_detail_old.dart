@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class AccountTransactionPage extends StatefulWidget {
-  const AccountTransactionPage({Key? key}) : super(key: key);
+  const AccountTransactionPage({super.key});
 
   @override
   State<AccountTransactionPage> createState() => _AccountTransactionPageState();

@@ -2,30 +2,18 @@ import '../../domain/entities/journal_entry_entity.dart';
 
 class JournalEntryLineModel extends JournalEntryLineEntity {
   const JournalEntryLineModel({
-    int? id,
-    int? journalEntryId,
-    required int lineNumber,
-    int? accountId,
-    String? accountCode,
-    required String accountName,
-    int? currencyId,
-    required String currencyCode,
-    required double debit,
-    required double credit,
-    String? notes,
-  }) : super(
-          id: id,
-          journalEntryId: journalEntryId,
-          lineNumber: lineNumber,
-          accountId: accountId,
-          accountCode: accountCode,
-          accountName: accountName,
-          currencyId: currencyId,
-          currencyCode: currencyCode,
-          debit: debit,
-          credit: credit,
-          notes: notes,
-        );
+    super.id,
+    super.journalEntryId,
+    required super.lineNumber,
+    super.accountId,
+    super.accountCode,
+    required super.accountName,
+    super.currencyId,
+    required super.currencyCode,
+    required super.debit,
+    required super.credit,
+    super.notes,
+  });
 
   factory JournalEntryLineModel.fromJson(Map<String, dynamic> json) {
     // journal_entry_lines schema uses debit_amount/credit_amount

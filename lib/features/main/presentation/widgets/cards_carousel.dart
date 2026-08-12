@@ -11,13 +11,13 @@ class CardsCarousel extends StatelessWidget {
   final VoidCallback onToggleBalance;
 
   const CardsCarousel({
-    Key? key,
+    super.key,
     required this.cards,
     required this.showBalance,
     required this.activeIndex,
     required this.onPageChanged,
     required this.onToggleBalance,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

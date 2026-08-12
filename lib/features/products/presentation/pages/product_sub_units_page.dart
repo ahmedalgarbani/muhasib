@@ -5,13 +5,14 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/domain/entities/product_sub_unit_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
 
 class ProductSubUnitsPage extends StatefulWidget {
-  const ProductSubUnitsPage({Key? key}) : super(key: key);
+  const ProductSubUnitsPage({super.key});
 
   @override
   State<ProductSubUnitsPage> createState() => _ProductSubUnitsPageState();
@@ -430,7 +431,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                       builder: (context, productsState) {
                         if (productsState is ProductsLoaded) {
                           return DropdownButtonFormField<int>(
-                            value: selectedProductId,
+                            initialValue: selectedProductId,
                             decoration: const InputDecoration(
                               labelText: 'المنتج',
                               border: OutlineInputBorder(),
@@ -456,7 +457,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                       builder: (context, unitsState) {
                         if (unitsState is ProductUnitsLoaded) {
                           return DropdownButtonFormField<int>(
-                            value: selectedUnitId,
+                            initialValue: selectedUnitId,
                             decoration: const InputDecoration(
                               labelText: 'الوحدة',
                               border: OutlineInputBorder(),
@@ -525,11 +526,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                 ElevatedButton(
                   onPressed: () {
                     if (selectedProductId == null || selectedUnitId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('الرجاء اختيار المنتج والوحدة'),
-                        ),
-                      );
+                      AppToast.showError(context, 'الرجاء اختيار المنتج والوحدة');
                       return;
                     }
 

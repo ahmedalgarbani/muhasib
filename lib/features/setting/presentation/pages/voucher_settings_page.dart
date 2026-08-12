@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
 import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
@@ -9,7 +10,7 @@ import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 class VoucherSettingsPage extends StatefulWidget {
-  const VoucherSettingsPage({Key? key}) : super(key: key);
+  const VoucherSettingsPage({super.key});
 
   @override
   State<VoucherSettingsPage> createState() => _VoucherSettingsPageState();
@@ -112,9 +113,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
     await cubit.updateSetting('voucher_setting', voucherSettings);
     
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('تم حفظ الإعدادات بنجاح')),
-      );
+      AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
     }
   }
 

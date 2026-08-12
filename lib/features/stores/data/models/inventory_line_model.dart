@@ -65,6 +65,7 @@ class InventoryLineModel extends InventoryLineEntity {
     );
   }
 
+  @override
   Map<String, dynamic> toMap() {
     return {
       if (id != null) 'id': id,

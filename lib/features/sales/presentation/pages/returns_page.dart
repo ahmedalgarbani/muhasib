@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:go_router/go_router.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
@@ -11,7 +12,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class ReturnsPage extends StatefulWidget {
-  const ReturnsPage({Key? key}) : super(key: key);
+  const ReturnsPage({super.key});
 
   @override
   State<ReturnsPage> createState() => _ReturnsPageState();
@@ -44,18 +45,11 @@ class _ReturnsPageState extends State<ReturnsPage> {
             child: BlocConsumer<SalesCubit, SalesState>(
               listener: (context, state) {
                 if (state is SalesError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.message),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  AppToast.showError(context, state.message);
                 } else if (state is ReturnInvoiceCreated) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم إنشاء فاتورة المرتجع بنجاح'),
-                      backgroundColor: Colors.green,
-                    ),
+                  AppToast.showSuccess(
+                    context,
+                    'تم إنشاء فاتورة المرتجع بنجاح',
                   );
                   context.read<SalesCubit>().loadReturnInvoices();
                 }

@@ -1288,7 +1288,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         }
 
         // 2) Customers (seed id 1 cash, id 2 credit if missing)
-        Future<void> _ensureCustomer(int id, String name, int type) async {
+        Future<void> ensureCustomer(int id, String name, int type) async {
           final rows = await txn.query('customers', where: 'id = ?', whereArgs: [id], limit: 1);
           if (rows.isEmpty) {
             final now = DateTime.now().millisecondsSinceEpoch ~/ 1000; // seconds to match CHECK
@@ -1306,12 +1306,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             });
           }
         }
-        await _ensureCustomer(1, 'عميل نقدي', 1);
-        await _ensureCustomer(2, 'عميل آجل', 2);
+        await ensureCustomer(1, 'عميل نقدي', 1);
+        await ensureCustomer(2, 'عميل آجل', 2);
 
         // 3) Stocks (seed main stock id 1 if missing)
         final stockId = invoiceData['stock_id'] as int?;
-        Future<int> _ensureStock(int? desiredId) async {
+        Future<int> ensureStock(int? desiredId) async {
           if (desiredId != null) {
             final rows = await txn.query('stocks', where: 'id = ?', whereArgs: [desiredId], limit: 1);
             if (rows.isNotEmpty) return desiredId;
@@ -1332,7 +1332,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           });
           return 1;
         }
-        invoiceData['stock_id'] = await _ensureStock(stockId);
+        invoiceData['stock_id'] = await ensureStock(stockId);
 
         // Ensure customer id points to an existing row (fallback to 1)
         int desiredCustomerId = (invoiceData['customer_id'] as int?) ?? 1;
@@ -1362,50 +1362,50 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
           // ========= Enforce/derive valid foreign keys for invoice_lines =========
           // currency_id -> nullable: if provided but not found, set to null
-          final int? _currencyId = lineData['currency_id'] as int?;
-          if (_currencyId != null) {
-            final cur = await txn.query('currencies', where: 'id = ?', whereArgs: [_currencyId], limit: 1);
+          final int? currencyId = lineData['currency_id'] as int?;
+          if (currencyId != null) {
+            final cur = await txn.query('currencies', where: 'id = ?', whereArgs: [currencyId], limit: 1);
             if (cur.isEmpty) {
               lineData['currency_id'] = null;
             }
           }
 
           // category, group, unit, sub-unit
-          final int? _categoryId = lineData['category_id'] as int?;
-          int? _groupId = lineData['group_id'] as int?;
-          int? _unitId = lineData['unit_id'] as int?;
-          int? _subUnitId = lineData['category_sub_unit_id'] as int?;
+          final int? categoryId = lineData['category_id'] as int?;
+          int? groupId = lineData['group_id'] as int?;
+          int? unitId = lineData['unit_id'] as int?;
+          int? subUnitId = lineData['category_sub_unit_id'] as int?;
 
           // Validate provided group/unit ids
-          if (_groupId != null) {
-            final g = await txn.query('categories_groups', where: 'id = ?', whereArgs: [_groupId], limit: 1);
-            if (g.isEmpty) _groupId = null;
+          if (groupId != null) {
+            final g = await txn.query('categories_groups', where: 'id = ?', whereArgs: [groupId], limit: 1);
+            if (g.isEmpty) groupId = null;
           }
-          if (_unitId != null) {
-            final u = await txn.query('categories_units', where: 'id = ?', whereArgs: [_unitId], limit: 1);
-            if (u.isEmpty) _unitId = null;
+          if (unitId != null) {
+            final u = await txn.query('categories_units', where: 'id = ?', whereArgs: [unitId], limit: 1);
+            if (u.isEmpty) unitId = null;
           }
 
           // Try derive group/unit from category if missing
-          int? validCategoryId = _categoryId;
-          if (_categoryId != null) {
-            final cat = await txn.query('categories', where: 'id = ?', whereArgs: [_categoryId], limit: 1);
+          int? validCategoryId = categoryId;
+          if (categoryId != null) {
+            final cat = await txn.query('categories', where: 'id = ?', whereArgs: [categoryId], limit: 1);
             if (cat.isNotEmpty) {
-              if (_groupId == null) {
+              if (groupId == null) {
                 final cg = cat.first['group_id'] as int?;
                 if (cg != null) {
                   final g2 = await txn.query('categories_groups', where: 'id = ?', whereArgs: [cg], limit: 1);
                   if (g2.isNotEmpty) {
-                    _groupId = cg;
+                    groupId = cg;
                   }
                 }
               }
-              if (_unitId == null) {
+              if (unitId == null) {
                 final cu = cat.first['unit_id'] as int?;
                 if (cu != null) {
                   final u2 = await txn.query('categories_units', where: 'id = ?', whereArgs: [cu], limit: 1);
                   if (u2.isNotEmpty) {
-                    _unitId = cu;
+                    unitId = cu;
                   }
                 }
               }
@@ -1416,7 +1416,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           }
 
           // If still no valid group_id, ensure or create a default
-          if (_groupId == null) {
+          if (groupId == null) {
             final anyGroup = await txn.query('categories_groups', limit: 1);
             if (anyGroup.isEmpty) {
               final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -1427,28 +1427,28 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                 'creation_time': nowSec,
                 'last_modification_time': nowSec,
               });
-              _groupId = 1;
+              groupId = 1;
             } else {
-              _groupId = anyGroup.first['id'] as int;
+              groupId = anyGroup.first['id'] as int;
             }
           }
 
           // If still no valid unit_id, ensure or create a default
-          if (_unitId == null) {
+          if (unitId == null) {
             // Try derive from category if exists
-            if (_categoryId != null) {
-              final cat = await txn.query('categories', where: 'id = ?', whereArgs: [_categoryId], limit: 1);
+            if (categoryId != null) {
+              final cat = await txn.query('categories', where: 'id = ?', whereArgs: [categoryId], limit: 1);
               if (cat.isNotEmpty) {
                 final cu = cat.first['unit_id'] as int?;
                 if (cu != null) {
                   final u2 = await txn.query('categories_units', where: 'id = ?', whereArgs: [cu], limit: 1);
                   if (u2.isNotEmpty) {
-                    _unitId = cu;
+                    unitId = cu;
                   }
                 }
               }
             }
-            if (_unitId == null) {
+            if (unitId == null) {
               final anyUnit = await txn.query('categories_units', limit: 1);
               if (anyUnit.isEmpty) {
                 final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
@@ -1460,32 +1460,32 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                   'creation_time': nowSec,
                   'last_modification_time': nowSec,
                 });
-                _unitId = 1;
+                unitId = 1;
               } else {
-                _unitId = anyUnit.first['id'] as int;
+                unitId = anyUnit.first['id'] as int;
               }
             }
           }
 
           // Ensure category_sub_unit exists for this category (or create a default even without category)
-          if (_subUnitId != null) {
-            final s = await txn.query('category_sub_units', where: 'id = ?', whereArgs: [_subUnitId], limit: 1);
-            if (s.isEmpty) _subUnitId = null;
+          if (subUnitId != null) {
+            final s = await txn.query('category_sub_units', where: 'id = ?', whereArgs: [subUnitId], limit: 1);
+            if (s.isEmpty) subUnitId = null;
           }
-          if (_subUnitId == null) {
+          if (subUnitId == null) {
             if (validCategoryId != null) {
               final main = await txn.query('category_sub_units',
                   where: 'category_id = ? AND is_main_unit = 1', whereArgs: [validCategoryId], limit: 1);
               if (main.isNotEmpty) {
-                _subUnitId = main.first['id'] as int;
+                subUnitId = main.first['id'] as int;
               } else {
                 final any = await txn.query('category_sub_units', where: 'category_id = ?', whereArgs: [validCategoryId], limit: 1);
                 if (any.isNotEmpty) {
-                  _subUnitId = any.first['id'] as int;
+                  subUnitId = any.first['id'] as int;
                 }
               }
             }
-            if (_subUnitId == null) {
+            if (subUnitId == null) {
               // No sub-unit found with or without category; create a default one (category_id can be NULL)
               final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
               final insertedId = await txn.insert('category_sub_units', {
@@ -1493,42 +1493,40 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                 'is_active': 1,
                 'is_main_unit': 1,
                 'category_id': validCategoryId, // may be null
-                'unit_id': _unitId,
+                'unit_id': unitId,
                 'conversion_rate': 1.0,
                 'creation_time': nowSec,
                 'last_modification_time': nowSec,
               });
-              _subUnitId = insertedId;
+              subUnitId = insertedId;
             }
           }
 
           // Ensure valid stock_id for the line (fallback to header's stock_id)
-          int? _lineStockId = lineData['stock_id'] as int?;
-          if (_lineStockId != null) {
-            final st = await txn.query('stocks', where: 'id = ?', whereArgs: [_lineStockId], limit: 1);
-            if (st.isEmpty) _lineStockId = null;
+          int? lineStockId = lineData['stock_id'] as int?;
+          if (lineStockId != null) {
+            final st = await txn.query('stocks', where: 'id = ?', whereArgs: [lineStockId], limit: 1);
+            if (st.isEmpty) lineStockId = null;
           }
-          _lineStockId ??= invoiceData['stock_id'] as int?;
-          if (_lineStockId == null) {
-            _lineStockId = await _ensureStock(null);
-          }
+          lineStockId ??= invoiceData['stock_id'] as int?;
+          lineStockId ??= await ensureStock(null);
 
           // Ensure valid customer_id for the line (fallback to header's customer_id)
-          int? _lineCustomerId = lineData['customer_id'] as int?;
-          if (_lineCustomerId != null) {
-            final c = await txn.query('customers', where: 'id = ?', whereArgs: [_lineCustomerId], limit: 1);
-            if (c.isEmpty) _lineCustomerId = null;
+          int? lineCustomerId = lineData['customer_id'] as int?;
+          if (lineCustomerId != null) {
+            final c = await txn.query('customers', where: 'id = ?', whereArgs: [lineCustomerId], limit: 1);
+            if (c.isEmpty) lineCustomerId = null;
           }
-          _lineCustomerId ??= invoiceData['customer_id'] as int?;
-          _lineCustomerId ??= 1;
+          lineCustomerId ??= invoiceData['customer_id'] as int?;
+          lineCustomerId ??= 1;
 
           // Write back ensured values
           lineData['category_id'] = validCategoryId; // null if invalid
-          lineData['group_id'] = _groupId;
-          lineData['unit_id'] = _unitId;
-          lineData['category_sub_unit_id'] = _subUnitId;
-          lineData['stock_id'] = _lineStockId;
-          lineData['customer_id'] = _lineCustomerId;
+          lineData['group_id'] = groupId;
+          lineData['unit_id'] = unitId;
+          lineData['category_sub_unit_id'] = subUnitId;
+          lineData['stock_id'] = lineStockId;
+          lineData['customer_id'] = lineCustomerId;
 
           // Remove ID if present to allow auto-generation (important for copied/converted invoice lines)
           lineData.remove('id');

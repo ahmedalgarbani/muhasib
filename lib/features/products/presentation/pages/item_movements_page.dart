@@ -10,7 +10,7 @@ import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart
 import 'package:intl/intl.dart';
 
 class ItemMovementsPage extends StatefulWidget {
-  const ItemMovementsPage({Key? key}) : super(key: key);
+  const ItemMovementsPage({super.key});
 
   @override
   State<ItemMovementsPage> createState() => _ItemMovementsPageState();

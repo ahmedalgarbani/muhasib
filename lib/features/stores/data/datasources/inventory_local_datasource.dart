@@ -1,6 +1,5 @@
 import 'package:muhasib/features/stores/data/models/inventory_model.dart';
 import 'package:muhasib/features/stores/data/models/inventory_line_model.dart';
-import 'package:muhasib/features/stores/domain/entities/inventory_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 import 'package:muhasib/features/stores/domain/enums/stock_enums.dart';
 import 'package:sqflite/sqflite.dart';

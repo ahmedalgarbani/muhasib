@@ -7,6 +7,7 @@ import 'package:muhasib/features/reports/domain/entities/trial_balance_entity.da
 import 'package:muhasib/features/reports/presentation/cubit/trial_balance_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/trial_balance_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -66,7 +67,7 @@ class _TrialBalanceReportPageState extends State<TrialBalanceReportPage> {
     ]).toList();
 
     final path = await ExportService.exportToExcel(fileName: 'trial_balance', headers: headers, data: data);
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تم تصدير Excel بنجاح: $path')));
+    AppToast.showSuccess(context, 'تم تصدير Excel بنجاح: $path');
   }
 }
 

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/features/customers/presentation/widgets/party_profile_widgets.dart';
 
 class AddCustomerDialog extends StatefulWidget {
   /// partyType: 1 = customer, 2 = supplier
@@ -45,7 +48,6 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
     setState(() => _isLoading = true);
 
     try {
-      // Use CustomersCubit to add customer - this handles dynamic account linking
       final cubit = context.read<CustomersCubit>();
       final customer = await cubit.addCustomer(
         name: _nameController.text.trim(),
@@ -58,26 +60,16 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
       
       if (customer != null && context.mounted) {
         Navigator.of(context).pop(customer);
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.partyType == 2
-                  ? 'تم إضافة المورد "${customer.name}" بنجاح'
-                  : 'تم إضافة العميل "${customer.name}" بنجاح',
-            ),
-            backgroundColor: Colors.green,
-          ),
+        AppToast.showSuccess(
+          context,
+          widget.partyType == 2
+              ? 'تم إضافة المورد "${customer.name}" بنجاح'
+              : 'تم إضافة العميل "${customer.name}" بنجاح',
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('خطأ في إضافة العميل: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppToast.showError(context, 'خطأ في إضافة العميل: ${e.toString()}');
       }
     } finally {
       if (mounted) {
@@ -89,157 +81,98 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
   @override
   Widget build(BuildContext context) {
     final isSupplier = widget.partyType == 2;
-    return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Container(
-        width: MediaQuery.of(context).size.width * 0.9,
-        constraints: const BoxConstraints(maxWidth: 500),
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        isSupplier ? 'إضافة مورد جديد' : 'إضافة عميل جديد',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  // Customer Name
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: isSupplier ? 'اسم المورد *' : 'اسم العميل *',
-                      prefixIcon: Icon(isSupplier ? Icons.business : Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return isSupplier ? 'يرجى إدخال اسم المورد' : 'يرجى إدخال اسم العميل';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Phone Number
-                  TextFormField(
-                    controller: _phoneController,
-                    decoration: const InputDecoration(
-                      labelText: 'رقم الهاتف',
-                      prefixIcon: Icon(Icons.phone),
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Address
-                  TextFormField(
-                    controller: _addressController,
-                    decoration: const InputDecoration(
-                      labelText: 'العنوان',
-                      prefixIcon: Icon(Icons.location_on),
-                      border: OutlineInputBorder(),
-                    ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Credit Limit (optional)
-                  TextFormField(
-                    controller: _creditLimitController,
-                    decoration: const InputDecoration(
-                      labelText: 'حد الائتمان (اختياري)',
-                      prefixIcon: Icon(Icons.credit_card),
-                      border: OutlineInputBorder(),
-                      suffixText: 'ريال',
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        if (double.tryParse(value) == null) {
-                          return 'يرجى إدخال رقم صحيح';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Opening Balance
-                  TextFormField(
-                    controller: _openingBalanceController,
-                    decoration: const InputDecoration(
-                      labelText: 'الرصيد الافتتاحي',
-                      prefixIcon: Icon(Icons.account_balance_wallet),
-                      border: OutlineInputBorder(),
-                      suffixText: 'ريال',
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value != null && value.isNotEmpty) {
-                        if (double.tryParse(value) == null) {
-                          return 'يرجى إدخال رقم صحيح';
-                        }
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  const SizedBox(height: 8),
-                  
-                  // Action Buttons
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
-                        child: const Text('إلغاء'),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: _isLoading ? null : _saveCustomer,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                        ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text('حفظ'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+    return CustomDialog(
+      title: isSupplier ? 'إضافة مورد جديد' : 'إضافة عميل جديد',
+      icon: isSupplier ? Icons.business : Icons.person_add,
+      maxWidth: 500,
+      content: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextInputField(
+              label: isSupplier ? 'اسم المورد' : 'اسم العميل',
+              textEditingController: _nameController,
+              prefixIcon: Icon(isSupplier ? Icons.business : Icons.person),
+              isRequired: true,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return isSupplier ? 'يرجى إدخال اسم المورد' : 'يرجى إدخال اسم العميل';
+                }
+                return null;
+              },
             ),
-          ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'رقم الهاتف',
+              textEditingController: _phoneController,
+              inputType: TextInputType.phone,
+              prefixIcon: const Icon(Icons.phone),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'العنوان',
+              textEditingController: _addressController,
+              maxLines: 2,
+              prefixIcon: const Icon(Icons.location_on),
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'حد الائتمان (اختياري)',
+              textEditingController: _creditLimitController,
+              inputType: TextInputType.number,
+              prefixIcon: const Icon(Icons.credit_card),
+              suffixIcon: const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text('ريال'),
+              ),
+              validator: (value) {
+                if (value != null && value.isNotEmpty) {
+                  if (double.tryParse(value) == null) {
+                    return 'يرجى إدخال رقم صحيح';
+                  }
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              label: 'الرصيد الافتتاحي',
+              textEditingController: _openingBalanceController,
+              inputType: TextInputType.number,
+              prefixIcon: const Icon(Icons.account_balance_wallet),
+              suffixIcon: const Padding(
+                padding: EdgeInsets.all(12),
+                child: Text('ريال'),
+              ),
+              validator: (value) {
+                if (value != null && value.isNotEmpty) {
+                  if (double.tryParse(value) == null) {
+                    return 'يرجى إدخال رقم صحيح';
+                  }
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            PartyAccountNotice(isSupplier: isSupplier),
+          ],
         ),
       ),
+      actions: [
+        HasibButton(
+          label: 'إلغاء',
+          onPressed: _isLoading ? null : () => Navigator.of(context).pop(),
+          variant: HasibButtonVariant.secondary,
+        ),
+        const SizedBox(width: 12),
+        HasibButton(
+          label: 'حفظ',
+          loading: _isLoading,
+          onPressed: _isLoading ? null : _saveCustomer,
+          variant: HasibButtonVariant.primary,
+        ),
+      ],
     );
   }
 }

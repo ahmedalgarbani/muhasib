@@ -35,35 +35,56 @@ class CustomDropdownField<T> extends StatelessWidget {
           RichText(
             text: TextSpan(
               style: const TextStyle(
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
+                color: AppColors.slate800,
+                letterSpacing: 0.1,
               ),
               children: [
                 TextSpan(text: label),
                 if (isRequired)
                   const TextSpan(
                     text: ' *',
-                    style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
               ],
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 6),
         ],
         DropdownButtonFormField<T>(
-          value: value,
+          initialValue: value,
           items: items,
           onChanged: onChanged,
           isExpanded: true,
+          style: const TextStyle(
+            color: AppColors.slate900,
+            fontSize: 14.5,
+            fontWeight: FontWeight.w500,
+          ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.grey, fontSize: 14),
-            prefixIcon: prefixIcon,
+            hintStyle: const TextStyle(color: AppColors.slate400, fontSize: 14),
+            prefixIcon: prefixIcon == null
+                ? null
+                : IconTheme(
+                    data: const IconThemeData(
+                      color: AppColors.slate500,
+                      size: 20,
+                    ),
+                    child: prefixIcon!,
+                  ),
             errorText: errorText,
             filled: true,
-            fillColor: AppColors.background,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            fillColor: AppColors.surface,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 15,
+            ),
+            isDense: true,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: const BorderSide(color: AppColors.borderLight),
@@ -78,11 +99,16 @@ class CustomDropdownField<T> extends StatelessWidget {
             ),
             errorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: Colors.red),
+              borderSide: const BorderSide(color: AppColors.red500),
             ),
             focusedErrorBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
+              borderSide: const BorderSide(color: AppColors.red500, width: 1.8),
+            ),
+            errorStyle: const TextStyle(
+              color: AppColors.red500,
+              fontSize: 12,
+              height: 1.3,
             ),
           ),
         ),

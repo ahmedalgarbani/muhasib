@@ -1,5 +1,4 @@
 import 'package:muhasib/core/services/database_service.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_limit_entity.dart';
 
 class LimitService {
   static final LimitService _instance = LimitService._internal();

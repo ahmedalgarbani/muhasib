@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
@@ -14,12 +15,12 @@ class Step3Payment extends StatefulWidget {
   final VoidCallback onPrevious;
 
   const Step3Payment({
-    Key? key,
+    super.key,
     required this.invoice,
     required this.onInvoiceUpdate,
     required this.onNext,
     required this.onPrevious,
-  }) : super(key: key);
+  });
 
   @override
   State<Step3Payment> createState() => _Step3PaymentState();
@@ -119,13 +120,10 @@ class _Step3PaymentState extends State<Step3Payment> {
       );
 
       _amountController.text = '0';
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'تم تسجيل ${NumberFormatter.formatCurrency(amount)} نقداً و ${NumberFormatter.formatCurrency(remainingAmount)} كدين على العميل',
-          ),
-          backgroundColor: Colors.blue,
-        ),
+
+      AppToast.showSuccess(
+        context,
+        'تم تسجيل ${NumberFormatter.formatCurrency(amount)} نقداً و ${NumberFormatter.formatCurrency(remainingAmount)} كدين على العميل',
       );
     } else {
       widget.onInvoiceUpdate(
@@ -145,14 +143,8 @@ class _Step3PaymentState extends State<Step3Payment> {
 
       // Show appropriate message
       if (amount > widget.invoice.remaining) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'تم إضافة دفعة ${NumberFormatter.formatCurrency(amount)} - المبلغ الزائد ${NumberFormatter.formatCurrency(_overpaymentAmount)} سيضاف لرصيد العميل',
-            ),
-            backgroundColor: Colors.orange,
-          ),
-        );
+      
+        AppToast.showWarning(context, 'تم إضافة دفعة ${NumberFormatter.formatCurrency(amount)} - المبلغ الزائد ${NumberFormatter.formatCurrency(_overpaymentAmount)} سيضاف لرصيد العميل');
       }
     }
   }
@@ -382,7 +374,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                               borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                           ),
-                          value: _selectedCashBox,
+                          initialValue: _selectedCashBox,
                           items: const [
                             DropdownMenuItem(
                               value: 'الصندوق الرئيسي',
@@ -418,7 +410,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                               borderRadius: BorderRadius.circular(AppRadius.md),
                             ),
                           ),
-                          value: _selectedBank,
+                          initialValue: _selectedBank,
                           items: const [
                             DropdownMenuItem(
                               value: 'الراجحي',

@@ -9,8 +9,7 @@ class DrawerMenuItem extends StatefulWidget {
   final NavItem item;
   final bool isChild;
 
-  const DrawerMenuItem({Key? key, required this.item, this.isChild = false})
-    : super(key: key);
+  const DrawerMenuItem({super.key, required this.item, this.isChild = false});
 
   @override
   State<DrawerMenuItem> createState() => _DrawerMenuItemState();

@@ -4,7 +4,7 @@ import 'package:muhasib/features/accounts/presentation/pages/account_detail_old.
 import 'package:muhasib/features/main/presentation/widgets/recent_action_item.dart';
 
 class RecentActionsSection extends StatelessWidget {
-  const RecentActionsSection({Key? key}) : super(key: key);
+  const RecentActionsSection({super.key});
 
   @override
   Widget build(BuildContext context) {

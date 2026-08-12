@@ -7,10 +7,10 @@ class AccountBalanceRow extends StatelessWidget {
   final String currency;
 
   const AccountBalanceRow({
-    Key? key,
+    super.key,
     required this.balance,
     this.currency = 'ريال',
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

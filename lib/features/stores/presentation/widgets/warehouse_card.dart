@@ -181,14 +181,14 @@ class WarehouseCard extends StatelessWidget {
               
               // Details
               const SizedBox(height: 12),
-              if (warehouse.address != null && warehouse.address!.isNotEmpty) ...[
+              if (warehouse.address.isNotEmpty) ...[
                 Row(
                   children: [
                     const Icon(Icons.location_on, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
-                        warehouse.address!,
+                        warehouse.address,
                         style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 14,

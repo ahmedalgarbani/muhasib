@@ -6,10 +6,10 @@ class CarouselIndicators extends StatelessWidget {
   final int activeIndex;
 
   const CarouselIndicators({
-    Key? key,
+    super.key,
     required this.count,
     required this.activeIndex,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -37,14 +37,15 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
     bool isAscending = false,
   }) async {
     final db = await _databaseService.database;
-    
-    String whereClause = '';
+
+    String whereClause = 'is_posted = 1';
     List<dynamic> whereArgs = [];
 
     // Date filter
     if (filter.startDate != null && filter.endDate != null) {
       // Support both seconds (correct) and legacy milliseconds timestamps.
-      whereClause = '((entry_date >= ? AND entry_date <= ?) OR (entry_date >= ? AND entry_date <= ?))';
+      whereClause =
+          '((entry_date >= ? AND entry_date <= ?) OR (entry_date >= ? AND entry_date <= ?))';
       final startSec = filter.startDate!.millisecondsSinceEpoch ~/ 1000;
       final endSec = filter.endDate!.millisecondsSinceEpoch ~/ 1000;
       whereArgs = [startSec, endSec, startSec * 1000, endSec * 1000];
@@ -60,7 +61,8 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
     // Search query
     if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
       if (whereClause.isNotEmpty) whereClause += ' AND ';
-      whereClause += '(description LIKE ? OR number LIKE ? OR reference_number LIKE ?)';
+      whereClause +=
+          '(description LIKE ? OR number LIKE ? OR reference_number LIKE ?)';
       final searchPattern = '%${filter.searchQuery}%';
       whereArgs.addAll([searchPattern, searchPattern, searchPattern]);
     }
@@ -85,39 +87,29 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
     );
 
     final transactions = <TransactionModel>[];
-    
+
     for (final entry in journalEntries) {
       final lines = await db.query(
         'journal_entry_lines',
         where: 'journal_entry_id = ?',
         whereArgs: [entry['id']],
       );
-      
+
       transactions.add(TransactionModel.fromDatabase(entry, lines));
     }
 
-    // Also get transactions from invoices if needed
-    if (transactionType == null || transactionType == 'all' || 
-        transactionType == 'sales' || transactionType == 'purchase') {
-      await _addInvoiceTransactions(
-        db, 
-        transactions, 
-        filter, 
-        transactionType,
-        orderBy,
-      );
-    }
-
-    // Sort the combined list
+    // Invoices are represented by their posted journal entries, so adding
+    // source invoices here would duplicate every posted transaction.
+    // Sort the journal entries.
     transactions.sort((a, b) {
       switch (sortBy) {
         case 'amount':
-          return isAscending 
+          return isAscending
               ? a.totalAmount.compareTo(b.totalAmount)
               : b.totalAmount.compareTo(a.totalAmount);
         case 'date':
         default:
-          return isAscending 
+          return isAscending
               ? a.date.compareTo(b.date)
               : b.date.compareTo(a.date);
       }
@@ -133,7 +125,7 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
     String? transactionType,
     String orderBy,
   ) async {
-    String whereClause = '';
+    String whereClause = 'is_posted = 1';
     List<dynamic> whereArgs = [];
 
     // Date filter
@@ -176,7 +168,8 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
       final invoiceDate = (invoice['date'] as int?) ?? 0;
       final invoiceNumber = (invoice['number'] ?? '') as String;
       final invoiceType = (invoice['invoice_type'] as int?) ?? 0;
-      final invoiceAmount = (invoice['final_amt'] as num?)?.toDouble() ??
+      final invoiceAmount =
+          (invoice['final_amt'] as num?)?.toDouble() ??
           (invoice['total_amount'] as num?)?.toDouble() ??
           (invoice['amount'] as num?)?.toDouble() ??
           0.0;
@@ -185,7 +178,8 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
       final transactionData = {
         'id': invoiceId,
         'entry_date': invoiceDate,
-        'description': invoice['statement'] ??
+        'description':
+            invoice['statement'] ??
             (invoiceType == 1 ? 'فاتورة مبيعات' : 'فاتورة مشتريات'),
         'number': invoiceNumber,
         'reference_type': invoice['invoice_type'] == 1 ? 'sales' : 'purchase',
@@ -199,8 +193,14 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
       // Build accounting-correct two-line entry using account_connects mapping:
       // - Sales: Dr Customers, Cr Sales
       // - Purchase: Dr Purchases, Cr Suppliers
-      final debitAccount = await _getConnectedAccount(db, invoiceType == 1 ? 2 : 10);
-      final creditAccount = await _getConnectedAccount(db, invoiceType == 1 ? 7 : 3);
+      final debitAccount = await _getConnectedAccount(
+        db,
+        invoiceType == 1 ? 2 : 10,
+      );
+      final creditAccount = await _getConnectedAccount(
+        db,
+        invoiceType == 1 ? 7 : 3,
+      );
 
       final journalLines = <Map<String, dynamic>>[
         {
@@ -223,13 +223,18 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
         },
       ];
 
-      transactions.add(TransactionModel.fromDatabase(transactionData, journalLines));
+      transactions.add(
+        TransactionModel.fromDatabase(transactionData, journalLines),
+      );
     }
   }
 
   /// Resolve connected account for a given connect type using:
   /// account_connects(account_connect_type -> accounts.c_id) -> accounts(id, code, name)
-  Future<Map<String, dynamic>> _getConnectedAccount(Database db, int connectType) async {
+  Future<Map<String, dynamic>> _getConnectedAccount(
+    Database db,
+    int connectType,
+  ) async {
     final connect = await db.query(
       'account_connects',
       columns: ['c_id'],
@@ -275,7 +280,7 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
     String? transactionType,
   }) async {
     final db = await _databaseService.database;
-    
+
     String whereClause = '';
     List<dynamic> whereArgs = [];
 
@@ -295,17 +300,14 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
       whereArgs.add(transactionType);
     }
 
-    final result = await db.rawQuery(
-      '''
+    final result = await db.rawQuery('''
       SELECT 
         COUNT(*) as count,
         SUM(total_debit) as total_debit,
         SUM(total_credit) as total_credit
       FROM journal_entries
       ${whereClause.isNotEmpty ? 'WHERE $whereClause' : ''}
-      ''',
-      whereArgs.isEmpty ? null : whereArgs,
-    );
+      ''', whereArgs.isEmpty ? null : whereArgs);
 
     if (result.isNotEmpty) {
       return {
@@ -315,17 +317,13 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
       };
     }
 
-    return {
-      'count': 0,
-      'totalDebit': 0.0,
-      'totalCredit': 0.0,
-    };
+    return {'count': 0, 'totalDebit': 0.0, 'totalCredit': 0.0};
   }
 
   @override
   Future<TransactionModel> getTransactionDetails(int transactionId) async {
     final db = await _databaseService.database;
-    
+
     final entries = await db.query(
       'journal_entries',
       where: 'id = ?',

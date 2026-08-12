@@ -82,7 +82,6 @@ import 'package:muhasib/features/initial/presentation/cubit/initial_cubit.dart';
 import 'package:muhasib/features/initial/presentation/pages/initial_gate_page.dart';
 import 'package:muhasib/features/initial/presentation/pages/initial_setup_page.dart';
 import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
-import 'package:muhasib/features/currencies/presentation/pages/currency_exchange_page.dart';
 import 'package:muhasib/features/currencies/presentation/pages/currency_exchange_page_v2.dart';
 import 'package:muhasib/features/currencies/presentation/pages/currency_revaluation_page.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
@@ -278,8 +277,8 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/currencies/revaluation',
-      name: 'currencies-revaluation',
+      path: AppRoutes.currenciesRevaluation,
+      name: AppRoutes.currenciesRevaluation,
       builder: (context, state) => const CurrencyRevaluationPage(),
     ),
 
@@ -304,8 +303,8 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/sales/improved-invoice',
-      name: 'improved-sales-invoice',
+      path: AppRoutes.salesImprovedInvoice,
+      name: AppRoutes.salesImprovedInvoice,
       builder: (context, state) => MultiBlocProvider(
         providers: [
           BlocProvider(create: (context) => getIt<SalesCubit>()),
@@ -332,16 +331,16 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
-      path: '/select-invoice-for-return',
-      name: 'select-invoice-for-return',
+      path: AppRoutes.selectInvoiceForReturn,
+      name: AppRoutes.selectInvoiceForReturn,
       builder: (context, state) => BlocProvider(
         create: (context) => getIt<SalesCubit>(),
         child: const SelectInvoiceForReturnPage(),
       ),
     ),
     GoRoute(
-      path: '/sales-returns-form',
-      name: 'sales-returns-form',
+      path: AppRoutes.salesReturnsForm,
+      name: AppRoutes.salesReturnsForm,
       builder: (context, state) {
         final invoiceId = state.uri.queryParameters['invoiceId'];
         return BlocProvider(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
@@ -115,25 +116,16 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
       child: BlocListener<WarehousesCubit, WarehousesState>(
         listener: (context, state) {
           if (state is WarehouseCreated || state is WarehouseUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  state is WarehouseCreated
-                      ? 'تم إضافة المخزن بنجاح'
-                      : 'تم تحديث المخزن بنجاح',
-                ),
-                backgroundColor: Colors.green,
-              ),
+            AppToast.showSuccess(
+              context,
+              state is WarehouseCreated
+                  ? 'تم إضافة المخزن بنجاح'
+                  : 'تم تحديث المخزن بنجاح',
             );
             context.pop(true);
           } else if (state is WarehousesError) {
             setState(() => _isLoading = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+            AppToast.showError(context, state.message);
           }
         },
         child: Scaffold(

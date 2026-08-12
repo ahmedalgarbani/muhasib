@@ -6,6 +6,7 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/cubit/account_statement_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/account_statement_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -52,7 +53,7 @@ class _AccountStatementReportPageState extends State<AccountStatementReportPage>
       return Container(
         padding: const EdgeInsets.only(bottom: 16),
         child: DropdownButtonFormField<int>(
-          value: state.selectedAccountId,
+          initialValue: state.selectedAccountId,
           decoration: InputDecoration(
             labelText: 'اختر الحساب المطلوب',
             prefixIcon: const Icon(Icons.account_tree),
@@ -119,9 +120,7 @@ class _AccountStatementReportPageState extends State<AccountStatementReportPage>
       data: data,
     );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('تم تصدير ملف Excel بنجاح: $path')),
-    );
+    AppToast.showSuccess(context, 'تم تصدير ملف Excel بنجاح: $path');
   }
 }
 

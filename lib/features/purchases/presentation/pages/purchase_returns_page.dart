@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/pages/select_purchase_for_return_page.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
@@ -10,7 +11,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class PurchaseReturnsPage extends StatefulWidget {
-  const PurchaseReturnsPage({Key? key}) : super(key: key);
+  const PurchaseReturnsPage({super.key});
 
   @override
   State<PurchaseReturnsPage> createState() => _PurchaseReturnsPageState();
@@ -680,9 +681,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
           ElevatedButton.icon(
             onPressed: () {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('سيتم إضافة نموذج إنشاء المردود قريباً')),
-              );
+              AppToast.showInfo(context, 'سيتم إضافة نموذج إنشاء المردود قريباً');
             },
             icon: const Icon(Icons.arrow_forward, size: 18),
             label: const Text('متابعة'),

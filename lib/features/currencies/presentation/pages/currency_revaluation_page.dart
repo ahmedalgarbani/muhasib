@@ -6,27 +6,30 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 /// Page for revaluating foreign currency balances
 class CurrencyRevaluationPage extends StatefulWidget {
-  const CurrencyRevaluationPage({Key? key}) : super(key: key);
+  const CurrencyRevaluationPage({super.key});
 
   @override
-  State<CurrencyRevaluationPage> createState() => _CurrencyRevaluationPageState();
+  State<CurrencyRevaluationPage> createState() =>
+      _CurrencyRevaluationPageState();
 }
 
 class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   final _formKey = GlobalKey<FormState>();
   final _newRateController = TextEditingController();
-  
+
   List<Map<String, dynamic>> currencies = [];
   List<Map<String, dynamic>> accounts = [];
-  
+
   int? selectedCurrencyId;
   int? selectedAccountId;
   int? gainLossAccountId;
   DateTime revaluationDate = DateTime.now();
-  
+
   double? currentRate;
   double? calculatedDifference;
   bool isLoading = false;
@@ -43,21 +46,21 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
 
   Future<void> _loadData() async {
     final db = await getIt<DatabaseService>().database;
-    
+
     // Load currencies
     final currencyResult = await db.query(
       'currencies',
       where: 'is_local_currency = 0',
       orderBy: 'name',
     );
-    
+
     // Load accounts (assets with currency)
     final accountResult = await db.query(
       'accounts',
       where: 'is_active = 1 AND is_master = 0',
       orderBy: 'code',
     );
-    
+
     setState(() {
       currencies = currencyResult;
       accounts = accountResult;
@@ -67,30 +70,28 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   Future<void> _calculateDifference() async {
     if (selectedAccountId == null || selectedCurrencyId == null) return;
     if (_newRateController.text.isEmpty) return;
-    
+
     final newRate = double.tryParse(_newRateController.text);
     if (newRate == null) return;
-    
+
     setState(() => isCalculating = true);
-    
+
     final result = await _exchangeService.calculateRevaluationDifference(
       accountId: selectedAccountId!,
       currencyId: selectedCurrencyId!,
       currentRate: newRate,
       asOfDate: revaluationDate,
     );
-    
+
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
-        );
+        AppToast.showError(context, failure.message);
       },
       (difference) {
         setState(() => calculatedDifference = difference);
       },
     );
-    
+
     setState(() => isCalculating = false);
   }
 
@@ -189,10 +190,13 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
-              value: selectedCurrencyId,
+              initialValue: selectedCurrencyId,
               decoration: InputDecoration(
                 labelText: 'العملة الأجنبية',
-                prefixIcon: const Icon(Icons.monetization_on, color: AppColors.info),
+                prefixIcon: const Icon(
+                  Icons.monetization_on,
+                  color: AppColors.info,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
@@ -200,14 +204,19 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               items: currencies.map((currency) {
                 return DropdownMenuItem(
                   value: currency['id'] as int,
-                  child: Text('${currency['name']} (${currency['code']}) - سعر: ${currency['exchange_rate']}'),
+                  child: Text(
+                    '${currency['name']} (${currency['code']}) - سعر: ${currency['exchange_rate']}',
+                  ),
                 );
               }).toList(),
               onChanged: (value) {
                 setState(() {
                   selectedCurrencyId = value;
-                  currentRate = currencies
-                      .firstWhere((c) => c['id'] == value)['exchange_rate'] as double?;
+                  currentRate =
+                      currencies.firstWhere(
+                            (c) => c['id'] == value,
+                          )['exchange_rate']
+                          as double?;
                 });
                 _calculateDifference();
               },
@@ -215,10 +224,13 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
-              value: selectedAccountId,
+              initialValue: selectedAccountId,
               decoration: InputDecoration(
                 labelText: 'الحساب',
-                prefixIcon: const Icon(Icons.account_balance_wallet, color: AppColors.info),
+                prefixIcon: const Icon(
+                  Icons.account_balance_wallet,
+                  color: AppColors.info,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
@@ -237,7 +249,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
-              value: gainLossAccountId,
+              initialValue: gainLossAccountId,
               decoration: InputDecoration(
                 labelText: 'حساب أرباح/خسائر فروق الصرف',
                 prefixIcon: const Icon(Icons.swap_horiz, color: AppColors.info),
@@ -247,13 +259,16 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
                 helperText: 'سيتم احتسابه تلقائياً بناءً على نوع الفرق',
               ),
               items: accounts
-                  .where((a) => (a['type'] as int?) == 3 || (a['type'] as int?) == 4)
+                  .where(
+                    (a) => (a['type'] as int?) == 3 || (a['type'] as int?) == 4,
+                  )
                   .map((account) {
-                return DropdownMenuItem(
-                  value: account['id'] as int,
-                  child: Text('${account['code']} - ${account['name']}'),
-                );
-              }).toList(),
+                    return DropdownMenuItem(
+                      value: account['id'] as int,
+                      child: Text('${account['code']} - ${account['name']}'),
+                    );
+                  })
+                  .toList(),
               onChanged: (value) => setState(() => gainLossAccountId = value),
               validator: (value) => value == null ? 'مطلوب' : null,
             ),
@@ -293,7 +308,11 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.info_outline, size: 18, color: AppColors.textSecondary),
+                    const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: AppColors.textSecondary,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'السعر الحالي: ${currentRate!.toStringAsFixed(4)}',
@@ -303,12 +322,15 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
                 ),
               ),
             const SizedBox(height: 16),
-            TextFormField(
+            TextInputField(
               controller: _newRateController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
                 labelText: 'سعر الصرف الجديد',
-                prefixIcon: const Icon(Icons.trending_up, color: AppColors.info),
+                prefixIcon: const Icon(
+                  Icons.trending_up,
+                  color: AppColors.info,
+                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
@@ -337,7 +359,10 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               child: InputDecorator(
                 decoration: InputDecoration(
                   labelText: 'تاريخ إعادة التقييم',
-                  prefixIcon: const Icon(Icons.calendar_today, color: AppColors.info),
+                  prefixIcon: const Icon(
+                    Icons.calendar_today,
+                    color: AppColors.info,
+                  ),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
@@ -353,14 +378,18 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
 
   Widget _buildDifferenceCard() {
     final isProfit = calculatedDifference! > 0;
-    
+
     return Card(
       elevation: 0,
-      color: isProfit ? Colors.green.withOpacity(0.05) : Colors.red.withOpacity(0.05),
+      color: isProfit
+          ? Colors.green.withOpacity(0.05)
+          : Colors.red.withOpacity(0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(
-          color: isProfit ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3),
+          color: isProfit
+              ? Colors.green.withOpacity(0.3)
+              : Colors.red.withOpacity(0.3),
         ),
       ),
       child: Padding(
@@ -387,7 +416,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
                         ),
                       ),
                       Text(
-                        '${calculatedDifference!.abs().toStringAsFixed(2)}',
+                        calculatedDifference!.abs().toStringAsFixed(2),
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -404,10 +433,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               isProfit
                   ? 'سيتم تسجيل قيد محاسبي بزيادة قيمة الأصول وتسجيل أرباح فروق الصرف'
                   : 'سيتم تسجيل قيد محاسبي بتخفيض قيمة الأصول وتسجيل خسائر فروق الصرف',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               textAlign: TextAlign.center,
             ),
           ],
@@ -445,14 +471,20 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
         Expanded(
           flex: 2,
           child: ElevatedButton.icon(
-            onPressed: (isLoading || calculatedDifference == null || calculatedDifference!.abs() < 0.01)
+            onPressed:
+                (isLoading ||
+                    calculatedDifference == null ||
+                    calculatedDifference!.abs() < 0.01)
                 ? null
                 : _createRevaluationEntry,
             icon: isLoading
                 ? const SizedBox(
                     width: 20,
                     height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Icon(Icons.save),
             label: Text(isLoading ? 'جاري الحفظ...' : 'إنشاء قيد التسوية'),
@@ -471,10 +503,12 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
 
   Future<void> _createRevaluationEntry() async {
     if (!_formKey.currentState!.validate()) return;
-    if (calculatedDifference == null || calculatedDifference!.abs() < 0.01) return;
-    
+    if (calculatedDifference == null || calculatedDifference!.abs() < 0.01) {
+      return;
+    }
+
     setState(() => isLoading = true);
-    
+
     final result = await _exchangeService.createRevaluationEntry(
       accountId: selectedAccountId!,
       currencyId: selectedCurrencyId!,
@@ -484,22 +518,15 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
       date: revaluationDate,
       notes: 'إعادة تقييم أرصدة العملات الأجنبية',
     );
-    
+
     setState(() => isLoading = false);
-    
+
     result.fold(
       (failure) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
-        );
+        AppToast.showError(context, failure.message);
       },
       (journalId) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('تم إنشاء قيد التسوية رقم $journalId بنجاح'),
-            backgroundColor: AppColors.success,
-          ),
-        );
+        AppToast.showSuccess(context, 'تم إنشاء قيد التسوية رقم $journalId بنجاح');
         Navigator.pop(context);
       },
     );

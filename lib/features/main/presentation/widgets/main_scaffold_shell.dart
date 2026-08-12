@@ -5,8 +5,7 @@ import 'package:muhasib/features/main/presentation/widgets/custom_bottom_nav_bar
 class MainScaffoldShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
-  const MainScaffoldShell({Key? key, required this.navigationShell})
-    : super(key: key);
+  const MainScaffoldShell({super.key, required this.navigationShell});
 
   @override
   Widget build(BuildContext context) {

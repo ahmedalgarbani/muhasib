@@ -14,7 +14,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 
 class AccountsTreeScreen extends StatelessWidget {
-  const AccountsTreeScreen({Key? key}) : super(key: key);
+  const AccountsTreeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +23,7 @@ class AccountsTreeScreen extends StatelessWidget {
 }
 
 class AccountsTreeView extends StatefulWidget {
-  const AccountsTreeView({Key? key}) : super(key: key);
+  const AccountsTreeView({super.key});
 
   @override
   State<AccountsTreeView> createState() => _AccountsTreeViewState();
@@ -364,8 +364,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
 class SubAccountsPage extends StatefulWidget {
   final AccountEntity masterAccount;
 
-  const SubAccountsPage({Key? key, required this.masterAccount})
-    : super(key: key);
+  const SubAccountsPage({super.key, required this.masterAccount});
 
   @override
   State<SubAccountsPage> createState() => _SubAccountsPageState();

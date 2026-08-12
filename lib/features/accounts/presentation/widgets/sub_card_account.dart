@@ -17,7 +17,7 @@ class SubCardAccount extends StatelessWidget {
   final VoidCallback? onTap;
 
   const SubCardAccount({
-    Key? key,
+    super.key,
     required this.account,
     required this.backgroundColor,
     required this.borderColor,
@@ -25,7 +25,7 @@ class SubCardAccount extends StatelessWidget {
     required this.onEdit,
     required this.onDelete,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

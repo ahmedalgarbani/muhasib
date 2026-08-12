@@ -31,7 +31,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   void _initializeForm() {
     if (widget.invoice != null) {
       _numberController.text = widget.invoice!.number;
-      _selectedDate = DateTime.fromMillisecondsSinceEpoch(widget.invoice!.date * 1000);
+      _selectedDate = DateTime.fromMillisecondsSinceEpoch(
+        widget.invoice!.date * 1000,
+      );
       _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
       _statementController.text = widget.invoice!.statement ?? '';
       _selectedSupplierId = widget.invoice!.customerId;
@@ -49,7 +51,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
 
   void _generateInvoiceNumber() {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    _numberController.text = widget.invoiceType == 3 ? 'PO-$timestamp' : 'PUR-$timestamp';
+    _numberController.text = widget.invoiceType == 3
+        ? 'PO-$timestamp'
+        : 'PUR-$timestamp';
   }
 
   void _calculateTotals() {
@@ -107,12 +111,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   void _saveInvoice() {
     if (_formKey.currentState!.validate()) {
       if (_invoiceLines.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('يجب إضافة منتج واحد على الأقل'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppToast.showError(context, 'يجب إضافة منتج واحد على الأقل');
         return;
       }
 
@@ -131,8 +130,12 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
         totalAmount: _subtotal,
         finalAmt: _total,
         invoiceType: widget.invoiceType,
-        invoiceTransType: widget.invoiceType == 3 ? 1 : (_paymentType == 0 ? 0 : 1),
-        paymentStatus: widget.invoiceType == 3 ? 0 : (_paymentType == 0 ? 1 : 0),
+        invoiceTransType: widget.invoiceType == 3
+            ? 1
+            : (_paymentType == 0 ? 0 : 1),
+        paymentStatus: widget.invoiceType == 3
+            ? 0
+            : (_paymentType == 0 ? 1 : 0),
         shippingAddress: _shippingAddressController.text,
       );
 
@@ -159,28 +162,13 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
       child: BlocListener<PurchasesCubit, PurchasesState>(
         listener: (context, state) {
           if (state is PurchaseInvoiceCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم إنشاء فاتورة المشتريات بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppToast.showSuccess(context, 'تم إنشاء فاتورة المشتريات بنجاح');
             context.pop();
           } else if (state is PurchaseInvoiceUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم تحديث فاتورة المشتريات بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppToast.showSuccess(context, 'تم تحديث فاتورة المشتريات بنجاح');
             context.pop();
           } else if (state is PurchasesError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+            AppToast.showError(context, state.message);
           }
         },
         child: Scaffold(
@@ -189,7 +177,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
           appBar: CustomAppBar(
             title: widget.invoiceType == 3
                 ? 'أمر شراء'
-                : (widget.invoice != null ? 'تعديل فاتورة مشتريات' : 'فاتورة مشتريات جديدة'),
+                : (widget.invoice != null
+                      ? 'تعديل فاتورة مشتريات'
+                      : 'فاتورة مشتريات جديدة'),
           ),
           body: Form(
             key: _formKey,
@@ -254,7 +244,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.invoice != null ? 'تعديل فاتورة مشتريات' : 'فاتورة مشتريات جديدة',
+                  widget.invoice != null
+                      ? 'تعديل فاتورة مشتريات'
+                      : 'فاتورة مشتريات جديدة',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -264,10 +256,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 const SizedBox(height: 4),
                 Text(
                   'أدخل تفاصيل فاتورة المشتريات',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -301,7 +290,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: TextInputField(
                     controller: _numberController,
                     decoration: InputDecoration(
                       labelText: 'رقم الفاتورة',
@@ -310,7 +299,10 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                     style: const TextStyle(fontSize: 13),
                     validator: (value) {
@@ -323,7 +315,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: TextInputField(
                     controller: _dateController,
                     decoration: InputDecoration(
                       labelText: 'التاريخ',
@@ -332,7 +324,10 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                     style: const TextStyle(fontSize: 13),
                     readOnly: true,
@@ -346,7 +341,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                       if (picked != null) {
                         setState(() {
                           _selectedDate = picked;
-                          _dateController.text = DateFormat('yyyy-MM-dd').format(picked);
+                          _dateController.text = DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(picked);
                         });
                       }
                     },
@@ -421,7 +418,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                     children: [
                       Expanded(
                         child: DropdownButtonFormField<int>(
-                          value: _selectedSupplierId,
+                          initialValue: _selectedSupplierId,
                           decoration: InputDecoration(
                             labelText: 'المورد',
                             labelStyle: const TextStyle(fontSize: 12),
@@ -434,7 +431,10 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                               vertical: 8,
                             ),
                           ),
-                          style: const TextStyle(fontSize: 13, color: Colors.black),
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.black,
+                          ),
                           items: state.suppliers.map((supplier) {
                             return DropdownMenuItem<int>(
                               value: int.parse(supplier.id),
@@ -473,7 +473,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
 
                             if (newSupplier != null && mounted) {
                               setState(() {
-                                _selectedSupplierId = int.tryParse(newSupplier.id);
+                                _selectedSupplierId = int.tryParse(
+                                  newSupplier.id,
+                                );
                               });
                               cubit.loadSuppliers();
                             }
@@ -492,7 +494,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
               builder: (context, state) {
                 if (state is WarehousesLoaded) {
                   return DropdownButtonFormField<int>(
-                    value: _selectedWarehouseId,
+                    initialValue: _selectedWarehouseId,
                     decoration: InputDecoration(
                       labelText: 'المخزن',
                       labelStyle: const TextStyle(fontSize: 12),
@@ -500,13 +502,19 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                     style: const TextStyle(fontSize: 13, color: Colors.black),
                     items: state.warehouses.map((warehouse) {
                       return DropdownMenuItem(
                         value: warehouse.id,
-                        child: Text(warehouse.name, style: const TextStyle(fontSize: 13)),
+                        child: Text(
+                          warehouse.name,
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       );
                     }).toList(),
                     onChanged: (value) {
@@ -555,7 +563,10 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 TextButton.icon(
                   onPressed: _addInvoiceLine,
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('إضافة منتج', style: TextStyle(fontSize: 12)),
+                  label: const Text(
+                    'إضافة منتج',
+                    style: TextStyle(fontSize: 12),
+                  ),
                   style: TextButton.styleFrom(
                     foregroundColor: AppColors.success,
                   ),
@@ -569,7 +580,11 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 alignment: Alignment.center,
                 child: Column(
                   children: [
-                    Icon(Icons.inventory_2_outlined, size: 48, color: Colors.grey[400]),
+                    Icon(
+                      Icons.inventory_2_outlined,
+                      size: 48,
+                      color: Colors.grey[400],
+                    ),
                     const SizedBox(height: 8),
                     Text(
                       'لا توجد منتجات',
@@ -591,12 +606,17 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 separatorBuilder: (context, index) => const Divider(),
                 itemBuilder: (context, index) {
                   final line = _invoiceLines[index];
-                  final unitPrice = line.quantity == 0 ? 0 : (line.amount / line.quantity);
+                  final unitPrice = line.quantity == 0
+                      ? 0
+                      : (line.amount / line.quantity);
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(
                       'المنتج #${line.groupId}',
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     subtitle: Text(
                       'الكمية: ${line.quantity} × ${unitPrice.toStringAsFixed(2)} = ${line.totalAmount.toStringAsFixed(2)}',
@@ -650,7 +670,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
             Row(
               children: [
                 Expanded(
-                  child: TextFormField(
+                  child: TextInputField(
                     controller: _discountController,
                     decoration: InputDecoration(
                       labelText: 'الخصم',
@@ -659,7 +679,10 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                     style: const TextStyle(fontSize: 13),
                     keyboardType: TextInputType.number,
@@ -669,7 +692,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: TextFormField(
+                  child: TextInputField(
                     controller: _taxController,
                     decoration: InputDecoration(
                       labelText: 'الضريبة %',
@@ -678,7 +701,10 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                     ),
                     style: const TextStyle(fontSize: 13),
                     keyboardType: TextInputType.number,
@@ -699,7 +725,11 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 children: [
                   _buildTotalRow('المجموع الفرعي', _subtotal),
                   const SizedBox(height: 8),
-                  _buildTotalRow('الخصم', -_discountAmount, color: Colors.orange),
+                  _buildTotalRow(
+                    'الخصم',
+                    -_discountAmount,
+                    color: Colors.orange,
+                  ),
                   const SizedBox(height: 8),
                   _buildTotalRow('الضريبة', _taxAmount, color: Colors.blue),
                   const Divider(height: 16),
@@ -713,7 +743,12 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
     );
   }
 
-  Widget _buildTotalRow(String label, double amount, {Color? color, bool isTotal = false}) {
+  Widget _buildTotalRow(
+    String label,
+    double amount, {
+    Color? color,
+    bool isTotal = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -758,7 +793,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
               ),
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextInputField(
               controller: _statementController,
               decoration: InputDecoration(
                 labelText: 'البيان',
@@ -774,7 +809,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
               maxLines: 3,
             ),
             const SizedBox(height: 12),
-            TextFormField(
+            TextInputField(
               controller: _shippingAddressController,
               decoration: InputDecoration(
                 labelText: 'عنوان الشحن',
@@ -817,7 +852,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 label: Text(
                   isLoading
                       ? 'جاري الحفظ...'
-                      : (widget.invoice != null ? 'تحديث الفاتورة' : 'حفظ الفاتورة'),
+                      : (widget.invoice != null
+                            ? 'تحديث الفاتورة'
+                            : 'حفظ الفاتورة'),
                   style: const TextStyle(fontSize: 13),
                 ),
                 style: ElevatedButton.styleFrom(

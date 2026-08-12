@@ -33,7 +33,7 @@ class _SalePageBodyState extends State<SalePageBody> {
 }
 
 class SalesBillsScreen extends StatefulWidget {
-  const SalesBillsScreen({Key? key}) : super(key: key);
+  const SalesBillsScreen({super.key});
 
   @override
   State<SalesBillsScreen> createState() => _SalesBillsScreenState();
@@ -253,13 +253,13 @@ class BillsHeader extends StatelessWidget {
   final bool isFilterOpen;
 
   const BillsHeader({
-    Key? key,
+    super.key,
     required this.searchQuery,
     required this.onSearchChanged,
     required this.onFilterPressed,
     required this.onNewBillPressed,
     required this.isFilterOpen,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -336,10 +336,10 @@ class FilterPanel extends StatelessWidget {
   final Function(String) onSortChanged;
 
   const FilterPanel({
-    Key? key,
+    super.key,
     required this.sortBy,
     required this.onSortChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -388,7 +388,7 @@ class FilterPanel extends StatelessWidget {
 class StatsCards extends StatelessWidget {
   final BillStats stats;
 
-  const StatsCards({Key? key, required this.stats}) : super(key: key);
+  const StatsCards({super.key, required this.stats});
 
   @override
   Widget build(BuildContext context) {
@@ -448,7 +448,7 @@ class BillCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   const BillCard({
-    Key? key,
+    super.key,
     required this.invoice,
     required this.onTap,
     required this.onView,
@@ -456,7 +456,7 @@ class BillCard extends StatelessWidget {
     required this.onDownload,
     required this.onShare,
     required this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -11,8 +11,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 class AccountMovementsDialog extends StatelessWidget {
   final AccountModel account;
 
-  const AccountMovementsDialog({Key? key, required this.account})
-    : super(key: key);
+  const AccountMovementsDialog({super.key, required this.account});
 
   @override
   Widget build(BuildContext context) {
@@ -343,7 +342,7 @@ class _AccountMovementsContent extends StatelessWidget {
                             ),
                           ],
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),

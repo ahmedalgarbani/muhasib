@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -9,14 +10,12 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 class AccountTransactionsPage extends StatefulWidget {
   final AccountEntity account;
-  
-  const AccountTransactionsPage({
-    super.key,
-    required this.account,
-  });
+
+  const AccountTransactionsPage({super.key, required this.account});
 
   @override
-  State<AccountTransactionsPage> createState() => _AccountTransactionsPageState();
+  State<AccountTransactionsPage> createState() =>
+      _AccountTransactionsPageState();
 }
 
 class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
@@ -25,32 +24,32 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
   DateTime endDate = DateTime.now();
   List<Map<String, dynamic>> transactions = [];
   bool isLoading = true;
-  
+
   double totalDebit = 0.0;
   double totalCredit = 0.0;
   double currentBalance = 0.0;
-  
+
   @override
   void initState() {
     super.initState();
     _loadTransactions();
   }
-  
+
   Future<void> _loadTransactions() async {
     setState(() => isLoading = true);
-    
+
     try {
       final databaseService = getIt<DatabaseService>();
       final db = await databaseService.database;
-      
+
       // Build the query based on selected period
       List<dynamic> whereArgs = [widget.account.id];
-      
+
       if (selectedPeriod != 'الكل') {
         whereArgs.add(startDate.millisecondsSinceEpoch ~/ 1000);
         whereArgs.add(endDate.millisecondsSinceEpoch ~/ 1000);
       }
-      
+
       // Use the journal as the single source of truth (double-entry).
       final journalEntries = await db.rawQuery('''
         SELECT 
@@ -70,25 +69,26 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       ''', whereArgs);
 
       final allTransactions = [...journalEntries];
-      
+
       // Calculate totals and running balance (descending dates):
       // start from current balance and walk backwards.
       double runningBalance = widget.account.balance;
       totalDebit = 0.0;
       totalCredit = 0.0;
-      
+
       for (final transaction in allTransactions) {
         final debit = (transaction['debit_amount'] as num?)?.toDouble() ?? 0.0;
-        final credit = (transaction['credit_amount'] as num?)?.toDouble() ?? 0.0;
-        
+        final credit =
+            (transaction['credit_amount'] as num?)?.toDouble() ?? 0.0;
+
         totalDebit += debit;
         totalCredit += credit;
         transaction['balance'] = runningBalance;
         runningBalance -= (debit - credit);
       }
-      
+
       currentBalance = widget.account.balance;
-      
+
       setState(() {
         transactions = allTransactions;
         isLoading = false;
@@ -98,18 +98,13 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       setState(() {
         isLoading = false;
       });
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('خطأ في تحميل الحركات: ${e.toString()}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        AppToast.showError(context, 'خطأ في تحميل الحركات: ${e.toString()}');
       }
     }
   }
-  
+
   void _selectDateRange() async {
     final DateTimeRange? picked = await showDateRangePicker(
       context: context,
@@ -118,7 +113,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       initialDateRange: DateTimeRange(start: startDate, end: endDate),
       locale: const Locale('ar', 'SA'),
     );
-    
+
     if (picked != null) {
       setState(() {
         startDate = picked.start;
@@ -128,7 +123,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       _loadTransactions();
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -171,7 +166,10 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                 InkWell(
                   onTap: _selectDateRange,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey[300]!),
                       borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -181,7 +179,11 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                       children: [
                         Row(
                           children: [
-                            const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'من: ${DateFormat('yyyy-MM-dd').format(startDate)}',
@@ -191,7 +193,11 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                         ),
                         Row(
                           children: [
-                            const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 8),
                             Text(
                               'إلى: ${DateFormat('yyyy-MM-dd').format(endDate)}',
@@ -207,7 +213,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // Table Header
           Container(
             color: Colors.white,
@@ -252,44 +258,44 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
               ],
             ),
           ),
-          
+
           // Transactions List
           Expanded(
             child: isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : transactions.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.receipt_long_outlined,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'لا توجد حركات في الفترة المحددة',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 64,
+                          color: Colors.grey[400],
                         ),
-                      )
-                    : ListView.builder(
-                        padding: const EdgeInsets.only(bottom: 80),
-                        itemCount: transactions.length,
-                        itemBuilder: (context, index) {
-                          final transaction = transactions[index];
-                          return _buildTransactionItem(transaction);
-                        },
-                      ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'لا توجد حركات في الفترة المحددة',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 80),
+                    itemCount: transactions.length,
+                    itemBuilder: (context, index) {
+                      final transaction = transactions[index];
+                      return _buildTransactionItem(transaction);
+                    },
+                  ),
           ),
         ],
       ),
-      
+
       // Bottom Summary
       bottomSheet: Container(
         color: Colors.white,
@@ -352,10 +358,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
               children: [
                 const Text(
                   'الرصيد الحالي',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
                   NumberFormat('#,##0.00').format(currentBalance),
@@ -372,14 +375,14 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       ),
     );
   }
-  
+
   Widget _buildPeriodOption(String label) {
     bool isSelected = selectedPeriod == label;
     return InkWell(
       onTap: () {
         setState(() {
           selectedPeriod = label;
-          
+
           // Update date range based on selection
           final now = DateTime.now();
           switch (label) {
@@ -419,13 +422,15 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       ),
     );
   }
-  
+
   Widget _buildTransactionItem(Map<String, dynamic> transaction) {
-    final date = DateTime.fromMillisecondsSinceEpoch((transaction['date'] as int) * 1000);
+    final date = DateTime.fromMillisecondsSinceEpoch(
+      (transaction['date'] as int) * 1000,
+    );
     final debit = (transaction['debit_amount'] ?? 0.0) as double;
     final credit = (transaction['credit_amount'] ?? 0.0) as double;
     final balance = (transaction['balance'] ?? 0.0) as double;
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       color: Colors.white,
@@ -448,9 +453,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                       children: [
                         Text(
                           transaction['description'] ?? '',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: const TextStyle(fontWeight: FontWeight.w500),
                         ),
                         if (transaction['entry_number'] != null)
                           Text(
@@ -476,7 +479,9 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                   // Credit
                   Expanded(
                     child: Text(
-                      credit > 0 ? NumberFormat('#,##0.00').format(credit) : '-',
+                      credit > 0
+                          ? NumberFormat('#,##0.00').format(credit)
+                          : '-',
                       style: TextStyle(
                         color: credit > 0 ? Colors.green : Colors.grey,
                       ),
@@ -498,16 +503,14 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                   Expanded(
                     child: Text(
                       DateFormat('dd/MM/yyyy').format(date),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       textAlign: TextAlign.center,
                     ),
                   ),
                 ],
               ),
-              if (transaction['notes'] != null && transaction['notes'].toString().isNotEmpty)
+              if (transaction['notes'] != null &&
+                  transaction['notes'].toString().isNotEmpty)
                 Container(
                   margin: const EdgeInsets.only(top: 8),
                   padding: const EdgeInsets.all(8),
@@ -538,16 +541,20 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       ),
     );
   }
-  
+
   void _showTransactionDetails(Map<String, dynamic> transaction) {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.lg20),
+        ),
       ),
       builder: (context) {
-        final date = DateTime.fromMillisecondsSinceEpoch((transaction['date'] as int) * 1000);
-        
+        final date = DateTime.fromMillisecondsSinceEpoch(
+          (transaction['date'] as int) * 1000,
+        );
+
         return Container(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -559,10 +566,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                 children: [
                   const Text(
                     'تفاصيل الحركة',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
@@ -573,16 +577,23 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
               const Divider(),
               const SizedBox(height: 12),
               _buildDetailRow('النوع', transaction['description'] ?? ''),
-              _buildDetailRow('الرقم', transaction['entry_number']?.toString() ?? '-'),
+              _buildDetailRow(
+                'الرقم',
+                transaction['entry_number']?.toString() ?? '-',
+              ),
               _buildDetailRow('التاريخ', DateFormat('yyyy-MM-dd').format(date)),
               _buildDetailRow(
                 'مدين',
-                NumberFormat('#,##0.00').format(transaction['debit_amount'] ?? 0.0),
+                NumberFormat(
+                  '#,##0.00',
+                ).format(transaction['debit_amount'] ?? 0.0),
                 valueColor: Colors.red,
               ),
               _buildDetailRow(
                 'دائن',
-                NumberFormat('#,##0.00').format(transaction['credit_amount'] ?? 0.0),
+                NumberFormat(
+                  '#,##0.00',
+                ).format(transaction['credit_amount'] ?? 0.0),
                 valueColor: Colors.green,
               ),
               _buildDetailRow(
@@ -590,7 +601,8 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                 NumberFormat('#,##0.00').format(transaction['balance'] ?? 0.0),
                 valueColor: Colors.blue,
               ),
-              if (transaction['notes'] != null && transaction['notes'].toString().isNotEmpty)
+              if (transaction['notes'] != null &&
+                  transaction['notes'].toString().isNotEmpty)
                 _buildDetailRow('ملاحظات', transaction['notes']),
               const SizedBox(height: 20),
             ],
@@ -599,7 +611,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
       },
     );
   }
-  
+
   Widget _buildDetailRow(String label, String value, {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -610,10 +622,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
             width: 100,
             child: Text(
               label,
-              style: TextStyle(
-                color: Colors.grey[600],
-                fontSize: 14,
-              ),
+              style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
           ),
           Expanded(

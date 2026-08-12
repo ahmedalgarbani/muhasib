@@ -4,11 +4,12 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/domain/entities/product_unit_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
 
 class ProductUnitsPage extends StatefulWidget {
-  const ProductUnitsPage({Key? key}) : super(key: key);
+  const ProductUnitsPage({super.key});
 
   @override
   State<ProductUnitsPage> createState() => _ProductUnitsPageState();
@@ -329,11 +330,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                 onPressed: () {
                   if (nameController.text.trim().isEmpty ||
                       shortController.text.trim().isEmpty) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('الرجاء إدخال اسم الوحدة والاختصار'),
-                      ),
-                    );
+                    AppToast.showError(context, 'الرجاء إدخال اسم الوحدة والاختصار');
                     return;
                   }
                   

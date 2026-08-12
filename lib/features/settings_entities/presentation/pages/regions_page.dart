@@ -10,6 +10,7 @@ import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/region_entity.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/regions_cubit.dart';
 import 'package:muhasib/features/settings_entities/presentation/widgets/regions_list_widget.dart';
 
@@ -125,9 +126,13 @@ class _RegionsViewState extends State<_RegionsView> {
   }
 
   void _showSnackBar(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message), backgroundColor: color));
+    if (color == Colors.green) {
+      AppToast.showSuccess(context, message);
+    } else if (color == Colors.orange) {
+      AppToast.showWarning(context, message);
+    } else {
+      AppToast.showError(context, message);
+    }
   }
 
   void _showRegionDialog(BuildContext context, {RegionEntity? region}) {

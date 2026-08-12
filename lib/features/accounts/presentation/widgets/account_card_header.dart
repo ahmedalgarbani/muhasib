@@ -12,14 +12,14 @@ class AccountCardHeader extends StatelessWidget {
   final VoidCallback? onDelete;
 
   const AccountCardHeader({
-    Key? key,
+    super.key,
     required this.account,
     required this.backgroundColor,
     required this.iconColor,
     required this.borderColor,
     this.onEdit,
     this.onDelete,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

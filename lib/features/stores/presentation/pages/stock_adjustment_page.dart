@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
 import 'package:muhasib/features/stores/domain/entities/stock_adjustment_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/stock_adjustments_cubit.dart';
-import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -30,7 +29,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   String _adjustmentType = 'decrease'; // 'increase' or 'decrease'
   String _adjustmentReason = 'damage';
   WarehouseEntity? _selectedWarehouse;
-  List<StockAdjustmentLineEntity> _adjustmentLines = [];
+  final List<StockAdjustmentLineEntity> _adjustmentLines = [];
   
   final List<Map<String, String>> _adjustmentReasons = [
     {'value': 'damage', 'label': 'تلف'},
@@ -233,7 +232,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   }
                                   
                                   return DropdownButtonFormField<WarehouseEntity>(
-                                    value: _selectedWarehouse,
+                                    initialValue: _selectedWarehouse,
                                     decoration: InputDecoration(
                                       labelText: 'المخزن',
                                       prefixIcon: const Icon(Icons.warehouse),
@@ -265,7 +264,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                             const SizedBox(width: 16),
                             Expanded(
                               child: DropdownButtonFormField<String>(
-                                value: _adjustmentReason,
+                                initialValue: _adjustmentReason,
                                 decoration: InputDecoration(
                                   labelText: 'السبب',
                                   prefixIcon: const Icon(Icons.help_outline),
@@ -499,25 +498,13 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   }
 
   void _addProductLine(BuildContext context) {
-    // This would open a dialog to select product and enter quantity
-    // For now, show a simple message
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('سيتم إضافة واجهة اختيار المنتج قريباً'),
-      ),
-    );
+    AppToast.showInfo(context, 'سيتم إضافة واجهة اختيار المنتج قريباً');
   }
 
   void _saveAdjustment(String status) {
     if (!_formKey.currentState!.validate()) return;
     
-    // Save adjustment logic here
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم حفظ التسوية كمسودة'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    AppToast.showSuccess(context, 'تم حفظ التسوية كمسودة');
   }
 
   void _postAdjustment() {
@@ -572,12 +559,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
             onPressed: () {
               Navigator.pop(context);
               // Post adjustment logic here
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('تم ترحيل التسوية بنجاح'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              AppToast.showSuccess(context, 'تم ترحيل التسوية بنجاح');
               context.pop();
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.green),

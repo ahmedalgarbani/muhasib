@@ -8,7 +8,7 @@ import 'package:muhasib/features/main/presentation/widgets/recent_actions_sectio
 import 'package:muhasib/features/main/presentation/widgets/stats_cards_section.dart';
 
 class HomePageView extends StatefulWidget {
-  const HomePageView({Key? key}) : super(key: key);
+  const HomePageView({super.key});
 
   @override
   State<HomePageView> createState() => _HomePageViewState();

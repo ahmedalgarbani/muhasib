@@ -9,7 +9,6 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
-import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
 
 class Step1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -19,13 +18,13 @@ class Step1Customer extends StatefulWidget {
   final VoidCallback onShowCustomerSheet;
 
   const Step1Customer({
-    Key? key,
+    super.key,
     required this.invoice,
     required this.customers,
     required this.onInvoiceUpdate,
     required this.onNext,
     required this.onShowCustomerSheet,
-  }) : super(key: key);
+  });
 
   @override
   State<Step1Customer> createState() => _Step1CustomerState();

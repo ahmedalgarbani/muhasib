@@ -12,7 +12,7 @@ import 'package:muhasib/features/products/presentation/cubit/product_units_cubit
 import 'package:muhasib/features/products/presentation/pages/product_form_page.dart';
 
 class ProductsPage extends StatefulWidget {
-  const ProductsPage({Key? key}) : super(key: key);
+  const ProductsPage({super.key});
 
   @override
   State<ProductsPage> createState() => _ProductsPageState();
@@ -271,7 +271,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                 borderRadius: BorderRadius.circular(AppRadius.xs),
                               ),
                               child: Text(
-                                '${product.quantity.toStringAsFixed(0)}',
+                                product.quantity.toStringAsFixed(0),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: product.quantity > 0

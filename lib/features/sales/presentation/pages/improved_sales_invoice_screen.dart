@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
@@ -21,9 +22,9 @@ class ImprovedSalesInvoiceScreen extends StatefulWidget {
   final InvoiceType invoiceType;
 
   const ImprovedSalesInvoiceScreen({
-    Key? key,
+    super.key,
     this.invoiceType = InvoiceType.salesInvoice,
-  }) : super(key: key);
+  });
 
   @override
   State<ImprovedSalesInvoiceScreen> createState() => _ImprovedSalesInvoiceScreenState();
@@ -170,21 +171,13 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
   }
 
   void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-      ),
-    );
+   
+    AppToast.showError(context, message);
   }
 
   void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-      ),
-    );
+   
+    AppToast.showSuccess(context, message);
   }
 
   @override
@@ -620,7 +613,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                   ),
                 ),
               ),
-            )).toList(),
+            )),
           ],
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -120,9 +121,13 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
   }
 
   void _showSnackBar(BuildContext context, String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
-    );
+    if (color == Colors.green) {
+      AppToast.showSuccess(context, message);
+    } else if (color == Colors.orange) {
+      AppToast.showWarning(context, message);
+    } else {
+      AppToast.showError(context, message);
+    }
   }
 
   void _showOtherFeeDialog(BuildContext context, {OtherFeeEntity? otherFee}) {
@@ -163,7 +168,7 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
-                  value: toolType,
+                  initialValue: toolType,
                   decoration: const InputDecoration(
                     labelText: 'نوع الأداة',
                     border: OutlineInputBorder(),

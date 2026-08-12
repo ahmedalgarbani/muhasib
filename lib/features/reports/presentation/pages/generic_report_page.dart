@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/route/safe_pop.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -88,7 +90,7 @@ class _GenericReportContent extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
-              onPressed: () => Navigator.of(context).pop(),
+              onPressed: () => context.safePop(null, AppRoutes.reports),
               icon: const Icon(Icons.arrow_back),
               label: const Text('العودة للتقارير'),
               style: ElevatedButton.styleFrom(

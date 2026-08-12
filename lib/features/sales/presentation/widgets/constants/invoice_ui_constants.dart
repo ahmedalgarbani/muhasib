@@ -133,10 +133,10 @@ class InvoiceStatusBadge extends StatelessWidget {
   final bool showIcon;
 
   const InvoiceStatusBadge({
-    Key? key,
+    super.key,
     required this.status,
     this.showIcon = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -181,10 +181,10 @@ class InvoiceTypeBadge extends StatelessWidget {
   final bool showIcon;
 
   const InvoiceTypeBadge({
-    Key? key,
+    super.key,
     required this.type,
     this.showIcon = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

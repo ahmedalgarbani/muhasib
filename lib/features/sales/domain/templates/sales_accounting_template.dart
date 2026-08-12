@@ -1,4 +1,3 @@
-import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 
 /// Accounting Entry Template for Sales Operations
 /// 
@@ -11,6 +10,7 @@ import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 /// final entries = await template.generateSalesInvoiceEntries(invoice);
 /// await saveJournalEntries(entries);
 /// ```
+library;
 
 class SalesAccountingTemplate {
   // Account codes from the chart of accounts seeder
@@ -285,7 +285,7 @@ class SalesAccountingTemplate {
     buffer.writeln('القيد المحاسبي: ${template['description']}');
     buffer.writeln('التاريخ: ${_formatDate(template['invoice_date'])}');
     buffer.writeln('المرجع: ${template['reference_number']}');
-    buffer.writeln('${'=' * 60}');
+    buffer.writeln('=' * 60);
     buffer.writeln('');
     
     final entries = template['entries'] as List<Map<String, dynamic>>;
@@ -305,7 +305,7 @@ class SalesAccountingTemplate {
     }
     
     buffer.writeln('');
-    buffer.writeln('${'=' * 60}');
+    buffer.writeln('=' * 60);
     buffer.writeln('إجمالي المدين: ${_formatAmount(template['total_debit'])}');
     buffer.writeln('إجمالي الدائن: ${_formatAmount(template['total_credit'])}');
     buffer.writeln('');

@@ -15,11 +15,11 @@ class ImprovedStep1Customer extends StatefulWidget {
   final VoidCallback onNext;
 
   const ImprovedStep1Customer({
-    Key? key,
+    super.key,
     required this.invoice,
     required this.onInvoiceUpdate,
     required this.onNext,
-  }) : super(key: key);
+  });
 
   @override
   State<ImprovedStep1Customer> createState() => _ImprovedStep1CustomerState();
@@ -467,7 +467,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                     ),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
-                      value: widget.invoice.warehouse,
+                      initialValue: widget.invoice.warehouse,
                       decoration: InputDecoration(
                         prefixIcon: const Icon(Icons.warehouse, size: 18),
                         border: OutlineInputBorder(

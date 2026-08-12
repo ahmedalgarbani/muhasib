@@ -4,11 +4,13 @@ import 'package:intl/intl.dart' hide TextDirection;
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import '../cubit/currencies_cubit.dart';
 import '../../domain/entities/currency_entity.dart';
 
 class CurrencyExchangePage extends StatefulWidget {
-  const CurrencyExchangePage({Key? key}) : super(key: key);
+  const CurrencyExchangePage({super.key});
 
   @override
   State<CurrencyExchangePage> createState() => _CurrencyExchangePageState();
@@ -35,8 +37,9 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
   void _calculateExchange() {
     if (_amountController.text.isEmpty ||
         fromCurrency == null ||
-        toCurrency == null)
+        toCurrency == null) {
       return;
+    }
 
     final amount = double.tryParse(_amountController.text) ?? 0;
     final fromRate = fromCurrency!.exchangeRate;
@@ -160,7 +163,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<CurrencyEntity>(
-                    value: fromCurrency,
+                    initialValue: fromCurrency,
                     decoration: InputDecoration(
                       labelText: 'من العملة',
                       prefixIcon: const Icon(
@@ -188,7 +191,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
                 const SizedBox(width: 12),
                 Expanded(
                   flex: 1,
-                  child: TextFormField(
+                  child: TextInputField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
@@ -243,7 +246,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
                 Expanded(
                   flex: 2,
                   child: DropdownButtonFormField<CurrencyEntity>(
-                    value: toCurrency,
+                    initialValue: toCurrency,
                     decoration: InputDecoration(
                       labelText: 'إلى العملة',
                       prefixIcon: const Icon(
@@ -271,7 +274,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
                 const SizedBox(width: 12),
                 Expanded(
                   flex: 1,
-                  child: TextFormField(
+                  child: TextInputField(
                     controller: _resultController,
                     readOnly: true,
                     decoration: InputDecoration(
@@ -376,7 +379,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
               ),
             ),
             const SizedBox(height: 16),
-            TextFormField(
+            TextInputField(
               controller: _notesController,
               maxLines: 2,
               decoration: InputDecoration(
@@ -534,12 +537,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
     if (fromCurrency == null ||
         toCurrency == null ||
         _amountController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء ملء جميع الحقول المطلوبة'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppToast.showError(context, 'الرجاء ملء جميع الحقول المطلوبة');
       return;
     }
 
@@ -557,12 +555,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
       transactions.insert(0, transaction);
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('تم حفظ عملية التحويل بنجاح'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    AppToast.showSuccess(context, 'تم حفظ عملية التحويل بنجاح');
 
     _clearForm();
   }

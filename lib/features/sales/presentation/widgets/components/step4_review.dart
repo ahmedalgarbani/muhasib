@@ -13,12 +13,12 @@ class Step4Review extends StatelessWidget {
   final bool isQuotation;
 
   const Step4Review({
-    Key? key,
+    super.key,
     required this.invoice,
     required this.onPrevious,
     required this.onSave,
     this.isQuotation = false,
-  }) : super(key: key);
+  });
 
   String _getPaymentMethodLabel(PaymentMethod method) {
     switch (method) {
@@ -241,7 +241,7 @@ class Step4Review extends StatelessWidget {
                                 ],
                               ),
                             );
-                          }).toList(),
+                          }),
                         ],
                       ],
                     ),

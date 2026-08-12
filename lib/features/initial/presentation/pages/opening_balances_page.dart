@@ -7,6 +7,7 @@ import '../cubit/initial_cubit.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 
 class OpeningBalancesPage extends StatefulWidget {
   const OpeningBalancesPage({super.key});
@@ -425,12 +426,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
     }
     
     if (balances.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('لا توجد أرصدة لحفظها'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      AppToast.showWarning(context, 'لا توجد أرصدة لحفظها');
       return;
     }
     
@@ -439,21 +435,11 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
       
       if (!mounted) return;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تم حفظ الأرصدة الافتتاحية بنجاح'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      AppToast.showSuccess(context, 'تم حفظ الأرصدة الافتتاحية بنجاح');
       
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ في حفظ الأرصدة: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      AppToast.showError(context, 'خطأ في حفظ الأرصدة: $e');
     }
   }
 }

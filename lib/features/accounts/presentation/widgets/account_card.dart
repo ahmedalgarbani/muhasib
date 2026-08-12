@@ -11,12 +11,12 @@ class AccountCard extends StatelessWidget {
   final String Function(double) formatNumber;
 
   const AccountCard({
-    Key? key,
+    super.key,
     required this.account,
     required this.onTap,
     required this.onShowMovements,
     required this.formatNumber,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

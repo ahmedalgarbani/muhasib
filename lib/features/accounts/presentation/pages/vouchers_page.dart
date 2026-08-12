@@ -2,6 +2,7 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
@@ -10,7 +11,6 @@ import 'voucher_form_page.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-
 
 part 'vouchers_widgets.dart';
 
@@ -168,7 +168,9 @@ class _VouchersPageState extends State<VouchersPage>
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.lg20),
+        ),
       ),
       builder: (context) => Directionality(
         textDirection: ui.TextDirection.rtl,
@@ -206,9 +208,7 @@ class _VouchersPageState extends State<VouchersPage>
                     headers: headers,
                     data: data,
                   ).then((path) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('تم حفظ الملف في: $path')),
-                    );
+                    AppToast.showSuccess(context, 'تم حفظ الملف في: $path');
                   });
                 },
               ),
@@ -239,8 +239,9 @@ class _VouchersPageState extends State<VouchersPage>
         ),
       ),
     );
-    if (result == true)
+    if (result == true) {
       context.read<VouchersCubit>().loadVouchers(type: _filter);
+    }
   }
 
   Future<void> _onEditVoucher(VoucherEntity voucher) async {
@@ -252,8 +253,9 @@ class _VouchersPageState extends State<VouchersPage>
         ),
       ),
     );
-    if (result == true)
+    if (result == true) {
       context.read<VouchersCubit>().loadVouchers(type: _filter);
+    }
   }
 
   void _onDeleteVoucher(VoucherEntity voucher) {
@@ -296,4 +298,3 @@ class _VouchersPageState extends State<VouchersPage>
     );
   }
 }
-

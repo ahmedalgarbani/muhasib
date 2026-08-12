@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class QuickAccessItem extends StatelessWidget {
@@ -10,12 +9,12 @@ class QuickAccessItem extends StatelessWidget {
   final String? route;
 
   const QuickAccessItem({
-    Key? key,
+    super.key,
     required this.icon,
     required this.label,
     required this.color,
     this.route,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

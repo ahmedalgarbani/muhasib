@@ -5,6 +5,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
@@ -66,40 +67,15 @@ class _WarehousesListViewState extends State<_WarehousesListView> {
       body: BlocConsumer<WarehousesCubit, WarehousesState>(
         listener: (context, state) {
           if (state is WarehouseCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم إضافة المخزن بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppToast.showSuccess(context, 'تم إضافة المخزن بنجاح');
           } else if (state is WarehouseUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم تحديث المخزن بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppToast.showSuccess(context, 'تم تحديث المخزن بنجاح');
           } else if (state is WarehouseDeleted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم حذف المخزن بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppToast.showSuccess(context, 'تم حذف المخزن بنجاح');
           } else if (state is MainWarehouseSet) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم تعيين المخزن الرئيسي بنجاح'),
-                backgroundColor: Colors.green,
-              ),
-            );
+            AppToast.showSuccess(context, 'تم تعيين المخزن الرئيسي بنجاح');
           } else if (state is WarehousesError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+            AppToast.showError(context, state.message);
           }
         },
         builder: (context, state) {

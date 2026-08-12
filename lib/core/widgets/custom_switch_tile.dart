@@ -33,7 +33,7 @@ class CustomSwitchTile extends StatelessWidget {
       child: SwitchListTile(
         value: value,
         onChanged: enabled ? onChanged : null,
-        activeColor: AppColors.primary,
+        activeThumbColor: AppColors.primary,
         dense: true,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
         secondary: icon != null

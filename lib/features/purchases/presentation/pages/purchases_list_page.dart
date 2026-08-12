@@ -11,7 +11,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class PurchasesListPage extends StatefulWidget {
-  const PurchasesListPage({Key? key}) : super(key: key);
+  const PurchasesListPage({super.key});
 
   @override
   State<PurchasesListPage> createState() => _PurchasesListPageState();

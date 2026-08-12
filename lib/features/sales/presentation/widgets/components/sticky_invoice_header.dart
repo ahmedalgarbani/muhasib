@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -11,10 +11,10 @@ class StickyInvoiceHeader extends StatelessWidget {
   final VoidCallback onCustomerTap;
 
   const StickyInvoiceHeader({
-    Key? key,
+    super.key,
     required this.invoice,
     required this.onCustomerTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +39,15 @@ class StickyInvoiceHeader extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(invoice.number, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4)),
+                  Text(
+                    invoice.number,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.gray900,
+                      height: 1.4,
+                    ),
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   InkWell(
                     onTap: onCustomerTap,
@@ -53,10 +61,13 @@ class StickyInvoiceHeader extends StatelessWidget {
                         borderRadius: BorderRadius.circular(AppRadius.xs),
                       ),
                       child: Text(
-                        invoice.customer?.name ?? 'ï؟½?ï؟½?ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4).copyWith(
-                          color: AppColors.primary,
-                        ),
+                        invoice.customer?.name ?? 'اختر العميل',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.normal,
+                          color: AppColors.gray600,
+                          height: 1.4,
+                        ).copyWith(color: AppColors.primary),
                       ),
                     ),
                   ),
@@ -64,36 +75,34 @@ class StickyInvoiceHeader extends StatelessWidget {
               ),
               Text(
                 DateFormat('yyyy-MM-dd').format(invoice.date),
-                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4),
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                  color: AppColors.gray600,
+                  height: 1.4,
+                ),
               ),
             ],
           ),
           if (invoice.customer?.hasDebt ?? false) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
-              'ï؟½?ï؟½?ï؟½ï؟½ï؟½?ï؟½?: ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½? ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½? ${NumberFormatter.formatCurrency(invoice.customer!.balance.abs())}',
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4).copyWith(color: AppColors.error),
+              'تنبيه: العميل عليه مديونية بقيمة ${NumberFormatter.formatCurrency(invoice.customer!.balance.abs())}',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.normal,
+                color: AppColors.gray600,
+                height: 1.4,
+              ).copyWith(color: AppColors.error),
             ),
           ],
           const SizedBox(height: AppSpacing.sm),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildAmountInfo(
-                'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
-                invoice.total,
-                AppColors.grey900,
-              ),
-              _buildAmountInfo(
-                'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
-                invoice.paid,
-                AppColors.success,
-              ),
-              _buildAmountInfo(
-                'ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?ï؟½?',
-                invoice.remaining,
-                AppColors.warning,
-              ),
+              _buildAmountInfo('الإجمالي', invoice.total, AppColors.grey900),
+              _buildAmountInfo('المدفوع', invoice.paid, AppColors.success),
+              _buildAmountInfo('المتبقي', invoice.remaining, AppColors.warning),
             ],
           ),
         ],
@@ -105,13 +114,23 @@ class StickyInvoiceHeader extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.normal,
+            color: AppColors.gray600,
+            height: 1.4,
+          ),
+        ),
         Text(
           NumberFormatter.formatNumber(amount),
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.gray900, height: 1.5).copyWith(
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.normal,
+            color: AppColors.gray900,
+            height: 1.5,
+          ).copyWith(fontWeight: FontWeight.bold, color: color),
         ),
       ],
     );
