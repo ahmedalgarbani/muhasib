@@ -10,6 +10,7 @@ import 'package:muhasib/features/purchases/presentation/pages/select_purchase_fo
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PurchaseReturnsPage extends StatefulWidget {
@@ -151,8 +152,8 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
           const SizedBox(height: 16),
           TextInputField(
             controller: _searchController,
+            hint: 'البحث في المردودات...',
             decoration: InputDecoration(
-              hintText: 'البحث في المردودات...',
               hintStyle: const TextStyle(fontSize: 13),
               prefixIcon: const Icon(
                 Icons.search,
@@ -268,7 +269,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
   }
 
   Widget _buildReturnCard(InvoiceEntity returnInvoice) {
-    return Card(
+    return CustomCardContainer(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -519,7 +520,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
             Colors.green,
           ),
           const SizedBox(height: 20),
-          Card(
+          CustomCardContainer(
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -561,7 +562,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
     IconData icon,
     Color color,
   ) {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),

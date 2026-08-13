@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
@@ -184,12 +187,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       BlocBuilder<ProductGroupsCubit, ProductGroupsState>(
                         builder: (context, state) {
                           if (state is ProductGroupsLoaded) {
-                            return DropdownButtonFormField<int>(
-                              initialValue: _selectedGroupId,
-                              decoration: const InputDecoration(
-                                labelText: 'المجموعة',
-                                prefixIcon: Icon(Icons.folder),
-                              ),
+                            return CustomDropdownField<int>(
+                              value: _selectedGroupId,
+                              label: 'المجموعة',
+                              prefixIcon: const Icon(Icons.folder),
                               items: [
                                 const DropdownMenuItem(
                                   value: null,
@@ -214,12 +215,10 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       BlocBuilder<ProductUnitsCubit, ProductUnitsState>(
                         builder: (context, state) {
                           if (state is ProductUnitsLoaded) {
-                            return DropdownButtonFormField<int>(
-                              initialValue: _selectedUnitId,
-                              decoration: const InputDecoration(
-                                labelText: 'الوحدة',
-                                prefixIcon: Icon(Icons.straighten),
-                              ),
+                            return CustomDropdownField<int>(
+                              value: _selectedUnitId,
+                              label: 'الوحدة',
+                              prefixIcon: const Icon(Icons.straighten),
                               items: [
                                 const DropdownMenuItem(
                                   value: null,
@@ -258,12 +257,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
                                   (mainW ?? state.warehouses.first).id;
                             }
 
-                            return DropdownButtonFormField<int>(
-                              initialValue: _selectedStockId,
-                              decoration: const InputDecoration(
-                                labelText: 'المخزن *',
-                                prefixIcon: Icon(Icons.store),
-                              ),
+                            return CustomDropdownField<int>(
+                              value: _selectedStockId,
+                              label: 'المخزن',
+                              isRequired: true,
+                              prefixIcon: const Icon(Icons.store),
                               validator: (value) {
                                 if (value == null) {
                                   return 'يرجى اختيار المخزن';
@@ -379,35 +377,13 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveProduct,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              widget.product == null
-                                  ? 'إضافة المنتج'
-                                  : 'تحديث المنتج',
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
+                  HasibButton(
+                    label: widget.product == null
+                        ? 'إضافة المنتج'
+                        : 'تحديث المنتج',
+                    loading: _isLoading,
+                    onPressed: _isLoading ? null : _saveProduct,
+                    variant: HasibButtonVariant.primary,
                   ),
                 ],
               ),
@@ -423,12 +399,12 @@ class _ProductFormPageState extends State<ProductFormPage> {
     required IconData icon,
     required List<Widget> children,
   }) {
-    return Card(
+    return CustomCardContainer(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -457,13 +433,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     String? Function(String?)? validator,
   }) {
     return TextInputField(
+      label: label,
+      hint: hint,
       controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(icon),
-        border: const OutlineInputBorder(),
-      ),
+      prefixIcon: Icon(icon),
+
       keyboardType: keyboardType,
       maxLines: maxLines,
       validator: validator,

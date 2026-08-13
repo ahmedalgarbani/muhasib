@@ -16,6 +16,7 @@ import 'package:muhasib/features/sales/presentation/widgets/components/payment_d
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 
 class ImprovedSalesInvoiceScreen extends StatefulWidget {
@@ -27,10 +28,12 @@ class ImprovedSalesInvoiceScreen extends StatefulWidget {
   });
 
   @override
-  State<ImprovedSalesInvoiceScreen> createState() => _ImprovedSalesInvoiceScreenState();
+  State<ImprovedSalesInvoiceScreen> createState() =>
+      _ImprovedSalesInvoiceScreenState();
 }
 
-class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen> {
+class _ImprovedSalesInvoiceScreenState
+    extends State<ImprovedSalesInvoiceScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   int _currentStep = 1;
   late Invoice _invoice;
@@ -92,7 +95,9 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
     final finalAmount = totalAfterDiscount + taxAmount;
 
     final isQuotation = widget.invoiceType.isQuotation;
-    final hasDeferred = _payments.any((p) => p.method == PaymentMethod.deferred);
+    final hasDeferred = _payments.any(
+      (p) => p.method == PaymentMethod.deferred,
+    );
     final totalPaid = _payments.fold(0.0, (sum, p) => sum + p.amount);
     final isFullyPaid = totalPaid >= finalAmount;
     final transType = isQuotation ? 0 : (hasDeferred || !isFullyPaid ? 1 : 0);
@@ -139,9 +144,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
 
       setState(() => _isSaving = false);
       _showSuccessSnackBar(
-        isQuotation 
-            ? 'تم حفظ عرض السعر بنجاح'
-            : 'تم حفظ الفاتورة بنجاح',
+        isQuotation ? 'تم حفظ عرض السعر بنجاح' : 'تم حفظ الفاتورة بنجاح',
       );
 
       if (mounted) {
@@ -171,12 +174,10 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
   }
 
   void _showErrorSnackBar(String message) {
-   
     AppToast.showError(context, message);
   }
 
   void _showSuccessSnackBar(String message) {
-   
     AppToast.showSuccess(context, message);
   }
 
@@ -208,192 +209,189 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
           }
         },
         child: Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: AppColors.neutral100,
-        appBar: CustomAppBar(
-          title: isQuotation ? 'عرض سعر جديد' : 'فاتورة مبيعات جديدة',
-        ),
-        body: Column(
-          children: [
-            // Progress Indicator
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(maxStep, (index) {
-                  final stepNumber = index + 1;
-                  final isActive = stepNumber <= _currentStep;
-                  final isCompleted = stepNumber < _currentStep;
-                  
-                  return Row(
-                    children: [
-                      Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: isActive 
-                              ? AppColors.success
-                              : AppColors.gray200,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: isCompleted
-                              ? const Icon(
-                                  Icons.check,
-                                  color: Colors.white,
-                                  size: 20,
-                                )
-                              : Text(
-                                  stepNumber.toString(),
-                                  style: TextStyle(
-                                    color: isActive 
-                                        ? Colors.white 
-                                        : AppColors.gray500,
-                                    fontWeight: FontWeight.bold,
+          key: _scaffoldKey,
+          backgroundColor: AppColors.neutral100,
+          appBar: CustomAppBar(
+            title: isQuotation ? 'عرض سعر جديد' : 'فاتورة مبيعات جديدة',
+          ),
+          body: Column(
+            children: [
+              // Progress Indicator
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(maxStep, (index) {
+                    final stepNumber = index + 1;
+                    final isActive = stepNumber <= _currentStep;
+                    final isCompleted = stepNumber < _currentStep;
+
+                    return Row(
+                      children: [
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? AppColors.success
+                                : AppColors.gray200,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: isCompleted
+                                ? const Icon(
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 20,
+                                  )
+                                : Text(
+                                    stepNumber.toString(),
+                                    style: TextStyle(
+                                      color: isActive
+                                          ? Colors.white
+                                          : AppColors.gray500,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
+                          ),
+                        ),
+                        if (index < maxStep - 1)
+                          Container(
+                            width: 60,
+                            height: 2,
+                            color: isCompleted
+                                ? AppColors.success
+                                : AppColors.gray200,
+                          ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ),
+
+              // Step Title
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                color: Colors.white,
+                child: Column(
+                  children: [
+                    Text(
+                      _getStepTitle(),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.gray900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _getStepSubtitle(),
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: AppColors.gray500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Step Content
+              Expanded(child: _buildStepContent()),
+
+              // Navigation Buttons
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: const Offset(0, -4),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    if (_currentStep > 1)
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: _previousStep,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.arrow_back, size: 20),
+                              SizedBox(width: 8),
+                              Text('السابق', style: TextStyle(fontSize: 16)),
+                            ],
+                          ),
                         ),
                       ),
-                      if (index < maxStep - 1)
-                        Container(
-                          width: 60,
-                          height: 2,
-                          color: isCompleted
-                              ? AppColors.success
-                              : AppColors.gray200,
-                        ),
-                    ],
-                  );
-                }).toList(),
-              ),
-            ),
-            
-            // Step Title
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              color: Colors.white,
-              child: Column(
-                children: [
-                  Text(
-                    _getStepTitle(),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.gray900,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    _getStepSubtitle(),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      color: AppColors.gray500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            
-            // Step Content
-            Expanded(
-              child: _buildStepContent(),
-            ),
-            
-            // Navigation Buttons
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, -4),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  if (_currentStep > 1)
+                    if (_currentStep > 1) const SizedBox(width: 12),
                     Expanded(
-                      child: OutlinedButton(
-                        onPressed: _previousStep,
-                        style: OutlinedButton.styleFrom(
+                      child: ElevatedButton(
+                        onPressed: _isSaving
+                            ? null
+                            : (_currentStep == maxStep
+                                  ? _saveInvoice
+                                  : _handleNext),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _currentStep == maxStep
+                              ? AppColors.success
+                              : AppColors.primary,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.arrow_back, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              'السابق',
-                              style: TextStyle(fontSize: 16),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  if (_currentStep > 1) const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: _isSaving 
-                          ? null 
-                          : (_currentStep == maxStep ? _saveInvoice : _handleNext),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _currentStep == maxStep 
-                            ? AppColors.success
-                            : AppColors.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                      ),
-                      child: _isSaving
-                          ? const SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  _currentStep == maxStep 
-                                      ? 'حفظ الفاتورة'
-                                      : 'التالي',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    _currentStep == maxStep
+                                        ? 'حفظ الفاتورة'
+                                        : 'التالي',
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                Icon(
-                                  _currentStep == maxStep 
-                                      ? Icons.check
-                                      : Icons.arrow_forward,
-                                  size: 20,
-                                ),
-                              ],
-                            ),
+                                  const SizedBox(width: 8),
+                                  Icon(
+                                    _currentStep == maxStep
+                                        ? Icons.check
+                                        : Icons.arrow_forward,
+                                    size: 20,
+                                  ),
+                                ],
+                              ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 
   String _getStepTitle() {
@@ -471,8 +469,10 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
             separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final product = products[index];
-              final isAdded = _invoice.items.any((item) => item.id == product.id.toString());
-              return Card(
+              final isAdded = _invoice.items.any(
+                (item) => item.id == product.id.toString(),
+              );
+              return CustomCardContainer(
                 elevation: 1,
                 child: ListTile(
                   title: Text(product.name),
@@ -482,13 +482,20 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                   trailing: isAdded
                       ? const Icon(Icons.check_circle, color: AppColors.success)
                       : IconButton(
-                          icon: const Icon(Icons.add_circle_outline, color: AppColors.primary),
+                          icon: const Icon(
+                            Icons.add_circle_outline,
+                            color: AppColors.primary,
+                          ),
                           onPressed: () {
                             final newItem = InvoiceItem(
                               id: product.id.toString(),
                               name: product.name,
                               barcode: product.barcodeNo ?? '',
-                              price: (product.sellAmount ?? product.sellLocalAmount ?? 0).toDouble(),
+                              price:
+                                  (product.sellAmount ??
+                                          product.sellLocalAmount ??
+                                          0)
+                                      .toDouble(),
                               costPrice: product.costAmount,
                               unit: 'قطعة',
                               stock: product.quantity.toInt(),
@@ -517,7 +524,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
       child: Column(
         children: [
           // Invoice Summary Card
-          Card(
+          CustomCardContainer(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -525,21 +532,14 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
                 children: [
                   const Text(
                     'ملخص الفاتورة',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const Divider(),
                   _buildSummaryRow('المجموع الفرعي', _invoice.subtotal),
                   _buildSummaryRow('الخصم', _invoice.discountAmount),
                   _buildSummaryRow('الضريبة (15%)', _invoice.subtotal * 0.15),
                   const Divider(),
-                  _buildSummaryRow(
-                    'الإجمالي',
-                    _invoice.total,
-                    isTotal: true,
-                  ),
+                  _buildSummaryRow('الإجمالي', _invoice.total, isTotal: true),
                 ],
               ),
             ),
@@ -558,7 +558,7 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
       child: Column(
         children: [
           // Payment Summary
-          Card(
+          CustomCardContainer(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -576,51 +576,55 @@ class _ImprovedSalesInvoiceScreenState extends State<ImprovedSalesInvoiceScreen>
             ),
           ),
           const SizedBox(height: 16),
-          
+
           // Add Payment Button
           ElevatedButton.icon(
             onPressed: _showPaymentDialog,
             icon: const Icon(Icons.add),
             label: const Text('إضافة طريقة دفع'),
             style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
-                vertical: 12,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
-          
+
           // Payments List
           if (_payments.isNotEmpty) ...[
             const SizedBox(height: 16),
-            ..._payments.map((payment) => Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: Icon(
-                  payment.method == PaymentMethod.cash
-                      ? Icons.payments
-                      : payment.method == PaymentMethod.bank
-                          ? Icons.account_balance
-                          : Icons.schedule,
-                  color: AppColors.primary,
-                ),
-                title: Text(_getPaymentMethodName(payment.method)),
-                trailing: Text(
-                  NumberFormatter.formatCurrency(payment.amount),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
+            ..._payments.map(
+              (payment) => CustomCardContainer(
+                margin: const EdgeInsets.only(bottom: 8),
+                child: ListTile(
+                  leading: Icon(
+                    payment.method == PaymentMethod.cash
+                        ? Icons.payments
+                        : payment.method == PaymentMethod.bank
+                        ? Icons.account_balance
+                        : Icons.schedule,
+                    color: AppColors.primary,
+                  ),
+                  title: Text(_getPaymentMethodName(payment.method)),
+                  trailing: Text(
+                    NumberFormatter.formatCurrency(payment.amount),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            )),
+            ),
           ],
         ],
       ),
     );
   }
 
-  Widget _buildSummaryRow(String label, double amount, {bool isTotal = false, Color? color}) {
+  Widget _buildSummaryRow(
+    String label,
+    double amount, {
+    bool isTotal = false,
+    Color? color,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(

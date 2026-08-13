@@ -9,6 +9,7 @@ import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
@@ -296,7 +297,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
   }
 
   Widget _buildHeaderCard() {
-    return Card(
+    return CustomCardContainer(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),

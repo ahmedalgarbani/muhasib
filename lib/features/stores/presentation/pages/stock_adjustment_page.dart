@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -13,6 +14,7 @@ import 'package:muhasib/features/stores/presentation/cubit/stock_adjustments_cub
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class StockAdjustmentPage extends StatefulWidget {
   const StockAdjustmentPage({super.key});
@@ -98,7 +100,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Document Header Card
-                Card(
+                CustomCardContainer(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -167,7 +169,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                 const SizedBox(height: 16),
 
                 // Adjustment Type Card
-                Card(
+                CustomCardContainer(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -231,23 +233,12 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                         warehouses = state.warehouses;
                                       }
 
-                                      return DropdownButtonFormField<
+                                      return CustomDropdownField<
                                         WarehouseEntity
                                       >(
-                                        initialValue: _selectedWarehouse,
-                                        decoration: InputDecoration(
-                                          labelText: 'المخزن',
-                                          prefixIcon: const Icon(
-                                            Icons.warehouse,
-                                          ),
-                                          border: OutlineInputBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              AppRadius.md,
-                                            ),
-                                          ),
-                                          filled: true,
-                                          fillColor: Colors.grey[50],
-                                        ),
+                                        value: _selectedWarehouse,
+                                        label: 'المخزن',
+                                        prefixIcon: const Icon(Icons.warehouse),
                                         items: warehouses.map((warehouse) {
                                           return DropdownMenuItem(
                                             value: warehouse,
@@ -271,19 +262,10 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                             ),
                             const SizedBox(width: 16),
                             Expanded(
-                              child: DropdownButtonFormField<String>(
-                                initialValue: _adjustmentReason,
-                                decoration: InputDecoration(
-                                  labelText: 'السبب',
-                                  prefixIcon: const Icon(Icons.help_outline),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.md,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey[50],
-                                ),
+                              child: CustomDropdownField<String>(
+                                value: _adjustmentReason,
+                                label: 'السبب',
+                                prefixIcon: const Icon(Icons.help_outline),
                                 items: _adjustmentReasons.map((reason) {
                                   return DropdownMenuItem(
                                     value: reason['value'],
@@ -304,7 +286,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                 const SizedBox(height: 16),
 
                 // Product Lines Card
-                Card(
+                CustomCardContainer(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -413,7 +395,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                 const SizedBox(height: 16),
 
                 // Notes Card
-                Card(
+                CustomCardContainer(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/detail_row.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -37,9 +38,9 @@ class PartyProfileSearchField extends StatelessWidget {
       ),
       child: TextInputField(
         controller: controller,
+        hint: hintText,
         onChanged: onChanged,
         decoration: InputDecoration(
-          hintText: hintText,
           prefixIcon: const Icon(Icons.search),
           suffixIcon: query.isEmpty
               ? null
@@ -138,7 +139,8 @@ class PartyProfileCard extends StatelessWidget {
         party.creditLimit > 0 &&
         party.balance > party.creditLimit;
 
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       shape: RoundedRectangleBorder(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/cashbox_entity.dart';
 
 /// Standalone Cashbox Card Widget for displaying cashbox details.
@@ -22,10 +23,13 @@ class CashboxCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -46,8 +50,12 @@ class CashboxCardWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Icon(
-                      cashbox.isMainFund ? Icons.account_balance_wallet : Icons.point_of_sale,
-                      color: cashbox.isMainFund ? AppColors.materialBlue700 : AppColors.materialTeal600,
+                      cashbox.isMainFund
+                          ? Icons.account_balance_wallet
+                          : Icons.point_of_sale,
+                      color: cashbox.isMainFund
+                          ? AppColors.materialBlue700
+                          : AppColors.materialTeal600,
                       size: 24,
                     ),
                   ),
@@ -69,10 +77,15 @@ class CashboxCardWidget extends StatelessWidget {
                             ),
                             if (cashbox.isMainFund)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
                                 decoration: BoxDecoration(
                                   color: AppColors.materialBlue700,
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
                                 ),
                                 child: const Text(
                                   'رئيسي',
@@ -89,15 +102,21 @@ class CashboxCardWidget extends StatelessWidget {
                         Row(
                           children: [
                             Icon(
-                              cashbox.isActive ? Icons.check_circle : Icons.cancel,
+                              cashbox.isActive
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
                               size: 16,
-                              color: cashbox.isActive ? Colors.green : Colors.grey,
+                              color: cashbox.isActive
+                                  ? Colors.green
+                                  : Colors.grey,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               cashbox.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
-                                color: cashbox.isActive ? Colors.green : Colors.grey,
+                                color: cashbox.isActive
+                                    ? Colors.green
+                                    : Colors.grey,
                                 fontSize: 14,
                               ),
                             ),
@@ -156,7 +175,11 @@ class CashboxCardWidget extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.monetization_on, size: 16, color: Colors.grey),
+                    const Icon(
+                      Icons.monetization_on,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'الرصيد: ${cashbox.currentBalance?.toStringAsFixed(2)}',

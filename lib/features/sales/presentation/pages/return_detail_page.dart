@@ -7,6 +7,7 @@ import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 /// Return Invoice Detail Page
@@ -14,10 +15,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 class ReturnDetailPage extends StatelessWidget {
   final InvoiceEntity returnInvoice;
 
-  const ReturnDetailPage({
-    super.key,
-    required this.returnInvoice,
-  });
+  const ReturnDetailPage({super.key, required this.returnInvoice});
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +56,7 @@ class ReturnDetailPage extends StatelessWidget {
   }
 
   Widget _buildHeaderCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -122,7 +120,7 @@ class ReturnDetailPage extends StatelessWidget {
   }
 
   Widget _buildOriginalInvoiceCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       color: AppColors.amber100,
       shape: RoundedRectangleBorder(
@@ -155,10 +153,7 @@ class ReturnDetailPage extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               'رقم الفاتورة: ${returnInvoice.parentInvoiceNumber ?? "غير محدد"}',
-              style: const TextStyle(
-                fontSize: 14,
-                color: AppColors.amber800,
-              ),
+              style: const TextStyle(fontSize: 14, color: AppColors.amber800),
             ),
             const SizedBox(height: 8),
             OutlinedButton.icon(
@@ -179,7 +174,7 @@ class ReturnDetailPage extends StatelessWidget {
   }
 
   Widget _buildCustomerCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -211,7 +206,7 @@ class ReturnDetailPage extends StatelessWidget {
   }
 
   Widget _buildReturnedProductsCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -259,7 +254,11 @@ class ReturnDetailPage extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: const Center(
-            child: Icon(Icons.assignment_return, size: 20, color: AppColors.error),
+            child: Icon(
+              Icons.assignment_return,
+              size: 20,
+              color: AppColors.error,
+            ),
           ),
         ),
         const SizedBox(width: 12),
@@ -278,10 +277,7 @@ class ReturnDetailPage extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'الكمية المرتجعة: ${line.quantity} × ${_formatCurrency(line.amount)}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],
           ),
@@ -299,7 +295,7 @@ class ReturnDetailPage extends StatelessWidget {
   }
 
   Widget _buildTotalsCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -383,15 +379,17 @@ class ReturnDetailPage extends StatelessWidget {
     return FutureBuilder<Map<String, dynamic>>(
       future: _loadReturnEntries(),
       builder: (context, snapshot) {
-        final data = snapshot.data ?? {
-          'entries': <Map<String, dynamic>>[],
-          'total_debit': 0.0,
-          'total_credit': 0.0,
-        };
+        final data =
+            snapshot.data ??
+            {
+              'entries': <Map<String, dynamic>>[],
+              'total_debit': 0.0,
+              'total_credit': 0.0,
+            };
 
         final isBalanced = template.validateEntries(data);
 
-        return Card(
+        return CustomCardContainer(
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
@@ -414,9 +412,14 @@ class ReturnDetailPage extends StatelessWidget {
                       ),
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: isBalanced ? AppColors.emerald100 : AppColors.red100,
+                        color: isBalanced
+                            ? AppColors.emerald100
+                            : AppColors.red100,
                         borderRadius: BorderRadius.circular(AppRadius.sm6),
                       ),
                       child: Row(
@@ -425,7 +428,9 @@ class ReturnDetailPage extends StatelessWidget {
                           Icon(
                             isBalanced ? Icons.check_circle : Icons.error,
                             size: 16,
-                            color: isBalanced ? AppColors.emerald800 : AppColors.red800,
+                            color: isBalanced
+                                ? AppColors.emerald800
+                                : AppColors.red800,
                           ),
                           const SizedBox(width: 4),
                           Text(
@@ -433,7 +438,9 @@ class ReturnDetailPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
-                              color: isBalanced ? AppColors.emerald800 : AppColors.red800,
+                              color: isBalanced
+                                  ? AppColors.emerald800
+                                  : AppColors.red800,
                             ),
                           ),
                         ],
@@ -490,7 +497,7 @@ class ReturnDetailPage extends StatelessWidget {
       final debit = entry['debit'] as double;
       final credit = entry['credit'] as double;
       final accountName = entry['account_name'] as String;
-      
+
       return Padding(
         padding: const EdgeInsets.only(bottom: 8),
         child: Row(
@@ -499,10 +506,7 @@ class ReturnDetailPage extends StatelessWidget {
             Expanded(
               child: Text(
                 debit > 0 ? 'من ح/ $accountName' : 'إلى ح/ $accountName',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.grey.shade700,
-                ),
+                style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
               ),
             ),
             Text(
@@ -529,10 +533,7 @@ class ReturnDetailPage extends StatelessWidget {
           children: [
             Text(
               label,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
             ),
             const SizedBox(height: 2),
             Text(

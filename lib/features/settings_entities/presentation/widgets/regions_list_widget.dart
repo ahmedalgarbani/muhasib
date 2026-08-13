@@ -33,8 +33,8 @@ class RegionsListWidget extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: TextInputField(
             controller: searchController,
+            hint: 'بحث في المناطق...',
             decoration: InputDecoration(
-              hintText: 'بحث في المناطق...',
               prefixIcon: const Icon(Icons.search),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(

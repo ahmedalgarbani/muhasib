@@ -9,6 +9,7 @@ import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 /// Quotation Detail Page
@@ -83,7 +84,7 @@ class QuotationDetailPage extends StatelessWidget {
   }
 
   Widget _buildHeaderCard(InvoiceStatus status, bool isConverted) {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -168,7 +169,7 @@ class QuotationDetailPage extends StatelessWidget {
   }
 
   Widget _buildCustomerCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -206,7 +207,7 @@ class QuotationDetailPage extends StatelessWidget {
   }
 
   Widget _buildProductsCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -293,7 +294,7 @@ class QuotationDetailPage extends StatelessWidget {
   }
 
   Widget _buildTotalsCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -326,7 +327,7 @@ class QuotationDetailPage extends StatelessWidget {
   }
 
   Widget _buildConvertedInfoCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       color: AppColors.purple100,
       shape: RoundedRectangleBorder(

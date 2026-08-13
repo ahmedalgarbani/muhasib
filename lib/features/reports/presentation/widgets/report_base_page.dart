@@ -257,8 +257,8 @@ class _ReportBasePageState extends State<ReportBasePage> {
                         padding: const EdgeInsets.only(bottom: 8),
                         child: TextInputField(
                           controller: _searchController,
+                          hint: widget.searchHint,
                           decoration: InputDecoration(
-                            hintText: widget.searchHint,
                             hintStyle: const TextStyle(fontSize: 13),
                             prefixIcon: const Icon(Icons.search, size: 20),
                             suffixIcon: _searchController.text.isNotEmpty

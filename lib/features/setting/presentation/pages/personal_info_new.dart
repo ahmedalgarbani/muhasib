@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
@@ -125,7 +126,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ),
                 ),
-                Card(
+                CustomCardContainer(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(
@@ -174,7 +175,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ),
                 ),
-                Card(
+                CustomCardContainer(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(
@@ -209,7 +210,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ),
                 ),
-                Card(
+                CustomCardContainer(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(
@@ -259,7 +260,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ),
                 ),
-                Card(
+                CustomCardContainer(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(
@@ -310,9 +311,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       leading: Icon(icon, color: Colors.grey[600]),
       title: TextInputField(
         controller: controller,
+        label: label,
         keyboardType: keyboardType,
         decoration: InputDecoration(
-          labelText: label,
           labelStyle: const TextStyle(fontSize: 13),
           border: InputBorder.none,
           isDense: true,

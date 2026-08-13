@@ -109,10 +109,10 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                       ),
                       subtitle: TextInputField(
                         controller: passwordController,
+                        hint: 'ادخل كلمة مرور جديدة',
                         obscureText: true,
                         style: const TextStyle(fontSize: 13),
                         decoration: const InputDecoration(
-                          hintText: 'ادخل كلمة مرور جديدة',
                           border: InputBorder.none,
                           isDense: true,
                           contentPadding: EdgeInsets.zero,

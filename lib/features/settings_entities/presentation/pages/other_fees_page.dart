@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -175,12 +176,12 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
               children: [
                 TextInputField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'اسم الأداة *'),
+                  label: 'اسم الأداة *',
                 ),
                 const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
-                  initialValue: toolType,
-                  decoration: const InputDecoration(labelText: 'نوع الأداة'),
+                CustomDropdownField<int>(
+                  value: toolType,
+                  label: 'نوع الأداة',
                   items: _toolTypes.asMap().entries.map((entry) {
                     return DropdownMenuItem(
                       value: entry.key,

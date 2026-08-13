@@ -15,6 +15,7 @@ import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart
 import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class QuotationsPage extends StatefulWidget {
@@ -125,8 +126,8 @@ class _QuotationsPageState extends State<QuotationsPage> {
           Expanded(
             child: TextInputField(
               controller: _searchController,
+              hint: 'ابحث برقم العرض أو اسم العميل...',
               decoration: InputDecoration(
-                hintText: 'ابحث برقم العرض أو اسم العميل...',
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 filled: true,
                 fillColor: Colors.white,
@@ -230,7 +231,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
         quotation.nextInvoiceId != null && quotation.nextInvoiceId! > 0;
     final status = isConverted ? InvoiceStatus.converted : InvoiceStatus.open;
 
-    return Card(
+    return CustomCardContainer(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(

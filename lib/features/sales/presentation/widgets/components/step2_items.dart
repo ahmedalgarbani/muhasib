@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
@@ -105,8 +106,8 @@ class _Step2ItemsState extends State<Step2Items> {
               Expanded(
                 child: TextInputField(
                   controller: _searchController,
+                  hint: 'ابحث عن صنف أو امسح البار كود...',
                   decoration: InputDecoration(
-                    hintText: 'ابحث عن صنف أو امسح البار كود...',
                     prefixIcon: const Icon(Icons.search),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
@@ -223,11 +224,12 @@ class _Step2ItemsState extends State<Step2Items> {
                                     children: [
                                       Expanded(
                                         child:
-                                            DropdownButtonFormField<
+                                            CustomDropdownField<
                                               DiscountType
                                             >(
-                                              initialValue:
+                                              value:
                                                   widget.invoice.discount.type,
+                                              label: 'نوع الخصم',
                                               items: const [
                                                 DropdownMenuItem(
                                                   value: DiscountType.amount,
@@ -257,9 +259,7 @@ class _Step2ItemsState extends State<Step2Items> {
                                         flex: 2,
                                         child: TextInputField(
                                           keyboardType: TextInputType.number,
-                                          decoration: const InputDecoration(
-                                            hintText: 'الخصم',
-                                          ),
+                                          hint: 'الخصم',
                                           onChanged: (value) {
                                             widget.onInvoiceUpdate(
                                               widget.invoice.copyWith(
@@ -283,9 +283,7 @@ class _Step2ItemsState extends State<Step2Items> {
                                   const SizedBox(height: AppSpacing.sm),
                                   TextInputField(
                                     keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      hintText: 'رسوم أخرى',
-                                    ),
+                                    hint: 'رسوم أخرى',
                                     onChanged: (value) {
                                       widget.onInvoiceUpdate(
                                         widget.invoice.copyWith(

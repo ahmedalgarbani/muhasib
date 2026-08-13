@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class WarehouseCard extends StatelessWidget {
   final WarehouseEntity warehouse;
@@ -22,8 +23,10 @@ class WarehouseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
-    return Card(
+
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
+      margin: EdgeInsets.zero,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -56,7 +59,7 @@ class WarehouseCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  
+
                   // Name and Status
                   Expanded(
                     child: Column(
@@ -81,7 +84,9 @@ class WarehouseCard extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: colorScheme.primary,
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
                                 ),
                                 child: const Text(
                                   'رئيسي',
@@ -122,7 +127,7 @@ class WarehouseCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  
+
                   // Actions Menu
                   if (onEdit != null || onDelete != null || onSetAsMain != null)
                     PopupMenuButton<String>(
@@ -170,7 +175,10 @@ class WarehouseCard extends StatelessWidget {
                               children: [
                                 Icon(Icons.delete, size: 20, color: Colors.red),
                                 SizedBox(width: 8),
-                                Text('حذف', style: TextStyle(color: Colors.red)),
+                                Text(
+                                  'حذف',
+                                  style: TextStyle(color: Colors.red),
+                                ),
                               ],
                             ),
                           ),
@@ -178,7 +186,7 @@ class WarehouseCard extends StatelessWidget {
                     ),
                 ],
               ),
-              
+
               // Details
               const SizedBox(height: 12),
               if (warehouse.address.isNotEmpty) ...[
@@ -201,41 +209,37 @@ class WarehouseCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
               ],
-              
-              if (warehouse.contact != null && warehouse.contact!.isNotEmpty) ...[
+
+              if (warehouse.contact != null &&
+                  warehouse.contact!.isNotEmpty) ...[
                 Row(
                   children: [
                     const Icon(Icons.phone, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(
                       warehouse.contact!,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
               ],
-              
-              if (warehouse.managerName != null && warehouse.managerName!.isNotEmpty) ...[
+
+              if (warehouse.managerName != null &&
+                  warehouse.managerName!.isNotEmpty) ...[
                 Row(
                   children: [
                     const Icon(Icons.person, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
                     Text(
                       'المدير: ${warehouse.managerName}',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ],
                 ),
                 const SizedBox(height: 4),
               ],
-              
+
               if (warehouse.capacity != null) ...[
                 Row(
                   children: [
@@ -243,10 +247,7 @@ class WarehouseCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       'السعة: ${warehouse.capacity} م³',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ],
                 ),

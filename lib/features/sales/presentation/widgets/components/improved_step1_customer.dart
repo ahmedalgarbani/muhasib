@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
@@ -222,8 +223,8 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                     padding: const EdgeInsets.all(8),
                                     child: TextInputField(
                                       controller: _searchController,
+                                      hint: 'ابحث عن عميل...',
                                       decoration: const InputDecoration(
-                                        hintText: 'ابحث عن عميل...',
                                         prefixIcon: Icon(
                                           Icons.search,
                                           size: 20,
@@ -489,23 +490,10 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'المخزن',
-                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
-                    ),
-                    const SizedBox(height: 4),
-                    DropdownButtonFormField<String>(
-                      initialValue: widget.invoice.warehouse,
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.warehouse, size: 18),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                      ),
+                    CustomDropdownField<String>(
+                      value: widget.invoice.warehouse,
+                      label: 'المخزن',
+                      prefixIcon: const Icon(Icons.warehouse, size: 18),
                       items: state.warehouses.map((warehouse) {
                         return DropdownMenuItem(
                           value: warehouse.name,
@@ -538,9 +526,9 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
               padding: const EdgeInsets.only(top: 12),
               child: TextInputField(
                 controller: _notesController,
+                hint: 'أضف ملاحظات...',
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: 'أضف ملاحظات...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),

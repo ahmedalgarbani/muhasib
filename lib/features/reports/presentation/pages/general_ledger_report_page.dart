@@ -9,6 +9,7 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class GeneralLedgerReportPage extends StatefulWidget {
   const GeneralLedgerReportPage({super.key});
@@ -168,7 +169,8 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                 itemBuilder: (context, index) {
                   final a = accounts[index];
                   final isSel = _selectedAccountId == a.id;
-                  return Card(
+                  return CustomCardContainer(
+                    padding: EdgeInsets.zero,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.lg),

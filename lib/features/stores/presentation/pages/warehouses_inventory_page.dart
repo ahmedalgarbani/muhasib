@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -13,6 +14,7 @@ import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class WarehousesInventoryPage extends StatefulWidget {
   const WarehousesInventoryPage({super.key});
@@ -222,7 +224,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   Widget _buildDocumentHeaderCard(ColorScheme colorScheme) {
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -285,7 +287,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   Widget _buildWarehouseSelectionCard(ColorScheme colorScheme) {
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -315,17 +317,10 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                   warehouses = state.warehouses;
                 }
 
-                return DropdownButtonFormField<WarehouseEntity>(
-                  initialValue: _selectedWarehouse,
-                  decoration: InputDecoration(
-                    labelText: 'اختر المخزن',
-                    prefixIcon: const Icon(Icons.store),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    filled: true,
-                    fillColor: Colors.grey[50],
-                  ),
+                return CustomDropdownField<WarehouseEntity>(
+                  value: _selectedWarehouse,
+                  label: 'اختر المخزن',
+                  prefixIcon: const Icon(Icons.store),
                   items: warehouses.map((warehouse) {
                     return DropdownMenuItem(
                       value: warehouse,
@@ -354,7 +349,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   Widget _buildProductCountCard(ColorScheme colorScheme) {
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -414,7 +409,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   Widget _buildInventoryLinesCard(ColorScheme colorScheme) {
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -540,8 +535,8 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
               child: TextInputField(
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                  hint: '0',
-                  decoration: InputDecoration(
+                hint: '0',
+                decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
@@ -586,7 +581,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     );
     final totalDifference = totalActual - totalExpected;
 
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       color: colorScheme.primaryContainer,
       shape: RoundedRectangleBorder(
@@ -640,7 +635,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   Widget _buildNotesCard(ColorScheme colorScheme) {
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),

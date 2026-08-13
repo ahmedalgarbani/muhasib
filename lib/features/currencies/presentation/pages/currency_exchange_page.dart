@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import '../cubit/currencies_cubit.dart';
@@ -147,7 +149,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
   }
 
   Widget _buildExchangeCard(List<CurrencyEntity> currencies) {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg20),
@@ -162,19 +164,12 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
               children: [
                 Expanded(
                   flex: 2,
-                  child: DropdownButtonFormField<CurrencyEntity>(
-                    initialValue: fromCurrency,
-                    decoration: InputDecoration(
-                      labelText: 'من العملة',
-                      prefixIcon: const Icon(
-                        Icons.monetization_on,
-                        color: AppColors.info,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
+                  child: CustomDropdownField<CurrencyEntity>(
+                    value: fromCurrency,
+                    label: 'من العملة',
+                    prefixIcon: const Icon(
+                      Icons.monetization_on,
+                      color: AppColors.info,
                     ),
                     items: currencies.map((currency) {
                       return DropdownMenuItem(
@@ -245,19 +240,12 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
               children: [
                 Expanded(
                   flex: 2,
-                  child: DropdownButtonFormField<CurrencyEntity>(
-                    initialValue: toCurrency,
-                    decoration: InputDecoration(
-                      labelText: 'إلى العملة',
-                      prefixIcon: const Icon(
-                        Icons.monetization_on,
-                        color: AppColors.success,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey[50],
+                  child: CustomDropdownField<CurrencyEntity>(
+                    value: toCurrency,
+                    label: 'إلى العملة',
+                    prefixIcon: const Icon(
+                      Icons.monetization_on,
+                      color: AppColors.success,
                     ),
                     items: currencies.map((currency) {
                       return DropdownMenuItem(
@@ -302,7 +290,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
   Widget _buildRateInfo() {
     if (fromCurrency == null || toCurrency == null) return const SizedBox();
 
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       color: AppColors.info.withOpacity(0.05),
       shape: RoundedRectangleBorder(
@@ -344,7 +332,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
   }
 
   Widget _buildDateAndNotes() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -380,10 +368,10 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
             ),
             const SizedBox(height: 16),
             TextInputField(
+              label: 'ملاحظات',
               controller: _notesController,
               maxLines: 2,
               decoration: InputDecoration(
-                labelText: 'ملاحظات',
                 prefixIcon: const Icon(Icons.note, color: AppColors.info),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
@@ -435,7 +423,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
   }
 
   Widget _buildQuickExchangeRates(List<CurrencyEntity> currencies) {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -606,7 +594,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
                         itemCount: transactions.length,
                         itemBuilder: (context, index) {
                           final tx = transactions[index];
-                          return Card(
+                          return CustomCardContainer(
                             margin: const EdgeInsets.only(bottom: 12),
                             child: ListTile(
                               leading: const CircleAvatar(

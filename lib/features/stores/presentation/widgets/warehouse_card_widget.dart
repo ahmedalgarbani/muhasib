@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 
@@ -22,7 +23,8 @@ class WarehouseCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -79,7 +81,9 @@ class WarehouseCardWidget extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.materialBlue700,
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
                                 ),
                                 child: const Text(
                                   'رئيسي',
@@ -96,15 +100,21 @@ class WarehouseCardWidget extends StatelessWidget {
                         Row(
                           children: [
                             Icon(
-                              warehouse.isActive ? Icons.check_circle : Icons.cancel,
+                              warehouse.isActive
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
                               size: 16,
-                              color: warehouse.isActive ? Colors.green : Colors.grey,
+                              color: warehouse.isActive
+                                  ? Colors.green
+                                  : Colors.grey,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               warehouse.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
-                                color: warehouse.isActive ? Colors.green : Colors.grey,
+                                color: warehouse.isActive
+                                    ? Colors.green
+                                    : Colors.grey,
                                 fontSize: 14,
                               ),
                             ),
@@ -167,15 +177,13 @@ class WarehouseCardWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       warehouse.address,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ),
                 ],
               ),
-              if (warehouse.managerName != null && warehouse.managerName!.isNotEmpty) ...[
+              if (warehouse.managerName != null &&
+                  warehouse.managerName!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Row(
                   children: [
@@ -183,10 +191,7 @@ class WarehouseCardWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       'المدير: ${warehouse.managerName}',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ],
                 ),
@@ -199,10 +204,7 @@ class WarehouseCardWidget extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       'السعة: ${warehouse.capacity} م³',
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 14,
-                      ),
+                      style: const TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                   ],
                 ),

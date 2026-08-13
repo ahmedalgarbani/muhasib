@@ -35,8 +35,8 @@ class OtherFeesListWidget extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: TextInputField(
             controller: searchController,
+            hint: 'بحث في الأدوات...',
             decoration: InputDecoration(
-              hintText: 'بحث في الأدوات...',
               prefixIcon: const Icon(Icons.search),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(

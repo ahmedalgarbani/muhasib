@@ -51,6 +51,7 @@ class SettingsTextFieldTile extends StatelessWidget {
                 ),
                 TextInputField(
                   controller: controller,
+                  hint: hintText,
                   keyboardType: keyboardType,
                   style: const TextStyle(
                     fontSize: 14,
@@ -58,7 +59,6 @@ class SettingsTextFieldTile extends StatelessWidget {
                     color: AppColors.slate900,
                   ),
                   decoration: InputDecoration(
-                    hintText: hintText,
                     hintStyle: const TextStyle(color: AppColors.slate400),
                     border: InputBorder.none,
                     isDense: true,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/other_fee_entity.dart';
 
 /// Standalone Other Fee Card Widget for displaying other fee items.
@@ -22,13 +23,20 @@ class OtherFeeCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     const typeColors = [Colors.red, Colors.green, Colors.blue];
-    const typeIcons = [Icons.trending_down, Icons.trending_up, Icons.more_horiz];
+    const typeIcons = [
+      Icons.trending_down,
+      Icons.trending_up,
+      Icons.more_horiz,
+    ];
     final typeIndex = otherFee.toolType.clamp(0, 2);
 
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -69,10 +77,17 @@ class OtherFeeCardWidget extends StatelessWidget {
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
-                                color: typeColors[typeIndex].withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(AppRadius.md),
+                                color: typeColors[typeIndex].withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.md,
+                                ),
                               ),
                               child: Text(
                                 toolTypes[typeIndex],
@@ -89,15 +104,21 @@ class OtherFeeCardWidget extends StatelessWidget {
                         Row(
                           children: [
                             Icon(
-                              otherFee.isActive ? Icons.check_circle : Icons.cancel,
+                              otherFee.isActive
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
                               size: 16,
-                              color: otherFee.isActive ? Colors.green : Colors.grey,
+                              color: otherFee.isActive
+                                  ? Colors.green
+                                  : Colors.grey,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               otherFee.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
-                                color: otherFee.isActive ? Colors.green : Colors.grey,
+                                color: otherFee.isActive
+                                    ? Colors.green
+                                    : Colors.grey,
                                 fontSize: 14,
                               ),
                             ),

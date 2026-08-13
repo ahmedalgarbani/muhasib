@@ -241,9 +241,9 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: TextInputField(
+                hint: 'ابحث عن حساب...',
                 onChanged: (v) => setState(() => _query = v),
                 decoration: InputDecoration(
-                  hintText: 'ابحث عن حساب...',
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.lg),

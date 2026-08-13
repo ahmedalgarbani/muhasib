@@ -23,8 +23,7 @@ class _AccountPickerField extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                selectedAccountName ??
-                    'ط§ط®طھط± ط§ظ„ط­ط³ط§ط¨ ظ…ظ† ط§ظ„ظ‚ط§ط¦ظ…ط©...',
+                selectedAccountName ?? 'اختر الحساب من القائمة...',
                 style: TextStyle(
                   color: selectedAccountName != null
                       ? Colors.black87
@@ -99,15 +98,15 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
               child: Column(
                 children: [
                   const Text(
-                    'ط§ط®طھظٹط§ط± ط§ظ„ط­ط³ط§ط¨',
+                    'اختيار الحساب',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
                   TextInputField(
                     controller: _searchController,
+                    hint: 'ابحث عن حساب...',
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(
-                      hintText: 'ط§ط¨ط­ط« ط¹ظ† ط­ط³ط§ط¨...',
                       prefixIcon: const Icon(Icons.search),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm14),
@@ -122,11 +121,11 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
               isScrollable: true,
               labelPadding: const EdgeInsets.symmetric(horizontal: 16),
               tabs: const [
-                Tab(text: 'ط§ظ„ظƒظ„'),
-                Tab(text: 'ط§ظ„طµظ†ط§ط¯ظٹظ‚'),
-                Tab(text: 'ط§ظ„ط¨ظ†ظˆظƒ'),
-                Tab(text: 'ط§ظ„ط¹ظ…ظ„ط§ط،'),
-                Tab(text: 'ط§ظ„ظ…ظˆط±ط¯ظٹظ†'),
+                Tab(text: 'الكل'),
+                Tab(text: 'الصناديق'),
+                Tab(text: 'البنوك'),
+                Tab(text: 'العملاء'),
+                Tab(text: 'الموردين'),
               ],
             ),
             Expanded(
@@ -134,10 +133,10 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                 controller: _tabController,
                 children: [
                   _buildList(accounts, null),
-                  _buildList(accounts, 'طµظ†ط¯ظˆظ‚'),
-                  _buildList(accounts, 'ط¨ظ†ظƒ'),
-                  _buildList(accounts, 'ط¹ظ…ظٹظ„'),
-                  _buildList(accounts, 'ظ…ظˆط±ط¯'),
+                  _buildList(accounts, 'صندوق'),
+                  _buildList(accounts, 'بنك'),
+                  _buildList(accounts, 'عميل'),
+                  _buildList(accounts, 'مورد'),
                 ],
               ),
             ),

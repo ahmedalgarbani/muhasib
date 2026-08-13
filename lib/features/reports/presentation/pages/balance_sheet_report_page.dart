@@ -9,6 +9,7 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class BalanceSheetReportPage extends StatefulWidget {
   const BalanceSheetReportPage({super.key});
@@ -263,7 +264,8 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
     IconData i,
     List<_AccountBalanceRow> rows,
   ) {
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),

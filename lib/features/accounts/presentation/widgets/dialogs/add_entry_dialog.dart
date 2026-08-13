@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class AddEntryDialog extends StatefulWidget {
@@ -154,9 +155,9 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         ),
                         const SizedBox(height: 8),
                         TextInputField(
+                          hint: 'يتم إنشاؤه تلقائياً',
                           enabled: false,
                           decoration: InputDecoration(
-                            hintText: 'يتم إنشاؤه تلقائياً',
                             filled: true,
                             fillColor: Colors.grey[100],
                             border: OutlineInputBorder(
@@ -195,10 +196,10 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         ),
                         const SizedBox(height: 8),
                         TextInputField(
+                          hint: 'وصف القيد...',
                           controller: descriptionController,
                           maxLines: 3,
                           decoration: InputDecoration(
-                            hintText: 'وصف القيد...',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
@@ -225,44 +226,13 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         const SizedBox(height: 16),
 
                         // الحساب المدين
-                        const Text(
-                          'الحساب المدين',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: selectedDebitAccount,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: BorderSide(
-                                color: Colors.grey[300]!,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: BorderSide(
-                                color: Colors.grey[300]!,
-                                width: 2,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                color: AppColors.primary,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          hint: const Text('اختر الحساب...'),
+                        CustomDropdownField<String>(
+                          label: 'الحساب المدين',
+                          hint: 'اختر الحساب...',
+                          value: selectedDebitAccount,
                           items: allAccounts
                               .map(
-                                (account) => DropdownMenuItem(
+                                (account) => DropdownMenuItem<String>(
                                   value: account.id.toString(),
                                   child: Text(
                                     '${account.code} - ${account.nameAr}',
@@ -289,74 +259,20 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         ),
                         const SizedBox(height: 8),
                         TextInputField(
+                          hint: '0.00',
                           controller: debitAmountController,
                           keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                            hintText: '0.00',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: BorderSide(
-                                color: Colors.grey[300]!,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: BorderSide(
-                                color: Colors.grey[300]!,
-                                width: 2,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                color: AppColors.primary,
-                                width: 2,
-                              ),
-                            ),
-                          ),
                         ),
                         const SizedBox(height: 16),
 
                         // الحساب الدائن
-                        const Text(
-                          'الحساب الدائن',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        DropdownButtonFormField<String>(
-                          initialValue: selectedCreditAccount,
-                          decoration: InputDecoration(
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: BorderSide(
-                                color: Colors.grey[300]!,
-                                width: 2,
-                              ),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: BorderSide(
-                                color: Colors.grey[300]!,
-                                width: 2,
-                              ),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: const BorderSide(
-                                color: AppColors.primary,
-                                width: 2,
-                              ),
-                            ),
-                          ),
-                          hint: const Text('اختر الحساب...'),
+                        CustomDropdownField<String>(
+                          label: 'الحساب الدائن',
+                          hint: 'اختر الحساب...',
+                          value: selectedCreditAccount,
                           items: allAccounts
                               .map(
-                                (account) => DropdownMenuItem(
+                                (account) => DropdownMenuItem<String>(
                                   value: account.id.toString(),
                                   child: Text(
                                     '${account.code} - ${account.nameAr}',
@@ -383,10 +299,10 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         ),
                         const SizedBox(height: 8),
                         TextInputField(
+                          hint: '0.00',
                           controller: creditAmountController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
-                            hintText: '0.00',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(

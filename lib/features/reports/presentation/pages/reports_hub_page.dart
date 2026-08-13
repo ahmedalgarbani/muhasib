@@ -5,6 +5,7 @@ import 'package:muhasib/features/reports/data/reports_data.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class ReportsHubPage extends StatefulWidget {
@@ -129,8 +130,8 @@ class _ReportsHubPageState extends State<ReportsHubPage>
               padding: const EdgeInsets.all(16.0),
               child: TextInputField(
                 controller: _searchController,
+                hint: 'بحث في التقارير...',
                 decoration: InputDecoration(
-                  hintText: 'بحث في التقارير...',
                   prefixIcon: const Icon(Icons.search),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
@@ -197,7 +198,7 @@ class _ReportsHubPageState extends State<ReportsHubPage>
   }
 
   Widget _buildReportCard(ReportItem report) {
-    return Card(
+    return CustomCardContainer(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
       shape: RoundedRectangleBorder(

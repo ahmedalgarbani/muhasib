@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -199,7 +201,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
               }
             }
 
-            return Card(
+            return CustomCardContainer(
               margin: const EdgeInsets.only(bottom: 16),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -423,44 +425,16 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
               ),
               content: SingleChildScrollView(
                 child: Column(
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    BlocBuilder<ProductsCubit, ProductsState>(
-                      builder: (context, productsState) {
-                        if (productsState is ProductsLoaded) {
-                          return DropdownButtonFormField<int>(
-                            initialValue: selectedProductId,
-                            decoration: const InputDecoration(
-                              labelText: 'المنتج',
-                            ),
-                            items: productsState.products
-                                .map(
-                                  (product) => DropdownMenuItem(
-                                    value: product.id,
-                                    child: Text(product.name),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (value) {
-                              setState(() => selectedProductId = value);
-                            },
-                          );
-                        }
-                        return const CircularProgressIndicator();
-                      },
-                    ),
-                    const SizedBox(height: 16),
                     BlocBuilder<ProductUnitsCubit, ProductUnitsState>(
                       builder: (context, unitsState) {
                         if (unitsState is ProductUnitsLoaded) {
-                          return DropdownButtonFormField<int>(
-                            initialValue: selectedUnitId,
-                            decoration: const InputDecoration(
-                              labelText: 'الوحدة',
-                            ),
+                          return CustomDropdownField<int>(
+                            label: 'الوحدة',
+                            value: selectedUnitId,
                             items: unitsState.units
                                 .map(
-                                  (unit) => DropdownMenuItem(
+                                  (unit) => DropdownMenuItem<int>(
                                     value: unit.id,
                                     child: Text('${unit.name} (${unit.short})'),
                                   ),

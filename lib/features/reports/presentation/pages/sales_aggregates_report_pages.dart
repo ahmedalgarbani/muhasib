@@ -7,11 +7,14 @@ import 'package:muhasib/features/reports/presentation/widgets/report_base_page.d
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class SalesByCustomerReportPage extends StatefulWidget {
   const SalesByCustomerReportPage({super.key});
   @override
-  State<SalesByCustomerReportPage> createState() => _SalesByCustomerReportPageState();
+  State<SalesByCustomerReportPage> createState() =>
+      _SalesByCustomerReportPageState();
 }
 
 class _SalesByCustomerReportPageState extends State<SalesByCustomerReportPage> {
@@ -22,22 +25,60 @@ class _SalesByCustomerReportPageState extends State<SalesByCustomerReportPage> {
       title: 'مبيعات حسب العميل',
       icon: Icons.people,
       color: AppColors.materialGreen700,
-      onPrint: _lastRows == null ? null : () => _exportPdf('تقرير مبيعات العملاء', ['العميل', 'العدد', 'الإجمالي']),
-      onExportExcel: _lastRows == null ? null : () => _exportExcel('customers_sales', ['اسم العميل', 'عدد الفواتير', 'إجمالي المبيعات']),
-      reportBuilder: (filter) => _AggregateByPartyContent(filter: filter, invoiceType: 1, titleLabel: 'العميل', onLoad: (rows) => setState(() => _lastRows = rows)),
+      onPrint: _lastRows == null
+          ? null
+          : () => _exportPdf('تقرير مبيعات العملاء', [
+              'العميل',
+              'العدد',
+              'الإجمالي',
+            ]),
+      onExportExcel: _lastRows == null
+          ? null
+          : () => _exportExcel('customers_sales', [
+              'اسم العميل',
+              'عدد الفواتير',
+              'إجمالي المبيعات',
+            ]),
+      reportBuilder: (filter) => _AggregateByPartyContent(
+        filter: filter,
+        invoiceType: 1,
+        titleLabel: 'العميل',
+        onLoad: (rows) => setState(() => _lastRows = rows),
+      ),
     );
   }
-  void _exportPdf(String title, List<String> headers) => ExportService.printData(title: title, headers: headers, data: _lastRows!.map((r) => [r.name, r.count.toString(), r.total.toStringAsFixed(2)]).toList());
-  void _exportExcel(String fileName, List<String> headers) => ExportService.exportToExcel(fileName: fileName, headers: headers, data: _lastRows!.map((r) => [r.name, r.count.toString(), r.total.toStringAsFixed(2)]).toList());
+
+  void _exportPdf(String title, List<String> headers) =>
+      ExportService.printData(
+        title: title,
+        headers: headers,
+        data: _lastRows!
+            .map(
+              (r) => [r.name, r.count.toString(), r.total.toStringAsFixed(2)],
+            )
+            .toList(),
+      );
+  void _exportExcel(String fileName, List<String> headers) =>
+      ExportService.exportToExcel(
+        fileName: fileName,
+        headers: headers,
+        data: _lastRows!
+            .map(
+              (r) => [r.name, r.count.toString(), r.total.toStringAsFixed(2)],
+            )
+            .toList(),
+      );
 }
 
 class PurchaseBySupplierReportPage extends StatefulWidget {
   const PurchaseBySupplierReportPage({super.key});
   @override
-  State<PurchaseBySupplierReportPage> createState() => _PurchaseBySupplierReportPageState();
+  State<PurchaseBySupplierReportPage> createState() =>
+      _PurchaseBySupplierReportPageState();
 }
 
-class _PurchaseBySupplierReportPageState extends State<PurchaseBySupplierReportPage> {
+class _PurchaseBySupplierReportPageState
+    extends State<PurchaseBySupplierReportPage> {
   List<_PartyRow>? _lastRows;
   @override
   Widget build(BuildContext context) {
@@ -45,13 +86,49 @@ class _PurchaseBySupplierReportPageState extends State<PurchaseBySupplierReportP
       title: 'مشتريات حسب المورد',
       icon: Icons.local_shipping,
       color: AppColors.materialOrange700,
-      onPrint: _lastRows == null ? null : () => _exportPdf('تقرير مشتريات الموردين', ['المورد', 'العدد', 'الإجمالي']),
-      onExportExcel: _lastRows == null ? null : () => _exportExcel('suppliers_purchases', ['اسم المورد', 'عدد الفواتير', 'إجمالي المشتريات']),
-      reportBuilder: (filter) => _AggregateByPartyContent(filter: filter, invoiceType: 2, titleLabel: 'المورد', onLoad: (rows) => setState(() => _lastRows = rows)),
+      onPrint: _lastRows == null
+          ? null
+          : () => _exportPdf('تقرير مشتريات الموردين', [
+              'المورد',
+              'العدد',
+              'الإجمالي',
+            ]),
+      onExportExcel: _lastRows == null
+          ? null
+          : () => _exportExcel('suppliers_purchases', [
+              'اسم المورد',
+              'عدد الفواتير',
+              'إجمالي المشتريات',
+            ]),
+      reportBuilder: (filter) => _AggregateByPartyContent(
+        filter: filter,
+        invoiceType: 2,
+        titleLabel: 'المورد',
+        onLoad: (rows) => setState(() => _lastRows = rows),
+      ),
     );
   }
-  void _exportPdf(String title, List<String> headers) => ExportService.printData(title: title, headers: headers, data: _lastRows!.map((r) => [r.name, r.count.toString(), r.total.toStringAsFixed(2)]).toList());
-  void _exportExcel(String fileName, List<String> headers) => ExportService.exportToExcel(fileName: fileName, headers: headers, data: _lastRows!.map((r) => [r.name, r.count.toString(), r.total.toStringAsFixed(2)]).toList());
+
+  void _exportPdf(String title, List<String> headers) =>
+      ExportService.printData(
+        title: title,
+        headers: headers,
+        data: _lastRows!
+            .map(
+              (r) => [r.name, r.count.toString(), r.total.toStringAsFixed(2)],
+            )
+            .toList(),
+      );
+  void _exportExcel(String fileName, List<String> headers) =>
+      ExportService.exportToExcel(
+        fileName: fileName,
+        headers: headers,
+        data: _lastRows!
+            .map(
+              (r) => [r.name, r.count.toString(), r.total.toStringAsFixed(2)],
+            )
+            .toList(),
+      );
 }
 
 class DailySalesReportPage extends StatefulWidget {
@@ -70,17 +147,35 @@ class _DailySalesReportPageState extends State<DailySalesReportPage> {
       color: AppColors.materialCyan700,
       onPrint: _lastRows == null ? null : () => _exportPdf(),
       onExportExcel: _lastRows == null ? null : () => _exportExcel(),
-      reportBuilder: (filter) => _DailyTotalsContent(filter: filter, invoiceType: 1, onLoad: (rows) => setState(() => _lastRows = rows)),
+      reportBuilder: (filter) => _DailyTotalsContent(
+        filter: filter,
+        invoiceType: 1,
+        onLoad: (rows) => setState(() => _lastRows = rows),
+      ),
     );
   }
-  void _exportPdf() => ExportService.printData(title: 'تقرير المبيعات اليومية', headers: ['اليوم', 'العدد', 'الإجمالي'], data: _lastRows!.map((r) => [r.day, r.count.toString(), r.total.toStringAsFixed(2)]).toList());
-  void _exportExcel() => ExportService.exportToExcel(fileName: 'daily_sales', headers: ['التاريخ', 'عدد المستندات', 'الإجمالي'], data: _lastRows!.map((r) => [r.day, r.count.toString(), r.total.toStringAsFixed(2)]).toList());
+
+  void _exportPdf() => ExportService.printData(
+    title: 'تقرير المبيعات اليومية',
+    headers: ['اليوم', 'العدد', 'الإجمالي'],
+    data: _lastRows!
+        .map((r) => [r.day, r.count.toString(), r.total.toStringAsFixed(2)])
+        .toList(),
+  );
+  void _exportExcel() => ExportService.exportToExcel(
+    fileName: 'daily_sales',
+    headers: ['التاريخ', 'عدد المستندات', 'الإجمالي'],
+    data: _lastRows!
+        .map((r) => [r.day, r.count.toString(), r.total.toStringAsFixed(2)])
+        .toList(),
+  );
 }
 
 class SalesByProductReportPage extends StatefulWidget {
   const SalesByProductReportPage({super.key});
   @override
-  State<SalesByProductReportPage> createState() => _SalesByProductReportPageState();
+  State<SalesByProductReportPage> createState() =>
+      _SalesByProductReportPageState();
 }
 
 class _SalesByProductReportPageState extends State<SalesByProductReportPage> {
@@ -93,20 +188,43 @@ class _SalesByProductReportPageState extends State<SalesByProductReportPage> {
       color: AppColors.materialPurple700,
       onPrint: _lastRows == null ? null : () => _exportPdf(),
       onExportExcel: _lastRows == null ? null : () => _exportExcel(),
-      reportBuilder: (filter) => _AggregateByProductContent(filter: filter, invoiceType: 1, onLoad: (rows) => setState(() => _lastRows = rows)),
+      reportBuilder: (filter) => _AggregateByProductContent(
+        filter: filter,
+        invoiceType: 1,
+        onLoad: (rows) => setState(() => _lastRows = rows),
+      ),
     );
   }
-  void _exportPdf() => ExportService.printData(title: 'مبيعات حسب المنتج', headers: ['المنتج', 'الكمية', 'الإجمالي'], data: _lastRows!.map((r) => [r.name, r.qty.toStringAsFixed(2), r.total.toStringAsFixed(2)]).toList());
-  void _exportExcel() => ExportService.exportToExcel(fileName: 'sales_by_product', headers: ['اسم الصنف', 'الكمية المباعة', 'إجمالي القيمة'], data: _lastRows!.map((r) => [r.name, r.qty.toStringAsFixed(2), r.total.toStringAsFixed(2)]).toList());
+
+  void _exportPdf() => ExportService.printData(
+    title: 'مبيعات حسب المنتج',
+    headers: ['المنتج', 'الكمية', 'الإجمالي'],
+    data: _lastRows!
+        .map(
+          (r) => [r.name, r.qty.toStringAsFixed(2), r.total.toStringAsFixed(2)],
+        )
+        .toList(),
+  );
+  void _exportExcel() => ExportService.exportToExcel(
+    fileName: 'sales_by_product',
+    headers: ['اسم الصنف', 'الكمية المباعة', 'إجمالي القيمة'],
+    data: _lastRows!
+        .map(
+          (r) => [r.name, r.qty.toStringAsFixed(2), r.total.toStringAsFixed(2)],
+        )
+        .toList(),
+  );
 }
 
 class PurchaseByProductReportPage extends StatefulWidget {
   const PurchaseByProductReportPage({super.key});
   @override
-  State<PurchaseByProductReportPage> createState() => _PurchaseByProductReportPageState();
+  State<PurchaseByProductReportPage> createState() =>
+      _PurchaseByProductReportPageState();
 }
 
-class _PurchaseByProductReportPageState extends State<PurchaseByProductReportPage> {
+class _PurchaseByProductReportPageState
+    extends State<PurchaseByProductReportPage> {
   List<_ProductRow>? _lastRows;
   @override
   Widget build(BuildContext context) {
@@ -116,11 +234,32 @@ class _PurchaseByProductReportPageState extends State<PurchaseByProductReportPag
       color: AppColors.materialPink500,
       onPrint: _lastRows == null ? null : () => _exportPdf(),
       onExportExcel: _lastRows == null ? null : () => _exportExcel(),
-      reportBuilder: (filter) => _AggregateByProductContent(filter: filter, invoiceType: 2, onLoad: (rows) => setState(() => _lastRows = rows)),
+      reportBuilder: (filter) => _AggregateByProductContent(
+        filter: filter,
+        invoiceType: 2,
+        onLoad: (rows) => setState(() => _lastRows = rows),
+      ),
     );
   }
-  void _exportPdf() => ExportService.printData(title: 'مشتريات حسب المنتج', headers: ['المنتج', 'الكمية', 'الإجمالي'], data: _lastRows!.map((r) => [r.name, r.qty.toStringAsFixed(2), r.total.toStringAsFixed(2)]).toList());
-  void _exportExcel() => ExportService.exportToExcel(fileName: 'purchases_by_product', headers: ['اسم الصنف', 'الكمية المشتراة', 'إجمالي القيمة'], data: _lastRows!.map((r) => [r.name, r.qty.toStringAsFixed(2), r.total.toStringAsFixed(2)]).toList());
+
+  void _exportPdf() => ExportService.printData(
+    title: 'مشتريات حسب المنتج',
+    headers: ['المنتج', 'الكمية', 'الإجمالي'],
+    data: _lastRows!
+        .map(
+          (r) => [r.name, r.qty.toStringAsFixed(2), r.total.toStringAsFixed(2)],
+        )
+        .toList(),
+  );
+  void _exportExcel() => ExportService.exportToExcel(
+    fileName: 'purchases_by_product',
+    headers: ['اسم الصنف', 'الكمية المشتراة', 'إجمالي القيمة'],
+    data: _lastRows!
+        .map(
+          (r) => [r.name, r.qty.toStringAsFixed(2), r.total.toStringAsFixed(2)],
+        )
+        .toList(),
+  );
 }
 
 class _AggregateByPartyContent extends StatelessWidget {
@@ -128,17 +267,25 @@ class _AggregateByPartyContent extends StatelessWidget {
   final int invoiceType;
   final String titleLabel;
   final Function(List<_PartyRow>) onLoad;
-  const _AggregateByPartyContent({required this.filter, required this.invoiceType, required this.titleLabel, required this.onLoad});
+  const _AggregateByPartyContent({
+    required this.filter,
+    required this.invoiceType,
+    required this.titleLabel,
+    required this.onLoad,
+  });
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_PartyRow>>(
       future: _load(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError) return Center(child: Text('خطأ: ${snapshot.error}'));
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
+        if (snapshot.hasError)
+          return Center(child: Text('خطأ: ${snapshot.error}'));
         final rows = snapshot.data ?? const [];
-        if (rows.isNotEmpty) WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        if (rows.isNotEmpty)
+          WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
         if (rows.isEmpty) return const Center(child: Text('لا توجد بيانات'));
 
         final total = rows.fold<double>(0, (s, r) => s + r.total);
@@ -146,24 +293,56 @@ class _AggregateByPartyContent extends StatelessWidget {
 
         return Column(
           children: [
-            ReportSummaryRow(cards: [
-              ReportSummaryCard(title: 'عدد المستندات', value: count.toString(), icon: Icons.receipt, color: Colors.blue),
-              ReportSummaryCard(title: 'الإجمالي', value: total.toStringAsFixed(2), icon: Icons.monetization_on, color: Colors.green),
-              ReportSummaryCard(title: 'عدد $titleLabel', value: rows.length.toString(), icon: Icons.people, color: Colors.purple),
-            ]),
+            ReportSummaryRow(
+              cards: [
+                ReportSummaryCard(
+                  title: 'عدد المستندات',
+                  value: count.toString(),
+                  icon: Icons.receipt,
+                  color: Colors.blue,
+                ),
+                ReportSummaryCard(
+                  title: 'الإجمالي',
+                  value: total.toStringAsFixed(2),
+                  icon: Icons.monetization_on,
+                  color: Colors.green,
+                ),
+                ReportSummaryCard(
+                  title: 'عدد $titleLabel',
+                  value: rows.length.toString(),
+                  icon: Icons.people,
+                  color: Colors.purple,
+                ),
+              ],
+            ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: rows.length,
                 itemBuilder: (context, index) {
                   final r = rows[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  return CustomCardContainer(
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
-                      title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('عدد: ${r.count}', style: const TextStyle(fontSize: 12)),
-                      trailing: Text('${r.total.toStringAsFixed(2)} ر.س', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+                      title: Text(
+                        r.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        'عدد: ${r.count}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: Text(
+                        '${r.total.toStringAsFixed(2)} ر.س',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -193,7 +372,16 @@ class _AggregateByPartyContent extends StatelessWidget {
       GROUP BY c.id, c.name ORDER BY total DESC
     ''', args);
 
-    return rows.map((m) => _PartyRow(id: m['party_id'] as int, name: m['party_name'] as String, count: m['doc_count'] as int, total: (m['total'] as num).toDouble())).toList();
+    return rows
+        .map(
+          (m) => _PartyRow(
+            id: m['party_id'] as int,
+            name: m['party_name'] as String,
+            count: m['doc_count'] as int,
+            total: (m['total'] as num).toDouble(),
+          ),
+        )
+        .toList();
   }
 }
 
@@ -201,17 +389,24 @@ class _AggregateByProductContent extends StatelessWidget {
   final ReportFilter filter;
   final int invoiceType;
   final Function(List<_ProductRow>) onLoad;
-  const _AggregateByProductContent({required this.filter, required this.invoiceType, required this.onLoad});
+  const _AggregateByProductContent({
+    required this.filter,
+    required this.invoiceType,
+    required this.onLoad,
+  });
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_ProductRow>>(
       future: _load(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError) return Center(child: Text('خطأ: ${snapshot.error}'));
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
+        if (snapshot.hasError)
+          return Center(child: Text('خطأ: ${snapshot.error}'));
         final rows = snapshot.data ?? const [];
-        if (rows.isNotEmpty) WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        if (rows.isNotEmpty)
+          WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
         if (rows.isEmpty) return const Center(child: Text('لا توجد بيانات'));
 
         final total = rows.fold<double>(0, (s, r) => s + r.total);
@@ -219,24 +414,55 @@ class _AggregateByProductContent extends StatelessWidget {
 
         return Column(
           children: [
-            ReportSummaryRow(cards: [
-              ReportSummaryCard(title: 'عدد الأصناف', value: rows.length.toString(), icon: Icons.category, color: Colors.blue),
-              ReportSummaryCard(title: 'إجمالي الكمية', value: qty.toStringAsFixed(2), icon: Icons.inventory, color: Colors.purple),
-              ReportSummaryCard(title: 'الإجمالي', value: total.toStringAsFixed(2), icon: Icons.monetization_on, color: Colors.green),
-            ]),
+            ReportSummaryRow(
+              cards: [
+                ReportSummaryCard(
+                  title: 'عدد الأصناف',
+                  value: rows.length.toString(),
+                  icon: Icons.category,
+                  color: Colors.blue,
+                ),
+                ReportSummaryCard(
+                  title: 'إجمالي الكمية',
+                  value: qty.toStringAsFixed(2),
+                  icon: Icons.inventory,
+                  color: Colors.purple,
+                ),
+                ReportSummaryCard(
+                  title: 'الإجمالي',
+                  value: total.toStringAsFixed(2),
+                  icon: Icons.monetization_on,
+                  color: Colors.green,
+                ),
+              ],
+            ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: rows.length,
                 itemBuilder: (context, index) {
                   final r = rows[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  return CustomCardContainer(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
-                      title: Text(r.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('كمية: ${r.qty.toStringAsFixed(2)}', style: const TextStyle(fontSize: 12)),
-                      trailing: Text('${r.total.toStringAsFixed(2)} ر.س', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+                      title: Text(
+                        r.name,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        'كمية: ${r.qty.toStringAsFixed(2)}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: Text(
+                        '${r.total.toStringAsFixed(2)} ر.س',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepPurple,
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -263,7 +489,16 @@ class _AggregateByProductContent extends StatelessWidget {
       WHERE i.invoice_type = ? AND COALESCE(i.approval_status, 1) != 3 $df
       GROUP BY c.id, c.name ORDER BY total DESC
     ''', args);
-    return rows.map((m) => _ProductRow(id: m['pid'] as int? ?? 0, name: m['pname'] as String? ?? 'بدون صنف', qty: (m['qty'] as num).toDouble(), total: (m['total'] as num).toDouble())).toList();
+    return rows
+        .map(
+          (m) => _ProductRow(
+            id: m['pid'] as int? ?? 0,
+            name: m['pname'] as String? ?? 'بدون صنف',
+            qty: (m['qty'] as num).toDouble(),
+            total: (m['total'] as num).toDouble(),
+          ),
+        )
+        .toList();
   }
 }
 
@@ -271,40 +506,78 @@ class _DailyTotalsContent extends StatelessWidget {
   final ReportFilter filter;
   final int invoiceType;
   final Function(List<_DailyRow>) onLoad;
-  const _DailyTotalsContent({required this.filter, required this.invoiceType, required this.onLoad});
+  const _DailyTotalsContent({
+    required this.filter,
+    required this.invoiceType,
+    required this.onLoad,
+  });
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_DailyRow>>(
       future: _load(),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError) return Center(child: Text('خطأ: ${snapshot.error}'));
+        if (snapshot.connectionState == ConnectionState.waiting)
+          return const Center(child: CircularProgressIndicator());
+        if (snapshot.hasError)
+          return Center(child: Text('خطأ: ${snapshot.error}'));
         final rows = snapshot.data ?? const [];
-        if (rows.isNotEmpty) WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        if (rows.isNotEmpty)
+          WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
         if (rows.isEmpty) return const Center(child: Text('لا توجد بيانات'));
 
         final total = rows.fold<double>(0, (s, r) => s + r.total);
         return Column(
           children: [
-            ReportSummaryRow(cards: [
-              ReportSummaryCard(title: 'الإجمالي العام', value: total.toStringAsFixed(2), icon: Icons.monetization_on, color: Colors.green),
-              ReportSummaryCard(title: 'عدد الأيام', value: rows.length.toString(), icon: Icons.today, color: Colors.blue),
-              ReportSummaryCard(title: 'المتوسط اليومي', value: (total / rows.length).toStringAsFixed(2), icon: Icons.analytics, color: Colors.purple),
-            ]),
+            ReportSummaryRow(
+              cards: [
+                ReportSummaryCard(
+                  title: 'الإجمالي العام',
+                  value: total.toStringAsFixed(2),
+                  icon: Icons.monetization_on,
+                  color: Colors.green,
+                ),
+                ReportSummaryCard(
+                  title: 'عدد الأيام',
+                  value: rows.length.toString(),
+                  icon: Icons.today,
+                  color: Colors.blue,
+                ),
+                ReportSummaryCard(
+                  title: 'المتوسط اليومي',
+                  value: (total / rows.length).toStringAsFixed(2),
+                  icon: Icons.analytics,
+                  color: Colors.purple,
+                ),
+              ],
+            ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: rows.length,
                 itemBuilder: (context, index) {
                   final r = rows[index];
-                  return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+                  return CustomCardContainer(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
-                      title: Text(r.day, style: const TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: Text('عدد المستندات: ${r.count}', style: const TextStyle(fontSize: 12)),
-                      trailing: Text('${r.total.toStringAsFixed(2)} ر.س', style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.teal)),
+                      title: Text(
+                        r.day,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Text(
+                        'عدد المستندات: ${r.count}',
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      trailing: Text(
+                        '${r.total.toStringAsFixed(2)} ر.س',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal,
+                        ),
+                      ),
                     ),
                   );
                 },
@@ -330,10 +603,46 @@ class _DailyTotalsContent extends StatelessWidget {
       FROM invoices i WHERE i.invoice_type = ? AND COALESCE(i.approval_status, 1) != 3 $df
       GROUP BY date(i.date, 'unixepoch') ORDER BY day
     ''', args);
-    return rows.map((m) => _DailyRow(day: m['day'] as String, count: m['cnt'] as int, total: (m['total'] as num).toDouble())).toList();
+    return rows
+        .map(
+          (m) => _DailyRow(
+            day: m['day'] as String,
+            count: m['cnt'] as int,
+            total: (m['total'] as num).toDouble(),
+          ),
+        )
+        .toList();
   }
 }
 
-class _PartyRow { final int id; final String name; final int count; final double total; _PartyRow({required this.id, required this.name, required this.count, required this.total}); }
-class _ProductRow { final int id; final String name; final double qty, total; _ProductRow({required this.id, required this.name, required this.qty, required this.total}); }
-class _DailyRow { final String day; final int count; final double total; _DailyRow({required this.day, required this.count, required this.total}); }
+class _PartyRow {
+  final int id;
+  final String name;
+  final int count;
+  final double total;
+  _PartyRow({
+    required this.id,
+    required this.name,
+    required this.count,
+    required this.total,
+  });
+}
+
+class _ProductRow {
+  final int id;
+  final String name;
+  final double qty, total;
+  _ProductRow({
+    required this.id,
+    required this.name,
+    required this.qty,
+    required this.total,
+  });
+}
+
+class _DailyRow {
+  final String day;
+  final int count;
+  final double total;
+  _DailyRow({required this.day, required this.count, required this.total});
+}

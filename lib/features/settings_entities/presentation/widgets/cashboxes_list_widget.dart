@@ -35,8 +35,8 @@ class CashboxesListWidget extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: TextInputField(
             controller: searchController,
+            hint: 'بحث في الصناديق...',
             decoration: InputDecoration(
-              hintText: 'بحث في الصناديق...',
               prefixIcon: const Icon(Icons.search),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(

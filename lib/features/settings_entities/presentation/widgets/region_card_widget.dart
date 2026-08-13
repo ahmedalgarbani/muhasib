@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/region_entity.dart';
 
 /// Standalone Region Card Widget for displaying region entity details.
@@ -20,10 +21,13 @@ class RegionCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -38,7 +42,9 @@ class RegionCardWidget extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.materialDeepOrange500.withValues(alpha: 0.1),
+                      color: AppColors.materialDeepOrange500.withValues(
+                        alpha: 0.1,
+                      ),
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: const Icon(
@@ -63,15 +69,21 @@ class RegionCardWidget extends StatelessWidget {
                         Row(
                           children: [
                             Icon(
-                              region.isActive ? Icons.check_circle : Icons.cancel,
+                              region.isActive
+                                  ? Icons.check_circle
+                                  : Icons.cancel,
                               size: 16,
-                              color: region.isActive ? Colors.green : Colors.grey,
+                              color: region.isActive
+                                  ? Colors.green
+                                  : Colors.grey,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               region.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
-                                color: region.isActive ? Colors.green : Colors.grey,
+                                color: region.isActive
+                                    ? Colors.green
+                                    : Colors.grey,
                                 fontSize: 14,
                               ),
                             ),

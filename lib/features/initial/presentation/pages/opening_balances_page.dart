@@ -6,6 +6,7 @@ import '../../domain/entities/opening_balance_entity.dart';
 import '../cubit/initial_cubit.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -166,7 +167,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
         );
         _debitCreditSelection.putIfAbsent(account.id!, () => true);
 
-        return Card(
+        return CustomCardContainer(
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: Padding(
             padding: const EdgeInsets.all(12),

@@ -53,10 +53,12 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                         Row(
                           children: [
                             Expanded(
-                                child: _buildDateField('الى تاريخ:', endDate)),
+                              child: _buildDateField('الى تاريخ:', endDate),
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
-                                child: _buildDateField('من تاريخ:', startDate)),
+                              child: _buildDateField('من تاريخ:', startDate),
+                            ),
                           ],
                         ),
                       ],
@@ -65,23 +67,37 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                   const SizedBox(height: 8),
                   Container(
                     color: Colors.white,
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 8,
+                    ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: const [
                         Expanded(
-                            child: Text('الرصيد',
-                                style: TextStyle(fontWeight: FontWeight.bold))),
+                          child: Text(
+                            'الرصيد',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                         Expanded(
-                            child: Text('دائن',
-                                style: TextStyle(fontWeight: FontWeight.bold))),
+                          child: Text(
+                            'دائن',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                         Expanded(
-                            child: Text('مدين',
-                                style: TextStyle(fontWeight: FontWeight.bold))),
+                          child: Text(
+                            'مدين',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                         Expanded(
-                            child: Text('التاريخ',
-                                style: TextStyle(fontWeight: FontWeight.bold))),
+                          child: Text(
+                            'التاريخ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -114,7 +130,9 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
       onChanged: (a) {},
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.xs)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.xs),
+        ),
       ),
     );
   }
@@ -180,17 +198,25 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
               Row(
                 children: [
                   IconButton(
-                      icon:
-                          const Icon(Icons.edit, color: Colors.blue, size: 20),
-                      onPressed: () {}),
+                    icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
+                    onPressed: () {},
+                  ),
                   IconButton(
-                      icon: const Icon(Icons.picture_as_pdf,
-                          color: Colors.red, size: 20),
-                      onPressed: () {}),
+                    icon: const Icon(
+                      Icons.picture_as_pdf,
+                      color: Colors.red,
+                      size: 20,
+                    ),
+                    onPressed: () {},
+                  ),
                   IconButton(
-                      icon: const Icon(Icons.share,
-                          color: Colors.black, size: 20),
-                      onPressed: () {}),
+                    icon: const Icon(
+                      Icons.share,
+                      color: Colors.black,
+                      size: 20,
+                    ),
+                    onPressed: () {},
+                  ),
                 ],
               ),
               Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -207,12 +233,16 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(balance,
-                    style: const TextStyle(color: Colors.red, fontSize: 16)),
+                Text(
+                  balance,
+                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                ),
                 Text(credit, style: const TextStyle(fontSize: 16)),
                 Text(debit, style: const TextStyle(fontSize: 16)),
-                Text(date,
-                    style: const TextStyle(color: Colors.blue, fontSize: 14)),
+                Text(
+                  date,
+                  style: const TextStyle(color: Colors.blue, fontSize: 14),
+                ),
               ],
             ),
           ),
@@ -269,16 +299,25 @@ class CustomAppBarAccountDetail extends StatelessWidget
       ),
       actions: [
         IconButton(
-            icon: const Icon(Icons.search_outlined,
-                color: Colors.black, size: 20),
-            onPressed: () {}),
+          icon: const Icon(
+            Icons.search_outlined,
+            color: Colors.black,
+            size: 20,
+          ),
+          onPressed: () {},
+        ),
         IconButton(
-            icon: const Icon(Icons.filter_alt_off_rounded,
-                color: Colors.black, size: 20),
-            onPressed: () {}),
+          icon: const Icon(
+            Icons.filter_alt_off_rounded,
+            color: Colors.black,
+            size: 20,
+          ),
+          onPressed: () {},
+        ),
         IconButton(
-            icon: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 20),
-            onPressed: () {}),
+          icon: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 20),
+          onPressed: () {},
+        ),
       ],
     );
   }

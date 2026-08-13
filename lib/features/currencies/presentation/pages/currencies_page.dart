@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
@@ -43,7 +44,8 @@ class _CurrenciesView extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: () => context.read<CurrenciesCubit>().loadAllCurrencies(),
+              onPressed: () =>
+                  context.read<CurrenciesCubit>().loadAllCurrencies(),
               tooltip: 'تحديث',
             ),
           ],
@@ -59,11 +61,15 @@ class _CurrenciesView extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('خطأ: ${state.message}', style: const TextStyle(color: Colors.red)),
+                    Text(
+                      'خطأ: ${state.message}',
+                      style: const TextStyle(color: Colors.red),
+                    ),
                     const SizedBox(height: 16),
                     HasibButton(
                       label: 'إعادة المحاولة',
-                      onPressed: () => context.read<CurrenciesCubit>().loadAllCurrencies(),
+                      onPressed: () =>
+                          context.read<CurrenciesCubit>().loadAllCurrencies(),
                     ),
                   ],
                 ),
@@ -76,13 +82,19 @@ class _CurrenciesView extends StatelessWidget {
           onPressed: () => _showAddEditCurrencyDialog(context),
           backgroundColor: AppColors.primary,
           icon: const Icon(Icons.add, color: Colors.white),
-          label: const Text('إضافة عملة', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          label: const Text(
+            'إضافة عملة',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildCurrenciesList(BuildContext context, List<CurrencyEntity> currencies) {
+  Widget _buildCurrenciesList(
+    BuildContext context,
+    List<CurrencyEntity> currencies,
+  ) {
     if (currencies.isEmpty) {
       return const Center(child: Text('لا توجد عملات مضافة'));
     }
@@ -92,9 +104,12 @@ class _CurrenciesView extends StatelessWidget {
       itemCount: currencies.length,
       itemBuilder: (context, index) {
         final currency = currencies[index];
-        return Card(
+        return CustomCardContainer(
+          padding: EdgeInsets.zero,
           margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+          ),
           child: ListTile(
             leading: CircleAvatar(
               backgroundColor: currency.isLocalCurrency
@@ -103,37 +118,52 @@ class _CurrenciesView extends StatelessWidget {
               child: Text(
                 currency.symbol ?? currency.code,
                 style: TextStyle(
-                  color: currency.isLocalCurrency ? AppColors.primary : AppColors.textPrimary,
+                  color: currency.isLocalCurrency
+                      ? AppColors.primary
+                      : AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
             title: Row(
               children: [
-                Text(currency.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(
+                  currency.name,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
                 if (currency.isLocalCurrency) ...[
                   const SizedBox(width: 8),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppRadius.xs),
                     ),
                     child: const Text(
                       'محلية',
-                      style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
               ],
             ),
-            subtitle: Text('الكود: ${currency.code} | سعر الصرف: ${currency.exchangeRate}'),
+            subtitle: Text(
+              'الكود: ${currency.code} | سعر الصرف: ${currency.exchangeRate}',
+            ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
                   icon: const Icon(Icons.edit, color: AppColors.primary),
-                  onPressed: () => _showAddEditCurrencyDialog(context, currency: currency),
+                  onPressed: () =>
+                      _showAddEditCurrencyDialog(context, currency: currency),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete, color: Colors.red),
@@ -214,8 +244,9 @@ class _CurrenciesView extends StatelessWidget {
                   isRequired: true,
                   textEditingController: nameController,
                   prefixIcon: const Icon(Icons.text_fields),
-                  validator: (value) =>
-                      value == null || value.isEmpty ? 'الرجاء إدخال اسم العملة' : null,
+                  validator: (value) => value == null || value.isEmpty
+                      ? 'الرجاء إدخال اسم العملة'
+                      : null,
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -229,8 +260,10 @@ class _CurrenciesView extends StatelessWidget {
                         prefixIcon: const Icon(Icons.code),
                         maxLength: 3,
                         validator: (value) {
-                          if (value == null || value.isEmpty) return 'الرجاء إدخال الكود';
-                          if (value.length != 3) return 'الكود يجب أن يكون 3 أحرف';
+                          if (value == null || value.isEmpty)
+                            return 'الرجاء إدخال الكود';
+                          if (value.length != 3)
+                            return 'الكود يجب أن يكون 3 أحرف';
                           return null;
                         },
                       ),
@@ -253,12 +286,16 @@ class _CurrenciesView extends StatelessWidget {
                   hint: '3.75',
                   isRequired: true,
                   textEditingController: rateController,
-                  inputType: const TextInputType.numberWithOptions(decimal: true),
+                  inputType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   prefixIcon: const Icon(Icons.trending_up),
                   validator: (value) {
-                    if (value == null || value.isEmpty) return 'الرجاء إدخال سعر الصرف';
+                    if (value == null || value.isEmpty)
+                      return 'الرجاء إدخال سعر الصرف';
                     final rate = double.tryParse(value);
-                    if (rate == null || rate <= 0) return 'الرجاء إدخال رقم صحيح';
+                    if (rate == null || rate <= 0)
+                      return 'الرجاء إدخال رقم صحيح';
                     return null;
                   },
                 ),

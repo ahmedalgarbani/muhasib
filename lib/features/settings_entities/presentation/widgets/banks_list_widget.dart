@@ -33,8 +33,8 @@ class BanksListWidget extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: TextInputField(
             controller: searchController,
+            hint: 'بحث في البنوك...',
             decoration: InputDecoration(
-              hintText: 'بحث في البنوك...',
               prefixIcon: const Icon(Icons.search),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(

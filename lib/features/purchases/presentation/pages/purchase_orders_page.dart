@@ -10,6 +10,7 @@ import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
@@ -183,8 +184,8 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
           const SizedBox(height: 16),
           TextInputField(
             controller: _searchController,
+            hint: 'البحث في طلبات الشراء...',
             decoration: InputDecoration(
-              hintText: 'البحث في طلبات الشراء...',
               hintStyle: const TextStyle(fontSize: 13),
               prefixIcon: const Icon(
                 Icons.search,
@@ -241,7 +242,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
   Widget _buildOrderCard(BuildContext innerContext, InvoiceEntity order) {
     final isConverted = order.nextInvoiceId != null;
 
-    return Card(
+    return CustomCardContainer(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(

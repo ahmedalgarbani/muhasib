@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 
@@ -27,7 +28,8 @@ class InventoryItemCard extends StatelessWidget {
         ? (difference / item.quantity * 100).abs()
         : 0.0;
 
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       elevation: 1,
       margin: const EdgeInsets.symmetric(vertical: 4),
       shape: RoundedRectangleBorder(

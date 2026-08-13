@@ -12,6 +12,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class PurchaseDetailPage extends StatefulWidget {
   final InvoiceEntity invoice;
@@ -163,7 +164,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
   }
 
   Widget _buildInvoiceInfo() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -241,7 +242,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
   }
 
   Widget _buildSupplierInfo() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -309,7 +310,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
   }
 
   Widget _buildProductsList() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -480,7 +481,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
   }
 
   Widget _buildTotalsSummary() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -561,7 +562,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
   }
 
   Widget _buildNotes() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),

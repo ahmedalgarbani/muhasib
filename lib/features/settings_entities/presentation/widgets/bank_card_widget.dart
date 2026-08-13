@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.dart';
 
 /// Standalone Bank Card Widget for displaying bank details.
@@ -20,15 +21,18 @@ class BankCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -71,7 +75,9 @@ class BankCardWidget extends StatelessWidget {
                             Text(
                               bank.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
-                                color: bank.isActive ? Colors.green : Colors.grey,
+                                color: bank.isActive
+                                    ? Colors.green
+                                    : Colors.grey,
                                 fontSize: 14,
                               ),
                             ),
@@ -126,7 +132,8 @@ class BankCardWidget extends StatelessWidget {
                   ],
                 ),
               ],
-              if (bank.accountNumber != null && bank.accountNumber!.isNotEmpty) ...[
+              if (bank.accountNumber != null &&
+                  bank.accountNumber!.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Row(
                   children: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,7 @@ import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class WarehouseFormPage extends StatefulWidget {
   final WarehouseEntity? warehouse;
@@ -164,7 +166,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       // Basic Information Card
-                      Card(
+                      CustomCardContainer(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -245,7 +247,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                       const SizedBox(height: 16),
 
                       // Contact Information Card
-                      Card(
+                      CustomCardContainer(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -293,7 +295,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                       const SizedBox(height: 16),
 
                       // Additional Information Card
-                      Card(
+                      CustomCardContainer(
                         elevation: 2,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -333,19 +335,11 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                                 ],
                               ),
                               const SizedBox(height: 16),
-                              DropdownButtonFormField<int>(
-                                initialValue: _selectedAccountId,
-                                decoration: InputDecoration(
-                                  labelText: 'الحساب المرتبط',
-                                  prefixIcon: const Icon(Icons.account_balance),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.md,
-                                    ),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey[50],
-                                ),
+                              CustomDropdownField<int>(
+                                value: _selectedAccountId,
+                                label: 'الحساب المرتبط',
+                                hint: 'اختر الحساب المرتبط',
+                                prefixIcon: const Icon(Icons.account_balance),
                                 items: _accounts.map((account) {
                                   return DropdownMenuItem<int>(
                                     value: account.id,
@@ -355,7 +349,6 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                                 onChanged: (value) {
                                   setState(() => _selectedAccountId = value);
                                 },
-                                hint: const Text('اختر الحساب المرتبط'),
                               ),
                             ],
                           ),

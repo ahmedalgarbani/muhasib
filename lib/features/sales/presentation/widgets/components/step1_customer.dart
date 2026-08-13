@@ -7,6 +7,7 @@ import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.da
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -56,7 +57,7 @@ class _Step1CustomerState extends State<Step1Customer> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Customer Selection Card
-          Card(
+          CustomCardContainer(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
@@ -174,7 +175,7 @@ class _Step1CustomerState extends State<Step1Customer> {
           const SizedBox(height: AppSpacing.md),
 
           // Invoice Details Card
-          Card(
+          CustomCardContainer(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
@@ -238,7 +239,7 @@ class _Step1CustomerState extends State<Step1Customer> {
           const SizedBox(height: AppSpacing.md),
 
           // Additional Notes Card
-          Card(
+          CustomCardContainer(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.md),
               child: Column(
@@ -251,9 +252,9 @@ class _Step1CustomerState extends State<Step1Customer> {
                   const SizedBox(height: AppSpacing.sm),
                   TextInputField(
                     controller: _notesController,
+                    hint: 'أضف ملاحظات...',
                     maxLines: 3,
                     decoration: InputDecoration(
-                      hintText: 'أضف ملاحظات...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),

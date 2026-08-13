@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -165,8 +166,8 @@ class _ProductsPageState extends State<ProductsPage> {
           const SizedBox(height: 16),
           TextInputField(
             controller: _searchController,
+            hint: 'ابحث بالاسم أو الباركود...',
             decoration: InputDecoration(
-              hintText: 'ابحث بالاسم أو الباركود...',
               prefixIcon: const Icon(Icons.search, color: Colors.grey),
               filled: true,
               fillColor: Colors.white,
@@ -204,7 +205,7 @@ class _ProductsPageState extends State<ProductsPage> {
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
-        return Card(
+        return CustomCardContainer(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
             side: BorderSide(color: Colors.grey.shade200),
@@ -307,7 +308,7 @@ class _ProductsPageState extends State<ProductsPage> {
       itemCount: products.length,
       itemBuilder: (context, index) {
         final product = products[index];
-        return Card(
+        return CustomCardContainer(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),

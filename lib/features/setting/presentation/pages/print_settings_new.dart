@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
@@ -184,7 +185,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                     ),
                   ),
                 ),
-                Card(
+                CustomCardContainer(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(
@@ -249,7 +250,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                     ),
                   ),
                 ),
-                Card(
+                CustomCardContainer(
                   margin: const EdgeInsets.symmetric(vertical: 4),
                   elevation: 0.5,
                   shape: RoundedRectangleBorder(

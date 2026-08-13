@@ -299,9 +299,9 @@ class BillsHeader extends StatelessWidget {
               children: [
                 Expanded(
                   child: TextInputField(
+                    hint: 'ابحث برقم الفاتورة...',
                     onChanged: onSearchChanged,
                     decoration: InputDecoration(
-                      hintText: 'ابحث برقم الفاتورة...',
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       filled: true,
                       fillColor: Colors.white,

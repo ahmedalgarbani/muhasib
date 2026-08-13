@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/services/unit_conversion_service.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 
 /// Widget for selecting product unit in invoice lines
 /// Displays available units for a product and handles conversion
@@ -47,14 +48,16 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
 
   Future<void> _loadUnits() async {
     setState(() => _isLoading = true);
-    
+
     try {
-      final units = await widget.unitConversionService.getUnitsForProduct(widget.productId);
-      
+      final units = await widget.unitConversionService.getUnitsForProduct(
+        widget.productId,
+      );
+
       setState(() {
         _units = units;
         _isLoading = false;
-        
+
         // Select initial unit or main unit
         if (units.isNotEmpty) {
           if (widget.initialUnitId != null) {
@@ -82,17 +85,19 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
 
   void _notifySelection(ProductUnitOption unit) {
     final baseQuantity = widget.quantity * unit.totalConversion;
-    
-    widget.onUnitSelected(UnitSelectionResult(
-      unitId: unit.unitId,
-      unitName: unit.unitName,
-      unitShort: unit.unitShort,
-      quantity: widget.quantity,
-      baseQuantity: baseQuantity,
-      conversionRate: unit.conversionRate,
-      packaging: unit.packaging,
-      isMainUnit: unit.isMainUnit,
-    ));
+
+    widget.onUnitSelected(
+      UnitSelectionResult(
+        unitId: unit.unitId,
+        unitName: unit.unitName,
+        unitShort: unit.unitShort,
+        quantity: widget.quantity,
+        baseQuantity: baseQuantity,
+        conversionRate: unit.conversionRate,
+        packaging: unit.packaging,
+        isMainUnit: unit.isMainUnit,
+      ),
+    );
   }
 
   @override
@@ -103,7 +108,7 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
         child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
-    
+
     if (_units.isEmpty) {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
@@ -111,13 +116,10 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
           border: Border.all(color: Colors.grey.shade300),
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
-        child: const Text(
-          'وحدة',
-          style: TextStyle(color: Colors.grey),
-        ),
+        child: const Text('وحدة', style: TextStyle(color: Colors.grey)),
       );
     }
-    
+
     if (_units.length == 1) {
       // Only one unit, show as text
       return Container(
@@ -132,33 +134,33 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
         ),
       );
     }
-    
-    return DropdownButtonFormField<ProductUnitOption>(
-      initialValue: _selectedUnit,
-      decoration: InputDecoration(
-        labelText: 'الوحدة',
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.sm)),
-      ),
-      items: _units.map((unit) => DropdownMenuItem(
-        value: unit,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(unit.unitShort),
-            if (!unit.isMainUnit) ...[
-              const SizedBox(width: 4),
-              Text(
-                '(${unit.packaging})',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade600,
-                ),
+
+    return CustomDropdownField<ProductUnitOption>(
+      value: _selectedUnit,
+      label: 'الوحدة',
+      items: _units
+          .map(
+            (unit) => DropdownMenuItem(
+              value: unit,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(unit.unitShort),
+                  if (!unit.isMainUnit) ...[
+                    const SizedBox(width: 4),
+                    Text(
+                      '(${unit.packaging})',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ],
+                ],
               ),
-            ],
-          ],
-        ),
-      )).toList(),
+            ),
+          )
+          .toList(),
       onChanged: (unit) {
         if (unit != null) {
           setState(() => _selectedUnit = unit);

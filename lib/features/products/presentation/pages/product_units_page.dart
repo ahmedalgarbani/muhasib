@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -131,7 +132,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
       itemCount: units.length,
       itemBuilder: (context, index) {
         final unit = units[index];
-        return Card(
+        return CustomCardContainer(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),

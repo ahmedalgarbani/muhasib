@@ -8,6 +8,7 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class JournalReportPage extends StatefulWidget {
   const JournalReportPage({super.key});
@@ -40,10 +41,10 @@ class _JournalReportPageState extends State<JournalReportPage> {
 
   Future<void> _exportPdf(BuildContext context) async {
     if (_lastResult == null) return;
-    
+
     final headers = ['الرقم', 'التاريخ', 'البيان', 'الحساب', 'مدين', 'دائن'];
     final List<List<String>> data = [];
-    
+
     for (final entry in _lastResult!.entries) {
       for (int i = 0; i < entry.lines.length; i++) {
         final line = entry.lines[i];
@@ -68,7 +69,15 @@ class _JournalReportPageState extends State<JournalReportPage> {
   Future<void> _exportExcel(BuildContext context) async {
     if (_lastResult == null) return;
 
-    final headers = ['الرقم', 'التاريخ', 'البيان', 'كود الحساب', 'اسم الحساب', 'مدين', 'دائن'];
+    final headers = [
+      'الرقم',
+      'التاريخ',
+      'البيان',
+      'كود الحساب',
+      'اسم الحساب',
+      'مدين',
+      'دائن',
+    ];
     final List<List<String>> data = [];
 
     for (final entry in _lastResult!.entries) {
@@ -126,12 +135,15 @@ class _JournalReportContent extends StatelessWidget {
           children: [
             _buildSummaryRow(data),
             if (data.unbalancedCount > 0)
-              _buildWarning('تحذير: يوجد ${data.unbalancedCount} قيد غير متوازن!'),
+              _buildWarning(
+                'تحذير: يوجد ${data.unbalancedCount} قيد غير متوازن!',
+              ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: data.entries.length,
-                itemBuilder: (context, index) => _buildEntryCard(data.entries[index]),
+                itemBuilder: (context, index) =>
+                    _buildEntryCard(data.entries[index]),
               ),
             ),
           ],
@@ -147,8 +159,16 @@ class _JournalReportContent extends StatelessWidget {
       child: Row(
         children: [
           _buildTinySummary('العدد', '${data.entries.length}', Colors.blue),
-          _buildTinySummary('إجمالي مدين', _formatCurrency(data.totalDebit), Colors.teal),
-          _buildTinySummary('إجمالي دائن', _formatCurrency(data.totalCredit), Colors.green),
+          _buildTinySummary(
+            'إجمالي مدين',
+            _formatCurrency(data.totalDebit),
+            Colors.teal,
+          ),
+          _buildTinySummary(
+            'إجمالي دائن',
+            _formatCurrency(data.totalCredit),
+            Colors.green,
+          ),
           _buildTinySummary('المرحلة', '${data.postedCount}', Colors.indigo),
         ],
       ),
@@ -166,8 +186,22 @@ class _JournalReportContent extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(title, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.bold)),
-          Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: color)),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 10,
+              color: color,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
         ],
       ),
     );
@@ -177,58 +211,161 @@ class _JournalReportContent extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(AppRadius.sm10), border: Border.all(color: Colors.red.withOpacity(0.2))),
-      child: Row(children: [const Icon(Icons.error, color: Colors.red, size: 18), const SizedBox(width: 8), Text(message, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 12))]),
+      decoration: BoxDecoration(
+        color: Colors.red[50],
+        borderRadius: BorderRadius.circular(AppRadius.sm10),
+        border: Border.all(color: Colors.red.withOpacity(0.2)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error, color: Colors.red, size: 18),
+          const SizedBox(width: 8),
+          Text(
+            message,
+            style: const TextStyle(
+              color: Colors.red,
+              fontWeight: FontWeight.bold,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
   Widget _buildEntryCard(_JournalEntryRow entry) {
     final isBalanced = (entry.totalDebit - entry.totalCredit).abs() < 0.01;
-    return Card(
+    return CustomCardContainer(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: BorderSide(color: Colors.grey[200]!)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        side: BorderSide(color: Colors.grey[200]!),
+      ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: entry.isPosted ? AppColors.blueGrey700 : Colors.orange.withOpacity(0.8), borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.lg))),
+            decoration: BoxDecoration(
+              color: entry.isPosted
+                  ? AppColors.blueGrey700
+                  : Colors.orange.withOpacity(0.8),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppRadius.lg),
+              ),
+            ),
             child: Row(
               children: [
-                Text(entry.number ?? '#${entry.id}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                Text(
+                  entry.number ?? '#${entry.id}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: Text(entry.description ?? 'بدون وصف', style: const TextStyle(color: Colors.white, fontSize: 13), overflow: TextOverflow.ellipsis)),
-                Text(entry.dateLabel, style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 11)),
+                Expanded(
+                  child: Text(
+                    entry.description ?? 'بدون وصف',
+                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Text(
+                  entry.dateLabel,
+                  style: TextStyle(
+                    color: Colors.white.withOpacity(0.9),
+                    fontSize: 11,
+                  ),
+                ),
               ],
             ),
           ),
-          ...entry.lines.map((l) => Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: BoxDecoration(border: Border(bottom: BorderSide(color: Colors.grey[100]!))),
-            child: Row(
-              children: [
-                Expanded(flex: 3, child: Text('${l.accountCode} - ${l.accountName}', style: const TextStyle(fontSize: 13))),
-                Expanded(child: Text(l.debitAmount > 0 ? _formatCurrency(l.debitAmount) : '-', textAlign: TextAlign.center, style: TextStyle(color: Colors.blue[700], fontSize: 12))),
-                Expanded(child: Text(l.creditAmount > 0 ? _formatCurrency(l.creditAmount) : '-', textAlign: TextAlign.center, style: TextStyle(color: Colors.green[700], fontSize: 12))),
-              ],
+          ...entry.lines.map(
+            (l) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      '${l.accountCode} - ${l.accountName}',
+                      style: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      l.debitAmount > 0 ? _formatCurrency(l.debitAmount) : '-',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.blue[700], fontSize: 12),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      l.creditAmount > 0
+                          ? _formatCurrency(l.creditAmount)
+                          : '-',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.green[700], fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )),
+          ),
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.grey[50], borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.lg))),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(AppRadius.lg),
+              ),
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: isBalanced ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1), borderRadius: BorderRadius.circular(AppRadius.sm6)),
-                  child: Text(isBalanced ? 'قيد متوازن ✓' : 'غير متوازن ⚠', style: TextStyle(color: isBalanced ? Colors.green[700] : Colors.red[700], fontSize: 10, fontWeight: FontWeight.bold)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isBalanced
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.sm6),
+                  ),
+                  child: Text(
+                    isBalanced ? 'قيد متوازن ✓' : 'غير متوازن ⚠',
+                    style: TextStyle(
+                      color: isBalanced ? Colors.green[700] : Colors.red[700],
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
                 Row(
                   children: [
-                    Text(_formatCurrency(entry.totalDebit), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blue)),
+                    Text(
+                      _formatCurrency(entry.totalDebit),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.blue,
+                      ),
+                    ),
                     const SizedBox(width: 16),
-                    Text(_formatCurrency(entry.totalCredit), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.green)),
+                    Text(
+                      _formatCurrency(entry.totalCredit),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: Colors.green,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -249,19 +386,27 @@ class _JournalReportContent extends StatelessWidget {
       args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
     }
 
-    final entriesRows = await db.query('journal_entries', where: where, whereArgs: args.isEmpty ? null : args, orderBy: 'entry_date ASC, id ASC');
+    final entriesRows = await db.query(
+      'journal_entries',
+      where: where,
+      whereArgs: args.isEmpty ? null : args,
+      orderBy: 'entry_date ASC, id ASC',
+    );
     final List<_JournalEntryRow> entries = [];
     double tDebit = 0, tCredit = 0;
     int posted = 0, unbalanced = 0;
 
     for (final e in entriesRows) {
-      final linesRows = await db.rawQuery('''
+      final linesRows = await db.rawQuery(
+        '''
         SELECT jel.*, a.code as acode, a.name as aname 
         FROM journal_entry_lines jel 
         LEFT JOIN accounts a ON a.id = jel.account_id 
         WHERE jel.journal_entry_id = ? 
         ORDER BY jel.line_number, jel.id
-      ''', [e['id']]);
+      ''',
+        [e['id']],
+      );
 
       final entry = _JournalEntryRow.fromDb(e, linesRows);
       entries.add(entry);
@@ -271,7 +416,13 @@ class _JournalReportContent extends StatelessWidget {
       if ((entry.totalDebit - entry.totalCredit).abs() > 0.01) unbalanced++;
     }
 
-    return _JournalReportResult(entries: entries, totalDebit: tDebit, totalCredit: tCredit, postedCount: posted, unbalancedCount: unbalanced);
+    return _JournalReportResult(
+      entries: entries,
+      totalDebit: tDebit,
+      totalCredit: tCredit,
+      postedCount: posted,
+      unbalancedCount: unbalanced,
+    );
   }
 }
 
@@ -280,7 +431,13 @@ class _JournalReportResult {
   final double totalDebit, totalCredit;
   final int postedCount, unbalancedCount;
   int get draftCount => entries.length - postedCount;
-  _JournalReportResult({required this.entries, required this.totalDebit, required this.totalCredit, required this.postedCount, required this.unbalancedCount});
+  _JournalReportResult({
+    required this.entries,
+    required this.totalDebit,
+    required this.totalCredit,
+    required this.postedCount,
+    required this.unbalancedCount,
+  });
 }
 
 class _JournalEntryRow {
@@ -291,14 +448,28 @@ class _JournalEntryRow {
   final double totalDebit, totalCredit;
   final List<_JournalLineRow> lines;
 
-  _JournalEntryRow({required this.id, this.number, this.description, this.referenceType, this.referenceNumber, required this.entryDate, required this.isPosted, required this.totalDebit, required this.totalCredit, required this.lines});
+  _JournalEntryRow({
+    required this.id,
+    this.number,
+    this.description,
+    this.referenceType,
+    this.referenceNumber,
+    required this.entryDate,
+    required this.isPosted,
+    required this.totalDebit,
+    required this.totalCredit,
+    required this.lines,
+  });
 
   String get dateLabel {
     final d = DateTime.fromMillisecondsSinceEpoch(entryDate * 1000);
     return '${d.day}/${d.month}/${d.year}';
   }
 
-  factory _JournalEntryRow.fromDb(Map<String, dynamic> e, List<Map<String, dynamic>> lines) {
+  factory _JournalEntryRow.fromDb(
+    Map<String, dynamic> e,
+    List<Map<String, dynamic>> lines,
+  ) {
     return _JournalEntryRow(
       id: e['id'] as int,
       number: e['number'] as String?,
@@ -309,14 +480,27 @@ class _JournalEntryRow {
       isPosted: (e['is_posted'] as int?) == 1,
       totalDebit: (e['total_debit'] as num?)?.toDouble() ?? 0.0,
       totalCredit: (e['total_credit'] as num?)?.toDouble() ?? 0.0,
-      lines: lines.map((l) => _JournalLineRow(
-        id: l['id'] as int,
-        accountCode: (l['account_code'] as String?) ?? (l['acode'] as String?) ?? '',
-        accountName: (l['account_name'] as String?) ?? (l['aname'] as String?) ?? '',
-        debitAmount: (l['debit_amount'] as num?)?.toDouble() ?? 0.0,
-        creditAmount: (l['credit_amount'] as num?)?.toDouble() ?? 0.0,
-        notes: (l['notes'] as String?) ?? (l['description'] as String?) ?? '',
-      )).toList(),
+      lines: lines
+          .map(
+            (l) => _JournalLineRow(
+              id: l['id'] as int,
+              accountCode:
+                  (l['account_code'] as String?) ??
+                  (l['acode'] as String?) ??
+                  '',
+              accountName:
+                  (l['account_name'] as String?) ??
+                  (l['aname'] as String?) ??
+                  '',
+              debitAmount: (l['debit_amount'] as num?)?.toDouble() ?? 0.0,
+              creditAmount: (l['credit_amount'] as num?)?.toDouble() ?? 0.0,
+              notes:
+                  (l['notes'] as String?) ??
+                  (l['description'] as String?) ??
+                  '',
+            ),
+          )
+          .toList(),
     );
   }
 }
@@ -325,5 +509,12 @@ class _JournalLineRow {
   final int id;
   final String accountCode, accountName, notes;
   final double debitAmount, creditAmount;
-  _JournalLineRow({required this.id, required this.accountCode, required this.accountName, required this.notes, required this.debitAmount, required this.creditAmount});
+  _JournalLineRow({
+    required this.id,
+    required this.accountCode,
+    required this.accountName,
+    required this.notes,
+    required this.debitAmount,
+    required this.creditAmount,
+  });
 }

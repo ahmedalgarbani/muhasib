@@ -500,9 +500,9 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
         TextInputField(
           controller: controller,
           keyboardType: TextInputType.number,
+          hint: '0.00',
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: color, size: 18),
-            hintText: '0.00',
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
@@ -584,9 +584,9 @@ class _AccountSearchSheetState extends State<_AccountSearchSheet> {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: TextInputField(
+              hint: 'ابحث عن حساب...',
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
-                hintText: 'ابحث عن حساب...',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.lg),

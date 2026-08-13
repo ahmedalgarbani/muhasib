@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
@@ -13,6 +14,7 @@ import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class StockTransferPage extends StatefulWidget {
   const StockTransferPage({super.key});
@@ -25,18 +27,34 @@ class _StockTransferPageState extends State<StockTransferPage> {
   final _formKey = GlobalKey<FormState>();
   final _transferNumberController = TextEditingController();
   final _statementController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now();
   String _transferType = 'regular'; // 'regular', 'return', 'adjustment'
-  final String _transferStatus = 'draft'; // 'draft', 'pending', 'in_transit', 'completed'
+  final String _transferStatus =
+      'draft'; // 'draft', 'pending', 'in_transit', 'completed'
   WarehouseEntity? _sourceWarehouse;
   WarehouseEntity? _destinationWarehouse;
   final List<StockTransferLineEntity> _transferLines = [];
-  
+
   final List<Map<String, dynamic>> _transferTypes = [
-    {'value': 'regular', 'label': 'تحويل عادي', 'icon': Icons.swap_horiz, 'color': Colors.blue},
-    {'value': 'return', 'label': 'إرجاع', 'icon': Icons.undo, 'color': Colors.orange},
-    {'value': 'adjustment', 'label': 'تسوية', 'icon': Icons.tune, 'color': Colors.purple},
+    {
+      'value': 'regular',
+      'label': 'تحويل عادي',
+      'icon': Icons.swap_horiz,
+      'color': Colors.blue,
+    },
+    {
+      'value': 'return',
+      'label': 'إرجاع',
+      'icon': Icons.undo,
+      'color': Colors.orange,
+    },
+    {
+      'value': 'adjustment',
+      'label': 'تسوية',
+      'icon': Icons.tune,
+      'color': Colors.purple,
+    },
   ];
 
   @override
@@ -44,10 +62,11 @@ class _StockTransferPageState extends State<StockTransferPage> {
     super.initState();
     _generateTransferNumber();
   }
-  
+
   void _generateTransferNumber() {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    _transferNumberController.text = 'TRF-${timestamp.substring(timestamp.length - 8)}';
+    _transferNumberController.text =
+        'TRF-${timestamp.substring(timestamp.length - 8)}';
   }
 
   @override
@@ -60,7 +79,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -125,12 +144,12 @@ class _StockTransferPageState extends State<StockTransferPage> {
               duration: const Duration(milliseconds: 200),
               width: 120,
               decoration: BoxDecoration(
-                color: isSelected 
+                color: isSelected
                     ? (type['color'] as Color).withOpacity(0.1)
                     : Colors.white,
                 borderRadius: BorderRadius.circular(AppRadius.lg),
                 border: Border.all(
-                  color: isSelected 
+                  color: isSelected
                       ? type['color'] as Color
                       : Colors.grey[300]!,
                   width: isSelected ? 2 : 1,
@@ -141,7 +160,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                 children: [
                   Icon(
                     type['icon'] as IconData,
-                    color: isSelected 
+                    color: isSelected
                         ? type['color'] as Color
                         : Colors.grey[600],
                     size: 32,
@@ -150,11 +169,11 @@ class _StockTransferPageState extends State<StockTransferPage> {
                   Text(
                     type['label'],
                     style: TextStyle(
-                      color: isSelected 
+                      color: isSelected
                           ? type['color'] as Color
                           : Colors.grey[600],
-                      fontWeight: isSelected 
-                          ? FontWeight.bold 
+                      fontWeight: isSelected
+                          ? FontWeight.bold
                           : FontWeight.normal,
                     ),
                   ),
@@ -168,7 +187,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
   }
 
   Widget _buildDocumentHeaderCard(ColorScheme colorScheme) {
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -180,10 +199,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.receipt_long,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.receipt_long, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'بيانات المستند',
@@ -234,7 +250,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
   }
 
   Widget _buildWarehouseSelectionCard(ColorScheme colorScheme) {
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -246,10 +262,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.warehouse,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.warehouse, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'المخازن',
@@ -266,7 +279,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                 if (state is WarehousesLoaded) {
                   warehouses = state.warehouses;
                 }
-                
+
                 return Column(
                   children: [
                     Row(
@@ -295,17 +308,10 @@ class _StockTransferPageState extends State<StockTransferPage> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              DropdownButtonFormField<WarehouseEntity>(
-                                initialValue: _sourceWarehouse,
-                                decoration: InputDecoration(
-                                  hintText: 'اختر المخزن المصدر',
-                                  prefixIcon: const Icon(Icons.output),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey[50],
-                                ),
+                              CustomDropdownField<WarehouseEntity>(
+                                value: _sourceWarehouse,
+                                hint: 'اختر المخزن المصدر',
+                                prefixIcon: const Icon(Icons.output),
                                 items: warehouses.map((warehouse) {
                                   return DropdownMenuItem(
                                     value: warehouse,
@@ -363,25 +369,19 @@ class _StockTransferPageState extends State<StockTransferPage> {
                                 ],
                               ),
                               const SizedBox(height: 8),
-                              DropdownButtonFormField<WarehouseEntity>(
-                                initialValue: _destinationWarehouse,
-                                decoration: InputDecoration(
-                                  hintText: 'اختر المخزن الوجهة',
-                                  prefixIcon: const Icon(Icons.input),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
-                                  ),
-                                  filled: true,
-                                  fillColor: Colors.grey[50],
-                                ),
+                              CustomDropdownField<WarehouseEntity>(
+                                value: _destinationWarehouse,
+                                hint: 'اختر المخزن الوجهة',
+                                prefixIcon: const Icon(Icons.input),
                                 items: warehouses
                                     .where((w) => w != _sourceWarehouse)
                                     .map((warehouse) {
-                                  return DropdownMenuItem(
-                                    value: warehouse,
-                                    child: Text(warehouse.name),
-                                  );
-                                }).toList(),
+                                      return DropdownMenuItem(
+                                        value: warehouse,
+                                        child: Text(warehouse.name),
+                                      );
+                                    })
+                                    .toList(),
                                 onChanged: (value) {
                                   setState(() => _destinationWarehouse = value);
                                 },
@@ -408,7 +408,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
   }
 
   Widget _buildNotesCard(ColorScheme colorScheme) {
-    return Card(
+    return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -420,10 +420,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.note,
-                  color: colorScheme.primary,
-                ),
+                Icon(Icons.note, color: colorScheme.primary),
                 const SizedBox(width: 8),
                 Text(
                   'ملاحظات',

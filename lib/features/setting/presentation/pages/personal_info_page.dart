@@ -295,10 +295,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       ),
       subtitle: TextInputField(
         controller: controller,
+        hint: hint,
         keyboardType: keyboardType,
         style: const TextStyle(fontSize: 13),
         decoration: InputDecoration(
-          hintText: hint,
           border: InputBorder.none,
           isDense: true,
           contentPadding: EdgeInsets.zero,

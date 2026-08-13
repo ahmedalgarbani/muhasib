@@ -9,6 +9,7 @@ import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
@@ -95,8 +96,8 @@ class _ReturnsPageState extends State<ReturnsPage> {
           Expanded(
             child: TextInputField(
               controller: _searchController,
+              hint: 'ابحث برقم المرتجع أو الفاتورة الأصلية...',
               decoration: InputDecoration(
-                hintText: 'ابحث برقم المرتجع أو الفاتورة الأصلية...',
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 filled: true,
                 fillColor: Colors.white,
@@ -155,7 +156,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
   }
 
   Widget _buildReturnCard(InvoiceEntity returnInvoice) {
-    return Card(
+    return CustomCardContainer(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(

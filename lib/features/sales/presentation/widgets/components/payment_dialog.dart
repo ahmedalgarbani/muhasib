@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:flutter/services.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -237,7 +238,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
             ..._payments.asMap().entries.map((entry) {
               final index = entry.key;
               final payment = entry.value;
-              return Card(
+              return CustomCardContainer(
                 margin: const EdgeInsets.only(bottom: 8),
                 child: ListTile(
                   leading: Icon(

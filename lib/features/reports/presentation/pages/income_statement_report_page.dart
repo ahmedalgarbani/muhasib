@@ -12,6 +12,7 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class IncomeStatementReportPage extends StatefulWidget {
   const IncomeStatementReportPage({super.key});
@@ -144,7 +145,8 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
               children: [
                 _buildSummaryCards(summary),
                 const SizedBox(height: 20),
-                Card(
+                CustomCardContainer(
+                  padding: EdgeInsets.zero,
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.lg20),

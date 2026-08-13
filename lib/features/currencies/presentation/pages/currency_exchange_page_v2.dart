@@ -8,6 +8,7 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_exchange_entity.dart';
@@ -222,23 +223,15 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
               children: [
                 Expanded(
                   flex: 2,
-                  child: DropdownButtonFormField<CurrencyEntity>(
-                    isExpanded: true,
-                    initialValue: fromCurrency,
-                    decoration: InputDecoration(
-                      labelText: 'من العملة (بيع)',
-                      prefixIcon: const Icon(
-                        Icons.arrow_upward,
-                        color: Colors.red,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      filled: true,
-                      fillColor: Colors.red.withOpacity(0.05),
+                  child: CustomDropdownField<CurrencyEntity>(
+                    label: 'من العملة (بيع)',
+                    value: fromCurrency,
+                    prefixIcon: const Icon(
+                      Icons.arrow_upward,
+                      color: Colors.red,
                     ),
                     items: currencies.map((currency) {
-                      return DropdownMenuItem(
+                      return DropdownMenuItem<CurrencyEntity>(
                         value: currency,
                         child: Text('${currency.name} (${currency.code})'),
                       );
@@ -318,23 +311,15 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
               children: [
                 Expanded(
                   flex: 2,
-                  child: DropdownButtonFormField<CurrencyEntity>(
-                    isExpanded: true,
-                    initialValue: toCurrency,
-                    decoration: InputDecoration(
-                      labelText: 'إلى العملة (شراء)',
-                      prefixIcon: const Icon(
-                        Icons.arrow_downward,
-                        color: AppColors.success,
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                      ),
-                      filled: true,
-                      fillColor: AppColors.success.withOpacity(0.05),
+                  child: CustomDropdownField<CurrencyEntity>(
+                    label: 'إلى العملة (شراء)',
+                    value: toCurrency,
+                    prefixIcon: const Icon(
+                      Icons.arrow_downward,
+                      color: AppColors.success,
                     ),
                     items: currencies.map((currency) {
-                      return DropdownMenuItem(
+                      return DropdownMenuItem<CurrencyEntity>(
                         value: currency,
                         child: Text('${currency.name} (${currency.code})'),
                       );
@@ -450,21 +435,15 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
               style: TextStyle(fontSize: 12, color: Colors.grey[600]),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              isExpanded: true,
-              initialValue: fromAccountId,
-              decoration: InputDecoration(
-                labelText: 'حساب العملة المباعة (دائن)',
-                prefixIcon: const Icon(
-                  Icons.account_balance_wallet,
-                  color: Colors.red,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
+            CustomDropdownField<int>(
+              label: 'حساب العملة المباعة (دائن)',
+              value: fromAccountId,
+              prefixIcon: const Icon(
+                Icons.account_balance_wallet,
+                color: Colors.red,
               ),
               items: accounts.map((account) {
-                return DropdownMenuItem(
+                return DropdownMenuItem<int>(
                   value: account['id'] as int,
                   child: Text('${account['code']} - ${account['name']}'),
                 );
@@ -473,21 +452,15 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
               validator: (value) => value == null ? 'مطلوب' : null,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              isExpanded: true,
-              initialValue: toAccountId,
-              decoration: InputDecoration(
-                labelText: 'حساب العملة المشتراة (مدين)',
-                prefixIcon: const Icon(
-                  Icons.account_balance_wallet,
-                  color: AppColors.success,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
+            CustomDropdownField<int>(
+              label: 'حساب العملة المشتراة (مدين)',
+              value: toAccountId,
+              prefixIcon: const Icon(
+                Icons.account_balance_wallet,
+                color: AppColors.success,
               ),
               items: accounts.map((account) {
-                return DropdownMenuItem(
+                return DropdownMenuItem<int>(
                   value: account['id'] as int,
                   child: Text('${account['code']} - ${account['name']}'),
                 );
@@ -496,24 +469,17 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
               validator: (value) => value == null ? 'مطلوب' : null,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              isExpanded: true,
-              initialValue: exchangeDifferenceAccountId,
-              decoration: InputDecoration(
-                labelText: 'حساب فروق الصرف (اختياري)',
-                prefixIcon: const Icon(Icons.swap_horiz, color: AppColors.info),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                helperText: 'حساب لتسجيل أرباح/خسائر فروق الصرف',
-              ),
+            CustomDropdownField<int>(
+              label: 'حساب فروق الصرف (اختياري)',
+              value: exchangeDifferenceAccountId,
+              prefixIcon: const Icon(Icons.swap_horiz, color: AppColors.info),
               items: [
                 const DropdownMenuItem<int>(
                   value: null,
                   child: Text('-- بدون --'),
                 ),
                 ...accounts.map((account) {
-                  return DropdownMenuItem(
+                  return DropdownMenuItem<int>(
                     value: account['id'] as int,
                     child: Text('${account['code']} - ${account['name']}'),
                   );
@@ -779,7 +745,10 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
         AppToast.showError(context, failure.message);
       },
       (exchange) {
-        AppToast.showSuccess(context, 'تم حفظ عملية الصرف رقم ${exchange.number} بنجاح');
+        AppToast.showSuccess(
+          context,
+          'تم حفظ عملية الصرف رقم ${exchange.number} بنجاح',
+        );
         _clearForm();
         _loadTransactions();
       },

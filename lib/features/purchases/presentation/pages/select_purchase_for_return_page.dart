@@ -112,9 +112,9 @@ class _SelectPurchaseForReturnPageState
               padding: const EdgeInsets.all(12),
               child: TextInputField(
                 controller: _searchController,
+                hint: 'بحث برقم الفاتورة...',
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.search),
-                  hintText: 'بحث برقم الفاتورة...',
                 ),
                 onChanged: (v) {
                   final q = v.trim();

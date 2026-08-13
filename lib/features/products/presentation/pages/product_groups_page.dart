@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/domain/entities/product_group_entity.dart';
@@ -100,8 +101,8 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
           const SizedBox(height: 16),
           TextInputField(
             controller: _searchController,
+            hint: 'ابحث في المجموعات...',
             decoration: InputDecoration(
-              hintText: 'ابحث في المجموعات...',
               prefixIcon: const Icon(Icons.search, color: Colors.grey),
               filled: true,
               fillColor: Colors.white,
@@ -136,7 +137,8 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
       itemCount: groups.length,
       itemBuilder: (context, index) {
         final group = groups[index];
-        return Card(
+        return CustomCardContainer(
+          padding: EdgeInsets.zero,
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),

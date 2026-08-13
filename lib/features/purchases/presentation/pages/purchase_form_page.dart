@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/widgets/add_line_dialog.dart';
@@ -16,6 +17,7 @@ import 'package:muhasib/features/sales/presentation/widgets/components/add_custo
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 
 part 'purchase_form_widgets.dart';
@@ -24,11 +26,7 @@ class PurchaseFormPage extends StatefulWidget {
   final InvoiceEntity? invoice;
   final int invoiceType;
 
-  const PurchaseFormPage({
-    super.key,
-    this.invoice,
-    this.invoiceType = 2,
-  });
+  const PurchaseFormPage({super.key, this.invoice, this.invoiceType = 2});
 
   @override
   State<PurchaseFormPage> createState() => _PurchaseFormPageState();

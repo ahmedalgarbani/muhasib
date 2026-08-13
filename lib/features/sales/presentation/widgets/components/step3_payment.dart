@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
@@ -335,10 +336,10 @@ class _Step3PaymentState extends State<Step3Payment> {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       TextInputField(
+                        hint: 'أدخل المبلغ',
                         controller: _amountController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
-                          hintText: 'أدخل المبلغ',
                           filled: true,
                           fillColor: Colors.white,
                           border: OutlineInputBorder(
@@ -359,25 +360,9 @@ class _Step3PaymentState extends State<Step3Payment> {
 
                       // Method-specific fields
                       if (_selectedMethod == PaymentMethod.cash) ...[
-                        const Text(
-                          'الصندوق',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                            color: AppColors.gray600,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
-                          ),
-                          initialValue: _selectedCashBox,
+                        CustomDropdownField<String>(
+                          value: _selectedCashBox,
+                          label: 'الصندوق',
                           items: const [
                             DropdownMenuItem(
                               value: 'الصندوق الرئيسي',
@@ -395,25 +380,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                       ],
 
                       if (_selectedMethod == PaymentMethod.bank) ...[
-                        const Text(
-                          'البنك',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.normal,
-                            color: AppColors.gray600,
-                            height: 1.4,
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        DropdownButtonFormField<String>(
-                          decoration: InputDecoration(
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.md),
-                            ),
-                          ),
-                          initialValue: _selectedBank,
+                        CustomDropdownField<String>(
+                          value: _selectedBank,
+                          label: 'البنك',
                           items: const [
                             DropdownMenuItem(
                               value: 'الراجحي',
@@ -439,9 +408,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                             children: [
                               const SizedBox(height: AppSpacing.md),
                               TextInputField(
+                                label: 'رقم الحوالة',
                                 onChanged: (value) => _transferNumber = value,
                                 decoration: InputDecoration(
-                                  labelText: 'رقم الحوالة',
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(
@@ -453,9 +422,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                               ),
                               const SizedBox(height: AppSpacing.sm),
                               TextInputField(
+                                label: 'اسم المرسل',
                                 onChanged: (value) => _senderName = value,
                                 decoration: InputDecoration(
-                                  labelText: 'اسم المرسل',
                                   filled: true,
                                   fillColor: Colors.white,
                                   border: OutlineInputBorder(

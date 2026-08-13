@@ -3,6 +3,7 @@ import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 
 class AnnualClosePage extends StatefulWidget {
@@ -86,7 +87,8 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
   }
 
   Widget _buildYearSelector() {
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -199,7 +201,8 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
     IconData icon,
     Color color,
   ) {
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -240,7 +243,8 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
   }
 
   Widget _buildStepsCard() {
-    return Card(
+    return CustomCardContainer(
+      padding: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),

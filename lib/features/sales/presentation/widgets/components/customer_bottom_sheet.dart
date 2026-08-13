@@ -90,9 +90,9 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
                 const SizedBox(height: AppSpacing.md),
                 TextInputField(
                   controller: _searchController,
+                  hint: 'البحث عن عميل...',
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: const InputDecoration(
-                    hintText: 'البحث عن عميل...',
                     prefixIcon: Icon(Icons.search),
                   ),
                 ),

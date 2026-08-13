@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/item_movement_entity.dart';
@@ -100,8 +101,8 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
               Expanded(
                 child: TextInputField(
                   controller: _searchController,
+                  hint: 'ابحث في الحركات...',
                   decoration: InputDecoration(
-                    hintText: 'ابحث في الحركات...',
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     filled: true,
                     fillColor: Colors.white,
@@ -226,7 +227,7 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
           movement.transDate * 1000,
         );
 
-        return Card(
+        return CustomCardContainer(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),

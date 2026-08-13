@@ -5,8 +5,10 @@ import 'package:muhasib/core/services/currency_exchange_service.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 /// Page for revaluating foreign currency balances
@@ -127,7 +129,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   }
 
   Widget _buildInfoCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       color: AppColors.info.withOpacity(0.05),
       shape: RoundedRectangleBorder(
@@ -169,7 +171,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   }
 
   Widget _buildSelectionCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -189,20 +191,15 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               ),
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              initialValue: selectedCurrencyId,
-              decoration: InputDecoration(
-                labelText: 'العملة الأجنبية',
-                prefixIcon: const Icon(
-                  Icons.monetization_on,
-                  color: AppColors.info,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
+            CustomDropdownField<int>(
+              label: 'العملة الأجنبية',
+              value: selectedCurrencyId,
+              prefixIcon: const Icon(
+                Icons.monetization_on,
+                color: AppColors.info,
               ),
               items: currencies.map((currency) {
-                return DropdownMenuItem(
+                return DropdownMenuItem<int>(
                   value: currency['id'] as int,
                   child: Text(
                     '${currency['name']} (${currency['code']}) - سعر: ${currency['exchange_rate']}',
@@ -223,20 +220,15 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               validator: (value) => value == null ? 'مطلوب' : null,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              initialValue: selectedAccountId,
-              decoration: InputDecoration(
-                labelText: 'الحساب',
-                prefixIcon: const Icon(
-                  Icons.account_balance_wallet,
-                  color: AppColors.info,
-                ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
+            CustomDropdownField<int>(
+              label: 'الحساب',
+              value: selectedAccountId,
+              prefixIcon: const Icon(
+                Icons.account_balance_wallet,
+                color: AppColors.info,
               ),
               items: accounts.map((account) {
-                return DropdownMenuItem(
+                return DropdownMenuItem<int>(
                   value: account['id'] as int,
                   child: Text('${account['code']} - ${account['name']}'),
                 );
@@ -248,22 +240,16 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               validator: (value) => value == null ? 'مطلوب' : null,
             ),
             const SizedBox(height: 16),
-            DropdownButtonFormField<int>(
-              initialValue: gainLossAccountId,
-              decoration: InputDecoration(
-                labelText: 'حساب أرباح/خسائر فروق الصرف',
-                prefixIcon: const Icon(Icons.swap_horiz, color: AppColors.info),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                helperText: 'سيتم احتسابه تلقائياً بناءً على نوع الفرق',
-              ),
+            CustomDropdownField<int>(
+              label: 'حساب أرباح/خسائر فروق الصرف',
+              value: gainLossAccountId,
+              prefixIcon: const Icon(Icons.swap_horiz, color: AppColors.info),
               items: accounts
                   .where(
                     (a) => (a['type'] as int?) == 3 || (a['type'] as int?) == 4,
                   )
                   .map((account) {
-                    return DropdownMenuItem(
+                    return DropdownMenuItem<int>(
                       value: account['id'] as int,
                       child: Text('${account['code']} - ${account['name']}'),
                     );
@@ -279,7 +265,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   }
 
   Widget _buildRateCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -323,10 +309,10 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               ),
             const SizedBox(height: 16),
             TextInputField(
+              label: 'سعر الصرف الجديد',
               controller: _newRateController,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                labelText: 'سعر الصرف الجديد',
                 prefixIcon: const Icon(
                   Icons.trending_up,
                   color: AppColors.info,
@@ -379,7 +365,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   Widget _buildDifferenceCard() {
     final isProfit = calculatedDifference! > 0;
 
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       color: isProfit
           ? Colors.green.withOpacity(0.05)
@@ -526,7 +512,10 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
         AppToast.showError(context, failure.message);
       },
       (journalId) {
-        AppToast.showSuccess(context, 'تم إنشاء قيد التسوية رقم $journalId بنجاح');
+        AppToast.showSuccess(
+          context,
+          'تم إنشاء قيد التسوية رقم $journalId بنجاح',
+        );
         Navigator.pop(context);
       },
     );

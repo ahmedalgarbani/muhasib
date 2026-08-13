@@ -178,27 +178,27 @@ class _BanksViewState extends State<_BanksView> {
               children: [
                 TextInputField(
                   controller: nameController,
-                  decoration: const InputDecoration(labelText: 'اسم البنك *'),
+                  label: 'اسم البنك *',
                 ),
                 const SizedBox(height: 16),
                 TextInputField(
                   controller: contactController,
-                  decoration: const InputDecoration(labelText: 'رقم التواصل'),
+                  label: 'رقم التواصل',
                 ),
                 const SizedBox(height: 16),
                 TextInputField(
                   controller: branchController,
-                  decoration: const InputDecoration(labelText: 'اسم الفرع'),
+                  label: 'اسم الفرع',
                 ),
                 const SizedBox(height: 16),
                 TextInputField(
                   controller: accountNumberController,
-                  decoration: const InputDecoration(labelText: 'رقم الحساب'),
+                  label: 'رقم الحساب',
                 ),
                 const SizedBox(height: 16),
                 TextInputField(
                   controller: bankCodeController,
-                  decoration: const InputDecoration(labelText: 'كود البنك'),
+                  label: 'كود البنك',
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile(

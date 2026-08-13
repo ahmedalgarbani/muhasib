@@ -9,6 +9,7 @@ import 'package:muhasib/features/reports/presentation/widgets/report_base_page.d
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
@@ -61,20 +62,13 @@ class _AccountStatementReportPageState
     if (state is AccountStatementLoaded) {
       return Container(
         padding: const EdgeInsets.only(bottom: 16),
-        child: DropdownButtonFormField<int>(
-          initialValue: state.selectedAccountId,
-          decoration: InputDecoration(
-            labelText: 'اختر الحساب المطلوب',
-            prefixIcon: const Icon(Icons.account_tree),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            filled: true,
-            fillColor: Colors.grey[50],
-          ),
+        child: CustomDropdownField<int>(
+          label: 'اختر الحساب المطلوب',
+          value: state.selectedAccountId,
+          prefixIcon: const Icon(Icons.account_tree),
           items: state.accounts
               .map(
-                (a) => DropdownMenuItem(
+                (a) => DropdownMenuItem<int>(
                   value: a['id'] as int,
                   child: Text(
                     '${a['code']} - ${a['name']}',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -77,29 +78,23 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
           errorMessage = state.message;
         }
 
-        return DropdownButtonFormField<WarehouseEntity>(
-          initialValue: widget.selectedWarehouse,
-          decoration: InputDecoration(
-            labelText: widget.label ?? 'المخزن',
-            hintText: widget.hint ?? 'اختر المخزن',
-            prefixIcon: widget.prefixIcon ?? const Icon(Icons.warehouse),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            filled: true,
-            fillColor: widget.enabled ? Colors.grey[50] : Colors.grey[200],
-            errorText: errorMessage,
-            suffixIcon: isLoading
-                ? const Padding(
-                    padding: EdgeInsets.all(12.0),
-                    child: SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  )
-                : null,
-          ),
+        return CustomDropdownField<WarehouseEntity>(
+          value: widget.selectedWarehouse,
+          label: widget.label ?? 'المخزن',
+          hint: widget.hint ?? 'اختر المخزن',
+          prefixIcon: widget.prefixIcon ?? const Icon(Icons.warehouse),
+          suffixIcon: isLoading
+              ? const Padding(
+                  padding: EdgeInsets.all(12.0),
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                )
+              : null,
+          errorText: errorMessage,
+          enabled: widget.enabled,
           items: warehouses.map((warehouse) {
             return DropdownMenuItem<WarehouseEntity>(
               value: warehouse,
@@ -136,7 +131,6 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
           }).toList(),
           onChanged: widget.enabled ? widget.onChanged : null,
           validator: widget.validator,
-          isExpanded: true,
         );
       },
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -410,14 +411,12 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                       BlocBuilder<ProductSubUnitsCubit, ProductSubUnitsState>(
                         builder: (context, state) {
                           if (state is ProductSubUnitsLoaded) {
-                            return DropdownButtonFormField<int>(
-                              initialValue: selectedSubUnitId,
-                              decoration: const InputDecoration(
-                                labelText: 'الوحدة الفرعية',
-                              ),
+                            return CustomDropdownField<int>(
+                              label: 'الوحدة الفرعية',
+                              value: selectedSubUnitId,
                               items: state.subUnits
                                   .map(
-                                    (subUnit) => DropdownMenuItem(
+                                    (subUnit) => DropdownMenuItem<int>(
                                       value: subUnit.id,
                                       child: Text('وحدة ${subUnit.packaging}'),
                                     ),
@@ -432,16 +431,23 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                         },
                       ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      initialValue: selectedPriceLevel,
-                      decoration: const InputDecoration(
-                        labelText: 'مستوى السعر',
-                      ),
+                    CustomDropdownField<int>(
+                      label: 'مستوى السعر',
+                      value: selectedPriceLevel,
                       items: const [
-                        DropdownMenuItem(value: 1, child: Text('سعر التجزئة')),
-                        DropdownMenuItem(value: 2, child: Text('سعر الجملة')),
-                        DropdownMenuItem(value: 3, child: Text('سعر خاص')),
-                        DropdownMenuItem(value: 4, child: Text('سعر الموزع')),
+                        DropdownMenuItem<int>(
+                          value: 1,
+                          child: Text('سعر التجزئة'),
+                        ),
+                        DropdownMenuItem<int>(
+                          value: 2,
+                          child: Text('سعر الجملة'),
+                        ),
+                        DropdownMenuItem<int>(value: 3, child: Text('سعر خاص')),
+                        DropdownMenuItem<int>(
+                          value: 4,
+                          child: Text('سعر الموزع'),
+                        ),
                       ],
                       onChanged: (value) {
                         setState(() => selectedPriceLevel = value ?? 1);
@@ -455,9 +461,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                       ),
                       label: 'السعر',
                       hint: '0.00',
-                      decoration: const InputDecoration(
-                        suffixText: 'ر.س',
-                      ),
+                      decoration: const InputDecoration(suffixText: 'ر.س'),
                     ),
                     const SizedBox(height: 16),
                     TextInputField(

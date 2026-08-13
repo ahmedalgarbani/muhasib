@@ -213,6 +213,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: TextInputField(
+                    hint: 'ابحث عن حساب...',
                     autofocus: true,
                     onChanged: (value) {
                       setState(() {
@@ -220,7 +221,6 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                       });
                     },
                     decoration: InputDecoration(
-                      hintText: 'ابحث عن حساب...',
                       hintStyle: const TextStyle(color: AppColors.blue200),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
@@ -76,7 +77,8 @@ class SettingsPage extends StatelessWidget {
                 _buildSettingCard(
                   context,
                   title: 'إعدادات أخرى',
-                  subtitle: 'إعدادات التاريخ والوقت - إعدادات تكوينات النظام ...',
+                  subtitle:
+                      'إعدادات التاريخ والوقت - إعدادات تكوينات النظام ...',
                   icon: Icons.settings_outlined,
                   onTap: () => context.push(AppRoutes.settingsOther),
                 ),
@@ -84,7 +86,8 @@ class SettingsPage extends StatelessWidget {
                 _buildSettingCard(
                   context,
                   title: 'معالج الإعداد الأولي للنظام',
-                  subtitle: 'إعداد اسم الشركة، العملة الرئيسية، والمخزن الافتراضي...',
+                  subtitle:
+                      'إعداد اسم الشركة، العملة الرئيسية، والمخزن الافتراضي...',
                   icon: Icons.auto_fix_high_outlined,
                   onTap: () => context.push(AppRoutes.initialSetup),
                 ),
@@ -111,7 +114,7 @@ class SettingsPage extends StatelessWidget {
     required IconData icon,
     required VoidCallback onTap,
   }) {
-    return Card(
+    return CustomCardContainer(
       elevation: 0.5,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -137,10 +140,7 @@ class SettingsPage extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -151,11 +151,7 @@ class SettingsPage extends StatelessWidget {
                   color: Colors.grey[100],
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
-                child: Icon(
-                  icon,
-                  size: 24,
-                  color: Colors.grey[700],
-                ),
+                child: Icon(icon, size: 24, color: Colors.grey[700]),
               ),
             ],
           ),

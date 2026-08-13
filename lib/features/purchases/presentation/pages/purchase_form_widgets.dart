@@ -267,7 +267,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   }
 
   Widget _buildInvoiceInfoCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -291,9 +291,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
               children: [
                 Expanded(
                   child: TextInputField(
+                    label: 'رقم الفاتورة',
                     controller: _numberController,
                     decoration: InputDecoration(
-                      labelText: 'رقم الفاتورة',
                       labelStyle: const TextStyle(fontSize: 12),
                       prefixIcon: const Icon(Icons.tag, size: 20),
                       border: OutlineInputBorder(
@@ -316,9 +316,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextInputField(
+                    label: 'التاريخ',
                     controller: _dateController,
                     decoration: InputDecoration(
-                      labelText: 'التاريخ',
                       labelStyle: const TextStyle(fontSize: 12),
                       prefixIcon: const Icon(Icons.calendar_today, size: 20),
                       border: OutlineInputBorder(
@@ -391,7 +391,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   }
 
   Widget _buildSupplierWarehouseCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -417,24 +417,10 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                   return Row(
                     children: [
                       Expanded(
-                        child: DropdownButtonFormField<int>(
-                          initialValue: _selectedSupplierId,
-                          decoration: InputDecoration(
-                            labelText: 'المورد',
-                            labelStyle: const TextStyle(fontSize: 12),
-                            prefixIcon: const Icon(Icons.business, size: 20),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 8,
-                            ),
-                          ),
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.black,
-                          ),
+                        child: CustomDropdownField<int>(
+                          value: _selectedSupplierId,
+                          label: 'المورد',
+                          prefixIcon: const Icon(Icons.business, size: 20),
                           items: state.suppliers.map((supplier) {
                             return DropdownMenuItem<int>(
                               value: int.parse(supplier.id),
@@ -493,21 +479,10 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
             BlocBuilder<WarehousesCubit, WarehousesState>(
               builder: (context, state) {
                 if (state is WarehousesLoaded) {
-                  return DropdownButtonFormField<int>(
-                    initialValue: _selectedWarehouseId,
-                    decoration: InputDecoration(
-                      labelText: 'المخزن',
-                      labelStyle: const TextStyle(fontSize: 12),
-                      prefixIcon: const Icon(Icons.warehouse, size: 20),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                    ),
-                    style: const TextStyle(fontSize: 13, color: Colors.black),
+                  return CustomDropdownField<int>(
+                    value: _selectedWarehouseId,
+                    label: 'المخزن',
+                    prefixIcon: const Icon(Icons.warehouse, size: 20),
                     items: state.warehouses.map((warehouse) {
                       return DropdownMenuItem(
                         value: warehouse.id,
@@ -538,7 +513,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   }
 
   Widget _buildProductsCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -647,7 +622,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   }
 
   Widget _buildTotalsCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -671,9 +646,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
               children: [
                 Expanded(
                   child: TextInputField(
+                    label: 'الخصم',
                     controller: _discountController,
                     decoration: InputDecoration(
-                      labelText: 'الخصم',
                       labelStyle: const TextStyle(fontSize: 12),
                       prefixIcon: const Icon(Icons.discount, size: 20),
                       border: OutlineInputBorder(
@@ -693,9 +668,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: TextInputField(
+                    label: 'الضريبة %',
                     controller: _taxController,
                     decoration: InputDecoration(
-                      labelText: 'الضريبة %',
                       labelStyle: const TextStyle(fontSize: 12),
                       prefixIcon: const Icon(Icons.receipt_long, size: 20),
                       border: OutlineInputBorder(
@@ -773,7 +748,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   }
 
   Widget _buildNotesCard() {
-    return Card(
+    return CustomCardContainer(
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -794,11 +769,11 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
             ),
             const SizedBox(height: 12),
             TextInputField(
+              label: 'البيان',
+              hint: 'أدخل أي ملاحظات إضافية',
               controller: _statementController,
               decoration: InputDecoration(
-                labelText: 'البيان',
                 labelStyle: const TextStyle(fontSize: 12),
-                hintText: 'أدخل أي ملاحظات إضافية',
                 hintStyle: const TextStyle(fontSize: 11),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -810,11 +785,11 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
             ),
             const SizedBox(height: 12),
             TextInputField(
+              label: 'عنوان الشحن',
+              hint: 'أدخل عنوان الشحن إن وجد',
               controller: _shippingAddressController,
               decoration: InputDecoration(
-                labelText: 'عنوان الشحن',
                 labelStyle: const TextStyle(fontSize: 12),
-                hintText: 'أدخل عنوان الشحن إن وجد',
                 hintStyle: const TextStyle(fontSize: 11),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm),

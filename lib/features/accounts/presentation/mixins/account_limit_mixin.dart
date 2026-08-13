@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
@@ -203,7 +204,7 @@ mixin AccountLimitMixin {
                 icon = Icons.error_outline;
               }
 
-              return Card(
+              return CustomCardContainer(
                 margin: const EdgeInsets.only(bottom: 12),
                 child: Padding(
                   padding: const EdgeInsets.all(12),

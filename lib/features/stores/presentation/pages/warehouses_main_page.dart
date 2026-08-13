@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 class WarehousesMainPage extends StatelessWidget {
   const WarehousesMainPage({super.key});
@@ -11,7 +12,7 @@ class WarehousesMainPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.neutral100,
-      appBar:  const CustomAppBar(title: 'إدارة المخازن'),
+      appBar: const CustomAppBar(title: 'إدارة المخازن'),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: GridView.count(
@@ -61,7 +62,7 @@ class WarehousesMainPage extends StatelessWidget {
     required Color color,
     required String route,
   }) {
-    return Card(
+    return CustomCardContainer(
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -77,11 +78,7 @@ class WarehousesMainPage extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 48,
-                color: Colors.white,
-              ),
+              Icon(icon, size: 48, color: Colors.white),
               const SizedBox(height: 12),
               Text(
                 title,

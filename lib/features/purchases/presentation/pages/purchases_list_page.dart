@@ -9,6 +9,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PurchasesListPage extends StatefulWidget {
@@ -109,8 +110,8 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
               Expanded(
                 child: TextInputField(
                   controller: _searchController,
+                  hint: 'ابحث في فواتير المشتريات...',
                   decoration: InputDecoration(
-                    hintText: 'ابحث في فواتير المشتريات...',
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     filled: true,
                     fillColor: Colors.white,
@@ -179,7 +180,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
   }
 
   Widget _buildInvoiceCard(InvoiceEntity invoice) {
-    return Card(
+    return CustomCardContainer(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
       shape: RoundedRectangleBorder(

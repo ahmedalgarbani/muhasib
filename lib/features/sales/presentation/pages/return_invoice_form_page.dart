@@ -11,6 +11,7 @@ import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.da
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
@@ -128,7 +129,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Return Info Card
-                  Card(
+                  CustomCardContainer(
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
@@ -206,7 +207,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
 
                   // Original Invoice Selection
                   if (_originalInvoice == null)
-                    Card(
+                    CustomCardContainer(
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -288,7 +289,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
 
                   // Original Invoice Info
                   if (_originalInvoice != null)
-                    Card(
+                    CustomCardContainer(
                       elevation: 0,
                       color: AppColors.amber100,
                       shape: RoundedRectangleBorder(
@@ -362,7 +363,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                       final itemId = item.id ?? index;
                       final returnQty = _returnQuantities[itemId] ?? 0;
 
-                      return Card(
+                      return CustomCardContainer(
                         margin: const EdgeInsets.only(bottom: 12),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -408,10 +409,10 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                   SizedBox(
                                     width: 100,
                                     child: TextInputField(
+                                      label: 'كمية المرتجع',
                                       initialValue: returnQty.toString(),
                                       keyboardType: TextInputType.number,
                                       decoration: InputDecoration(
-                                        labelText: 'كمية المرتجع',
                                         contentPadding:
                                             const EdgeInsets.symmetric(
                                               horizontal: 12,
@@ -454,7 +455,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
 
                   // Total
                   const SizedBox(height: 16),
-                  Card(
+                  CustomCardContainer(
                     elevation: 0,
                     color: AppColors.red100,
                     shape: RoundedRectangleBorder(

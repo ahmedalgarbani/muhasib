@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/cashbox_entity.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/banks_cubit.dart';
@@ -30,7 +31,7 @@ class BankSelectorDropdown extends StatelessWidget {
         builder: (context, state) {
           List<BankEntity> banks = [];
           bool isLoading = false;
-          
+
           if (state is BanksLoading) {
             isLoading = true;
           } else if (state is BanksLoaded) {
@@ -45,17 +46,11 @@ class BankSelectorDropdown extends StatelessWidget {
             return _buildEmptyDropdown(context);
           }
 
-          return DropdownButtonFormField<BankEntity>(
-            initialValue: selectedBank,
-            decoration: InputDecoration(
-              labelText: labelText,
-              prefixIcon: const Icon(Icons.account_balance),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+          return CustomDropdownField<BankEntity>(
+            value: selectedBank,
+            label: labelText ?? '',
+            prefixIcon: const Icon(Icons.account_balance),
+            isRequired: isRequired,
             items: banks.map((bank) {
               return DropdownMenuItem<BankEntity>(
                 value: bank,
@@ -66,10 +61,7 @@ class BankSelectorDropdown extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         '(${bank.branchName})',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                     ],
                   ],
@@ -77,7 +69,7 @@ class BankSelectorDropdown extends StatelessWidget {
               );
             }).toList(),
             onChanged: onChanged,
-            validator: isRequired 
+            validator: isRequired
                 ? (value) => value == null ? 'يرجى اختيار البنك' : null
                 : null,
           );
@@ -87,20 +79,13 @@ class BankSelectorDropdown extends StatelessWidget {
   }
 
   Widget _buildLoadingDropdown() {
-    return DropdownButtonFormField<BankEntity>(
-      initialValue: null,
-      decoration: InputDecoration(
-        labelText: labelText,
-        prefixIcon: const SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
+    return CustomDropdownField<BankEntity>(
+      value: null,
+      label: labelText ?? '',
+      prefixIcon: const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(strokeWidth: 2),
       ),
       items: const [],
       onChanged: null,
@@ -108,19 +93,11 @@ class BankSelectorDropdown extends StatelessWidget {
   }
 
   Widget _buildEmptyDropdown(BuildContext context) {
-    return DropdownButtonFormField<BankEntity>(
-      initialValue: null,
-      decoration: InputDecoration(
-        labelText: labelText,
-        prefixIcon: const Icon(Icons.account_balance),
-        helperText: 'لا توجد بنوك - أضف من الإعدادات',
-        helperStyle: const TextStyle(color: Colors.orange),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
-      ),
+    return CustomDropdownField<BankEntity>(
+      value: null,
+      label: labelText ?? '',
+      hint: 'لا توجد بنوك - أضف من الإعدادات',
+      prefixIcon: const Icon(Icons.account_balance),
       items: const [],
       onChanged: null,
     );
@@ -150,7 +127,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
         builder: (context, state) {
           List<CashboxEntity> cashboxes = [];
           bool isLoading = false;
-          
+
           if (state is CashboxesLoading) {
             isLoading = true;
           } else if (state is CashboxesLoaded) {
@@ -165,17 +142,11 @@ class CashboxSelectorDropdown extends StatelessWidget {
             return _buildEmptyDropdown(context);
           }
 
-          return DropdownButtonFormField<CashboxEntity>(
-            initialValue: selectedCashbox,
-            decoration: InputDecoration(
-              labelText: labelText,
-              prefixIcon: const Icon(Icons.account_balance_wallet),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+          return CustomDropdownField<CashboxEntity>(
+            value: selectedCashbox,
+            label: labelText ?? '',
+            prefixIcon: const Icon(Icons.account_balance_wallet),
+            isRequired: isRequired,
             items: cashboxes.map((cashbox) {
               return DropdownMenuItem<CashboxEntity>(
                 value: cashbox,
@@ -190,7 +161,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
               );
             }).toList(),
             onChanged: onChanged,
-            validator: isRequired 
+            validator: isRequired
                 ? (value) => value == null ? 'يرجى اختيار الصندوق' : null
                 : null,
           );
@@ -200,20 +171,13 @@ class CashboxSelectorDropdown extends StatelessWidget {
   }
 
   Widget _buildLoadingDropdown() {
-    return DropdownButtonFormField<CashboxEntity>(
-      initialValue: null,
-      decoration: InputDecoration(
-        labelText: labelText,
-        prefixIcon: const SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(strokeWidth: 2),
-        ),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
+    return CustomDropdownField<CashboxEntity>(
+      value: null,
+      label: labelText ?? '',
+      prefixIcon: const SizedBox(
+        width: 24,
+        height: 24,
+        child: CircularProgressIndicator(strokeWidth: 2),
       ),
       items: const [],
       onChanged: null,
@@ -221,19 +185,11 @@ class CashboxSelectorDropdown extends StatelessWidget {
   }
 
   Widget _buildEmptyDropdown(BuildContext context) {
-    return DropdownButtonFormField<CashboxEntity>(
-      initialValue: null,
-      decoration: InputDecoration(
-        labelText: labelText,
-        prefixIcon: const Icon(Icons.account_balance_wallet),
-        helperText: 'لا توجد صناديق - أضف من الإعدادات',
-        helperStyle: const TextStyle(color: Colors.orange),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(AppRadius.md),
-        ),
-      ),
+    return CustomDropdownField<CashboxEntity>(
+      value: null,
+      label: labelText ?? '',
+      hint: 'لا توجد صناديق - أضف من الإعدادات',
+      prefixIcon: const Icon(Icons.account_balance_wallet),
       items: const [],
       onChanged: null,
     );
