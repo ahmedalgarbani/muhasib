@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -321,7 +322,8 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                 onPressed: () => Navigator.pop(dialogContext),
                 child: const Text('إلغاء'),
               ),
-              ElevatedButton(
+              HasibButton(
+                label: unit == null ? 'إضافة' : 'حفظ',
                 onPressed: () {
                   if (nameController.text.trim().isEmpty ||
                       shortController.text.trim().isEmpty) {
@@ -350,10 +352,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
 
                   Navigator.pop(dialogContext);
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                ),
-                child: Text(unit == null ? 'إضافة' : 'حفظ'),
+                variant: HasibButtonVariant.primary,
               ),
             ],
           ),

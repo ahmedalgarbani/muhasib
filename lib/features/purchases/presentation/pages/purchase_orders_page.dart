@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -67,18 +68,14 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 16),
-                            ElevatedButton.icon(
+                            HasibButton(
+                              label: 'إعادة المحاولة',
                               onPressed: () => innerContext
                                   .read<PurchasesCubit>()
                                   .loadPurchaseOrders(),
-                              icon: const Icon(Icons.refresh, size: 18),
-                              label: const Text(
-                                'إعادة المحاولة',
-                                style: TextStyle(fontSize: 13),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.success,
-                              ),
+                              leading: const Icon(Icons.refresh, size: 18),
+                              variant: HasibButtonVariant.success,
+                              fontSize: 13,
                             ),
                           ],
                         ),
@@ -359,23 +356,13 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                     ],
                   ),
                   if (!isConverted)
-                    ElevatedButton.icon(
+                    HasibButton(
+                      label: 'تحويل لفاتورة',
                       onPressed: () => _showConvertDialog(innerContext, order),
-                      icon: const Icon(Icons.transform, size: 16),
-                      label: const Text(
-                        'تحويل لفاتورة',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.sm6),
-                        ),
-                      ),
+                      leading: const Icon(Icons.transform, size: 16),
+                      variant: HasibButtonVariant.success,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      fontSize: 12,
                     )
                   else
                     TextButton.icon(
@@ -526,7 +513,8 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
           ),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'تحويل',
             onPressed: () {
               Navigator.of(context).pop();
               // Generate new invoice number
@@ -559,9 +547,8 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                 newInvoice,
               );
             },
-            icon: const Icon(Icons.check, size: 18),
-            label: const Text('تحويل'),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
+            leading: const Icon(Icons.check, size: 18),
+            variant: HasibButtonVariant.success,
           ),
         ],
       ),
@@ -600,7 +587,8 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'إنشاء طلب شراء',
             onPressed: () {
               // Navigate to create purchase order
               AppToast.showWarning(
@@ -608,15 +596,9 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                 'سيتم إضافة صفحة إنشاء طلب شراء قريباً',
               );
             },
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('إنشاء طلب شراء'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.info,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-            ),
+            leading: const Icon(Icons.add, size: 18),
+            variant: HasibButtonVariant.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ],
       ),

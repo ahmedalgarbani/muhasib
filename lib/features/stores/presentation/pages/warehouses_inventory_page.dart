@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -387,18 +388,12 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
                   ),
                 ),
                 const SizedBox(width: 16),
-                ElevatedButton.icon(
+                HasibButton(
+                  label: 'إضافة',
                   onPressed: () => _addProductToInventory(),
-                  icon: const Icon(Icons.add),
-                  label: const Text('إضافة'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 24,
-                      vertical: 16,
-                    ),
-                    backgroundColor: colorScheme.primary,
-                    foregroundColor: Colors.white,
-                  ),
+                  leading: const Icon(Icons.add),
+                  variant: HasibButtonVariant.primary,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 ),
               ],
             ),
@@ -689,18 +684,12 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
         ),
         const SizedBox(width: 16),
         Expanded(
-          child: ElevatedButton.icon(
+          child: HasibButton(
+            label: 'ترحيل الجرد',
             onPressed: _inventoryLines.isEmpty ? null : () => _postInventory(),
-            icon: const Icon(Icons.check),
-            label: const Text('ترحيل الجرد'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorScheme.primary,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+            leading: const Icon(Icons.check),
+            variant: HasibButtonVariant.primary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
       ],
@@ -816,14 +805,14 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
             onPressed: () => Navigator.pop(context),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          HasibButton(
+            label: 'ترحيل',
             onPressed: () {
               Navigator.pop(context);
               AppToast.showSuccess(context, 'تم ترحيل الجرد بنجاح');
               context.pop();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('ترحيل', style: TextStyle(color: Colors.white)),
+            variant: HasibButtonVariant.success,
           ),
         ],
       ),

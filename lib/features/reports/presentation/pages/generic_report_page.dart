@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/route/safe_pop.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
@@ -89,18 +90,12 @@ class _GenericReportContent extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
+            HasibButton(
+              label: 'العودة للتقارير',
               onPressed: () => context.safePop(null, AppRoutes.reports),
-              icon: const Icon(Icons.arrow_back),
-              label: const Text('العودة للتقارير'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: report.color,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-              ),
+              leading: const Icon(Icons.arrow_back),
+              variant: HasibButtonVariant.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ],
         ),

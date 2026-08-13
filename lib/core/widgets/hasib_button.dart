@@ -8,16 +8,26 @@ class HasibButton extends StatelessWidget {
   final String label;
   final VoidCallback? onPressed;
   final Widget? leading;
+  final IconData? icon;
   final bool loading;
   final HasibButtonVariant variant;
+  final bool fullWidth;
+  final double? height;
+  final EdgeInsetsGeometry? padding;
+  final double? fontSize;
 
   const HasibButton({
     super.key,
     required this.label,
     this.onPressed,
     this.leading,
+    this.icon,
     this.loading = false,
     this.variant = HasibButtonVariant.primary,
+    this.fullWidth = true,
+    this.height,
+    this.padding,
+    this.fontSize,
   });
 
   @override
@@ -55,6 +65,9 @@ class HasibButton extends StatelessWidget {
         break;
     }
 
+    final Widget? effectiveLeading = leading ??
+        (icon != null ? Icon(icon, size: fontSize != null ? fontSize! + 3 : 18) : null);
+
     Widget content = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -69,14 +82,20 @@ class HasibButton extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-        ] else if (leading != null) ...[
-          leading!,
+        ] else if (effectiveLeading != null) ...[
+          IconTheme(
+            data: IconThemeData(
+              color: foregroundColor,
+              size: fontSize != null ? fontSize! + 3 : 18,
+            ),
+            child: effectiveLeading,
+          ),
           const SizedBox(width: 8),
         ],
         Text(
           label,
-          style: const TextStyle(
-            fontSize: 15,
+          style: TextStyle(
+            fontSize: fontSize ?? 15,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -88,7 +107,7 @@ class HasibButton extends StatelessWidget {
         onPressed: isEnabled ? onPressed : null,
         style: TextButton.styleFrom(
           foregroundColor: foregroundColor,
-          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
@@ -98,7 +117,8 @@ class HasibButton extends StatelessWidget {
     }
 
     return Container(
-      width: double.infinity,
+      width: fullWidth ? double.infinity : null,
+      height: height,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: (variant == HasibButtonVariant.primary ||
@@ -121,7 +141,7 @@ class HasibButton extends StatelessWidget {
           foregroundColor: foregroundColor,
           disabledBackgroundColor: backgroundColor,
           disabledForegroundColor: foregroundColor,
-          padding: const EdgeInsets.symmetric(vertical: 14),
+          padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),

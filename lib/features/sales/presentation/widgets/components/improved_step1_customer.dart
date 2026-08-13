@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
@@ -546,26 +547,13 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
           // Next Button
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: HasibButton(
+              label: 'التالي: إضافة الأصناف',
               onPressed: widget.invoice.customer != null ? widget.onNext : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.success,
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'التالي: إضافة الأصناف',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
-                  SizedBox(width: 8),
-                  Icon(Icons.arrow_forward, size: 20),
-                ],
-              ),
+              leading: const Icon(Icons.arrow_forward, size: 20),
+              variant: HasibButtonVariant.success,
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              fontSize: 16,
             ),
           ),
         ],

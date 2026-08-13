@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:muhasib/core/theme/app_color.dart';
@@ -405,17 +406,12 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: ElevatedButton.icon(
+          child: HasibButton(
+            label: 'حفظ عملية التحويل',
             onPressed: _saveExchange,
-            icon: const Icon(Icons.save),
-            label: const Text('حفظ عملية التحويل'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.info,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+            leading: const Icon(Icons.save),
+            variant: HasibButtonVariant.primary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
       ],

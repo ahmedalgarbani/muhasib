@@ -7,6 +7,7 @@ import 'package:muhasib/features/accounts/domain/entities/account_connect_entity
 import 'package:muhasib/features/accounts/domain/entities/account_link_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 

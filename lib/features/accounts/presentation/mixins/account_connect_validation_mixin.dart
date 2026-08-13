@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/features/accounts/domain/services/account_connect_validator.dart';
@@ -176,15 +177,15 @@ mixin AccountConnectValidationMixin {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'ربط الحسابات',
             onPressed: () {
               Navigator.of(context).pop();
               // Navigate to account linking page
               Navigator.of(context).pushNamed('/accounts/link');
             },
-            icon: const Icon(Icons.link),
-            label: const Text('ربط الحسابات'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[600]),
+            leading: const Icon(Icons.link),
+            variant: HasibButtonVariant.primary,
           ),
         ],
       ),
@@ -296,13 +297,14 @@ mixin AccountConnectValidationMixin {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('لاحقاً'),
           ),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'ربط الآن',
             onPressed: () {
               Navigator.of(context).pop();
               Navigator.of(context).pushNamed('/accounts/link');
             },
-            icon: const Icon(Icons.link),
-            label: const Text('ربط الآن'),
+            leading: const Icon(Icons.link),
+            variant: HasibButtonVariant.primary,
           ),
         ],
       ),

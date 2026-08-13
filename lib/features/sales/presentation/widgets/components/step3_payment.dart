@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -577,26 +577,14 @@ class _Step3PaymentState extends State<Step3Payment> {
                   const SizedBox(height: AppSpacing.md),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
+                    child: HasibButton(
+                      label: widget.invoice.remaining == widget.invoice.total
+                          ? 'إضافة دفعة (${NumberFormatter.formatCurrency(double.tryParse(_amountController.text) ?? 0)})'
+                          : 'إضافة باقي المبلغ (${NumberFormatter.formatCurrency(widget.invoice.remaining)})',
                       onPressed: _addPayment,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: AppSpacing.md,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                        ),
-                      ),
-                      child: Text(
-                        widget.invoice.remaining == widget.invoice.total
-                            ? 'إضافة دفعة (${NumberFormatter.formatCurrency(double.tryParse(_amountController.text) ?? 0)})'
-                            : 'إضافة باقي المبلغ (${NumberFormatter.formatCurrency(widget.invoice.remaining)})',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      variant: HasibButtonVariant.success,
+                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                      fontSize: 16,
                     ),
                   ),
                 ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
@@ -92,14 +93,14 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
-            onPressed: () {
+           HasibButton(
+             label: 'حذف',
+             onPressed: () {
               context.read<AccountsCubit>().removeAccount(accountId);
               Navigator.pop(dialogContext);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('حذف'),
-          ),
+             variant: HasibButtonVariant.danger,
+           ),
         ],
       ),
     );
@@ -278,10 +279,11 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              ElevatedButton(
+               HasibButton(
+                 label: 'إعادة المحاولة',
                 onPressed: () =>
                     context.read<AccountsCubit>().loadAllAccounts(),
-                child: const Text('إعادة المحاولة'),
+                variant: HasibButtonVariant.primary,
               ),
             ],
           ),
@@ -500,14 +502,14 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
-            onPressed: () {
+           HasibButton(
+             label: 'حذف',
+             onPressed: () {
               context.read<AccountsCubit>().removeAccount(accountId);
               Navigator.pop(dialogContext);
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('حذف'),
-          ),
+             variant: HasibButtonVariant.danger,
+           ),
         ],
       ),
     );
@@ -571,9 +573,10 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
-            ElevatedButton(
+            HasibButton(
+              label: 'إعادة المحاولة',
               onPressed: () => context.read<AccountsCubit>().loadAllAccounts(),
-              child: const Text('إعادة المحاولة'),
+              variant: HasibButtonVariant.primary,
             ),
           ],
         ),

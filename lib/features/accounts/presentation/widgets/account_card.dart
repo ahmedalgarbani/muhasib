@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/features/accounts/data/models/account_model.dart';
 import 'package:muhasib/features/accounts/domain/enums/account_type.dart';
@@ -223,23 +224,14 @@ class AccountCard extends StatelessWidget {
                         )
                       : SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: onShowMovements,
-                            icon: Icon(Icons.description, size: baseFont + 2),
-                            label: Text(
-                              'عرض الحركات',
-                              style: TextStyle(fontSize: baseFont * 1.1),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colors.background,
-                              foregroundColor: colors.text,
-                              elevation: 0,
-                              side: BorderSide(color: colors.border),
-                              padding: EdgeInsets.symmetric(
-                                vertical: isTablet ? 12 : 8,
-                              ),
-                            ),
-                          ),
+                           child: HasibButton(
+                             label: 'عرض الحركات',
+                             onPressed: onShowMovements,
+                             leading: Icon(Icons.description, size: baseFont + 2),
+                             variant: HasibButtonVariant.secondary,
+                             padding: EdgeInsets.symmetric(vertical: isTablet ? 12 : 8),
+                             fontSize: baseFont * 1.1,
+                           ),
                         ),
                 ),
               ],

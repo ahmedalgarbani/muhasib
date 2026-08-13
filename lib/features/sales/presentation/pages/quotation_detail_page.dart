@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -454,23 +455,15 @@ class QuotationDetailPage extends StatelessWidget {
         ],
       ),
       child: SafeArea(
-        child: ElevatedButton.icon(
-          onPressed: () {
+         child: HasibButton(
+           label: 'تحويل إلى فاتورة مبيعات',
+           onPressed: () {
             _showConvertDialog(context);
           },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.success,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-          ),
-          icon: const Icon(Icons.transform),
-          label: const Text(
-            'تحويل إلى فاتورة مبيعات',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
+           leading: const Icon(Icons.transform),
+           variant: HasibButtonVariant.success,
+           padding: const EdgeInsets.symmetric(vertical: 16),
+           fontSize: 16,
         ),
       ),
     );
@@ -526,7 +519,8 @@ class QuotationDetailPage extends StatelessWidget {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'تأكيد التحويل',
             onPressed: () {
               Navigator.pop(dialogContext);
 
@@ -557,9 +551,8 @@ class QuotationDetailPage extends StatelessWidget {
 
               // Don't pop here, let the BlocListener handle navigation
             },
-            icon: const Icon(Icons.check),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            label: const Text('تأكيد التحويل'),
+            leading: const Icon(Icons.check),
+            variant: HasibButtonVariant.success,
           ),
         ],
       ),

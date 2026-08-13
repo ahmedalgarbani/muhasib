@@ -9,6 +9,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 
 class SelectInvoiceForReturnPage extends StatefulWidget {
   const SelectInvoiceForReturnPage({super.key});
@@ -130,11 +131,12 @@ class _SelectInvoiceForReturnPageState
                         const SizedBox(height: 16),
                         Text(state.message),
                         const SizedBox(height: 16),
-                        ElevatedButton(
+                        HasibButton(
+                          label: 'إعادة المحاولة',
                           onPressed: () {
                             context.read<SalesCubit>().loadInvoices();
                           },
-                          child: const Text('إعادة المحاولة'),
+                          variant: HasibButtonVariant.primary,
                         ),
                       ],
                     ),

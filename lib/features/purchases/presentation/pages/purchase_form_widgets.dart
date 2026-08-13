@@ -812,33 +812,16 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
           child: BlocBuilder<PurchasesCubit, PurchasesState>(
             builder: (context, state) {
               final isLoading = state is PurchasesLoading;
-              return ElevatedButton.icon(
+              return HasibButton(
+                label: isLoading
+                    ? 'جاري الحفظ...'
+                    : (widget.invoice != null ? 'تحديث الفاتورة' : 'حفظ الفاتورة'),
                 onPressed: isLoading ? null : _saveInvoice,
-                icon: isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Icon(Icons.save, size: 18),
-                label: Text(
-                  isLoading
-                      ? 'جاري الحفظ...'
-                      : (widget.invoice != null
-                            ? 'تحديث الفاتورة'
-                            : 'حفظ الفاتورة'),
-                  style: const TextStyle(fontSize: 13),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.success,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                ),
+                leading: const Icon(Icons.save, size: 18),
+                loading: isLoading,
+                variant: HasibButtonVariant.success,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                fontSize: 13,
               );
             },
           ),

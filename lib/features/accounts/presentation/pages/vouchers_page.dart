@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
@@ -277,21 +278,13 @@ class _VouchersPageState extends State<VouchersPage>
               onPressed: () => Navigator.pop(context),
               child: const Text('إلغاء'),
             ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm10),
-                ),
-              ),
+            HasibButton(
+              label: 'حذف الآن',
               onPressed: () {
                 Navigator.pop(context);
                 context.read<VouchersCubit>().removeVoucher(voucher.id ?? 0);
               },
-              child: const Text(
-                'حذف الآن',
-                style: TextStyle(color: Colors.white),
-              ),
+              variant: HasibButtonVariant.danger,
             ),
           ],
         ),

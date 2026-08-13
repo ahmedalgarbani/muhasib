@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -487,7 +488,8 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                   onPressed: () => Navigator.pop(dialogContext),
                   child: const Text('إلغاء'),
                 ),
-                ElevatedButton(
+                HasibButton(
+                  label: subUnit == null ? 'إضافة' : 'حفظ',
                   onPressed: () {
                     if (selectedProductId == null || selectedUnitId == null) {
                       AppToast.showError(
@@ -520,10 +522,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
 
                     Navigator.pop(dialogContext);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                  ),
-                  child: Text(subUnit == null ? 'إضافة' : 'حفظ'),
+                  variant: HasibButtonVariant.primary,
                 ),
               ],
             ),

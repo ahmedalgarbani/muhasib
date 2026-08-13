@@ -5,6 +5,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
 import 'package:muhasib/core/widgets/settings_switch_tile.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -232,27 +233,11 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
+                  HasibButton(
+                    label: 'حفظ التغييرات',
                     onPressed: _saveSettings,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                    ),
-                    child: const Text(
-                      'حفظ التغييرات',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    variant: HasibButtonVariant.primary,
                   ),
-                ),
                 const SizedBox(height: 16),
               ],
             ),

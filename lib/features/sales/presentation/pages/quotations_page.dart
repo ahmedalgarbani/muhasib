@@ -17,6 +17,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 
 class QuotationsPage extends StatefulWidget {
   const QuotationsPage({super.key});
@@ -331,19 +332,14 @@ class _QuotationsPageState extends State<QuotationsPage> {
                     ],
                   ),
                   if (!isConverted)
-                    ElevatedButton.icon(
+                    HasibButton(
+                      label: 'تحويل لفاتورة',
                       onPressed: () {
                         _showConvertDialog(quotation);
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.success,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                      ),
-                      icon: const Icon(Icons.transform, size: 18),
-                      label: const Text('تحويل لفاتورة'),
+                      icon: Icons.transform,
+                      variant: HasibButtonVariant.success,
+                      fullWidth: false,
                     ),
                 ],
               ),
@@ -463,7 +459,8 @@ class _QuotationsPageState extends State<QuotationsPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'تأكيد التحويل',
             onPressed: () {
               Navigator.pop(dialogContext);
 
@@ -491,9 +488,9 @@ class _QuotationsPageState extends State<QuotationsPage> {
                 salesInvoice,
               );
             },
-            icon: const Icon(Icons.check),
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
-            label: const Text('تأكيد التحويل'),
+            icon: Icons.check,
+            variant: HasibButtonVariant.success,
+            fullWidth: false,
           ),
         ],
       ),

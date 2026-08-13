@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -332,7 +333,8 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         Row(
                           children: [
                             Expanded(
-                              child: ElevatedButton(
+                              child: HasibButton(
+                                label: 'حفظ القيد',
                                 onPressed: () {
                                   if (_formKey.currentState!.validate()) {
                                     AppToast.showSuccess(
@@ -342,50 +344,19 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                     Navigator.pop(context);
                                   }
                                 },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.md,
-                                    ),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'حفظ القيد',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
+                                variant: HasibButtonVariant.primary,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                fontSize: 16,
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: ElevatedButton(
+                              child: HasibButton(
+                                label: 'إلغاء',
                                 onPressed: () => Navigator.pop(context),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.grey[200],
-                                  foregroundColor: Colors.grey[700],
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.md,
-                                    ),
-                                  ),
-                                ),
-                                child: const Text(
-                                  'إلغاء',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
+                                variant: HasibButtonVariant.secondary,
+                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                fontSize: 16,
                               ),
                             ),
                           ],

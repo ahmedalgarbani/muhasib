@@ -13,6 +13,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart'
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 
 class PurchaseDetailPage extends StatefulWidget {
   final InvoiceEntity invoice;
@@ -613,58 +614,43 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     return Row(
       children: [
         Expanded(
-          child: ElevatedButton.icon(
+          child: HasibButton(
+            label: 'تعديل',
             onPressed: () {
               context.push(
                 AppRoutes.purchasesAddInvoice,
                 extra: widget.invoice,
               );
             },
-            icon: const Icon(Icons.edit, size: 18),
-            label: const Text('تعديل', style: TextStyle(fontSize: 13)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-            ),
+            leading: const Icon(Icons.edit, size: 18),
+            variant: HasibButtonVariant.primary,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            fontSize: 13,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: ElevatedButton.icon(
+          child: HasibButton(
+            label: 'طباعة',
             onPressed: () {
               // TODO: Implement print functionality
               AppToast.showInfo(context, 'سيتم إضافة ميزة الطباعة قريباً');
             },
-            icon: const Icon(Icons.print, size: 18),
-            label: const Text('طباعة', style: TextStyle(fontSize: 13)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-            ),
+            leading: const Icon(Icons.print, size: 18),
+            variant: HasibButtonVariant.success,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            fontSize: 13,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: OutlinedButton.icon(
+          child: HasibButton(
+            label: 'حذف',
             onPressed: () => _showDeleteConfirmation(),
-            icon: const Icon(Icons.delete, size: 18, color: Colors.red),
-            label: const Text(
-              'حذف',
-              style: TextStyle(fontSize: 13, color: Colors.red),
-            ),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              side: const BorderSide(color: Colors.red),
-            ),
+            leading: const Icon(Icons.delete, size: 18),
+            variant: HasibButtonVariant.danger,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            fontSize: 13,
           ),
         ),
       ],
@@ -682,7 +668,8 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          HasibButton(
+            label: 'حذف',
             onPressed: () {
               Navigator.of(context).pop();
               context.read<PurchasesCubit>().deletePurchaseInvoice(
@@ -690,8 +677,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
               );
               context.pop();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('حذف'),
+            variant: HasibButtonVariant.danger,
           ),
         ],
       ),

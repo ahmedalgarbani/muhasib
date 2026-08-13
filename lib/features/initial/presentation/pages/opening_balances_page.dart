@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
@@ -79,9 +80,10 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text('خطأ: ${state.message}'),
-                  ElevatedButton(
+                  HasibButton(
+                    label: 'إعادة المحاولة',
                     onPressed: _loadAccounts,
-                    child: const Text('إعادة المحاولة'),
+                    variant: HasibButtonVariant.primary,
                   ),
                 ],
               ),
@@ -324,17 +326,17 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              ElevatedButton.icon(
+              HasibButton(
+                label: 'مسح الكل',
                 onPressed: _clearAll,
-                icon: const Icon(Icons.clear),
-                label: const Text('مسح الكل'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
+                leading: const Icon(Icons.clear),
+                variant: HasibButtonVariant.secondary,
               ),
-              ElevatedButton.icon(
+              HasibButton(
+                label: 'حفظ الأرصدة',
                 onPressed: isBalanced ? _saveBalances : null,
-                icon: const Icon(Icons.save),
-                label: const Text('حفظ الأرصدة'),
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                leading: const Icon(Icons.save),
+                variant: HasibButtonVariant.success,
               ),
             ],
           ),

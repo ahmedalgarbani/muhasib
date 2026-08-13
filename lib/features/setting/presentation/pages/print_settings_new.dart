@@ -5,6 +5,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -290,20 +291,12 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                   ),
                 ),
 
-                // Save Button
-                Container(
-                  width: double.infinity,
+                Padding(
                   padding: const EdgeInsets.all(16),
-                  child: ElevatedButton(
+                  child: HasibButton(
+                    label: 'حفظ',
                     onPressed: _saveSettings,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                    ),
-                    child: const Text('حفظ', style: TextStyle(fontSize: 16)),
+                    variant: HasibButtonVariant.primary,
                   ),
                 ),
               ],

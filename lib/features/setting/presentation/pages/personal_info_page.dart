@@ -5,8 +5,9 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
-import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
@@ -232,26 +233,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ]),
                   const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
-                      onPressed: _saveSettings,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).primaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                      ),
-                      child: const Text(
-                        'حفظ التغييرات',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
+                  HasibButton(
+                    label: 'حفظ التغييرات',
+                    onPressed: _saveSettings,
+                    variant: HasibButtonVariant.primary,
                   ),
                   const SizedBox(height: 16),
                 ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -662,26 +663,13 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: ElevatedButton.icon(
+          child: HasibButton(
+            label: isLoading ? 'جاري الحفظ...' : 'حفظ عملية الصرف',
             onPressed: isLoading ? null : _saveExchange,
-            icon: isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.save),
-            label: Text(isLoading ? 'جاري الحفظ...' : 'حفظ عملية الصرف'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.info,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+            leading: const Icon(Icons.save),
+            loading: isLoading,
+            variant: HasibButtonVariant.primary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/currency_exchange_service.dart';
@@ -447,40 +448,24 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
             label: const Text('مسح'),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
             ),
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: ElevatedButton.icon(
+          child: HasibButton(
+            label: isLoading ? 'جاري الحفظ...' : 'إنشاء قيد التسوية',
             onPressed:
                 (isLoading ||
                     calculatedDifference == null ||
                     calculatedDifference!.abs() < 0.01)
                 ? null
                 : _createRevaluationEntry,
-            icon: isLoading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.save),
-            label: Text(isLoading ? 'جاري الحفظ...' : 'إنشاء قيد التسوية'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.info,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+            leading: const Icon(Icons.save),
+            loading: isLoading,
+            variant: HasibButtonVariant.primary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
       ],

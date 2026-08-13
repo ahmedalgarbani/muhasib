@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -283,14 +284,11 @@ class BillsHeader extends StatelessWidget {
                     color: AppColors.gray900,
                   ),
                 ),
-                ElevatedButton.icon(
+                HasibButton(
+                  label: 'فاتورة جديدة',
                   onPressed: onNewBillPressed,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                  ),
-                  icon: const Icon(Icons.add, size: 20),
-                  label: const Text('فاتورة جديدة'),
+                  leading: const Icon(Icons.add, size: 20),
+                  variant: HasibButtonVariant.primary,
                 ),
               ],
             ),

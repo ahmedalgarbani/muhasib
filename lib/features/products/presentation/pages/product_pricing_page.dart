@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -230,15 +231,13 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton.icon(
-                  onPressed: () =>
-                      _showPricingDialog(innerContext, subUnitId: subUnit.id),
-                  icon: const Icon(Icons.add),
-                  label: const Text('إضافة مستوى سعر'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                  ),
-                ),
+                 child: HasibButton(
+                   label: 'إضافة مستوى سعر',
+                   onPressed: () =>
+                       _showPricingDialog(innerContext, subUnitId: subUnit.id),
+                   leading: const Icon(Icons.add),
+                   variant: HasibButtonVariant.primary,
+                 ),
               ),
             ],
           ),
@@ -359,13 +358,13 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('إلغاء'),
             ),
-            ElevatedButton(
+            HasibButton(
+              label: 'حذف',
               onPressed: () {
                 context.read<ProductPricesCubit>().deletePrice(priceId);
                 Navigator.pop(dialogContext);
               },
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: const Text('حذف'),
+              variant: HasibButtonVariant.danger,
             ),
           ],
         ),
@@ -481,7 +480,8 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                   onPressed: () => Navigator.pop(dialogContext),
                   child: const Text('إلغاء'),
                 ),
-                ElevatedButton(
+                HasibButton(
+                  label: 'حفظ',
                   onPressed: () {
                     final priceValue =
                         double.tryParse(priceController.text) ?? 0;
@@ -506,10 +506,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                     );
                     Navigator.pop(dialogContext);
                   },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                  ),
-                  child: const Text('حفظ'),
+                  variant: HasibButtonVariant.primary,
                 ),
               ],
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -374,26 +375,13 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
         const SizedBox(width: 12),
         Expanded(
           flex: 2,
-          child: ElevatedButton.icon(
+          child: HasibButton(
+            label: isProcessing ? 'جاري الإقفال...' : 'بدء الإقفال',
             onPressed: isProcessing ? null : () => _startClosingProcess(),
-            icon: isProcessing
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                : const Icon(Icons.play_arrow),
-            label: Text(isProcessing ? 'جاري الإقفال...' : 'بدء الإقفال'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.indigo500,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
+            leading: const Icon(Icons.play_arrow),
+            loading: isProcessing,
+            variant: HasibButtonVariant.primary,
+            padding: const EdgeInsets.symmetric(vertical: 16),
           ),
         ),
       ],
@@ -445,15 +433,13 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
             onPressed: () => Navigator.pop(context),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          HasibButton(
+            label: 'تأكيد',
             onPressed: () {
               Navigator.pop(context);
               _performClosing();
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.indigo500,
-            ),
-            child: const Text('تأكيد'),
+            variant: HasibButtonVariant.primary,
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -337,51 +338,23 @@ class _ImprovedSalesInvoiceScreenState
                       ),
                     if (_currentStep > 1) const SizedBox(width: 12),
                     Expanded(
-                      child: ElevatedButton(
+                      child: HasibButton(
+                        label: _currentStep == maxStep ? 'حفظ الفاتورة' : 'التالي',
                         onPressed: _isSaving
                             ? null
                             : (_currentStep == maxStep
                                   ? _saveInvoice
                                   : _handleNext),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _currentStep == maxStep
-                              ? AppColors.success
-                              : AppColors.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.sm),
-                          ),
+                        loading: _isSaving,
+                        leading: Icon(
+                          _currentStep == maxStep ? Icons.check : Icons.arrow_forward,
+                          size: 20,
                         ),
-                        child: _isSaving
-                            ? const SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    _currentStep == maxStep
-                                        ? 'حفظ الفاتورة'
-                                        : 'التالي',
-                                    style: const TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Icon(
-                                    _currentStep == maxStep
-                                        ? Icons.check
-                                        : Icons.arrow_forward,
-                                    size: 20,
-                                  ),
-                                ],
-                              ),
+                        variant: _currentStep == maxStep
+                            ? HasibButtonVariant.success
+                            : HasibButtonVariant.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        fontSize: 16,
                       ),
                     ),
                   ],
@@ -578,13 +551,12 @@ class _ImprovedSalesInvoiceScreenState
           const SizedBox(height: 16),
 
           // Add Payment Button
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'إضافة طريقة دفع',
             onPressed: _showPaymentDialog,
-            icon: const Icon(Icons.add),
-            label: const Text('إضافة طريقة دفع'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
+            leading: const Icon(Icons.add),
+            variant: HasibButtonVariant.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
 
           // Payments List

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/detail_row.dart';
@@ -78,10 +79,11 @@ class PartyProfileErrorState extends StatelessWidget {
           const SizedBox(height: 16),
           Text(message, style: TextStyle(color: colorScheme.error)),
           const SizedBox(height: 16),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'إعادة المحاولة',
             onPressed: onRetry,
-            icon: const Icon(Icons.refresh),
-            label: const Text('إعادة المحاولة'),
+            leading: const Icon(Icons.refresh),
+            variant: HasibButtonVariant.primary,
           ),
         ],
       ),
@@ -427,10 +429,11 @@ class PartyDetailsSheet extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: HasibButton(
+                    label: isSupplier ? 'فاتورة شراء' : 'فاتورة جديدة',
                     onPressed: Navigator.of(context).pop,
-                    icon: const Icon(Icons.receipt),
-                    label: Text(isSupplier ? 'فاتورة شراء' : 'فاتورة جديدة'),
+                    leading: const Icon(Icons.receipt),
+                    variant: HasibButtonVariant.primary,
                   ),
                 ),
               ],

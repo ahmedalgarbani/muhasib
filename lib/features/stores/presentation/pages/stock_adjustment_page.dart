@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -313,14 +314,11 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                 ),
                               ],
                             ),
-                            ElevatedButton.icon(
+                            HasibButton(
+                              label: 'إضافة صنف',
                               onPressed: () => _addProductLine(context),
-                              icon: const Icon(Icons.add),
-                              label: const Text('إضافة صنف'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.primary,
-                                foregroundColor: Colors.white,
-                              ),
+                              leading: const Icon(Icons.add),
+                              variant: HasibButtonVariant.primary,
                             ),
                           ],
                         ),
@@ -434,38 +432,26 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: HasibButton(
+                        label: 'حفظ كمسودة',
                         onPressed: _adjustmentLines.isEmpty
                             ? null
                             : () => _saveAdjustment('draft'),
-                        icon: const Icon(Icons.save),
-                        label: const Text('حفظ كمسودة'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[600],
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                          ),
-                        ),
+                        leading: const Icon(Icons.save),
+                        variant: HasibButtonVariant.secondary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: HasibButton(
+                        label: 'ترحيل',
                         onPressed: _adjustmentLines.isEmpty
                             ? null
                             : () => _postAdjustment(),
-                        icon: const Icon(Icons.check),
-                        label: const Text('ترحيل'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                          ),
-                        ),
+                        leading: const Icon(Icons.check),
+                        variant: HasibButtonVariant.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
                       ),
                     ),
                   ],
@@ -549,15 +535,15 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
             onPressed: () => Navigator.pop(context),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          HasibButton(
+            label: 'ترحيل',
             onPressed: () {
               Navigator.pop(context);
               // Post adjustment logic here
               AppToast.showSuccess(context, 'تم ترحيل التسوية بنجاح');
               context.pop();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            child: const Text('ترحيل', style: TextStyle(color: Colors.white)),
+            variant: HasibButtonVariant.success,
           ),
         ],
       ),

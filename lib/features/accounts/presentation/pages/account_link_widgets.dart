@@ -374,44 +374,17 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
+                  child: HasibButton(
+                    label: 'تأكيد الربط',
                     onPressed: selectedAccountId == null
                         ? null
                         : () {
                             Navigator.pop(context, selectedAccountId);
                           },
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                      ),
-                      backgroundColor: AppColors.primary,
-                      disabledBackgroundColor: Colors.grey[300],
-                      elevation: selectedAccountId == null ? 0 : 4,
-                      shadowColor: Colors.blue.withOpacity(0.3),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.link,
-                          color: selectedAccountId == null
-                              ? Colors.grey[500]
-                              : Colors.white,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'تأكيد الربط',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: selectedAccountId == null
-                                ? Colors.grey[500]
-                                : Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
+                    leading: const Icon(Icons.link),
+                    variant: HasibButtonVariant.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    fontSize: 16,
                   ),
                 ),
               ],

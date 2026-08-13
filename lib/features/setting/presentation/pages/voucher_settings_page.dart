@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
 import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -18,7 +18,7 @@ class VoucherSettingsPage extends StatefulWidget {
 
 class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
   late Map<String, dynamic> voucherSettings;
-  
+
   // Payment voucher settings
   late TextEditingController paymentLine1Controller;
   late TextEditingController paymentLine2Controller;
@@ -27,7 +27,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
   late TextEditingController paymentSecondSignatureController;
   late TextEditingController paymentThirdSignatureController;
   late TextEditingController paymentFourthSignatureController;
-  
+
   // Receipt voucher settings
   late TextEditingController receiptLine1Controller;
   late TextEditingController receiptLine2Controller;
@@ -36,7 +36,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
   late TextEditingController receiptSecondSignatureController;
   late TextEditingController receiptThirdSignatureController;
   late TextEditingController receiptFourthSignatureController;
-  
+
   bool allowMultiCurrency = false;
   bool showAccountBalance = false;
   bool checkFundBalance = false;
@@ -46,28 +46,57 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
     super.initState();
     final cubit = context.read<SettingsCubit>();
     voucherSettings = cubit.getVoucherSettings();
-    
+
     // Initialize payment voucher controllers
-    paymentLine1Controller = TextEditingController(text: voucherSettings['paymentVoucherLine1'] ?? 'الاخ');
-    paymentLine2Controller = TextEditingController(text: voucherSettings['paymentVoucherLine2'] ?? 'عليكم مبلغ');
-    paymentVoucherSignature = voucherSettings['paymentVoucherSignature'] ?? true;
-    paymentFirstSignatureController = TextEditingController(text: voucherSettings['paymentVoucherFirstSignature'] ?? 'المستلم');
-    paymentSecondSignatureController = TextEditingController(text: voucherSettings['paymentVoucherSecondSignature'] ?? 'مدير الحسابات');
-    paymentThirdSignatureController = TextEditingController(text: voucherSettings['paymentVoucherThirdSignature'] ?? 'الصندوق');
-    paymentFourthSignatureController = TextEditingController(text: voucherSettings['paymentVoucherFourthSignature'] ?? 'المدير العام');
-    
+    paymentLine1Controller = TextEditingController(
+      text: voucherSettings['paymentVoucherLine1'] ?? 'الاخ',
+    );
+    paymentLine2Controller = TextEditingController(
+      text: voucherSettings['paymentVoucherLine2'] ?? 'عليكم مبلغ',
+    );
+    paymentVoucherSignature =
+        voucherSettings['paymentVoucherSignature'] ?? true;
+    paymentFirstSignatureController = TextEditingController(
+      text: voucherSettings['paymentVoucherFirstSignature'] ?? 'المستلم',
+    );
+    paymentSecondSignatureController = TextEditingController(
+      text: voucherSettings['paymentVoucherSecondSignature'] ?? 'مدير الحسابات',
+    );
+    paymentThirdSignatureController = TextEditingController(
+      text: voucherSettings['paymentVoucherThirdSignature'] ?? 'الصندوق',
+    );
+    paymentFourthSignatureController = TextEditingController(
+      text: voucherSettings['paymentVoucherFourthSignature'] ?? 'المدير العام',
+    );
+
     // Initialize receipt voucher controllers
-    receiptLine1Controller = TextEditingController(text: voucherSettings['receiptVoucherVoucherLine1'] ?? 'الاخ');
-    receiptLine2Controller = TextEditingController(text: voucherSettings['receiptVoucherVoucherLine2'] ?? 'لكم مبلغ');
-    receiptVoucherSignature = voucherSettings['receiptVoucherSignature'] ?? true;
-    receiptFirstSignatureController = TextEditingController(text: voucherSettings['receiptVoucherFirstSignature'] ?? 'المستلم');
-    receiptSecondSignatureController = TextEditingController(text: voucherSettings['receiptVoucherSecondSignature'] ?? 'مدير الحسابات');
-    receiptThirdSignatureController = TextEditingController(text: voucherSettings['receiptVoucherThirdSignature'] ?? 'الصندوق');
-    receiptFourthSignatureController = TextEditingController(text: voucherSettings['receiptVoucherFourthSignature'] ?? 'المدير العام');
-    
-    allowMultiCurrency = voucherSettings['allowMultiCurrencyInVoucher'] ?? false;
-    showAccountBalance = voucherSettings['showAccountBalanceInVoucher'] ?? false;
-    checkFundBalance = voucherSettings['checkFundAndBankBalanceEnabledInVoucher'] ?? false;
+    receiptLine1Controller = TextEditingController(
+      text: voucherSettings['receiptVoucherVoucherLine1'] ?? 'الاخ',
+    );
+    receiptLine2Controller = TextEditingController(
+      text: voucherSettings['receiptVoucherVoucherLine2'] ?? 'لكم مبلغ',
+    );
+    receiptVoucherSignature =
+        voucherSettings['receiptVoucherSignature'] ?? true;
+    receiptFirstSignatureController = TextEditingController(
+      text: voucherSettings['receiptVoucherFirstSignature'] ?? 'المستلم',
+    );
+    receiptSecondSignatureController = TextEditingController(
+      text: voucherSettings['receiptVoucherSecondSignature'] ?? 'مدير الحسابات',
+    );
+    receiptThirdSignatureController = TextEditingController(
+      text: voucherSettings['receiptVoucherThirdSignature'] ?? 'الصندوق',
+    );
+    receiptFourthSignatureController = TextEditingController(
+      text: voucherSettings['receiptVoucherFourthSignature'] ?? 'المدير العام',
+    );
+
+    allowMultiCurrency =
+        voucherSettings['allowMultiCurrencyInVoucher'] ?? false;
+    showAccountBalance =
+        voucherSettings['showAccountBalanceInVoucher'] ?? false;
+    checkFundBalance =
+        voucherSettings['checkFundAndBankBalanceEnabledInVoucher'] ?? false;
   }
 
   @override
@@ -109,9 +138,9 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
       'showAccountBalanceInVoucher': showAccountBalance,
       'checkFundAndBankBalanceEnabledInVoucher': checkFundBalance,
     };
-    
+
     await cubit.updateSetting('voucher_setting', voucherSettings);
-    
+
     if (mounted) {
       AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
     }
@@ -243,26 +272,10 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                   ],
                 ),
                 const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: _saveSettings,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Theme.of(context).primaryColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                      ),
-                    ),
-                    child: const Text(
-                      'حفظ التغييرات',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
+                HasibButton(
+                  label: 'حفظ التغييرات',
+                  onPressed: _saveSettings,
+                  variant: HasibButtonVariant.primary,
                 ),
                 const SizedBox(height: 16),
               ],

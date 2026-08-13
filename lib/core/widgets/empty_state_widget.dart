@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 
 /// Reusable Empty State Widget for lists, pages, and components with no data.
 class EmptyStateWidget extends StatelessWidget {
@@ -66,10 +67,11 @@ class EmptyStateWidget extends StatelessWidget {
               customAction!,
             ] else if (actionText != null && onActionPressed != null) ...[
               const SizedBox(height: 20),
-              ElevatedButton.icon(
+              HasibButton(
+                label: actionText!,
                 onPressed: onActionPressed,
-                icon: const Icon(Icons.add),
-                label: Text(actionText!),
+                leading: const Icon(Icons.add),
+                variant: HasibButtonVariant.primary,
               ),
             ],
           ],

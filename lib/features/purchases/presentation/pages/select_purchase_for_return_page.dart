@@ -9,6 +9,7 @@ import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.da
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 
 class SelectPurchaseForReturnPage extends StatefulWidget {
   const SelectPurchaseForReturnPage({super.key});
@@ -48,9 +49,11 @@ class _SelectPurchaseForReturnPageState
             onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          HasibButton(
+            label: 'تأكيد',
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('تأكيد'),
+            variant: HasibButtonVariant.primary,
+            fullWidth: false,
           ),
         ],
       ),

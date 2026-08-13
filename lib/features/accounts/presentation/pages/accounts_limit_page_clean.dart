@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
@@ -427,23 +428,13 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                 SizedBox(
                   width: double.infinity,
                   height: 60,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                      ),
-                    ),
-                    onPressed: _save,
-                    child: const Text(
-                      'حفظ السقف المالي',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
-                    ),
-                  ),
+                   child: HasibButton(
+                     label: 'حفظ السقف المالي',
+                     onPressed: _save,
+                     variant: HasibButtonVariant.primary,
+                     height: 60,
+                     fontSize: 18,
+                   ),
                 ),
               ],
             ),

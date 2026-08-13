@@ -12,6 +12,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 
 class PurchaseReturnsPage extends StatefulWidget {
   const PurchaseReturnsPage({super.key});
@@ -226,15 +227,13 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton.icon(
+                HasibButton(
+                  label: 'إعادة المحاولة',
                   onPressed: () =>
                       innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
-                  icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text(
-                    'إعادة المحاولة',
-                    style: TextStyle(fontSize: 13),
-                  ),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                  icon: Icons.refresh,
+                  variant: HasibButtonVariant.danger,
+                  fullWidth: false,
                 ),
               ],
             ),
@@ -685,7 +684,8 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
           ),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'متابعة',
             onPressed: () {
               Navigator.of(context).pop();
               AppToast.showInfo(
@@ -693,9 +693,9 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
                 'سيتم إضافة نموذج إنشاء المردود قريباً',
               );
             },
-            icon: const Icon(Icons.arrow_forward, size: 18),
-            label: const Text('متابعة'),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            icon: Icons.arrow_forward,
+            variant: HasibButtonVariant.danger,
+            fullWidth: false,
           ),
         ],
       ),
@@ -734,17 +734,12 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
-          ElevatedButton.icon(
+          HasibButton(
+            label: 'إنشاء مردود',
             onPressed: () => _showCreateReturnDialog(context),
-            icon: const Icon(Icons.add, size: 18),
-            label: const Text('إنشاء مردود'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-            ),
+            icon: Icons.add,
+            variant: HasibButtonVariant.danger,
+            fullWidth: false,
           ),
         ],
       ),

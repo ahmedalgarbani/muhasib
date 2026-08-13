@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/features/accounts/data/models/account_model.dart';
@@ -168,9 +169,10 @@ class _AccountMovementsContent extends StatelessWidget {
                           const SizedBox(height: 16),
                           Text('خطأ: ${state.message}'),
                           const SizedBox(height: 16),
-                          ElevatedButton(
+                          HasibButton(
+                            label: 'إعادة المحاولة',
                             onPressed: () => context.read<AccountMovementsCubit>().refresh(),
-                            child: const Text('إعادة المحاولة'),
+                            variant: HasibButtonVariant.primary,
                           ),
                         ],
                       ),

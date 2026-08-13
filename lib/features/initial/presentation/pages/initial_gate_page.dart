@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
@@ -58,10 +59,11 @@ class _InitialGatePageState extends State<InitialGatePage> {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
-                      ElevatedButton(
+                      HasibButton(
+                        label: 'حاولة مجدداً',
                         onPressed: () =>
                             context.read<InitialCubit>().checkStatus(),
-                        child: const Text('حاولة مجدداً'),
+                        variant: HasibButtonVariant.primary,
                       ),
                     ],
                   ),

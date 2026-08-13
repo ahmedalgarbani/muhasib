@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/safe_pop.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 
 void main() {
   testWidgets('safePop pops when pop is possible', (WidgetTester tester) async {
@@ -54,9 +55,9 @@ void main() {
         GoRoute(
           path: '/root',
           builder: (context, state) => Scaffold(
-            body: ElevatedButton(
+            body: HasibButton(
               onPressed: () => context.safePop(null, '/home'),
-              child: const Text('Safe Pop Root'),
+              label: 'Safe Pop Root',
             ),
           ),
         ),

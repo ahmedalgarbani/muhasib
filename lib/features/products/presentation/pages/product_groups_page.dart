@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -281,7 +282,8 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
               onPressed: () => Navigator.pop(dialogContext),
               child: const Text('إلغاء'),
             ),
-            ElevatedButton(
+            HasibButton(
+              label: group == null ? 'إضافة' : 'حفظ',
               onPressed: () {
                 if (nameController.text.trim().isEmpty) {
                   AppToast.showError(context, 'الرجاء إدخال اسم المجموعة');
@@ -305,10 +307,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
 
                 Navigator.pop(dialogContext);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-              ),
-              child: Text(group == null ? 'إضافة' : 'حفظ'),
+              variant: HasibButtonVariant.primary,
             ),
           ],
         ),
