@@ -23,6 +23,7 @@ import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/quotation_card_widget.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/quotation_filter_bar_widget.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/quotation_header_widget.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class QuotationsPage extends StatefulWidget {
   const QuotationsPage({super.key});
@@ -109,7 +110,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
                       _loadQuotations();
                     },
                     child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppConstant.defaultPadding,
                       itemCount: state.quotations.length,
                       itemBuilder: (context, index) {
                         final quotation = state.quotations[index];

@@ -2,18 +2,19 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
-import 'package:muhasib/features/accounts/domain/entities/opening_balance_entity.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/opening_balance_cubit.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/features/accounts/domain/entities/opening_balance_entity.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/opening_balance_cubit.dart';
 
 part 'open_balance_widgets.dart';
 
@@ -107,330 +108,49 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          _buildMasterDataCard(context, opening),
+                          OpeningBalanceMasterDataCardWidget(
+                            opening: opening,
+                            descriptionController: _descriptionController,
+                            onPickDate: () => _pickDate(context, opening),
+                          ),
                           const SizedBox(height: 20),
-                          _buildSummaryCard(opening),
+                          OpeningBalanceSummaryCardWidget(
+                            opening: opening,
+                            numberFormat: _numberFormat,
+                          ),
                           const SizedBox(height: 24),
-                          _buildLinesHeader(context),
+                          OpeningBalanceLinesHeaderWidget(
+                            onAddLine: () => _showAddLineDialog(context),
+                          ),
                           const SizedBox(height: 12),
-                          _buildLinesList(context, opening),
+                          OpeningBalanceLinesListWidget(
+                            opening: opening,
+                            numberFormat: _numberFormat,
+                            onEditLine: (line, i) => _showAddLineDialog(
+                              context,
+                              line: line,
+                              index: i,
+                            ),
+                            onRemoveLine: (i) => context
+                                .read<OpeningBalanceCubit>()
+                                .removeLine(i),
+                          ),
                           const SizedBox(height: 80),
                         ],
                       ),
                     ),
                   ),
-                  _buildBottomActionBar(context, opening),
+                  OpeningBalanceBottomActionBarWidget(
+                    linesEmpty: opening.lines.isEmpty,
+                    onSave: () => context
+                        .read<OpeningBalanceCubit>()
+                        .saveOpeningBalance(),
+                  ),
                 ],
               ),
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildMasterDataCard(
-    BuildContext context,
-    OpeningBalanceEntity opening,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'رقم القيد الافتتاحي',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      opening.number,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: InkWell(
-                  onTap: () => _pickDate(context, opening),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'تاريخ العملية',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          const Icon(
-                            Icons.calendar_today,
-                            size: 14,
-                            color: AppColors.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            intl.DateFormat(
-                              'yyyy/MM/dd',
-                            ).format(opening.entryDate),
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 32),
-          TextInputField(
-            label: 'مسمى القيد أو البيان العام',
-            textEditingController: _descriptionController,
-            prefixIcon: const Icon(Icons.description_outlined),
-            onChanged: (v) => context
-                .read<OpeningBalanceCubit>()
-                .updateFormData(description: v),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(OpeningBalanceEntity opening) {
-    final isBalanced = opening.isBalanced;
-    final diff = (opening.totalDebit - opening.totalCredit).abs();
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isBalanced ? Colors.green.shade50 : Colors.red.shade50,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(
-          color: isBalanced ? Colors.green.shade100 : Colors.red.shade100,
-        ),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildSimpleStat(
-                'إجمالي المدين',
-                _numberFormat.format(opening.totalDebit),
-                Colors.green,
-              ),
-              _buildSimpleStat(
-                'إجمالي الدائن',
-                _numberFormat.format(opening.totalCredit),
-                Colors.red,
-              ),
-            ],
-          ),
-          const Divider(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                isBalanced ? Icons.check_circle : Icons.warning_amber_rounded,
-                size: 20,
-                color: isBalanced ? Colors.green : Colors.red,
-              ),
-              const SizedBox(width: 8),
-              Text(
-                isBalanced
-                    ? 'القيد متوازن حالياً'
-                    : 'القيد غير متوازن (الفرق: ${_numberFormat.format(diff)})',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isBalanced ? Colors.green : Colors.red,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSimpleStat(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLinesHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'توزيع الأرصدة على الحسابات',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        HasibButton(
-          label: 'إضافة مبلغ',
-          leading: const Icon(Icons.add_circle, size: 18, color: Colors.white),
-          onPressed: () => _showAddLineDialog(context),
-          variant: HasibButtonVariant.primary,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLinesList(BuildContext context, OpeningBalanceEntity opening) {
-    if (opening.lines.isEmpty) {
-      return Container(
-        padding: const EdgeInsets.symmetric(vertical: 40),
-        width: double.infinity,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadius.lg20),
-        ),
-        child: Column(
-          children: [
-            Icon(Icons.inbox_outlined, size: 48, color: Colors.grey.shade300),
-            const SizedBox(height: 8),
-            const Text(
-              'لا توجد أرصدة مضافة بعد',
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: opening.lines.asMap().entries.map((entry) {
-        final i = entry.key;
-        final line = entry.value;
-        return Container(
-          margin: const EdgeInsets.only(bottom: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-          ),
-          child: ListTile(
-            contentPadding: const EdgeInsets.all(12),
-            leading: CircleAvatar(
-              backgroundColor: Colors.blue.shade50,
-              child: Text(
-                line.lineNumber.toString(),
-                style: const TextStyle(fontSize: 12),
-              ),
-            ),
-            title: Text(
-              line.accountName,
-              style: const TextStyle(fontWeight: FontWeight.bold),
-            ),
-            subtitle: Row(
-              children: [
-                if (line.debit > 0)
-                  _badge(
-                    'مدين',
-                    _numberFormat.format(line.debit),
-                    Colors.green,
-                  ),
-                if (line.credit > 0)
-                  _badge('دائن', _numberFormat.format(line.credit), Colors.red),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.edit_note_outlined,
-                    color: Colors.blue,
-                  ),
-                  onPressed: () =>
-                      _showAddLineDialog(context, line: line, index: i),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: () =>
-                      context.read<OpeningBalanceCubit>().removeLine(i),
-                ),
-              ],
-            ),
-          ),
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _badge(String label, String value, Color color) {
-    return Container(
-      margin: const EdgeInsets.only(left: 8, top: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppRadius.sm6),
-      ),
-      child: Text(
-        '$label: $value',
-        style: TextStyle(
-          fontSize: 11,
-          color: color,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBottomActionBar(
-    BuildContext context,
-    OpeningBalanceEntity opening,
-  ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, -4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: HasibButton(
-              label: 'حفظ المسودة',
-              onPressed: opening.lines.isEmpty
-                  ? null
-                  : () => context
-                        .read<OpeningBalanceCubit>()
-                        .saveOpeningBalance(),
-              variant: HasibButtonVariant.primary,
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -497,6 +217,394 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
             'عند ترحيل الرصيد الافتتاحي، سيتم تعميد المبالغ في الحسابات ولن تتمكن من تعديل القيد لاحقاً. هل أنت متأكد؟',
         confirmLabel: 'نعم، ترحيل الآن',
         onConfirm: () => cubit.postCurrentOpeningBalance(),
+      ),
+    );
+  }
+}
+
+class OpeningBalanceMasterDataCardWidget extends StatelessWidget {
+  final OpeningBalanceEntity opening;
+  final TextEditingController descriptionController;
+  final VoidCallback onPickDate;
+
+  const OpeningBalanceMasterDataCardWidget({
+    super.key,
+    required this.opening,
+    required this.descriptionController,
+    required this.onPickDate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'رقم القيد الافتتاحي',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      opening.number,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: InkWell(
+                  onTap: onPickDate,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'تاريخ العملية',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            intl.DateFormat('yyyy/MM/dd').format(opening.entryDate),
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const Divider(height: 32),
+          TextInputField(
+            label: 'مسمى القيد أو البيان العام',
+            textEditingController: descriptionController,
+            prefixIcon: const Icon(Icons.description_outlined),
+            onChanged: (v) => context
+                .read<OpeningBalanceCubit>()
+                .updateFormData(description: v),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class OpeningBalanceSummaryCardWidget extends StatelessWidget {
+  final OpeningBalanceEntity opening;
+  final intl.NumberFormat numberFormat;
+
+  const OpeningBalanceSummaryCardWidget({
+    super.key,
+    required this.opening,
+    required this.numberFormat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isBalanced = opening.isBalanced;
+    final diff = (opening.totalDebit - opening.totalCredit).abs();
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: isBalanced ? Colors.green.shade50 : Colors.red.shade50,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        border: Border.all(
+          color: isBalanced ? Colors.green.shade100 : Colors.red.shade100,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              OpeningBalanceSimpleStatWidget(
+                label: 'إجمالي المدين',
+                value: numberFormat.format(opening.totalDebit),
+                color: Colors.green,
+              ),
+              OpeningBalanceSimpleStatWidget(
+                label: 'إجمالي الدائن',
+                value: numberFormat.format(opening.totalCredit),
+                color: Colors.red,
+              ),
+            ],
+          ),
+          const Divider(height: 30),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isBalanced ? Icons.check_circle : Icons.warning_amber_rounded,
+                size: 20,
+                color: isBalanced ? Colors.green : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Text(
+                isBalanced
+                    ? 'القيد متوازن حالياً'
+                    : 'القيد غير متوازن (الفرق: ${numberFormat.format(diff)})',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: isBalanced ? Colors.green : Colors.red,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class OpeningBalanceSimpleStatWidget extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const OpeningBalanceSimpleStatWidget({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class OpeningBalanceLinesHeaderWidget extends StatelessWidget {
+  final VoidCallback onAddLine;
+
+  const OpeningBalanceLinesHeaderWidget({
+    super.key,
+    required this.onAddLine,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text(
+          'توزيع الأرصدة على الحسابات',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        HasibButton(
+          label: 'إضافة مبلغ',
+          leading: const Icon(Icons.add_circle, size: 18, color: Colors.white),
+          onPressed: onAddLine,
+          variant: HasibButtonVariant.primary,
+        ),
+      ],
+    );
+  }
+}
+
+class OpeningBalanceLinesListWidget extends StatelessWidget {
+  final OpeningBalanceEntity opening;
+  final intl.NumberFormat numberFormat;
+  final void Function(OpeningBalanceLineEntity line, int index) onEditLine;
+  final ValueChanged<int> onRemoveLine;
+
+  const OpeningBalanceLinesListWidget({
+    super.key,
+    required this.opening,
+    required this.numberFormat,
+    required this.onEditLine,
+    required this.onRemoveLine,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (opening.lines.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.lg20),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.inbox_outlined, size: 48, color: Colors.grey.shade300),
+            const SizedBox(height: 8),
+            const Text(
+              'لا توجد أرصدة مضافة بعد',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: opening.lines.asMap().entries.map((entry) {
+        final i = entry.key;
+        final line = entry.value;
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(12),
+            leading: CircleAvatar(
+              backgroundColor: Colors.blue.shade50,
+              child: Text(
+                line.lineNumber.toString(),
+                style: const TextStyle(fontSize: 12),
+              ),
+            ),
+            title: Text(
+              line.accountName,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            subtitle: Row(
+              children: [
+                if (line.debit > 0)
+                  OpeningBalanceLineBadgeWidget(
+                    label: 'مدين',
+                    value: numberFormat.format(line.debit),
+                    color: Colors.green,
+                  ),
+                if (line.credit > 0)
+                  OpeningBalanceLineBadgeWidget(
+                    label: 'دائن',
+                    value: numberFormat.format(line.credit),
+                    color: Colors.red,
+                  ),
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  icon: const Icon(
+                    Icons.edit_note_outlined,
+                    color: Colors.blue,
+                  ),
+                  onPressed: () => onEditLine(line, i),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  onPressed: () => onRemoveLine(i),
+                ),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class OpeningBalanceLineBadgeWidget extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const OpeningBalanceLineBadgeWidget({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(left: 8, top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.sm6),
+      ),
+      child: Text(
+        '$label: $value',
+        style: TextStyle(
+          fontSize: 11,
+          color: color,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class OpeningBalanceBottomActionBarWidget extends StatelessWidget {
+  final bool linesEmpty;
+  final VoidCallback onSave;
+
+  const OpeningBalanceBottomActionBarWidget({
+    super.key,
+    required this.linesEmpty,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: HasibButton(
+              label: 'حفظ المسودة',
+              onPressed: linesEmpty ? null : onSave,
+              variant: HasibButtonVariant.primary,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,18 +1,19 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_limit_entity.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubit.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_limit_entity.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class AccountLimitsScreen extends StatefulWidget {
   const AccountLimitsScreen({super.key});
@@ -71,7 +72,7 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
               }
 
               return ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: limits.length,
                 itemBuilder: (context, index) => _AccountLimitCard(
                   limit: limits[index],
@@ -149,7 +150,6 @@ class _AccountLimitCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final usageLevel = limit.usageLevel;
     final color = usageLevel == UsageLevel.critical
         ? Colors.red
@@ -200,23 +200,25 @@ class _AccountLimitCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               children: [
                 if (limit.debitLimit > 0)
-                  _buildProgressBar(
-                    'سقف المدين',
-                    limit.debitUsagePercentage,
-                    color,
-                    limit.debitLimit,
+                  AccountLimitProgressBarWidget(
+                    label: 'سقف المدين',
+                    percentage: limit.debitUsagePercentage,
+                    color: color,
+                    max: limit.debitLimit,
+                    numberFormat: numberFormat,
                   ),
                 if (limit.creditLimit > 0) ...[
                   const SizedBox(height: 16),
-                  _buildProgressBar(
-                    'سقف الدائن',
-                    limit.creditUsagePercentage,
-                    color,
-                    limit.creditLimit,
+                  AccountLimitProgressBarWidget(
+                    label: 'سقف الدائن',
+                    percentage: limit.creditUsagePercentage,
+                    color: color,
+                    max: limit.creditLimit,
+                    numberFormat: numberFormat,
                   ),
                 ],
               ],
@@ -256,13 +258,26 @@ class _AccountLimitCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildProgressBar(
-    String label,
-    double percentage,
-    Color color,
-    double max,
-  ) {
+class AccountLimitProgressBarWidget extends StatelessWidget {
+  final String label;
+  final double percentage;
+  final Color color;
+  final double max;
+  final intl.NumberFormat numberFormat;
+
+  const AccountLimitProgressBarWidget({
+    super.key,
+    required this.label,
+    required this.percentage,
+    required this.color,
+    required this.max,
+    required this.numberFormat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -369,25 +384,29 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildAccountPicker(),
+                AccountLimitPickerWidget(
+                  limit: widget.limit,
+                  selectedAccount: _selectedAccount,
+                  onPickAccount: _pickAccount,
+                ),
                 const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
-                      child: _buildInput(
-                        'سقف المدين',
-                        _debitController,
-                        Icons.arrow_downward,
-                        Colors.green,
+                      child: AccountLimitInputFieldWidget(
+                        label: 'سقف المدين',
+                        controller: _debitController,
+                        icon: Icons.arrow_downward,
+                        color: Colors.green,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildInput(
-                        'سقف الدائن',
-                        _creditController,
-                        Icons.arrow_upward,
-                        Colors.red,
+                      child: AccountLimitInputFieldWidget(
+                        label: 'سقف الدائن',
+                        controller: _creditController,
+                        icon: Icons.arrow_upward,
+                        color: Colors.red,
                       ),
                     ),
                   ],
@@ -422,65 +441,6 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
     );
   }
 
-  Widget _buildAccountPicker() {
-    return InkWell(
-      onTap: widget.limit != null ? null : _pickAccount,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: Colors.grey.shade200),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.account_balance, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Text(
-              widget.limit?.accountName ??
-                  _selectedAccount?.name ??
-                  'اضغط لاختيار الحساب...',
-              style: TextStyle(
-                color: widget.limit != null
-                    ? Colors.grey
-                    : (_selectedAccount == null ? Colors.grey : Colors.black87),
-              ),
-            ),
-            const Spacer(),
-            if (widget.limit == null)
-              const Icon(Icons.search, size: 18, color: Colors.grey),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInput(
-    String label,
-    TextEditingController controller,
-    IconData icon,
-    Color color,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
-        const SizedBox(height: 8),
-        TextInputField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          hint: '0.00',
-          decoration: InputDecoration(
-            prefixIcon: Icon(icon, color: color, size: 18),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   void _pickAccount() {
     showModalBottomSheet(
       context: context,
@@ -505,7 +465,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
           accountId: _selectedAccount!.id!,
           accountName: _selectedAccount!.name,
           accountCode: _selectedAccount!.code,
-          currencyId: 1, // Default currency
+          currencyId: 1,
           currencyCode: 'SAR',
           debitLimit: double.tryParse(_debitController.text) ?? 0,
           creditLimit: double.tryParse(_creditController.text) ?? 0,
@@ -514,6 +474,90 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
 
     context.read<AccountLimitsCubit>().saveLimit(limit);
     Navigator.pop(context);
+  }
+}
+
+class AccountLimitPickerWidget extends StatelessWidget {
+  final AccountLimitEntity? limit;
+  final AccountEntity? selectedAccount;
+  final VoidCallback onPickAccount;
+
+  const AccountLimitPickerWidget({
+    super.key,
+    required this.limit,
+    required this.selectedAccount,
+    required this.onPickAccount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: limit != null ? null : onPickAccount,
+      child: Container(
+        padding: AppConstant.defaultPadding,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.account_balance, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text(
+              limit?.accountName ??
+                  selectedAccount?.name ??
+                  'اضغط لاختيار الحساب...',
+              style: TextStyle(
+                color: limit != null
+                    ? Colors.grey
+                    : (selectedAccount == null ? Colors.grey : Colors.black87),
+              ),
+            ),
+            const Spacer(),
+            if (limit == null)
+              const Icon(Icons.search, size: 18, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class AccountLimitInputFieldWidget extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final IconData icon;
+  final Color color;
+
+  const AccountLimitInputFieldWidget({
+    super.key,
+    required this.label,
+    required this.controller,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        const SizedBox(height: 8),
+        TextInputField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          hint: '0.00',
+          decoration: InputDecoration(
+            prefixIcon: Icon(icon, color: color, size: 18),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -565,7 +609,7 @@ class _AccountSearchSheetState extends State<_AccountSearchSheet> {
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               itemCount: filtered.length,
               itemBuilder: (context, i) => ListTile(
                 title: Text(

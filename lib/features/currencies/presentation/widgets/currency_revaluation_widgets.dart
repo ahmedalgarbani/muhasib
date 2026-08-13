@@ -6,6 +6,7 @@ import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class RevaluationInfoCard extends StatelessWidget {
   const RevaluationInfoCard({super.key});
@@ -18,7 +19,7 @@ class RevaluationInfoCard extends StatelessWidget {
       side: BorderSide(color: AppColors.info.withOpacity(0.2)),
     ),
     child: const Padding(
-      padding: EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Row(
         children: [
           Icon(Icons.info_outline, color: AppColors.info),
@@ -152,7 +153,7 @@ class _Card extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.lg),
       side: BorderSide(color: Colors.grey[200]!),
     ),
-    child: Padding(padding: const EdgeInsets.all(16), child: child),
+    child: Padding(padding: AppConstant.defaultPadding, child: child),
   );
 }
 
@@ -270,7 +271,7 @@ class RevaluationDifferenceCard extends StatelessWidget {
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           children: [
             Row(

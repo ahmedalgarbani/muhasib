@@ -3,6 +3,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/reports/domain/entities/income_statement_entity.dart';
 import 'package:muhasib/features/reports/presentation/cubit/income_statement_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class IncomeStatementSummaryRowWidget extends StatelessWidget {
   final IncomeStatementSummary summary;
@@ -77,7 +78,7 @@ class IncomeStatementCategoryWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Text(
             category.categoryName,
             style: const TextStyle(

@@ -8,6 +8,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// ─────────────────────────────────────────────
 /// Home Recent Activity Section
@@ -41,7 +42,7 @@ class HomeRecentActivitySection extends StatelessWidget {
 
             return Container(
               margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               decoration: BoxDecoration(
                 color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
                 borderRadius: BorderRadius.circular(AppRadius.xl),

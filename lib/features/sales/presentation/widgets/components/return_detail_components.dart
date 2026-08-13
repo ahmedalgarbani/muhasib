@@ -7,6 +7,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/domain/templates/sales_accounting_template.dart';
 import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 String _formatDate(int timestamp) {
   final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
@@ -32,7 +33,7 @@ class ReturnDetailHeaderCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -109,7 +110,7 @@ class ReturnDetailOriginalInvoiceCard extends StatelessWidget {
         side: const BorderSide(color: AppColors.warning, width: 2),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -167,7 +168,7 @@ class ReturnDetailCustomerCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -206,7 +207,7 @@ class ReturnDetailProductsCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -309,7 +310,7 @@ class ReturnDetailTotalsCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           children: [
             _ReturnTotalRow(label: 'المجموع الفرعي', amount: returnInvoice.amount),
@@ -360,7 +361,7 @@ class ReturnDetailAccountingCard extends StatelessWidget {
             side: BorderSide(color: Colors.grey.shade200),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

@@ -80,14 +80,20 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildAccountPicker(context),
+                OpenBalanceAccountPickerWidget(
+                  selectedAccount: _selectedAccount,
+                  onTap: () => _pickAccount(context),
+                ),
                 const SizedBox(height: 24),
                 const Text(
                   'نوع الرصيد',
                   style: TextStyle(color: Colors.grey, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
-                _buildTypeSelector(),
+                OpenBalanceTypeSelectorWidget(
+                  isDebit: _isDebit,
+                  onChanged: (val) => setState(() => _isDebit = val),
+                ),
                 const SizedBox(height: 24),
                 TextInputField(
                   label: 'قيمة الرصيد',
@@ -110,73 +116,7 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
     );
   }
 
-  Widget _buildAccountPicker(BuildContext context) {
-    return InkWell(
-      onTap: () => _pickAccount(context),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade50,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.account_balance, color: AppColors.primary),
-            const SizedBox(width: 12),
-            Text(
-              _selectedAccount?.name ?? 'اضغط لاختيار الحساب المالي...',
-              style: TextStyle(
-                color: _selectedAccount == null ? Colors.grey : Colors.black87,
-                fontWeight: _selectedAccount != null
-                    ? FontWeight.bold
-                    : FontWeight.normal,
-              ),
-            ),
-            const Spacer(),
-            const Icon(Icons.search, size: 20, color: Colors.grey),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTypeSelector() {
-    return Row(
-      children: [
-        Expanded(child: _typeBtn('مدين (+) ', true, Colors.green)),
-        const SizedBox(width: 12),
-        Expanded(child: _typeBtn('دائن (-) ', false, Colors.red)),
-      ],
-    );
-  }
-
-  Widget _typeBtn(String label, bool value, Color color) {
-    final active = _isDebit == value;
-    return GestureDetector(
-      onTap: () => setState(() => _isDebit = value),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: active ? color.withOpacity(0.1) : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: active ? color : Colors.grey.shade300),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontWeight: active ? FontWeight.bold : FontWeight.normal,
-              color: active ? color : Colors.grey,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   void _pickAccount(BuildContext context) {
-    // I'll show the search sheet here
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -204,6 +144,129 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
       ),
     );
     Navigator.pop(context);
+  }
+}
+
+class OpenBalanceAccountPickerWidget extends StatelessWidget {
+  final AccountEntity? selectedAccount;
+  final VoidCallback onTap;
+
+  const OpenBalanceAccountPickerWidget({
+    super.key,
+    required this.selectedAccount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: AppConstant.defaultPadding,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.account_balance, color: AppColors.primary),
+            const SizedBox(width: 12),
+            Text(
+              selectedAccount?.name ?? 'اضغط لاختيار الحساب المالي...',
+              style: TextStyle(
+                color: selectedAccount == null ? Colors.grey : Colors.black87,
+                fontWeight: selectedAccount != null
+                    ? FontWeight.bold
+                    : FontWeight.normal,
+              ),
+            ),
+            const Spacer(),
+            const Icon(Icons.search, size: 20, color: Colors.grey),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OpenBalanceTypeSelectorWidget extends StatelessWidget {
+  final bool isDebit;
+  final ValueChanged<bool> onChanged;
+
+  const OpenBalanceTypeSelectorWidget({
+    super.key,
+    required this.isDebit,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: OpenBalanceTypeButtonWidget(
+            label: 'مدين (+) ',
+            value: true,
+            color: Colors.green,
+            isDebit: isDebit,
+            onTap: () => onChanged(true),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: OpenBalanceTypeButtonWidget(
+            label: 'دائن (-) ',
+            value: false,
+            color: Colors.red,
+            isDebit: isDebit,
+            onTap: () => onChanged(false),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class OpenBalanceTypeButtonWidget extends StatelessWidget {
+  final String label;
+  final bool value;
+  final Color color;
+  final bool isDebit;
+  final VoidCallback onTap;
+
+  const OpenBalanceTypeButtonWidget({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.color,
+    required this.isDebit,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final active = isDebit == value;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: active ? color.withOpacity(0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.md),
+          border: Border.all(color: active ? color : Colors.grey.shade300),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: active ? FontWeight.bold : FontWeight.normal,
+              color: active ? color : Colors.grey,
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -253,7 +316,7 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector> {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: filtered.length,
                 itemBuilder: (context, i) => ListTile(
                   title: Text(

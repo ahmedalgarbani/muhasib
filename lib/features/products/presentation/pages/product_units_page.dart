@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/product_unit_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
+import 'package:muhasib/features/products/presentation/widgets/product_units_widgets.dart';
 
 class ProductUnitsPage extends StatefulWidget {
   const ProductUnitsPage({super.key});
@@ -39,10 +38,19 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
         child: Scaffold(
           key: _scaffoldKey,
           backgroundColor: AppColors.gray50,
-          appBar: CustomAppBar(),
+          appBar: const CustomAppBar(),
           body: Column(
             children: [
-              _buildHeader(),
+              ProductUnitsHeaderWidget(
+                searchController: _searchController,
+                onSearchChanged: (value) {
+                  if (value.isNotEmpty) {
+                    context.read<ProductUnitsCubit>().searchUnits(value);
+                  } else {
+                    context.read<ProductUnitsCubit>().loadAllUnits();
+                  }
+                },
+              ),
               Expanded(
                 child: BlocBuilder<ProductUnitsCubit, ProductUnitsState>(
                   builder: (context, state) {
@@ -63,7 +71,12 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                           icon: Icons.square_foot_outlined,
                         );
                       }
-                      return _buildUnitsList(state.units);
+                      return ProductUnitsListWidget(
+                        units: state.units,
+                        onEditUnit: (unit) => _showUnitDialog(context, unit: unit),
+                        onDeleteUnit: (unit) =>
+                            _showDeleteConfirmation(context, unit),
+                      );
                     }
                     return const Center(
                       child: Text('ابدأ بإضافة وحدات القياس'),
@@ -81,165 +94,6 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'وحدات القياس',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.gray900,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextInputField(
-            controller: _searchController,
-            hint: 'ابحث في الوحدات...',
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-            ),
-            onChanged: (value) {
-              if (value.isNotEmpty) {
-                context.read<ProductUnitsCubit>().searchUnits(value);
-              } else {
-                context.read<ProductUnitsCubit>().loadAllUnits();
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUnitsList(List<ProductUnitEntity> units) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: units.length,
-      itemBuilder: (context, index) {
-        final unit = units[index];
-        return CustomCardContainer(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
-          ),
-          child: ListTile(
-            leading: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: const Icon(Icons.square_foot, color: AppColors.success),
-            ),
-            title: Row(
-              children: [
-                Text(
-                  unit.name,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: BorderRadius.circular(AppRadius.xs),
-                  ),
-                  child: Text(
-                    unit.short,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            subtitle: Text(
-              'معامل التحويل: ${unit.conversionFactor}',
-              style: TextStyle(color: Colors.grey.shade600),
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!unit.isActive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red.shade50,
-                      borderRadius: BorderRadius.circular(AppRadius.xs),
-                    ),
-                    child: const Text(
-                      'غير نشط',
-                      style: TextStyle(fontSize: 12, color: Colors.red),
-                    ),
-                  ),
-                const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 20),
-                          SizedBox(width: 8),
-                          Text('تعديل'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('حذف', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _showUnitDialog(context, unit: unit);
-                    } else if (value == 'delete') {
-                      _showDeleteConfirmation(context, unit);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/accounts/data/models/account_model.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_movements_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_movements_state.dart';
-import 'package:intl/intl.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 
 class AccountMovementsDialog extends StatelessWidget {
   final AccountModel account;
@@ -28,11 +28,6 @@ class _AccountMovementsContent extends StatelessWidget {
 
   const _AccountMovementsContent({required this.account});
 
-  String formatNumber(double number) {
-    final formatter = NumberFormat('#,##0.00', 'ar_SA');
-    return formatter.format(number);
-  }
-  
   String formatDate(DateTime date) {
     return DateFormat('yyyy-MM-dd').format(date);
   }
@@ -180,7 +175,11 @@ class _AccountMovementsContent extends StatelessWidget {
                   }
 
                   if (state is AccountMovementsLoaded) {
-                    return _buildLoadedContent(context, state, baseFont, padding);
+                    return AccountMovementsLoadedContentWidget(
+                      state: state,
+                      baseFont: baseFont,
+                      padding: padding,
+                    );
                   }
 
                   return const Center(child: Text('لا توجد بيانات'));
@@ -192,13 +191,31 @@ class _AccountMovementsContent extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildLoadedContent(
-    BuildContext context,
-    AccountMovementsLoaded state,
-    double baseFont,
-    double padding,
-  ) {
+class AccountMovementsLoadedContentWidget extends StatelessWidget {
+  final AccountMovementsLoaded state;
+  final double baseFont;
+  final double padding;
+
+  const AccountMovementsLoadedContentWidget({
+    super.key,
+    required this.state,
+    required this.baseFont,
+    required this.padding,
+  });
+
+  String formatNumber(double number) {
+    final formatter = NumberFormat('#,##0.00', 'ar_SA');
+    return formatter.format(number);
+  }
+
+  String formatDate(DateTime date) {
+    return DateFormat('yyyy-MM-dd').format(date);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final movements = state.movements;
     final summary = state.summary;
 

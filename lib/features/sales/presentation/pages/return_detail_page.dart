@@ -11,6 +11,7 @@ import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 import 'package:muhasib/features/sales/presentation/widgets/components/return_detail_components.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Return Invoice Detail Page
 /// Displays complete return information with accounting entries preview
@@ -36,7 +37,7 @@ class ReturnDetailPage extends StatelessWidget {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

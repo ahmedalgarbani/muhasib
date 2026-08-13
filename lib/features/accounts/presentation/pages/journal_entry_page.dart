@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_text_style.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.dart'
     as domain;
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/theme/app_text_style.dart';
-import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
-import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 part 'journal_entry_models.dart';
 part 'journal_entry_widgets.dart';
@@ -279,318 +280,35 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
             child: const Icon(Icons.add, color: Colors.white),
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildHeaderCard(),
+                JournalHeaderCardWidget(
+                  numberController: _numberController,
+                  descriptionController: _descriptionController,
+                  header: _header,
+                  onHeaderChanged: (header) => setState(() => _header = header),
+                  onDateSelected: (date) =>
+                      setState(() => _header = _header.copyWith(entryDate: date)),
+                ),
                 const SizedBox(height: 16),
-                _buildEntriesCard(),
+                JournalEntriesCardWidget(
+                  entries: _entries,
+                  onShowEntryDialog: (entry) => _showEntryDialog(entry: entry),
+                  onDuplicateEntry: _duplicateEntry,
+                  onDeleteEntry: _deleteEntry,
+                ),
                 const SizedBox(height: 16),
-                _buildSummaryCard(totals),
+                JournalSummaryCardWidget(
+                  totals: totals,
+                  isSaving: _isSaving,
+                  onSaveJournal: _saveJournal,
+                  onClearAll: _clearAll,
+                ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeaderCard() {
-    return CustomCardContainer(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      elevation: 3,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('بيانات القيد', style: AppTextStyles.titleMedium),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextInputField(
-                    label: 'رقم القيد',
-                    textEditingController: _numberController,
-                    onChanged: (value) =>
-                        _header = _header.copyWith(entryNumber: value),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: InkWell(
-                    onTap: () async {
-                      final picked = await showDatePicker(
-                        context: context,
-                        initialDate: _header.entryDate,
-                        firstDate: DateTime(2000),
-                        lastDate: DateTime(2100),
-                      );
-                      if (picked != null) {
-                        setState(() {
-                          _header = _header.copyWith(entryDate: picked);
-                        });
-                      }
-                    },
-                    child: InputDecorator(
-                      decoration: const InputDecoration(
-                        labelText: 'تاريخ القيد',
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            '${_header.entryDate.year}-${_header.entryDate.month.toString().padLeft(2, '0')}-${_header.entryDate.day.toString().padLeft(2, '0')}',
-                          ),
-                          const Icon(Icons.calendar_today, size: 18),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            TextInputField(
-              label: 'وصف القيد',
-              textEditingController: _descriptionController,
-              maxLines: 3,
-              hint: 'أدخل وصفاً مختصراً للقيد...',
-              onChanged: (value) =>
-                  _header = _header.copyWith(description: value),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEntriesCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: AppColors.slate100, width: 1.5),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.015),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'تفاصيل القيد',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.slate100,
-                    borderRadius: BorderRadius.circular(AppRadius.sm10),
-                  ),
-                  child: Text(
-                    '${_entries.length} سطر',
-                    style: const TextStyle(
-                      color: AppColors.darkSecondary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(
-              height: 24,
-              color: AppColors.slate100,
-              thickness: 1.5,
-            ),
-            if (_entries.isEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(
-                  vertical: 36,
-                  horizontal: 16,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.background,
-                  borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(color: AppColors.slate100),
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: const BoxDecoration(
-                        color: AppColors.blue50,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.receipt_long_rounded,
-                        size: 36,
-                        color: AppColors.info,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    const Text(
-                      'لم يتم إضافة أي تفصيل بعد',
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'اضغط على زر الإضافة الدائري بالأسفل لإضافة سطر جديد للقيد.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        height: 1.4,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              )
-            else
-              Column(
-                children: _entries
-                    .map(
-                      (entry) => _EntryTile(
-                        entry: entry,
-                        onEdit: () => _showEntryDialog(entry: entry),
-                        onDuplicate: () => _duplicateEntry(entry),
-                        onDelete: () => _deleteEntry(entry),
-                      ),
-                    )
-                    .toList(),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryCard(JournalTotals totals) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm10),
-                  ),
-                  child: const Icon(
-                    Icons.analytics_outlined,
-                    color: AppColors.primary,
-                    size: 20,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'ملخص القيد والتحقق',
-                  style: AppTextStyles.titleMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Row(
-              children: [
-                Expanded(
-                  child: SummaryCard(
-                    label: 'إجمالي المدين',
-                    value: totals.debit.toStringAsFixed(2),
-                    color: AppTheme.greenColor,
-                    icon: Icons.arrow_upward,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SummaryCard(
-                    label: 'إجمالي الدائن',
-                    value: totals.credit.toStringAsFixed(2),
-                    color: AppTheme.redColor,
-                    icon: Icons.arrow_downward,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            SummaryCard(
-              label: 'الفرق المحاسبي',
-              value: totals.difference.toStringAsFixed(2),
-              color: totals.isBalanced
-                  ? AppTheme.greenColor
-                  : AppTheme.redColor,
-              icon: Icons.balance,
-            ),
-            const SizedBox(height: 20),
-            StatusCard(balanced: totals.isBalanced),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: HasibButton(
-                    label: _isSaving ? 'جارٍ الحفظ...' : 'حفظ القيد المحاسبي',
-                    onPressed: (_isSaving || !totals.isBalanced)
-                        ? null
-                        : _saveJournal,
-                    variant: HasibButtonVariant.primary,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                IconButton(
-                  onPressed: _isSaving ? null : _clearAll,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.red.shade50,
-                    foregroundColor: Colors.red,
-                    padding: const EdgeInsets.all(16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                  ),
-                  icon: const Icon(Icons.delete_outline),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
     );

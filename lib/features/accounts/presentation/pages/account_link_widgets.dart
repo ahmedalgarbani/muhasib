@@ -1,5 +1,121 @@
 part of 'account_link_page.dart';
 
+class AccountStateCheckerWidget extends StatelessWidget {
+  final AccountConnectState state;
+  final AccountLinkEntity accountEntity;
+  final List<AccountEntity> availableAccounts;
+  final ValueChanged<AccountLinkEntity> onShowLinkBottomSheet;
+
+  const AccountStateCheckerWidget({
+    super.key,
+    required this.state,
+    required this.accountEntity,
+    required this.availableAccounts,
+    required this.onShowLinkBottomSheet,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    bool isLinked = false;
+    String? linkedAccountName;
+    String? linkedAccountCode;
+
+    if (state is AccountConnectsLoaded) {
+      final accountConnects = (state as AccountConnectsLoaded).accountConnects.where(
+        (e) => e.accountConnectType == accountEntity.connectType,
+      );
+      final accountConnect = accountConnects.isNotEmpty
+          ? accountConnects.first
+          : null;
+
+      isLinked = accountConnect != null;
+
+      if (isLinked && accountConnect.cId != null) {
+        try {
+          final linkedAccount = availableAccounts.firstWhere(
+            (e) => e.cId == accountConnect.cId,
+          );
+          linkedAccountName = linkedAccount.name;
+          linkedAccountCode = linkedAccount.code;
+        } catch (e) {
+          isLinked = false;
+        }
+      }
+
+      return AccountCard(
+        account: accountEntity.copyWith(
+          linked: isLinked,
+          linkedTo: linkedAccountName,
+          linkedAccountNumber: linkedAccountCode,
+        ),
+        onTap: () {
+          onShowLinkBottomSheet(accountEntity);
+        },
+      );
+    } else if (state is AccountConnectLoading) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: AppConstant.defaultPadding,
+        decoration: BoxDecoration(
+          color: Colors.grey[100],
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    } else if (state is AccountConnectError) {
+      return Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: AppConstant.defaultPadding,
+        decoration: BoxDecoration(
+          color: Colors.red[50],
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: Colors.red[200]!),
+        ),
+        child: Text(
+          'خطأ: ${(state as AccountConnectError).message}',
+          style: TextStyle(color: Colors.red[700]),
+        ),
+      );
+    } else {
+      return AccountCard(
+        account: accountEntity,
+        onTap: () => onShowLinkBottomSheet(accountEntity),
+      );
+    }
+  }
+}
+
+class AccountLinkStatusChip extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const AccountLinkStatusChip({
+    super.key,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 12,
+          fontWeight: FontWeight.bold,
+        ),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
+}
+
 class AccountCard extends StatelessWidget {
   final AccountLinkEntity account;
   final VoidCallback onTap;
@@ -105,98 +221,6 @@ class AccountCard extends StatelessWidget {
       ),
     );
   }
-
-  /* Widget _buildLinkedStatus() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.success.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppRadius.sm10),
-        border: Border.all(
-          color: AppColors.success.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.check_circle, color: AppColors.success, size: 16),
-          const SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              'مرتبط بـ: ${account.linkedTo}',
-              style: const TextStyle(
-                fontSize: 8,
-                color: AppColors.success,
-                fontWeight: FontWeight.w600,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildUnlinkedStatus() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.warning.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppRadius.sm10),
-        border: Border.all(
-          color: AppColors.warning.withOpacity(0.3),
-          width: 1.5,
-        ),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.link_off, color: AppColors.warning, size: 16),
-          SizedBox(width: 6),
-          Flexible(
-            child: Text(
-              'غير مرتبط - يحتاج إلى ربط',
-              style: TextStyle(
-                fontSize: 10,
-                color: AppColors.warning,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Icon(
-              account.linked ? Icons.swap_horiz : Icons.link,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-        ],
-      ),
-    );
-  } */
 }
 
 class LinkedAccountStatus extends StatelessWidget {
@@ -327,7 +351,6 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag Handle
           const SizedBox(height: 12),
           Container(
             width: 48,
@@ -338,7 +361,6 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          // Header
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -375,38 +397,14 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
             ),
           ),
           const Divider(height: 32),
-          // Search Bar
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: TextInputField(
               textAlign: TextAlign.right,
               onChanged: (value) => setState(() => searchQuery = value),
-
-              // decoration: InputDecoration(
-              //   hintText: 'ابحث عن حساب...',
-              //   prefixIcon: const Icon(Icons.search),
-              //   filled: true,
-              //   fillColor: Colors.grey[100],
-              //   border: OutlineInputBorder(
-              //     borderRadius: BorderRadius.circular(AppRadius.lg),
-              //     borderSide: BorderSide.none,
-              //   ),
-              //   enabledBorder: OutlineInputBorder(
-              //     borderRadius: BorderRadius.circular(AppRadius.lg),
-              //     borderSide: BorderSide.none,
-              //   ),
-              //   focusedBorder: OutlineInputBorder(
-              //     borderRadius: BorderRadius.circular(AppRadius.lg),
-              //     borderSide: const BorderSide(
-              //       color: AppColors.primary,
-              //       width: 2,
-              //     ),
-              //   ),
-              // ),
             ),
           ),
           const SizedBox(height: 16),
-          // Category Label
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Align(
@@ -423,7 +421,6 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
             ),
           ),
           const SizedBox(height: 12),
-          // Accounts List
           Flexible(
             child: filteredAccounts.isEmpty
                 ? const EmptyStateWidget(
@@ -446,7 +443,6 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                     },
                   ),
           ),
-          // Footer Buttons
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
@@ -496,86 +492,6 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
       ),
     );
   }
-
-  /* Widget _buildAccountItem(AccountEntity account, bool isSelected) {
-    return GestureDetector(
-      onTap: () => setState(() => selectedAccountId = account.id),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue[50] : Colors.grey[50],
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.transparent,
-            width: 2,
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    account.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Text(
-                        account.code,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      Text(' • ', style: TextStyle(color: Colors.grey[400])),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[300],
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        child: Text(
-                          account.type.toString(),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: isSelected ? AppColors.primary : Colors.transparent,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.grey[400]!,
-                  width: 2,
-                ),
-              ),
-              child: isSelected
-                  ? const Icon(Icons.check, color: Colors.white, size: 16)
-                  : null,
-            ),
-          ],
-        ),
-      ),
-    );
-  } */
 }
 
 class AccountLinkSelectionItem extends StatelessWidget {
@@ -595,7 +511,7 @@ class AccountLinkSelectionItem extends StatelessWidget {
     onTap: onTap,
     child: Container(
       margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: isSelected ? Colors.blue[50] : Colors.grey[50],
         borderRadius: BorderRadius.circular(AppRadius.lg),

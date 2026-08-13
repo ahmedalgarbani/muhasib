@@ -3,6 +3,7 @@ import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Standalone Journal Entry Item Card for the journal entries list page.
 class JournalEntryCardWidget extends StatelessWidget {
@@ -38,7 +39,7 @@ class JournalEntryCardWidget extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             children: [
               Row(

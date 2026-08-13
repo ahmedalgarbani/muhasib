@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
-import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/empty_state_widget.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
-import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_prices_cubit.dart';
+import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/features/products/presentation/widgets/product_pricing_widgets.dart';
 
 class ProductPricingPage extends StatefulWidget {
   const ProductPricingPage({super.key});
@@ -45,64 +44,12 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
             backgroundColor: AppColors.gray50,
-            appBar: CustomAppBar(),
+            appBar: const CustomAppBar(),
             body: Column(
               children: [
-                _buildHeader(innerContext),
-                Expanded(child: _buildPricingContent(innerContext)),
-              ],
-            ),
-            floatingActionButton: FloatingActionButton.extended(
-              onPressed: () => _showPricingDialog(innerContext),
-              backgroundColor: AppColors.primary,
-              icon: const Icon(Icons.add),
-              label: const Text('سعر جديد'),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext innerContext) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'تسعير المنتجات',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.gray900,
-            ),
-          ),
-          const SizedBox(height: 16),
-          BlocBuilder<ProductsCubit, ProductsState>(
-            builder: (context, productsState) {
-              if (productsState is ProductsLoaded) {
-                return DropdownButton<int?>(
-                  value: _selectedProductFilter,
-                  hint: const Text('اختر المنتج'),
-                  isExpanded: true,
-                  items: [
-                    const DropdownMenuItem(
-                      value: null,
-                      child: Text('كل المنتجات'),
-                    ),
-                    ...productsState.products.map(
-                      (product) => DropdownMenuItem(
-                        value: product.id,
-                        child: Text(product.name),
-                      ),
-                    ),
-                  ],
-                  onChanged: (value) {
+                ProductPricingHeaderWidget(
+                  selectedProductFilter: _selectedProductFilter,
+                  onProductFilterChanged: (value) {
                     setState(() => _selectedProductFilter = value);
                     if (value != null) {
                       innerContext
@@ -114,208 +61,34 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                           .loadAllSubUnits();
                     }
                   },
-                );
-              }
-              return const CircularProgressIndicator();
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPricingContent(BuildContext innerContext) {
-    return BlocConsumer<ProductPricesCubit, ProductPricesState>(
-      listener: (context, state) {
-        if (state is ProductPricesSaved) {
-          AppToast.showSuccess(context, state.message);
-        } else if (state is ProductPricesError) {
-          AppToast.showError(context, state.message);
-        }
-      },
-      builder: (context, pricesState) {
-        return BlocBuilder<ProductSubUnitsCubit, ProductSubUnitsState>(
-          builder: (context, state) {
-            if (state is ProductSubUnitsLoading) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (state is ProductSubUnitsError) {
-              return Center(
-                child: Text(
-                  state.message,
-                  style: const TextStyle(color: Colors.red),
                 ),
-              );
-            } else if (state is ProductSubUnitsLoaded) {
-              if (state.subUnits.isEmpty) {
-                return const EmptyStateWidget(
-                  title: 'لا توجد وحدات فرعية للتسعير',
-                  subtitle: 'يجب إضافة وحدات فرعية للمنتجات أولاً',
-                  icon: Icons.price_change_outlined,
-                );
-              }
-              return _buildPricingList(innerContext, state, pricesState);
-            }
-            return const Center(child: Text('ابدأ بإضافة أسعار للمنتجات'));
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildPricingList(
-    BuildContext innerContext,
-    ProductSubUnitsLoaded subUnitsState,
-    ProductPricesState pricesState,
-  ) {
-    final prices = pricesState is ProductPricesLoaded ? pricesState.prices : [];
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: subUnitsState.subUnits.length,
-      itemBuilder: (context, index) {
-        final subUnit = subUnitsState.subUnits[index];
-        final subUnitPrices = prices
-            .where((p) => p.categorySubUnitId == subUnit.id)
-            .toList();
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
-          ),
-          child: ExpansionTile(
-            title: BlocBuilder<ProductsCubit, ProductsState>(
-              builder: (context, productsState) {
-                String productName = 'منتج ${subUnit.categoryId}';
-                if (productsState is ProductsLoaded &&
-                    subUnit.categoryId != null) {
-                  try {
-                    final product = productsState.products.firstWhere(
-                      (p) => p.id == subUnit.categoryId,
-                    );
-                    productName = product.name;
-                  } catch (e) {
-                    productName = 'منتج غير معروف';
-                  }
-                }
-                return Text(
-                  '$productName - ${subUnit.packaging} وحدة',
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                );
-              },
-            ),
-            children: [
-              _buildPriceLevelItem(
-                'سعر التجزئة',
-                1,
-                subUnit.id,
-                subUnitPrices,
-                innerContext,
-              ),
-              _buildPriceLevelItem(
-                'سعر الجملة',
-                2,
-                subUnit.id,
-                subUnitPrices,
-                innerContext,
-              ),
-              _buildPriceLevelItem(
-                'سعر خاص',
-                3,
-                subUnit.id,
-                subUnitPrices,
-                innerContext,
-              ),
-              _buildPriceLevelItem(
-                'سعر الموزع',
-                4,
-                subUnit.id,
-                subUnitPrices,
-                innerContext,
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: HasibButton(
-                  label: 'إضافة مستوى سعر',
-                  onPressed: () =>
-                      _showPricingDialog(innerContext, subUnitId: subUnit.id),
-                  leading: const Icon(Icons.add),
-                  variant: HasibButtonVariant.primary,
+                Expanded(
+                  child: ProductPricingContentWidget(
+                    onAddPricing: (subUnitId) => _showPricingDialog(
+                      innerContext,
+                      subUnitId: subUnitId,
+                    ),
+                    onEditPricing: (subUnitId, priceLevel, existingPrice, existingMinQty) =>
+                        _showPricingDialog(
+                      innerContext,
+                      subUnitId: subUnitId,
+                      priceLevel: priceLevel,
+                      existingPrice: existingPrice,
+                      existingMinQty: existingMinQty,
+                    ),
+                    onDeletePricing: (priceId) =>
+                        _confirmDeletePrice(innerContext, priceId),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+            floatingActionButton: FloatingActionButton.extended(
+              onPressed: () => _showPricingDialog(innerContext),
+              backgroundColor: AppColors.primary,
+              icon: const Icon(Icons.add),
+              label: const Text('سعر جديد'),
+            ),
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildPriceLevelItem(
-    String levelName,
-    int priceLevel,
-    int? subUnitId,
-    List prices,
-    BuildContext innerContext,
-  ) {
-    final price = prices.where((p) => p.priceLevel == priceLevel).firstOrNull;
-    final hasPrice =
-        price != null && price.bidAmount != null && price.bidAmount > 0;
-
-    return ListTile(
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: hasPrice ? Colors.green.shade50 : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-        ),
-        child: Icon(
-          Icons.attach_money,
-          color: hasPrice ? Colors.green.shade700 : Colors.grey.shade400,
-        ),
-      ),
-      title: Text(levelName),
-      subtitle: Text(
-        hasPrice ? 'الحد الأدنى: ${price.minQuantity ?? 1} وحدة' : 'غير محدد',
-      ),
-      trailing: SizedBox(
-        width: 140,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Flexible(
-              child: Text(
-                hasPrice
-                    ? '${price.bidAmount?.toStringAsFixed(2)} ر.س'
-                    : '0.00 ر.س',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: hasPrice
-                      ? Colors.green.shade700
-                      : Colors.grey.shade500,
-                ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-              ),
-            ),
-            const SizedBox(width: 4),
-            IconButton(
-              icon: const Icon(Icons.edit, size: 20),
-              onPressed: () => _showPricingDialog(
-                innerContext,
-                subUnitId: subUnitId,
-                priceLevel: priceLevel,
-                existingPrice: hasPrice ? price.bidAmount : null,
-                existingMinQty: hasPrice ? price.minQuantity : null,
-              ),
-            ),
-            if (hasPrice)
-              IconButton(
-                icon: const Icon(Icons.delete, size: 20, color: Colors.red),
-                onPressed: () => _confirmDeletePrice(innerContext, price.id),
-              ),
-          ],
         ),
       ),
     );

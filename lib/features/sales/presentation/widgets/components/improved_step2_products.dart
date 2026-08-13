@@ -4,6 +4,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ImprovedStep2Products extends StatelessWidget {
   final Invoice invoice;
@@ -37,7 +38,7 @@ class ImprovedStep2Products extends StatelessWidget {
             );
           }
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             itemCount: products.length,
             separatorBuilder: (context, index) => const SizedBox(height: 8),
             itemBuilder: (context, index) {

@@ -5,6 +5,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Bottom Sheet Widget for displaying detailed journal entry lines & summary.
 class JournalEntryDetailsSheet extends StatelessWidget {
@@ -96,155 +97,6 @@ class JournalEntryDetailsSheet extends StatelessWidget {
       },
     );
   }
-
-  /* Widget _buildInfoGrid(BuildContext context) {
-    return Wrap(
-      spacing: 20,
-      runSpacing: 20,
-      children: [
-        _InfoItem(label: 'رقم القيد', value: entry.number, icon: Icons.tag),
-        _InfoItem(
-          label: 'تاريخ القيد',
-          value: intl.DateFormat('yyyy/MM/dd').format(entry.entryDate),
-          icon: Icons.calendar_today,
-        ),
-        _InfoItem(
-          label: 'الحالة',
-          value: entry.isPosted ? 'مرحل ومحمي' : 'مسودة',
-          icon: entry.isPosted ? Icons.lock : Icons.edit,
-          color: entry.isPosted ? Colors.green : Colors.orange,
-        ),
-        if (entry.description != null)
-          _InfoItem(
-            label: 'الوصف',
-            value: entry.description!,
-            icon: Icons.description,
-            width: double.infinity,
-          ),
-      ],
-    );
-  }
-
-  Widget _buildLineCard(JournalEntryLineEntity line) {
-    return CustomCardContainer(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      backgroundColor: AppColors.slate100.withValues(alpha: 0.5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(AppRadius.sm10),
-                ),
-                child: const Icon(
-                  Icons.account_balance_wallet,
-                  color: AppColors.primary,
-                  size: 18,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      line.accountName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      line.accountCode ?? '',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const Divider(height: 24),
-          Row(
-            children: [
-              _LineAmount(
-                label: 'مدين',
-                amount: numberFormat.format(line.debit),
-                isDebit: true,
-              ),
-              const Spacer(),
-              _LineAmount(
-                label: 'دائن',
-                amount: numberFormat.format(line.credit),
-                isDebit: false,
-              ),
-            ],
-          ),
-          if (line.notes != null && line.notes!.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Text(
-                line.notes!,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailedSummary() {
-    return CustomCardContainer(
-      padding: const EdgeInsets.all(20),
-      backgroundColor: AppColors.primary.withValues(alpha: 0.05),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
-        side: BorderSide(color: AppColors.primary.withValues(alpha: 0.1)),
-      ),
-      child: Column(
-        children: [
-          _SummaryRow(
-            label: 'إجمالي المدين',
-            value: numberFormat.format(entry.totalDebit),
-            color: Colors.green,
-          ),
-          const SizedBox(height: 12),
-          _SummaryRow(
-            label: 'إجمالي الدائن',
-            value: numberFormat.format(entry.totalCredit),
-            color: Colors.red,
-          ),
-          const Divider(height: 24),
-          _SummaryRow(
-            label: 'الفرق (التوازن)',
-            value: numberFormat.format(entry.difference),
-            color: entry.difference == 0 ? Colors.green : Colors.red,
-            isBold: true,
-          ),
-        ],
-      ),
-    );
-  } */
 }
 
 class JournalEntryInfoGrid extends StatelessWidget {
@@ -293,7 +145,7 @@ class JournalEntryLineCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => CustomCardContainer(
     margin: const EdgeInsets.only(bottom: 12),
-    padding: const EdgeInsets.all(16),
+    padding: AppConstant.defaultPadding,
     backgroundColor: AppColors.slate100.withValues(alpha: 0.5),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.lg),

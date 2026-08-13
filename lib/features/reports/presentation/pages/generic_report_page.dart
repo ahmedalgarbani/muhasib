@@ -5,6 +5,7 @@ import 'package:muhasib/core/route/safe_pop.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class GenericReportPage extends StatelessWidget {
   final ReportItem report;
@@ -68,7 +69,7 @@ class _GenericReportContent extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               decoration: BoxDecoration(
                 color: Colors.amber.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.lg),

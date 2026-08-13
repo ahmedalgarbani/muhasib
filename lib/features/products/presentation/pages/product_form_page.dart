@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
-import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 
@@ -39,7 +39,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
   int? _selectedGroupId;
   int? _selectedUnitId;
-  int? _selectedStockId; // Will be set from actual warehouses
+  int? _selectedStockId;
   bool _isActive = true;
   bool _isTaxable = true;
   bool _isLoading = false;
@@ -129,9 +129,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
             body: Form(
               key: _formKey,
               child: ListView(
-                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                 children: [
-                  _buildSectionCard(
+                  ProductFormSectionCard(
                     title: 'المعلومات الأساسية',
                     icon: Icons.info_outline,
                     children: [
@@ -180,7 +180,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  _buildSectionCard(
+                  ProductFormSectionCard(
                     title: 'التصنيف',
                     icon: Icons.category,
                     children: [
@@ -244,7 +244,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
                         builder: (context, state) {
                           if (state is WarehousesLoaded &&
                               state.warehouses.isNotEmpty) {
-                            // Set default warehouse if not selected
                             if (_selectedStockId == null) {
                               WarehouseEntity? mainW;
                               for (final w in state.warehouses) {
@@ -290,7 +289,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionCard(
+                  ProductFormSectionCard(
                     title: 'الأسعار والمخزون',
                     icon: Icons.attach_money,
                     children: [
@@ -352,7 +351,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  _buildSectionCard(
+                  ProductFormSectionCard(
                     title: 'إعدادات إضافية',
                     icon: Icons.settings,
                     children: [
@@ -394,41 +393,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
     );
   }
 
-  Widget _buildSectionCard({
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return CustomCardContainer(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, size: 20, color: AppColors.primary),
-                const SizedBox(width: 8),
-                Text(title, style: AppTextStyles.labelLarge),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
   void _saveProduct() {
     if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    // Ensure stockId is set
     if (_selectedStockId == null) {
       AppToast.showError(context, 'يرجى اختيار المخزن');
       return;
@@ -454,7 +423,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
           : null,
       groupId: _selectedGroupId,
       unitId: _selectedUnitId,
-      stockId: _selectedStockId ?? 1, // Ensure stockId is never null
+      stockId: _selectedStockId ?? 1,
       isActive: _isActive,
       isTaxable: _isTaxable,
       creationTime: widget.product?.creationTime,
@@ -466,5 +435,44 @@ class _ProductFormPageState extends State<ProductFormPage> {
     } else {
       context.read<ProductsCubit>().updateProduct(product);
     }
+  }
+}
+
+class ProductFormSectionCard extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  const ProductFormSectionCard({
+    super.key,
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomCardContainer(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 20, color: AppColors.primary),
+                const SizedBox(width: 8),
+                Text(title, style: AppTextStyles.labelLarge),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ...children,
+          ],
+        ),
+      ),
+    );
   }
 }

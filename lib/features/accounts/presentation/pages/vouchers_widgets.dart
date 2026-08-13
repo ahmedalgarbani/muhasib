@@ -37,7 +37,7 @@ class _VoucherListItem extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             children: [
               Row(
@@ -218,7 +218,11 @@ class _VoucherDetailsSheet extends StatelessWidget {
                   controller: scrollController,
                   padding: const EdgeInsets.all(24),
                   children: [
-                    _buildInfoCard(color),
+                    VoucherInfoCardWidget(
+                      voucher: voucher,
+                      color: color,
+                      numberFormat: numberFormat,
+                    ),
                     const SizedBox(height: 24),
                     const Text(
                       'الأسطر والتوزيع المالي',
@@ -230,12 +234,16 @@ class _VoucherDetailsSheet extends StatelessWidget {
                     const SizedBox(height: 12),
                     if (voucher.lines.isNotEmpty)
                       ...voucher.lines.map(
-                        (line) => _buildLineItem(line, color),
+                        (line) => VoucherLineItemWidget(
+                          line: line,
+                          color: color,
+                          numberFormat: numberFormat,
+                        ),
                       )
                     else
-                      _buildSingleLineItem(color),
+                      const VoucherSingleLineItemWidget(),
                     const SizedBox(height: 32),
-                    _buildStatementCard(),
+                    VoucherStatementCardWidget(statement: voucher.statement),
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -246,8 +254,22 @@ class _VoucherDetailsSheet extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildInfoCard(Color color) {
+class VoucherInfoCardWidget extends StatelessWidget {
+  final VoucherEntity voucher;
+  final Color color;
+  final intl.NumberFormat numberFormat;
+
+  const VoucherInfoCardWidget({
+    super.key,
+    required this.voucher,
+    required this.color,
+    required this.numberFormat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -297,8 +319,22 @@ class _VoucherDetailsSheet extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildLineItem(VoucherLineEntity line, Color color) {
+class VoucherLineItemWidget extends StatelessWidget {
+  final VoucherLineEntity line;
+  final Color color;
+  final intl.NumberFormat numberFormat;
+
+  const VoucherLineItemWidget({
+    super.key,
+    required this.line,
+    required this.color,
+    required this.numberFormat,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
@@ -336,10 +372,15 @@ class _VoucherDetailsSheet extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildSingleLineItem(Color color) {
+class VoucherSingleLineItemWidget extends StatelessWidget {
+  const VoucherSingleLineItemWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -350,8 +391,15 @@ class _VoucherDetailsSheet extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildStatementCard() {
+class VoucherStatementCardWidget extends StatelessWidget {
+  final String statement;
+
+  const VoucherStatementCardWidget({super.key, required this.statement});
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -362,16 +410,14 @@ class _VoucherDetailsSheet extends StatelessWidget {
         const SizedBox(height: 12),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           decoration: BoxDecoration(
             color: Colors.amber.shade50.withOpacity(0.3),
             borderRadius: BorderRadius.circular(AppRadius.md),
             border: Border.all(color: Colors.amber.shade100),
           ),
           child: Text(
-            voucher.statement.isEmpty
-                ? 'لا يوجد بيان مسجل لهذا السند.'
-                : voucher.statement,
+            statement.isEmpty ? 'لا يوجد بيان مسجل لهذا السند.' : statement,
             style: const TextStyle(fontSize: 14, height: 1.5),
           ),
         ),
@@ -398,7 +444,8 @@ class _DetailRow extends StatelessWidget {
     return Row(
       children: [
         Icon(icon, size: 16, color: Colors.grey),
-        const SizedBox(width: 8),        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        const SizedBox(width: 8),
+        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
         const Spacer(),
         Text(
           value,

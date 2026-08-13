@@ -10,6 +10,7 @@ import 'package:muhasib/features/reports/presentation/widgets/report_data_table.
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class StockReportPage extends StatefulWidget {
   const StockReportPage({super.key});
@@ -114,7 +115,7 @@ class _StockReportContentState extends State<_StockReportContent> {
           final s = state.summary;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

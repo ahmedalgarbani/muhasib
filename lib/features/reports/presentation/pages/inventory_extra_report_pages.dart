@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class StockMovementReportPage extends StatefulWidget {
   const StockMovementReportPage({super.key});
@@ -193,7 +194,7 @@ class _StockMovementsContent extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: data.rows.length,
                 itemBuilder: (context, index) {
                   final r = data.rows[index];
@@ -276,7 +277,7 @@ class _LowStockContent extends StatelessWidget {
         final rows = snapshot.data!;
         WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
         return ListView.builder(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           itemCount: rows.length,
           itemBuilder: (context, index) {
             final r = rows[index];
@@ -361,7 +362,7 @@ class _StockValuationContent extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: rows.length,
                 itemBuilder: (context, index) {
                   final r = rows[index];

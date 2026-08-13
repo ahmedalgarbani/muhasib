@@ -13,6 +13,7 @@ import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page
 import 'package:muhasib/features/purchases/presentation/widgets/purchase_order_card.dart';
 import 'package:muhasib/features/purchases/presentation/widgets/purchase_orders_header.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
   const PurchaseOrdersPage({super.key});
@@ -106,7 +107,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                           innerContext.read<PurchasesCubit>().loadPurchaseOrders();
                         },
                         child: ListView.builder(
-                          padding: const EdgeInsets.all(16),
+                          padding: AppConstant.defaultPadding,
                           itemCount: state.orders.length,
                           itemBuilder: (context, index) {
                             final order = state.orders[index];

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class QuotationHeaderWidget extends StatelessWidget {
   final TextEditingController searchController;
@@ -22,7 +23,7 @@ class QuotationHeaderWidget extends StatelessWidget {
         color: Colors.white,
         border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Row(
         children: [
           Expanded(

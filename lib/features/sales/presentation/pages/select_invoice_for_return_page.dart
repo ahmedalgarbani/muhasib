@@ -12,6 +12,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/select_return_invoice_card_widget.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class SelectInvoiceForReturnPage extends StatefulWidget {
   const SelectInvoiceForReturnPage({super.key});
@@ -62,7 +63,7 @@ class _SelectInvoiceForReturnPageState
         children: [
           // Search Bar
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             color: Colors.white,
             child: TextInputField(
               controller: _searchController,
@@ -118,7 +119,7 @@ class _SelectInvoiceForReturnPageState
                   }
 
                   return ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: AppConstant.defaultPadding,
                     itemCount: _filteredInvoices.length,
                     itemBuilder: (context, index) {
                       final invoice = _filteredInvoices[index];

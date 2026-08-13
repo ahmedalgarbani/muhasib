@@ -9,6 +9,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class SalesByCustomerReportPage extends StatefulWidget {
   const SalesByCustomerReportPage({super.key});
@@ -317,7 +318,7 @@ class _AggregateByPartyContent extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: rows.length,
                 itemBuilder: (context, index) {
                   final r = rows[index];
@@ -438,7 +439,7 @@ class _AggregateByProductContent extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: rows.length,
                 itemBuilder: (context, index) {
                   final r = rows[index];
@@ -553,7 +554,7 @@ class _DailyTotalsContent extends StatelessWidget {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: rows.length,
                 itemBuilder: (context, index) {
                   final r = rows[index];

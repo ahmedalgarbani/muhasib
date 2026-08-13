@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class InventoryNotesCard extends StatelessWidget {
   final TextEditingController statementController;
@@ -21,7 +22,7 @@ class InventoryNotesCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

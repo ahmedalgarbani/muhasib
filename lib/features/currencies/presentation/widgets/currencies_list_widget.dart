@@ -3,6 +3,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import '../../domain/entities/currency_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CurrenciesListWidget extends StatelessWidget {
   const CurrenciesListWidget({
@@ -21,7 +22,7 @@ class CurrenciesListWidget extends StatelessWidget {
     if (currencies.isEmpty)
       return const Center(child: Text('لا توجد عملات مضافة'));
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       itemCount: currencies.length,
       itemBuilder: (context, index) {
         final currency = currencies[index];

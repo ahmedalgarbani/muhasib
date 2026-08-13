@@ -11,6 +11,7 @@ import 'package:muhasib/features/reports/presentation/widgets/report_data_table.
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class SalesSummaryReportPage extends StatefulWidget {
   const SalesSummaryReportPage({super.key});
@@ -126,7 +127,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
           }
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

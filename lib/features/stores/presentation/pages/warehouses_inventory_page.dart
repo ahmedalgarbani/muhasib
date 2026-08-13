@@ -19,6 +19,7 @@ import 'package:muhasib/features/stores/presentation/widgets/inventory_product_c
 import 'package:muhasib/features/stores/presentation/widgets/inventory_summary_card.dart';
 import 'package:muhasib/features/stores/presentation/widgets/inventory_type_selector.dart';
 import 'package:muhasib/features/stores/presentation/widgets/inventory_warehouse_selector_card.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class WarehousesInventoryPage extends StatefulWidget {
   const WarehousesInventoryPage({super.key});
@@ -120,7 +121,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
           ],
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Form(
             key: _formKey,
             child: Column(

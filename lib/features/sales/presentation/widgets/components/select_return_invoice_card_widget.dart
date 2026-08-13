@@ -4,6 +4,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class SelectReturnInvoiceCardWidget extends StatelessWidget {
   final InvoiceEntity invoice;
@@ -43,7 +44,7 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
         onTap: hasReturn ? null : onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

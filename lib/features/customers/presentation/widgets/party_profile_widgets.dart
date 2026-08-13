@@ -5,6 +5,7 @@ import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/detail_row.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PartyProfileSearchField extends StatelessWidget {
   final TextEditingController controller;
@@ -26,7 +27,7 @@ class PartyProfileSearchField extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: colorScheme.surface,
         boxShadow: [
@@ -152,7 +153,7 @@ class PartyProfileCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             children: [
               Row(
@@ -381,7 +382,7 @@ class PartyDetailsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               decoration: BoxDecoration(
                 color: balanceColor,
                 borderRadius: BorderRadius.circular(AppRadius.md),

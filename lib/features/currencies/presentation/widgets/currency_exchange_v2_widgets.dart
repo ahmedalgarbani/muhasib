@@ -4,6 +4,7 @@ import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import '../../domain/entities/currency_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CurrencyExchangeV2Form extends StatelessWidget {
   const CurrencyExchangeV2Form({
@@ -58,7 +59,7 @@ class CurrencyExchangeV2Form extends StatelessWidget {
   final VoidCallback onClear, onSave;
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
+    padding: AppConstant.defaultPadding,
     child: Form(
       key: formKey,
       child: Column(
@@ -234,7 +235,7 @@ class V2CustomRate extends StatelessWidget {
   @override
   Widget build(BuildContext c) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         children: [
           Row(
@@ -293,7 +294,7 @@ class V2Accounts extends StatelessWidget {
 
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -332,7 +333,7 @@ class V2RateInfo extends StatelessWidget {
       : Card(
           color: AppColors.info.withOpacity(.05),
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Text(
               '1 ${fromCurrency!.code} = ${rate.toStringAsFixed(4)} ${toCurrency!.code}',
               style: const TextStyle(
@@ -357,7 +358,7 @@ class V2DateNotes extends StatelessWidget {
   @override
   Widget build(BuildContext c) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         children: [
           InkWell(

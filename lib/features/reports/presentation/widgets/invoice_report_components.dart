@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class InvoiceReportSummaryCardWidget extends StatelessWidget {
   final String title;
@@ -20,7 +21,7 @@ class InvoiceReportSummaryCardWidget extends StatelessWidget {
     return Container(
       width: 150,
       margin: const EdgeInsets.only(left: 12),
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
@@ -117,6 +118,36 @@ class InvoiceReportStatusSummaryWidget extends StatelessWidget {
   }
 }
 
+class InvoiceReportBadgeWidget extends StatelessWidget {
+  final String label;
+  final Color color;
+
+  const InvoiceReportBadgeWidget({
+    super.key,
+    required this.label,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
 class InvoiceReportCardWidget extends StatelessWidget {
   final dynamic row;
   final String formattedCurrency;
@@ -172,24 +203,6 @@ class InvoiceReportCardWidget extends StatelessWidget {
     }
   }
 
-  Widget _buildBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final r = row;
@@ -207,7 +220,7 @@ class InvoiceReportCardWidget extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
+        contentPadding: AppConstant.defaultPadding,
         leading: Container(
           width: 48,
           height: 48,
@@ -258,14 +271,14 @@ class InvoiceReportCardWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                _buildBadge(
-                  _getStatusLabel(r.status),
-                  _getStatusColor(r.status),
+                InvoiceReportBadgeWidget(
+                  label: _getStatusLabel(r.status),
+                  color: _getStatusColor(r.status),
                 ),
                 const SizedBox(width: 8),
-                _buildBadge(
-                  r.hasJournalEntry ? 'محاسبية' : 'مسودة',
-                  r.hasJournalEntry ? Colors.teal : Colors.grey,
+                InvoiceReportBadgeWidget(
+                  label: r.hasJournalEntry ? 'محاسبية' : 'مسودة',
+                  color: r.hasJournalEntry ? Colors.teal : Colors.grey,
                 ),
               ],
             ),

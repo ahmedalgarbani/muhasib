@@ -7,6 +7,7 @@ import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import '../../domain/entities/currency_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CurrencyExchangeForm extends StatelessWidget {
   const CurrencyExchangeForm({
@@ -43,7 +44,7 @@ class CurrencyExchangeForm extends StatelessWidget {
   final List<dynamic> transactions;
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
-    padding: const EdgeInsets.all(16),
+    padding: AppConstant.defaultPadding,
     child: Form(
       key: formKey,
       child: Column(
@@ -215,7 +216,7 @@ class CurrencyRateInfo extends StatelessWidget {
       ? const SizedBox()
       : Card(
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Text(
               '1 ${fromCurrency!.code} = ${exchangeRate.toStringAsFixed(4)} ${toCurrency!.code}',
               style: const TextStyle(
@@ -240,7 +241,7 @@ class CurrencyDateNotes extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         children: [
           InkWell(
@@ -306,7 +307,7 @@ class QuickExchangeRates extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         children: [
           const Text('أسعار الصرف الحالية'),

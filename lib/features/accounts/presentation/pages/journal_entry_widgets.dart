@@ -1,5 +1,353 @@
 part of 'journal_entry_page.dart';
 
+class JournalHeaderCardWidget extends StatelessWidget {
+  final TextEditingController numberController;
+  final TextEditingController descriptionController;
+  final JournalHeader header;
+  final ValueChanged<JournalHeader> onHeaderChanged;
+  final ValueChanged<DateTime> onDateSelected;
+
+  const JournalHeaderCardWidget({
+    super.key,
+    required this.numberController,
+    required this.descriptionController,
+    required this.header,
+    required this.onHeaderChanged,
+    required this.onDateSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomCardContainer(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('بيانات القيد', style: AppTextStyles.titleMedium),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: TextInputField(
+                    label: 'رقم القيد',
+                    textEditingController: numberController,
+                    onChanged: (value) =>
+                        onHeaderChanged(header.copyWith(entryNumber: value)),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: InkWell(
+                    onTap: () async {
+                      final picked = await showDatePicker(
+                        context: context,
+                        initialDate: header.entryDate,
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2100),
+                      );
+                      if (picked != null) {
+                        onDateSelected(picked);
+                      }
+                    },
+                    child: InputDecorator(
+                      decoration: const InputDecoration(
+                        labelText: 'تاريخ القيد',
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            '${header.entryDate.year}-${header.entryDate.month.toString().padLeft(2, '0')}-${header.entryDate.day.toString().padLeft(2, '0')}',
+                          ),
+                          const Icon(Icons.calendar_today, size: 18),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            TextInputField(
+              label: 'وصف القيد',
+              textEditingController: descriptionController,
+              maxLines: 3,
+              hint: 'أدخل وصفاً مختصراً للقيد...',
+              onChanged: (value) =>
+                  onHeaderChanged(header.copyWith(description: value)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class JournalEntriesCardWidget extends StatelessWidget {
+  final List<JournalEntry> entries;
+  final ValueChanged<JournalEntry?> onShowEntryDialog;
+  final ValueChanged<JournalEntry> onDuplicateEntry;
+  final ValueChanged<JournalEntry> onDeleteEntry;
+
+  const JournalEntriesCardWidget({
+    super.key,
+    required this.entries,
+    required this.onShowEntryDialog,
+    required this.onDuplicateEntry,
+    required this.onDeleteEntry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
+        border: Border.all(color: AppColors.slate100, width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.015),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'تفاصيل القيد',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.slate100,
+                    borderRadius: BorderRadius.circular(AppRadius.sm10),
+                  ),
+                  child: Text(
+                    '${entries.length} سطر',
+                    style: const TextStyle(
+                      color: AppColors.darkSecondary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(
+              height: 24,
+              color: AppColors.slate100,
+              thickness: 1.5,
+            ),
+            if (entries.isEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  vertical: 36,
+                  horizontal: 16,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.background,
+                  borderRadius: BorderRadius.circular(AppRadius.lg),
+                  border: Border.all(color: AppColors.slate100),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: AppConstant.defaultPadding,
+                      decoration: const BoxDecoration(
+                        color: AppColors.blue50,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.receipt_long_rounded,
+                        size: 36,
+                        color: AppColors.info,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'لم يتم إضافة أي تفصيل بعد',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'اضغط على زر الإضافة الدائري بالأسفل لإضافة سطر جديد للقيد.',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        height: 1.4,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              Column(
+                children: entries
+                    .map(
+                      (entry) => _EntryTile(
+                        entry: entry,
+                        onEdit: () => onShowEntryDialog(entry),
+                        onDuplicate: () => onDuplicateEntry(entry),
+                        onDelete: () => onDeleteEntry(entry),
+                      ),
+                    )
+                    .toList(),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class JournalSummaryCardWidget extends StatelessWidget {
+  final JournalTotals totals;
+  final bool isSaving;
+  final VoidCallback onSaveJournal;
+  final VoidCallback onClearAll;
+
+  const JournalSummaryCardWidget({
+    super.key,
+    required this.totals,
+    required this.isSaving,
+    required this.onSaveJournal,
+    required this.onClearAll,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(AppRadius.sm10),
+                  ),
+                  child: const Icon(
+                    Icons.analytics_outlined,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                const Text(
+                  'ملخص القيد والتحقق',
+                  style: AppTextStyles.titleMedium,
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: SummaryCard(
+                    label: 'إجمالي المدين',
+                    value: totals.debit.toStringAsFixed(2),
+                    color: AppTheme.greenColor,
+                    icon: Icons.arrow_upward,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: SummaryCard(
+                    label: 'إجمالي الدائن',
+                    value: totals.credit.toStringAsFixed(2),
+                    color: AppTheme.redColor,
+                    icon: Icons.arrow_downward,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SummaryCard(
+              label: 'الفرق المحاسبي',
+              value: totals.difference.toStringAsFixed(2),
+              color: totals.isBalanced
+                  ? AppTheme.greenColor
+                  : AppTheme.redColor,
+              icon: Icons.balance,
+            ),
+            const SizedBox(height: 20),
+            StatusCard(balanced: totals.isBalanced),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: HasibButton(
+                    label: isSaving ? 'جارٍ الحفظ...' : 'حفظ القيد المحاسبي',
+                    onPressed: (isSaving || !totals.isBalanced)
+                        ? null
+                        : onSaveJournal,
+                    variant: HasibButtonVariant.primary,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                IconButton(
+                  onPressed: isSaving ? null : onClearAll,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.red.shade50,
+                    foregroundColor: Colors.red,
+                    padding: AppConstant.defaultPadding,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                  ),
+                  icon: const Icon(Icons.delete_outline),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class SummaryCard extends StatelessWidget {
   final String label;
   final String value;
@@ -108,7 +456,7 @@ class StatusCard extends StatelessWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: cardBg,
         border: Border.all(color: borderCol, width: 1.5),
@@ -182,7 +530,6 @@ class _AddEntryModalState extends State<AddEntryModal> {
     super.initState();
     final entry = widget.initialEntry;
     if (entry != null) {
-      // Find account by ID if possible, otherwise by name (fallback)
       if (entry.accountId != null) {
         _selectedAccount = widget.accounts
             .where((a) => a.id == entry.accountId)
@@ -193,7 +540,6 @@ class _AddEntryModalState extends State<AddEntryModal> {
             .firstOrNull;
       }
 
-      // Find currency by ID if possible, otherwise by name/code
       if (entry.currencyId != null) {
         _selectedCurrency = widget.currencies
             .where((c) => c.id == entry.currencyId)
@@ -210,7 +556,6 @@ class _AddEntryModalState extends State<AddEntryModal> {
       );
       _notesController = TextEditingController(text: entry.notes);
     } else {
-      // Default to first currency (usually local currency)
       if (widget.currencies.isNotEmpty) {
         _selectedCurrency = widget.currencies.first;
       }
@@ -456,7 +801,7 @@ class _EntryTile extends StatelessWidget {
           decoration: BoxDecoration(
             border: Border(right: BorderSide(color: accentColor, width: 5)),
           ),
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Row(
             children: [
               Container(

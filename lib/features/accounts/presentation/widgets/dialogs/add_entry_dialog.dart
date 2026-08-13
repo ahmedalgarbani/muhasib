@@ -5,6 +5,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class AddEntryDialog extends StatefulWidget {
   const AddEntryDialog({super.key});
@@ -120,7 +121,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                             }
                           },
                           child: Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: AppConstant.defaultPadding,
                             decoration: BoxDecoration(
                               border: Border.all(
                                 color: Colors.grey[300]!,

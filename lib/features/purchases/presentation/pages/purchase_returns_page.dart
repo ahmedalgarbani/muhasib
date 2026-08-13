@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
-import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
-import 'package:muhasib/features/purchases/presentation/pages/select_purchase_for_return_page.dart';
-import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
+import 'package:muhasib/features/purchases/presentation/pages/select_purchase_for_return_page.dart';
+import 'package:muhasib/features/purchases/presentation/widgets/purchase_returns_widgets.dart';
 
 class PurchaseReturnsPage extends StatefulWidget {
   const PurchaseReturnsPage({super.key});
@@ -49,17 +46,83 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
         builder: (innerContext) => Scaffold(
           key: _scaffoldKey,
           backgroundColor: AppColors.gray50,
-          appBar: CustomAppBar(),
+          appBar: const CustomAppBar(),
           body: Column(
             children: [
-              _buildHeader(innerContext),
-              _buildTabBar(),
+              PurchaseReturnsHeaderWidget(
+                searchController: _searchController,
+                onRefresh: () =>
+                    innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
+              ),
+              PurchaseReturnsTabBarWidget(controller: _tabController),
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    _buildReturnsTab(innerContext),
-                    _buildStatisticsTab(),
+                    BlocBuilder<PurchasesCubit, PurchasesState>(
+                      builder: (context, state) {
+                        if (state is PurchasesLoading) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        } else if (state is PurchasesError) {
+                          return Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: Colors.red[300],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  state.message,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 14,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 16),
+                                HasibButton(
+                                  label: 'إعادة المحاولة',
+                                  onPressed: () => innerContext
+                                      .read<PurchasesCubit>()
+                                      .loadPurchaseReturns(),
+                                  icon: Icons.refresh,
+                                  variant: HasibButtonVariant.danger,
+                                  fullWidth: false,
+                                ),
+                              ],
+                            ),
+                          );
+                        } else if (state is PurchaseReturnsLoaded) {
+                          if (state.returns.isEmpty) {
+                            return EmptyStateWidget(
+                              title: 'لا توجد مردودات',
+                              subtitle: 'لم يتم إنشاء أي مردودات مشتريات بعد',
+                              icon: Icons.assignment_return_outlined,
+                              iconSize: 64,
+                              iconColor: Colors.red.withOpacity(0.3),
+                              actionText: 'إنشاء مردود',
+                              onActionPressed: () =>
+                                  _showCreateReturnDialog(context),
+                            );
+                          }
+                          return PurchaseReturnsListWidget(
+                            returns: state.returns,
+                            onRefresh: () => innerContext
+                                .read<PurchasesCubit>()
+                                .loadPurchaseReturns(),
+                          );
+                        }
+                        return const Center(
+                          child: Text('ابدأ بتحميل المردودات'),
+                        );
+                      },
+                    ),
+                    const PurchaseReturnsStatisticsTabWidget(),
                   ],
                 ),
               ),
@@ -82,565 +145,6 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext innerContext) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            spreadRadius: 0,
-            blurRadius: 1,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: const Icon(
-                  Icons.assignment_return,
-                  color: Colors.red,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'مردودات المشتريات',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.gray900,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'إدارة المردودات والمرتجعات',
-                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () =>
-                    innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
-                icon: const Icon(Icons.refresh),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.grey.shade100,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextInputField(
-            controller: _searchController,
-            hint: 'البحث في المردودات...',
-            decoration: InputDecoration(
-              hintStyle: const TextStyle(fontSize: 13),
-              prefixIcon: const Icon(
-                Icons.search,
-                color: Colors.grey,
-                size: 20,
-              ),
-              filled: true,
-              fillColor: AppColors.gray50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: const BorderSide(color: Colors.red, width: 1),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-            ),
-            style: const TextStyle(fontSize: 13),
-            onChanged: (value) {
-              // TODO: Implement search functionality
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabBar() {
-    return Container(
-      color: Colors.white,
-      child: TabBar(
-        controller: _tabController,
-        labelColor: Colors.red,
-        unselectedLabelColor: Colors.grey,
-        indicatorColor: Colors.red,
-        indicatorWeight: 3,
-        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontSize: 13),
-        tabs: const [
-          Tab(icon: Icon(Icons.list_alt, size: 20), text: 'قائمة المردودات'),
-          Tab(icon: Icon(Icons.analytics, size: 20), text: 'الإحصائيات'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReturnsTab(BuildContext innerContext) {
-    return BlocBuilder<PurchasesCubit, PurchasesState>(
-      builder: (context, state) {
-        if (state is PurchasesLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is PurchasesError) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                const SizedBox(height: 16),
-                Text(
-                  state.message,
-                  style: const TextStyle(color: Colors.red, fontSize: 14),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                HasibButton(
-                  label: 'إعادة المحاولة',
-                  onPressed: () =>
-                      innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
-                  icon: Icons.refresh,
-                  variant: HasibButtonVariant.danger,
-                  fullWidth: false,
-                ),
-              ],
-            ),
-          );
-        } else if (state is PurchaseReturnsLoaded) {
-          if (state.returns.isEmpty) {
-            return EmptyStateWidget(
-              title: 'لا توجد مردودات',
-              subtitle: 'لم يتم إنشاء أي مردودات مشتريات بعد',
-              icon: Icons.assignment_return_outlined,
-              iconSize: 64,
-              iconColor: Colors.red.withOpacity(0.3),
-              actionText: 'إنشاء مردود',
-              onActionPressed: () => _showCreateReturnDialog(context),
-            );
-          }
-          return _buildReturnsList(innerContext, state.returns);
-        }
-        return const Center(child: Text('ابدأ بتحميل المردودات'));
-      },
-    );
-  }
-
-  Widget _buildReturnsList(
-    BuildContext innerContext,
-    List<InvoiceEntity> returns,
-  ) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        innerContext.read<PurchasesCubit>().loadPurchaseReturns();
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: returns.length,
-        itemBuilder: (context, index) {
-          return _buildReturnCard(returns[index]);
-        },
-      ),
-    );
-  }
-
-  Widget _buildReturnCard(InvoiceEntity returnInvoice) {
-    return CustomCardContainer(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.red.shade100),
-      ),
-      child: InkWell(
-        onTap: () {
-          // Navigate to return details
-        },
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(AppRadius.sm6),
-                          ),
-                          child: const Icon(
-                            Icons.assignment_return,
-                            size: 18,
-                            color: Colors.red,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'مردود #${returnInvoice.number}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.gray900,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.calendar_today,
-                                    size: 12,
-                                    color: Colors.grey[600],
-                                  ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    _formatDate(returnInvoice.date),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                    child: const Text(
-                      'مردود',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.red,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              if (returnInvoice.parentInvoiceNumber != null) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
-                    borderRadius: BorderRadius.circular(AppRadius.sm6),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.link, size: 14, color: Colors.blue[700]),
-                      const SizedBox(width: 6),
-                      Text(
-                        'مرتبط بالفاتورة #${returnInvoice.parentInvoiceNumber}',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.blue[700],
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(Icons.business, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    'المورد #${returnInvoice.customerId}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(Icons.inventory_2, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${returnInvoice.lines.length} منتج',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'قيمة المردود',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatCurrency(
-                          returnInvoice.finalAmt ?? returnInvoice.amount,
-                        ),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () {
-                          // View details
-                        },
-                        icon: const Icon(Icons.visibility, size: 18),
-                        color: Colors.blue,
-                        tooltip: 'عرض التفاصيل',
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          // Print
-                        },
-                        icon: const Icon(Icons.print, size: 18),
-                        color: Colors.green,
-                        tooltip: 'طباعة',
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              if (returnInvoice.statement != null &&
-                  returnInvoice.statement!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(AppRadius.sm6),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.note, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          returnInvoice.statement!,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[700],
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatisticsTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _buildStatCard(
-            'إجمالي المردودات',
-            '0',
-            Icons.assignment_return,
-            Colors.red,
-          ),
-          const SizedBox(height: 12),
-          _buildStatCard(
-            'قيمة المردودات',
-            '0.00 ريال',
-            Icons.attach_money,
-            Colors.orange,
-          ),
-          const SizedBox(height: 12),
-          _buildStatCard(
-            'متوسط قيمة المردود',
-            '0.00 ريال',
-            Icons.analytics,
-            Colors.blue,
-          ),
-          const SizedBox(height: 12),
-          _buildStatCard(
-            'المردودات هذا الشهر',
-            '0',
-            Icons.calendar_month,
-            Colors.green,
-          ),
-          const SizedBox(height: 20),
-          CustomCardContainer(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(AppRadius.md),
-              side: BorderSide(color: Colors.grey.shade200),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'أسباب المردودات',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.gray900,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildReasonRow('عيوب في المنتج', 45, Colors.red),
-                  const SizedBox(height: 12),
-                  _buildReasonRow('عدم مطابقة المواصفات', 30, Colors.orange),
-                  const SizedBox(height: 12),
-                  _buildReasonRow('تأخر في التسليم', 15, Colors.blue),
-                  const SizedBox(height: 12),
-                  _buildReasonRow('أخرى', 10, Colors.grey),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard(
-    String title,
-    String value,
-    IconData icon,
-    Color color,
-  ) {
-    return CustomCardContainer(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: color.withOpacity(0.2)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Icon(icon, color: color, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.gray900,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReasonRow(String reason, int percentage, Color color) {
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: Text(reason, style: const TextStyle(fontSize: 12)),
-        ),
-        Expanded(
-          flex: 5,
-          child: LinearProgressIndicator(
-            value: percentage / 100,
-            backgroundColor: color.withOpacity(0.1),
-            valueColor: AlwaysStoppedAnimation<Color>(color),
-            minHeight: 8,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Text(
-          '$percentage%',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
     );
   }
 
@@ -709,15 +213,5 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
         ],
       ),
     );
-  }
-
-  String _formatDate(int timestamp) {
-    final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    return DateFormat('yyyy-MM-dd').format(date);
-  }
-
-  String _formatCurrency(double amount) {
-    final formatter = NumberFormat('#,##0.00', 'ar');
-    return '${formatter.format(amount)} ريال';
   }
 }

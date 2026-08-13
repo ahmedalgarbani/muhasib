@@ -10,6 +10,7 @@ import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
 import 'package:muhasib/core/widgets/settings_image_picker_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
@@ -257,7 +258,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 ),
 
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppConstant.defaultPadding,
                   child: HasibButton(
                     label: 'حفظ',
                     onPressed: _saveSettings,

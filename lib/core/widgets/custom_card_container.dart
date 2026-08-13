@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Reusable Card Container with unified border radius, background, border, and elevation.
 class CustomCardContainer extends StatelessWidget {
@@ -22,7 +23,7 @@ class CustomCardContainer extends StatelessWidget {
   const CustomCardContainer({
     super.key,
     required this.child,
-    this.padding = const EdgeInsets.all(16),
+    this.padding = AppConstant.defaultPadding,
     this.margin = const EdgeInsets.only(bottom: 12),
     this.onTap,
     this.backgroundColor,

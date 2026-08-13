@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class AccountStatementAccountSelectorWidget extends StatelessWidget {
   final int? selectedAccountId;
@@ -61,7 +62,7 @@ class AccountStatementSummaryItemWidget extends StatelessWidget {
     return Container(
       width: 140,
       margin: const EdgeInsets.only(left: 10),
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.lg20),

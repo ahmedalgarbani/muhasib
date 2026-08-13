@@ -9,6 +9,7 @@ import 'package:muhasib/features/reports/presentation/widgets/report_data_table.
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CustomerBalancesReportPage extends StatefulWidget {
   const CustomerBalancesReportPage({super.key});
@@ -171,7 +172,7 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
         final fmt = NumberFormat('#,##0.00', 'ar');
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

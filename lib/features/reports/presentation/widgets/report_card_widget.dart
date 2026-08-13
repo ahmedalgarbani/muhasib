@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ReportCardWidget extends StatelessWidget {
   final ReportItem report;
@@ -21,7 +22,7 @@ class ReportCardWidget extends StatelessWidget {
         onTap: () => context.push(report.route),
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Row(
             children: [
               Container(

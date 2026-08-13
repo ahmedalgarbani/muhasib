@@ -5,6 +5,7 @@ import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/features/accounts/domain/services/account_connect_validator.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Mixin to add account connection validation to Cubits
 mixin AccountConnectValidationMixin {
@@ -216,7 +217,7 @@ mixin AccountConnectValidationMixin {
             children: [
               // Progress indicator
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 decoration: BoxDecoration(
                   color: Colors.grey[50],
                   borderRadius: BorderRadius.circular(AppRadius.md),

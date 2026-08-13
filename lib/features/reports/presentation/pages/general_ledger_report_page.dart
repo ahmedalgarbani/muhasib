@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class GeneralLedgerReportPage extends StatefulWidget {
   const GeneralLedgerReportPage({super.key});
@@ -121,7 +122,7 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               child: Row(
                 children: [
                   Expanded(
@@ -294,7 +295,7 @@ class _AccountTransactionsView extends StatelessWidget {
         final txns = snapshot.data!;
         if (txns.isEmpty)
           return const Padding(
-            padding: EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Text(
               'لا توجد حركات تفصيلية',
               style: TextStyle(fontSize: 11, color: Colors.grey),

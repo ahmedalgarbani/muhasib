@@ -20,6 +20,7 @@ import 'package:muhasib/features/sales/presentation/widgets/components/improved_
 import 'package:muhasib/features/sales/presentation/widgets/components/improved_step4_payment.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_dialog.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ImprovedSalesInvoiceScreen extends StatefulWidget {
   final InvoiceType invoiceType;
@@ -275,7 +276,7 @@ class _ImprovedSalesInvoiceScreenState
               // Step Title
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 color: Colors.white,
                 child: Column(
                   children: [
@@ -300,11 +301,20 @@ class _ImprovedSalesInvoiceScreenState
               ),
 
               // Step Content
-              Expanded(child: _getStepContent()),
+              Expanded(
+                child: ImprovedStepContentWidget(
+                  currentStep: _currentStep,
+                  invoice: _invoice,
+                  payments: _payments,
+                  onInvoiceUpdate: _updateInvoice,
+                  onNext: _nextStep,
+                  onAddPayment: _showPaymentDialog,
+                ),
+              ),
 
               // Navigation Buttons
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
@@ -402,32 +412,6 @@ class _ImprovedSalesInvoiceScreenState
     }
   }
 
-  Widget _getStepContent() {
-    switch (_currentStep) {
-      case 1:
-        return ImprovedStep1Customer(
-          invoice: _invoice,
-          onInvoiceUpdate: _updateInvoice,
-          onNext: _nextStep,
-        );
-      case 2:
-        return ImprovedStep2Products(
-          invoice: _invoice,
-          onInvoiceUpdate: _updateInvoice,
-        );
-      case 3:
-        return ImprovedStep3Totals(invoice: _invoice);
-      case 4:
-        return ImprovedStep4Payment(
-          invoice: _invoice,
-          payments: _payments,
-          onAddPayment: _showPaymentDialog,
-        );
-      default:
-        return const SizedBox();
-    }
-  }
-
   void _handleNext() {
     switch (_currentStep) {
       case 1:
@@ -444,5 +428,51 @@ class _ImprovedSalesInvoiceScreenState
         break;
     }
     _nextStep();
+  }
+}
+
+class ImprovedStepContentWidget extends StatelessWidget {
+  final int currentStep;
+  final Invoice invoice;
+  final List<Payment> payments;
+  final ValueChanged<Invoice> onInvoiceUpdate;
+  final VoidCallback onNext;
+  final VoidCallback onAddPayment;
+
+  const ImprovedStepContentWidget({
+    super.key,
+    required this.currentStep,
+    required this.invoice,
+    required this.payments,
+    required this.onInvoiceUpdate,
+    required this.onNext,
+    required this.onAddPayment,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    switch (currentStep) {
+      case 1:
+        return ImprovedStep1Customer(
+          invoice: invoice,
+          onInvoiceUpdate: onInvoiceUpdate,
+          onNext: onNext,
+        );
+      case 2:
+        return ImprovedStep2Products(
+          invoice: invoice,
+          onInvoiceUpdate: onInvoiceUpdate,
+        );
+      case 3:
+        return ImprovedStep3Totals(invoice: invoice);
+      case 4:
+        return ImprovedStep4Payment(
+          invoice: invoice,
+          payments: payments,
+          onAddPayment: onAddPayment,
+        );
+      default:
+        return const SizedBox();
+    }
   }
 }

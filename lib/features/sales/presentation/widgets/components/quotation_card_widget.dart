@@ -7,6 +7,7 @@ import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class QuotationCardWidget extends StatelessWidget {
   final InvoiceEntity quotation;
@@ -47,7 +48,7 @@ class QuotationCardWidget extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 
 class ReportBasePage extends StatefulWidget {
   final String title;
@@ -312,13 +312,29 @@ class _ReportBasePageState extends State<ReportBasePage> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            _buildQuickFilterChip('اليوم', 'today'),
+                            QuickFilterChipWidget(
+                              label: 'اليوم',
+                              color: widget.color,
+                              onPressed: () => _applyQuickFilter('today'),
+                            ),
                             const SizedBox(width: 8),
-                            _buildQuickFilterChip('الأسبوع', 'week'),
+                            QuickFilterChipWidget(
+                              label: 'الأسبوع',
+                              color: widget.color,
+                              onPressed: () => _applyQuickFilter('week'),
+                            ),
                             const SizedBox(width: 8),
-                            _buildQuickFilterChip('الشهر الحالي', 'month'),
+                            QuickFilterChipWidget(
+                              label: 'الشهر الحالي',
+                              color: widget.color,
+                              onPressed: () => _applyQuickFilter('month'),
+                            ),
                             const SizedBox(width: 8),
-                            _buildQuickFilterChip('العام الحالي', 'year'),
+                            QuickFilterChipWidget(
+                              label: 'العام الحالي',
+                              color: widget.color,
+                              onPressed: () => _applyQuickFilter('year'),
+                            ),
                           ],
                         ),
                       ),
@@ -338,18 +354,32 @@ class _ReportBasePageState extends State<ReportBasePage> {
       ),
     );
   }
+}
 
-  Widget _buildQuickFilterChip(String label, String type) {
+class QuickFilterChipWidget extends StatelessWidget {
+  final String label;
+  final Color color;
+  final VoidCallback onPressed;
+
+  const QuickFilterChipWidget({
+    super.key,
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return ActionChip(
       label: Text(label),
-      backgroundColor: widget.color.withOpacity(0.05),
+      backgroundColor: color.withOpacity(0.05),
       labelStyle: TextStyle(
-        color: widget.color,
+        color: color,
         fontWeight: FontWeight.bold,
         fontSize: 12,
       ),
-      side: BorderSide(color: widget.color.withOpacity(0.2)),
-      onPressed: () => _applyQuickFilter(type),
+      side: BorderSide(color: color.withOpacity(0.2)),
+      onPressed: onPressed,
     );
   }
 }

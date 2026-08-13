@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Reusable Stat Card Component for dashboard/lists stats.
 class StatCard extends StatelessWidget {
@@ -17,7 +18,7 @@ class StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(AppRadius.md),

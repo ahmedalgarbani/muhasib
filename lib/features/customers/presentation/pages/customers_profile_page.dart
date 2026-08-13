@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/customers/presentation/widgets/customer_list_widget.dart';
 import 'package:muhasib/features/customers/presentation/widgets/party_profile_widgets.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
 
@@ -63,7 +64,9 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
                 setState(() => _searchQuery = '');
               },
             ),
-            Expanded(child: _buildCustomerList()),
+            Expanded(
+              child: CustomerListWidget(searchQuery: _searchQuery),
+            ),
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
@@ -74,49 +77,6 @@ class _CustomersProfileContentState extends State<_CustomersProfileContent> {
           foregroundColor: colorScheme.onPrimary,
         ),
       ),
-    );
-  }
-
-  Widget _buildCustomerList() {
-    return BlocBuilder<CustomersCubit, CustomersState>(
-      builder: (context, state) {
-        if (state is CustomersLoading) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (state is CustomersError) {
-          return PartyProfileErrorState(
-            message: state.message,
-            onRetry: () => context.read<CustomersCubit>().loadCustomers(),
-          );
-        }
-        if (state is! CustomersLoaded) return const SizedBox.shrink();
-
-        final query = _searchQuery.toLowerCase();
-        final customers = state.customers.where((customer) {
-          return customer.name.toLowerCase().contains(query) ||
-              (customer.phone?.contains(_searchQuery) ?? false);
-        }).toList();
-
-        if (customers.isEmpty) {
-          return PartyProfileEmptyState(
-            icon: Icons.person_off,
-            title: query.isEmpty ? 'لا يوجد عملاء' : 'لا توجد نتائج للبحث',
-          );
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: customers.length,
-          itemBuilder: (context, index) {
-            final customer = customers[index];
-            return PartyProfileCard(
-              party: customer,
-              isSupplier: false,
-              onTap: () => showPartyDetailsSheet(context, customer, false),
-            );
-          },
-        );
-      },
     );
   }
 

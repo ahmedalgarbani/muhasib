@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
-import 'package:muhasib/core/errors/failure.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_limit_entity.dart';
 import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 import 'package:muhasib/features/accounts/domain/services/account_limit_service.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_limit_entity.dart';
 
 /// Mixin to add account limit checking capabilities to Cubits
 mixin AccountLimitMixin {
@@ -14,13 +14,13 @@ mixin AccountLimitMixin {
     _limitInterceptor = AccountLimitInterceptor(limitService: limitService);
   }
 
-  /// Check if a journal entry can be saved based on account limits
+  /// Check if a journal entry can be saved based on accou
   Future<bool> canSaveJournalEntry({
     required List<JournalEntryLineValidation> lines,
     required BuildContext context,
   }) async {
     if (_limitInterceptor == null) {
-      return true; // No limit checking if not initialized
+      return true;
     }
 
     final result = await _limitInterceptor!.validateJournalEntry(lines: lines);
@@ -93,7 +93,7 @@ mixin AccountLimitMixin {
     final result = await _limitInterceptor!.checkAccountsNearLimit();
 
     result.fold(
-      (failure) => null, // Silently fail for warnings
+      (failure) => null,
       (warnings) {
         if (warnings.isNotEmpty) {
           _showWarningsDialog(context, warnings);
@@ -228,18 +228,18 @@ mixin AccountLimitMixin {
                       ),
                       const SizedBox(height: 8),
                       if (warning.debitUsage > 70)
-                        _buildUsageRow(
-                          'استخدام المدين',
-                          warning.debitUsage,
-                          warning.availableDebit,
-                          usageColor,
+                        AccountUsageRowWidget(
+                          label: 'استخدام المدين',
+                          usagePercentage: warning.debitUsage,
+                          available: warning.availableDebit,
+                          color: usageColor,
                         ),
                       if (warning.creditUsage > 70)
-                        _buildUsageRow(
-                          'استخدام الدائن',
-                          warning.creditUsage,
-                          warning.availableCredit,
-                          usageColor,
+                        AccountUsageRowWidget(
+                          label: 'استخدام الدائن',
+                          usagePercentage: warning.creditUsage,
+                          available: warning.availableCredit,
+                          color: usageColor,
                         ),
                     ],
                   ),
@@ -257,13 +257,24 @@ mixin AccountLimitMixin {
       ),
     );
   }
+}
 
-  Widget _buildUsageRow(
-    String label,
-    double usagePercentage,
-    double available,
-    Color color,
-  ) {
+class AccountUsageRowWidget extends StatelessWidget {
+  final String label;
+  final double usagePercentage;
+  final double available;
+  final Color color;
+
+  const AccountUsageRowWidget({
+    super.key,
+    required this.label,
+    required this.usagePercentage,
+    required this.available,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Column(

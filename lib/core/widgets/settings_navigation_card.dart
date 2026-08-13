@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Reusable navigation card component for settings menu list.
 class SettingsNavigationCard extends StatelessWidget {
@@ -28,7 +29,7 @@ class SettingsNavigationCard extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Row(
             children: [
               Expanded(

@@ -1,28 +1,26 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/vouchers_cubit.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
-import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
-import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:intl/intl.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/widgets/section_header.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
-
+import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/section_header.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/vouchers_cubit.dart';
+import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
+import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 part 'voucher_form_screen_models.dart';
 part 'voucher_form_screen_widgets.dart';
-
-// ==================== FILE 11: screens/voucher_form_screen.dart ====================
 
 class VoucherFormScreen extends StatefulWidget {
   const VoucherFormScreen({super.key});
@@ -35,14 +33,12 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
   VoucherType _voucherType = VoucherType.payment;
   VoucherPaymentMethod _paymentMethod = VoucherPaymentMethod.cash;
 
-  // Data lists
   List<AccountEntity> _accounts = [];
   List<CurrencyEntity> _currencies = [];
 
-  // Selected values
   AccountEntity? _selectedAccount;
   CurrencyEntity? _selectedCurrency;
-  AccountEntity? _selectedBoxBank; // Cash box or Bank account
+  AccountEntity? _selectedBoxBank;
 
   bool _isSaving = false;
 
@@ -76,11 +72,8 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
   @override
   void initState() {
     super.initState();
-    // Generate initial number
     context.read<VouchersCubit>().refreshNumber(_voucherType);
   }
-
-  // Form data is managed via controllers and selected values directly
 
   @override
   Widget build(BuildContext context) {
@@ -98,12 +91,10 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             setState(() => _isSaving = true);
           } else if (state is VoucherActionSuccess) {
             setState(() => _isSaving = false);
-           
-            AppToast.showSuccess(context,state.message);
+            AppToast.showSuccess(context, state.message);
             Navigator.pop(context);
           } else if (state is VouchersFailure) {
             setState(() => _isSaving = false);
-           
             AppToast.showError(context, state.message);
           } else if (state is VoucherNumberGenerated) {
             _numberController.text = state.number.toString();
@@ -141,15 +132,55 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                _buildHeader(),
+                                VoucherFormHeaderWidget(
+                                  onBack: () => Navigator.pop(context),
+                                ),
                                 const SizedBox(height: 24),
-                                _buildVoucherTypeSection(),
-                                _buildBasicInformationSection(),
-                                _buildNotesAndImageSection(),
-                                _buildPaymentMethodSection(),
-                                _buildPaymentDetailsSection(),
+                                VoucherTypeSectionWidget(
+                                  voucherType: _voucherType,
+                                  onChanged: (value) {
+                                    setState(() => _voucherType = value);
+                                    context.read<VouchersCubit>().refreshNumber(value);
+                                  },
+                                ),
+                                VoucherBasicInformationSectionWidget(
+                                  numberController: _numberController,
+                                  dateController: _dateController,
+                                  selectedAccount: _selectedAccount,
+                                  accounts: _accounts,
+                                  onAccountChanged: (val) =>
+                                      setState(() => _selectedAccount = val),
+                                ),
+                                VoucherNotesAndImageSectionWidget(
+                                  notesController: _notesController,
+                                ),
+                                VoucherPaymentMethodSectionWidget(
+                                  paymentMethod: _paymentMethod,
+                                  onChanged: (val) =>
+                                      setState(() => _paymentMethod = val),
+                                ),
+                                VoucherPaymentDetailsSectionWidget(
+                                  paymentMethod: _paymentMethod,
+                                  amountController: _amountController,
+                                  accounts: _accounts,
+                                  currencies: _currencies,
+                                  selectedBoxBank: _selectedBoxBank,
+                                  selectedCurrency: _selectedCurrency,
+                                  accountNumberController: _accountNumberController,
+                                  senderNameController: _senderNameController,
+                                  recipientNameController: _recipientNameController,
+                                  commissionAmountController:
+                                      _commissionAmountController,
+                                  onBoxBankChanged: (val) =>
+                                      setState(() => _selectedBoxBank = val),
+                                  onCurrencyChanged: (val) =>
+                                      setState(() => _selectedCurrency = val),
+                                ),
                                 const SizedBox(height: 8),
-                                _buildSaveButton(),
+                                VoucherScreenSaveButtonWidget(
+                                  isSaving: _isSaving,
+                                  onSave: (ctx) => _handleSave(ctx),
+                                ),
                                 const SizedBox(height: 24),
                               ],
                             ),
@@ -163,392 +194,6 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
             );
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return Builder(
-      builder: (context) {
-        return HasibButton(
-          label: _isSaving ? 'جاري الحفظ...' : 'حفظ',
-          onPressed: _isSaving ? null : () => _handleSave(context),
-          loading: _isSaving,
-        );
-      },
-    );
-  }
-
-  Widget _buildHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text('إضافة سند', style: AppTextStyles.heading1),
-        IconButton(
-          icon: const Icon(Icons.chevron_right, color: AppColors.blue600),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildVoucherTypeSection() {
-    return CustomCardContainer(
-      child: Row(
-        children: [
-          CustomRadioButton<VoucherType>(
-            value: VoucherType.payment,
-            groupValue: _voucherType,
-            label: 'سند صرف',
-            onChanged: (value) {
-              setState(() => _voucherType = value);
-              context.read<VouchersCubit>().refreshNumber(value);
-            },
-          ),
-          CustomRadioButton<VoucherType>(
-            value: VoucherType.receipt,
-            groupValue: _voucherType,
-            label: 'سند قبض',
-            onChanged: (value) {
-              setState(() => _voucherType = value);
-              context.read<VouchersCubit>().refreshNumber(value);
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBasicInformationSection() {
-    return CustomCardContainer(
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: TextInputField(
-                  hint: 'الرقم',
-                  isRequired: true,
-                  textEditingController: _numberController,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextInputField(
-                  hint: 'تاريخ السند',
-                  isRequired: true,
-                  textEditingController: _dateController,
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          const SizedBox(height: 16),
-          CustomDropdownField<AccountEntity>(
-            
-            isRequired: true,
-            value: _selectedAccount,
-            items: _accounts
-                .where((a) => !a.isMaster)
-                .map(
-                  (e) => DropdownMenuItem(
-                    value: e,
-                    child: Text('${e.code} - ${e.name}'),
-                  ),
-                )
-                .toList(),
-            onChanged: (value) => setState(() => _selectedAccount = value),
-            hint: 'اختر الحساب (الطرف الثاني)',
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNotesAndImageSection() {
-    return CustomCardContainer(
-      child: Column(
-        children: [
-          TextInputField(
-            // label: 'الملاحظة',
-            hint: 'أضف ملاحظة...',
-            textEditingController: _notesController,
-            maxLines: 3,
-            maxLength: 1000,
-            showCharacterCount: true,
-          ),
-          const SizedBox(height: 16),
-          _buildImageUploadButton(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildImageUploadButton() {
-    return InkWell(
-      onTap: () {
-        // Handle image upload
-      },
-       borderRadius: BorderRadius.circular(AppRadius.lg),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: AppColors.gray300,
-            width: 2,
-            style: BorderStyle.solid,
-          ),
-           borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.add_photo_alternate_outlined,
-              color: AppColors.gray600,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              'إرفاق صورة',
-              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w500),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentMethodSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SectionHeader(title: 'طرق الدفع', showChevron: true),
-        CustomCardContainer(
-          backgroundColor: AppColors.blue50,
-          borderColor: AppColors.blue200,
-          child: Row(
-            children: [
-              CustomRadioButton<VoucherPaymentMethod>(
-                value: VoucherPaymentMethod.cash,
-                groupValue: _paymentMethod,
-                label: 'نقداً',
-                onChanged: (value) => setState(() => _paymentMethod = value),
-              ),
-              CustomRadioButton<VoucherPaymentMethod>(
-                value: VoucherPaymentMethod.bankTransfer,
-                groupValue: _paymentMethod,
-                label: 'حواله بنكية',
-                onChanged: (value) => setState(() => _paymentMethod = value),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPaymentDetailsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SectionHeader(
-          title: _paymentMethod == VoucherPaymentMethod.cash
-              ? 'تفاصيل الدفع النقدي'
-              : 'تفاصيل التحويل البنكي',
-          showChevron: true,
-        ),
-            _paymentMethod == VoucherPaymentMethod.cash
-            ? _buildCashPaymentSection()
-            : _buildBankTransferSection(),
-      ],
-    );
-  }
-
-  Widget _buildCashPaymentSection() {
-    return CustomCardContainer(
-      child: Column(
-        children: [
-          _buildAmountField(),
-          const SizedBox(height: 16),
-          const SizedBox(height: 16),
-          CustomDropdownField<AccountEntity>(
-            hint: 'الصندوق',
-            value: _selectedBoxBank,
-            items: _accounts
-                .where(
-                  (a) =>
-                      !a.isMaster &&
-                      (a.name.contains('صندوق') || a.code.startsWith('111')),
-                )
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: (value) => setState(() => _selectedBoxBank = value),
-          ),
-          const SizedBox(height: 16),
-          CustomDropdownField<CurrencyEntity>(
-            hint: 'العملة',
-            
-            value: _selectedCurrency,
-            items: _currencies
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: (value) => setState(() => _selectedCurrency = value),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBankTransferSection() {
-    return CustomCardContainer(
-      child: Column(
-        children: [
-          _buildAmountField(),
-          const SizedBox(height: 16),
-          CustomDropdownField<CurrencyEntity>(
-            hint: 'العملة',
-            isRequired: true,
-            value: _selectedCurrency,
-            items: _currencies
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: (value) => setState(() => _selectedCurrency = value),
-          ),
-          const SizedBox(height: 16),
-          CustomDropdownField<AccountEntity>(
-            
-            isRequired: true,
-            value: _selectedBoxBank,
-            items: _accounts
-                .where(
-                  (a) =>
-                      !a.isMaster &&
-                      (a.name.contains('بنك') || a.code.startsWith('112')),
-                )
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: (value) => setState(() => _selectedBoxBank = value),
-            hint: 'اختر البنك',
-          ),
-          const SizedBox(height: 16),
-          TextInputField(
-            label: 'رقم الحساب',
-            isRequired: true,
-            hint: 'أدخل رقم الحساب',
-            textEditingController: _accountNumberController,
-            maxLength: 20,
-            showCharacterCount: true,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: TextInputField(
-                  label: 'اسم المرسل',
-                  isRequired: true,
-                  hint: 'الاسم',
-                  textEditingController: _senderNameController,
-                  maxLength: 50,
-                  showCharacterCount: true,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextInputField(
-                  label: 'اسم المستقبل',
-                  isRequired: true,
-                  hint: 'الاسم',
-                  textEditingController: _recipientNameController,
-                  maxLength: 50,
-                  showCharacterCount: true,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildCommissionSection(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAmountField() {
-    return TextInputField(
-      label: 'المبلغ',
-      isRequired: true,
-      hint: '0.00',
-      textEditingController: _amountController,
-      inputType: TextInputType.number,
-      suffixIcon: Container(
-        margin: const EdgeInsets.all(6),
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.blue600,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
-        ),
-        child: const Icon(Icons.attach_money, color: AppColors.white, size: 20),
-      ),
-    );
-  }
-
-  Widget _buildCommissionSection() {
-    return Container(
-      padding: const EdgeInsets.only(top: 16),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.gray200, width: 2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.chevron_right,
-                color: AppColors.blue600,
-                size: 16,
-              ),
-              const SizedBox(width: 4),
-              Text('عمولة الحوالة', style: AppTextStyles.heading2),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextInputField(
-            label: 'مبلغ عمولة الحوالة',
-            isRequired: true,
-            hint: '0.00',
-            textEditingController: _commissionAmountController,
-            inputType: TextInputType.number,
-            backgroundColor: AppColors.darkSecondary.withOpacity(0.1),
-            borderColor: AppColors.darkSecondary,
-            focusBorderColor: AppColors.darkSecondary,
-            suffixIcon: Container(
-              margin: const EdgeInsets.all(6),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AppColors.darkSecondary,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: const Icon(
-                Icons.attach_money,
-                color: AppColors.white,
-                size: 20,
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          CustomDropdownField<CurrencyEntity>(
-            
-            hint: 'عملة عمولة الحوالة',
-            value: _selectedCurrency,
-            items: _currencies
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: (value) => setState(() => _selectedCurrency = value),
-          ),
-        ],
       ),
     );
   }
@@ -576,7 +221,6 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
 
     final amount = double.tryParse(_amountController.text) ?? 0.0;
 
-    // Create Voucher Entity
     final voucher = VoucherEntity(
       number: int.tryParse(_numberController.text) ?? 0,
       date: DateFormat('yyyy-MM-dd').parse(_dateController.text),
@@ -584,7 +228,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
           ? 'سند ${_voucherType.label}'
           : _notesController.text,
       amount: amount,
-      accountId: _selectedBoxBank!.id!, // Main account (Cash/Bank)
+      accountId: _selectedBoxBank!.id!,
       accountName: _selectedBoxBank!.name,
       type: _voucherType,
       currencyId: _selectedCurrency?.id,
@@ -600,5 +244,580 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
     );
 
     context.read<VouchersCubit>().saveVoucher(voucher);
+  }
+}
+
+class VoucherFormHeaderWidget extends StatelessWidget {
+  final VoidCallback onBack;
+
+  const VoucherFormHeaderWidget({super.key, required this.onBack});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        const Text('إضافة سند', style: AppTextStyles.heading1),
+        IconButton(
+          icon: const Icon(Icons.chevron_right, color: AppColors.blue600),
+          onPressed: onBack,
+        ),
+      ],
+    );
+  }
+}
+
+class VoucherTypeSectionWidget extends StatelessWidget {
+  final VoucherType voucherType;
+  final ValueChanged<VoucherType> onChanged;
+
+  const VoucherTypeSectionWidget({
+    super.key,
+    required this.voucherType,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomCardContainer(
+      child: Row(
+        children: [
+          CustomRadioButton<VoucherType>(
+            value: VoucherType.payment,
+            groupValue: voucherType,
+            label: 'سند صرف',
+            onChanged: onChanged,
+          ),
+          CustomRadioButton<VoucherType>(
+            value: VoucherType.receipt,
+            groupValue: voucherType,
+            label: 'سند قبض',
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherBasicInformationSectionWidget extends StatelessWidget {
+  final TextEditingController numberController;
+  final TextEditingController dateController;
+  final AccountEntity? selectedAccount;
+  final List<AccountEntity> accounts;
+  final ValueChanged<AccountEntity?> onAccountChanged;
+
+  const VoucherBasicInformationSectionWidget({
+    super.key,
+    required this.numberController,
+    required this.dateController,
+    required this.selectedAccount,
+    required this.accounts,
+    required this.onAccountChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomCardContainer(
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextInputField(
+                  hint: 'الرقم',
+                  isRequired: true,
+                  textEditingController: numberController,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextInputField(
+                  hint: 'تاريخ السند',
+                  isRequired: true,
+                  textEditingController: dateController,
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          CustomDropdownField<AccountEntity>(
+            isRequired: true,
+            value: selectedAccount,
+            items: accounts
+                .where((a) => !a.isMaster)
+                .map(
+                  (e) => DropdownMenuItem(
+                    value: e,
+                    child: Text('${e.code} - ${e.name}'),
+                  ),
+                )
+                .toList(),
+            onChanged: onAccountChanged,
+            hint: 'اختر الحساب (الطرف الثاني)',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherNotesAndImageSectionWidget extends StatelessWidget {
+  final TextEditingController notesController;
+
+  const VoucherNotesAndImageSectionWidget({
+    super.key,
+    required this.notesController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomCardContainer(
+      child: Column(
+        children: [
+          TextInputField(
+            hint: 'أضف ملاحظة...',
+            textEditingController: notesController,
+            maxLines: 3,
+            maxLength: 1000,
+            showCharacterCount: true,
+          ),
+          const SizedBox(height: 16),
+          const VoucherImageUploadButtonWidget(),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherImageUploadButtonWidget extends StatelessWidget {
+  const VoucherImageUploadButtonWidget({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {},
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Container(
+        width: double.infinity,
+        padding: AppConstant.defaultPadding,
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: AppColors.gray300,
+            width: 2,
+            style: BorderStyle.solid,
+          ),
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(
+              Icons.add_photo_alternate_outlined,
+              color: AppColors.gray600,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'إرفاق صورة',
+              style: AppTextStyles.body.copyWith(fontWeight: FontWeight.w500),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class VoucherPaymentMethodSectionWidget extends StatelessWidget {
+  final VoucherPaymentMethod paymentMethod;
+  final ValueChanged<VoucherPaymentMethod> onChanged;
+
+  const VoucherPaymentMethodSectionWidget({
+    super.key,
+    required this.paymentMethod,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader(title: 'طرق الدفع', showChevron: true),
+        CustomCardContainer(
+          backgroundColor: AppColors.blue50,
+          borderColor: AppColors.blue200,
+          child: Row(
+            children: [
+              CustomRadioButton<VoucherPaymentMethod>(
+                value: VoucherPaymentMethod.cash,
+                groupValue: paymentMethod,
+                label: 'نقداً',
+                onChanged: onChanged,
+              ),
+              CustomRadioButton<VoucherPaymentMethod>(
+                value: VoucherPaymentMethod.bankTransfer,
+                groupValue: paymentMethod,
+                label: 'حواله بنكية',
+                onChanged: onChanged,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class VoucherPaymentDetailsSectionWidget extends StatelessWidget {
+  final VoucherPaymentMethod paymentMethod;
+  final TextEditingController amountController;
+  final List<AccountEntity> accounts;
+  final List<CurrencyEntity> currencies;
+  final AccountEntity? selectedBoxBank;
+  final CurrencyEntity? selectedCurrency;
+  final TextEditingController accountNumberController;
+  final TextEditingController senderNameController;
+  final TextEditingController recipientNameController;
+  final TextEditingController commissionAmountController;
+  final ValueChanged<AccountEntity?> onBoxBankChanged;
+  final ValueChanged<CurrencyEntity?> onCurrencyChanged;
+
+  const VoucherPaymentDetailsSectionWidget({
+    super.key,
+    required this.paymentMethod,
+    required this.amountController,
+    required this.accounts,
+    required this.currencies,
+    required this.selectedBoxBank,
+    required this.selectedCurrency,
+    required this.accountNumberController,
+    required this.senderNameController,
+    required this.recipientNameController,
+    required this.commissionAmountController,
+    required this.onBoxBankChanged,
+    required this.onCurrencyChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SectionHeader(
+          title: paymentMethod == VoucherPaymentMethod.cash
+              ? 'تفاصيل الدفع النقدي'
+              : 'تفاصيل التحويل البنكي',
+          showChevron: true,
+        ),
+        paymentMethod == VoucherPaymentMethod.cash
+            ? VoucherCashPaymentSectionWidget(
+                amountController: amountController,
+                accounts: accounts,
+                currencies: currencies,
+                selectedBoxBank: selectedBoxBank,
+                selectedCurrency: selectedCurrency,
+                onBoxBankChanged: onBoxBankChanged,
+                onCurrencyChanged: onCurrencyChanged,
+              )
+            : VoucherBankTransferSectionWidget(
+                amountController: amountController,
+                accounts: accounts,
+                currencies: currencies,
+                selectedBoxBank: selectedBoxBank,
+                selectedCurrency: selectedCurrency,
+                accountNumberController: accountNumberController,
+                senderNameController: senderNameController,
+                recipientNameController: recipientNameController,
+                commissionAmountController: commissionAmountController,
+                onBoxBankChanged: onBoxBankChanged,
+                onCurrencyChanged: onCurrencyChanged,
+              ),
+      ],
+    );
+  }
+}
+
+class VoucherCashPaymentSectionWidget extends StatelessWidget {
+  final TextEditingController amountController;
+  final List<AccountEntity> accounts;
+  final List<CurrencyEntity> currencies;
+  final AccountEntity? selectedBoxBank;
+  final CurrencyEntity? selectedCurrency;
+  final ValueChanged<AccountEntity?> onBoxBankChanged;
+  final ValueChanged<CurrencyEntity?> onCurrencyChanged;
+
+  const VoucherCashPaymentSectionWidget({
+    super.key,
+    required this.amountController,
+    required this.accounts,
+    required this.currencies,
+    required this.selectedBoxBank,
+    required this.selectedCurrency,
+    required this.onBoxBankChanged,
+    required this.onCurrencyChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomCardContainer(
+      child: Column(
+        children: [
+          VoucherAmountFieldWidget(amountController: amountController),
+          const SizedBox(height: 16),
+          CustomDropdownField<AccountEntity>(
+            hint: 'الصندوق',
+            value: selectedBoxBank,
+            items: accounts
+                .where(
+                  (a) =>
+                      !a.isMaster &&
+                      (a.name.contains('صندوق') || a.code.startsWith('111')),
+                )
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: onBoxBankChanged,
+          ),
+          const SizedBox(height: 16),
+          CustomDropdownField<CurrencyEntity>(
+            hint: 'العملة',
+            value: selectedCurrency,
+            items: currencies
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: onCurrencyChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherBankTransferSectionWidget extends StatelessWidget {
+  final TextEditingController amountController;
+  final List<AccountEntity> accounts;
+  final List<CurrencyEntity> currencies;
+  final AccountEntity? selectedBoxBank;
+  final CurrencyEntity? selectedCurrency;
+  final TextEditingController accountNumberController;
+  final TextEditingController senderNameController;
+  final TextEditingController recipientNameController;
+  final TextEditingController commissionAmountController;
+  final ValueChanged<AccountEntity?> onBoxBankChanged;
+  final ValueChanged<CurrencyEntity?> onCurrencyChanged;
+
+  const VoucherBankTransferSectionWidget({
+    super.key,
+    required this.amountController,
+    required this.accounts,
+    required this.currencies,
+    required this.selectedBoxBank,
+    required this.selectedCurrency,
+    required this.accountNumberController,
+    required this.senderNameController,
+    required this.recipientNameController,
+    required this.commissionAmountController,
+    required this.onBoxBankChanged,
+    required this.onCurrencyChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomCardContainer(
+      child: Column(
+        children: [
+          VoucherAmountFieldWidget(amountController: amountController),
+          const SizedBox(height: 16),
+          CustomDropdownField<CurrencyEntity>(
+            hint: 'العملة',
+            isRequired: true,
+            value: selectedCurrency,
+            items: currencies
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: onCurrencyChanged,
+          ),
+          const SizedBox(height: 16),
+          CustomDropdownField<AccountEntity>(
+            isRequired: true,
+            value: selectedBoxBank,
+            items: accounts
+                .where(
+                  (a) =>
+                      !a.isMaster &&
+                      (a.name.contains('بنك') || a.code.startsWith('112')),
+                )
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: onBoxBankChanged,
+            hint: 'اختر البنك',
+          ),
+          const SizedBox(height: 16),
+          TextInputField(
+            label: 'رقم الحساب',
+            isRequired: true,
+            hint: 'أدخل رقم الحساب',
+            textEditingController: accountNumberController,
+            maxLength: 20,
+            showCharacterCount: true,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: TextInputField(
+                  label: 'اسم المرسل',
+                  isRequired: true,
+                  hint: 'الاسم',
+                  textEditingController: senderNameController,
+                  maxLength: 50,
+                  showCharacterCount: true,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextInputField(
+                  label: 'اسم المستقبل',
+                  isRequired: true,
+                  hint: 'الاسم',
+                  textEditingController: recipientNameController,
+                  maxLength: 50,
+                  showCharacterCount: true,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          VoucherCommissionSectionWidget(
+            commissionAmountController: commissionAmountController,
+            selectedCurrency: selectedCurrency,
+            currencies: currencies,
+            onCurrencyChanged: onCurrencyChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherAmountFieldWidget extends StatelessWidget {
+  final TextEditingController amountController;
+
+  const VoucherAmountFieldWidget({super.key, required this.amountController});
+
+  @override
+  Widget build(BuildContext context) {
+    return TextInputField(
+      label: 'المبلغ',
+      isRequired: true,
+      hint: '0.00',
+      textEditingController: amountController,
+      inputType: TextInputType.number,
+      suffixIcon: Container(
+        margin: const EdgeInsets.all(6),
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.blue600,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+        ),
+        child: const Icon(Icons.attach_money, color: AppColors.white, size: 20),
+      ),
+    );
+  }
+}
+
+class VoucherCommissionSectionWidget extends StatelessWidget {
+  final TextEditingController commissionAmountController;
+  final CurrencyEntity? selectedCurrency;
+  final List<CurrencyEntity> currencies;
+  final ValueChanged<CurrencyEntity?> onCurrencyChanged;
+
+  const VoucherCommissionSectionWidget({
+    super.key,
+    required this.commissionAmountController,
+    required this.selectedCurrency,
+    required this.currencies,
+    required this.onCurrencyChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.only(top: 16),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: AppColors.gray200, width: 2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.chevron_right,
+                color: AppColors.blue600,
+                size: 16,
+              ),
+              const SizedBox(width: 4),
+              Text('عمولة الحوالة', style: AppTextStyles.heading2),
+            ],
+          ),
+          const SizedBox(height: 16),
+          TextInputField(
+            label: 'مبلغ عمولة الحوالة',
+            isRequired: true,
+            hint: '0.00',
+            textEditingController: commissionAmountController,
+            inputType: TextInputType.number,
+            backgroundColor: AppColors.darkSecondary.withOpacity(0.1),
+            borderColor: AppColors.darkSecondary,
+            focusBorderColor: AppColors.darkSecondary,
+            suffixIcon: Container(
+              margin: const EdgeInsets.all(6),
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: AppColors.darkSecondary,
+                borderRadius: BorderRadius.circular(AppRadius.sm),
+              ),
+              child: const Icon(
+                Icons.attach_money,
+                color: AppColors.white,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          CustomDropdownField<CurrencyEntity>(
+            hint: 'عملة عمولة الحوالة',
+            value: selectedCurrency,
+            items: currencies
+                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                .toList(),
+            onChanged: onCurrencyChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherScreenSaveButtonWidget extends StatelessWidget {
+  final bool isSaving;
+  final ValueChanged<BuildContext> onSave;
+
+  const VoucherScreenSaveButtonWidget({
+    super.key,
+    required this.isSaving,
+    required this.onSave,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return HasibButton(
+      label: isSaving ? 'جاري الحفظ...' : 'حفظ',
+      onPressed: isSaving ? null : () => onSave(context),
+      loading: isSaving,
+    );
   }
 }

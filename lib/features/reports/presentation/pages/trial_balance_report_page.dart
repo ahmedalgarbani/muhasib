@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/entities/trial_balance_entity.dart';
 import 'package:muhasib/features/reports/presentation/cubit/trial_balance_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/trial_balance_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
-import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:intl/intl.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class TrialBalanceReportPage extends StatefulWidget {
   const TrialBalanceReportPage({super.key});
@@ -133,8 +133,9 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
   @override
   void didUpdateWidget(_TrialBalanceContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.filter != widget.filter)
+    if (oldWidget.filter != widget.filter) {
       context.read<TrialBalanceCubit>().updateDateRange(widget.filter);
+    }
   }
 
   String _format(double v) => v == 0 ? '-' : _numberFormat.format(v);
@@ -143,15 +144,17 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
   Widget build(BuildContext context) {
     return BlocBuilder<TrialBalanceCubit, TrialBalanceState>(
       builder: (context, state) {
-        if (state is TrialBalanceLoading)
+        if (state is TrialBalanceLoading) {
           return const Center(child: CircularProgressIndicator());
-        if (state is TrialBalanceError)
+        }
+        if (state is TrialBalanceError) {
           return Center(
             child: Text(
               'خطأ: ${state.message}',
               style: const TextStyle(color: Colors.red),
             ),
           );
+        }
         if (state is TrialBalanceLoaded) {
           var accounts = state.accounts;
           if (widget.filter.searchQuery != null &&
@@ -167,7 +170,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
               state.summary.closingDifference.abs() < 0.01;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               children: [
                 Row(
@@ -264,15 +267,27 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                       ),
                       Expanded(
                         flex: 2,
-                        child: _dualValue(a.openingDebit, a.openingCredit),
+                        child: DualValueDisplayWidget(
+                          debit: a.openingDebit,
+                          credit: a.openingCredit,
+                          formatter: _format,
+                        ),
                       ),
                       Expanded(
                         flex: 2,
-                        child: _dualValue(a.periodDebit, a.periodCredit),
+                        child: DualValueDisplayWidget(
+                          debit: a.periodDebit,
+                          credit: a.periodCredit,
+                          formatter: _format,
+                        ),
                       ),
                       Expanded(
                         flex: 2,
-                        child: _dualValue(a.closingDebit, a.closingCredit),
+                        child: DualValueDisplayWidget(
+                          debit: a.closingDebit,
+                          credit: a.closingCredit,
+                          formatter: _format,
+                        ),
                       ),
                     ],
                   ),
@@ -290,23 +305,26 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                       ),
                       Expanded(
                         flex: 2,
-                        child: _dualValue(
-                          state.summary.openingDebit,
-                          state.summary.openingCredit,
+                        child: DualValueDisplayWidget(
+                          debit: state.summary.openingDebit,
+                          credit: state.summary.openingCredit,
+                          formatter: _format,
                         ),
                       ),
                       Expanded(
                         flex: 2,
-                        child: _dualValue(
-                          state.summary.periodDebit,
-                          state.summary.periodCredit,
+                        child: DualValueDisplayWidget(
+                          debit: state.summary.periodDebit,
+                          credit: state.summary.periodCredit,
+                          formatter: _format,
                         ),
                       ),
                       Expanded(
                         flex: 2,
-                        child: _dualValue(
-                          state.summary.closingDebit,
-                          state.summary.closingCredit,
+                        child: DualValueDisplayWidget(
+                          debit: state.summary.closingDebit,
+                          credit: state.summary.closingCredit,
+                          formatter: _format,
                         ),
                       ),
                     ],
@@ -320,22 +338,36 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
       },
     );
   }
+}
 
-  Widget _dualValue(double d, double c) {
+class DualValueDisplayWidget extends StatelessWidget {
+  final double debit;
+  final double credit;
+  final String Function(double) formatter;
+
+  const DualValueDisplayWidget({
+    super.key,
+    required this.debit,
+    required this.credit,
+    required this.formatter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       children: [
         Text(
-          _format(d),
+          formatter(debit),
           style: TextStyle(
             fontSize: 11,
-            color: d > 0 ? Colors.blue : Colors.grey,
+            color: debit > 0 ? Colors.blue : Colors.grey,
           ),
         ),
         Text(
-          _format(c),
+          formatter(credit),
           style: TextStyle(
             fontSize: 11,
-            color: c > 0 ? Colors.green : Colors.grey,
+            color: credit > 0 ? Colors.green : Colors.grey,
           ),
         ),
       ],

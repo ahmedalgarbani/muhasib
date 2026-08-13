@@ -4,6 +4,7 @@ import 'package:muhasib/features/accounts/presentation/widgets/account_balance_r
 import 'package:muhasib/features/accounts/presentation/widgets/account_card_divider.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_card_header.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Card widget for master accounts with sub-accounts indicator
 class MainCardAccount extends StatelessWidget {
@@ -38,7 +39,7 @@ class MainCardAccount extends StatelessWidget {
           border: Border.all(color: borderColor, width: 1.5),
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

@@ -9,6 +9,7 @@ import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class SecuritySettingsPage extends StatefulWidget {
   const SecuritySettingsPage({super.key});
@@ -59,7 +60,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

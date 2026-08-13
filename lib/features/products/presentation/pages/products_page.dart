@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
-import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/pages/product_form_page.dart';
+import 'package:muhasib/features/products/presentation/widgets/products_page_widgets.dart';
 
 class ProductsPage extends StatefulWidget {
   const ProductsPage({super.key});
@@ -55,7 +53,29 @@ class _ProductsPageState extends State<ProductsPage> {
           appBar: const CustomAppBar(),
           body: Column(
             children: [
-              _buildHeader(),
+              ProductsHeaderWidget(
+                searchController: _searchController,
+                isGridView: _isGridView,
+                selectedGroupFilter: _selectedGroupFilter,
+                onToggleViewMode: () {
+                  setState(() => _isGridView = !_isGridView);
+                },
+                onGroupFilterChanged: (value) {
+                  setState(() => _selectedGroupFilter = value);
+                  if (value != null) {
+                    context.read<ProductsCubit>().loadProductsByGroup(value);
+                  } else {
+                    context.read<ProductsCubit>().loadProducts();
+                  }
+                },
+                onSearchChanged: (value) {
+                  if (value.isNotEmpty) {
+                    context.read<ProductsCubit>().searchProducts(value);
+                  } else {
+                    context.read<ProductsCubit>().loadProducts();
+                  }
+                },
+              ),
               Expanded(
                 child: BlocBuilder<ProductsCubit, ProductsState>(
                   builder: (context, state) {
@@ -77,8 +97,20 @@ class _ProductsPageState extends State<ProductsPage> {
                         );
                       }
                       return _isGridView
-                          ? _buildProductsGrid(state.products)
-                          : _buildProductsList(state.products);
+                          ? ProductsGridWidget(
+                              products: state.products,
+                              onProductTap: (product) =>
+                                  _showProductDialog(context, product: product),
+                            )
+                          : ProductsListWidget(
+                              products: state.products,
+                              onProductTap: (product) =>
+                                  _showProductDialog(context, product: product),
+                              onProductEdit: (product) =>
+                                  _showProductDialog(context, product: product),
+                              onProductDelete: (product) =>
+                                  _showDeleteConfirmation(context, product),
+                            );
                     }
                     return const Center(child: Text('ابدأ بإضافة منتجات'));
                   },
@@ -94,310 +126,6 @@ class _ProductsPageState extends State<ProductsPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'إدارة المنتجات',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.gray900,
-                ),
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
-                    onPressed: () {
-                      setState(() => _isGridView = !_isGridView);
-                    },
-                  ),
-                  BlocBuilder<ProductGroupsCubit, ProductGroupsState>(
-                    builder: (context, groupsState) {
-                      if (groupsState is ProductGroupsLoaded) {
-                        return DropdownButton<int?>(
-                          value: _selectedGroupFilter,
-                          hint: const Text('كل المجموعات'),
-                          items: [
-                            const DropdownMenuItem(
-                              value: null,
-                              child: Text('كل المجموعات'),
-                            ),
-                            ...groupsState.groups.map(
-                              (group) => DropdownMenuItem(
-                                value: group.id,
-                                child: Text(group.name),
-                              ),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            setState(() => _selectedGroupFilter = value);
-                            if (value != null) {
-                              context.read<ProductsCubit>().loadProductsByGroup(
-                                value,
-                              );
-                            } else {
-                              context.read<ProductsCubit>().loadProducts();
-                            }
-                          },
-                        );
-                      }
-                      return const SizedBox.shrink();
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextInputField(
-            controller: _searchController,
-            hint: 'ابحث بالاسم أو الباركود...',
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-            ),
-            onChanged: (value) {
-              if (value.isNotEmpty) {
-                context.read<ProductsCubit>().searchProducts(value);
-              } else {
-                context.read<ProductsCubit>().loadProducts();
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProductsGrid(List<ProductEntity> products) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.75,
-      ),
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        final product = products[index];
-        return CustomCardContainer(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
-          ),
-          child: InkWell(
-            onTap: () => _showProductDialog(context, product: product),
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  height: 120,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppRadius.md),
-                    ),
-                  ),
-                  child: Center(
-                    child: Icon(
-                      Icons.inventory,
-                      size: 48,
-                      color: Colors.grey.shade400,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          product.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          product.barcodeNo,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              '${product.sellAmount?.toStringAsFixed(0) ?? '0'} ر.س',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: product.quantity > 0
-                                    ? Colors.green.shade50
-                                    : Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(
-                                  AppRadius.xs,
-                                ),
-                              ),
-                              child: Text(
-                                product.quantity.toStringAsFixed(0),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: product.quantity > 0
-                                      ? Colors.green
-                                      : Colors.red,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildProductsList(List<ProductEntity> products) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: products.length,
-      itemBuilder: (context, index) {
-        final product = products[index];
-        return CustomCardContainer(
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
-          ),
-          child: ListTile(
-            onTap: () => _showProductDialog(context, product: product),
-            leading: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: Icon(Icons.inventory, color: Colors.grey.shade400),
-            ),
-            title: Text(
-              product.name,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('الباركود: ${product.barcodeNo}'),
-                Text(
-                  'السعر: ${product.sellAmount?.toStringAsFixed(2) ?? '0'} ر.س',
-                ),
-              ],
-            ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: product.quantity > 0
-                        ? Colors.green.shade50
-                        : Colors.red.shade50,
-                    borderRadius: BorderRadius.circular(AppRadius.xs),
-                  ),
-                  child: Text(
-                    'المخزون: ${product.quantity.toStringAsFixed(0)}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: product.quantity > 0 ? Colors.green : Colors.red,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                PopupMenuButton<String>(
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 20),
-                          SizedBox(width: 8),
-                          Text('تعديل'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('حذف', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _showProductDialog(context, product: product);
-                    } else if (value == 'delete') {
-                      _showDeleteConfirmation(context, product);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 

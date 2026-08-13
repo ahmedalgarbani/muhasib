@@ -8,6 +8,7 @@ import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class StockSettingsPage extends StatefulWidget {
   const StockSettingsPage({super.key});
@@ -78,7 +79,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -94,7 +95,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppConstant.defaultPadding,
                   decoration: BoxDecoration(
                     color: Colors.amber[50],
                     borderRadius: BorderRadius.circular(AppRadius.md),

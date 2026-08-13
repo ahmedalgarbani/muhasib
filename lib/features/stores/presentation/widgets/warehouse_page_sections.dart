@@ -9,6 +9,7 @@ import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class WarehouseMenuCard extends StatelessWidget {
   const WarehouseMenuCard({
@@ -155,7 +156,7 @@ class WarehouseDocumentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -229,7 +230,7 @@ class WarehouseNotesCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -282,7 +283,7 @@ class TransferWarehouseSelection extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.md),
     ),
     child: Padding(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

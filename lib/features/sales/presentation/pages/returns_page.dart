@@ -14,6 +14,7 @@ import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ReturnsPage extends StatefulWidget {
   const ReturnsPage({super.key});
@@ -82,7 +83,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
                       context.read<SalesCubit>().loadReturnInvoices();
                     },
                     child: ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppConstant.defaultPadding,
                       itemCount: state.returns.length,
                       itemBuilder: (context, index) {
                         return ReturnCardWidget(

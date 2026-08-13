@@ -7,6 +7,7 @@ import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import '../cubit/currencies_cubit.dart';
 import '../../domain/entities/currency_entity.dart';
 import '../widgets/currency_exchange_widgets.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CurrencyExchangePage extends StatefulWidget {
   const CurrencyExchangePage({super.key});
@@ -140,7 +141,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
     showModalBottomSheet(
       context: context,
       builder: (context) => ListView(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         children: transactions.isEmpty
             ? [const Center(child: Text('لا توجد عمليات تحويل سابقة'))]
             : transactions

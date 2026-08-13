@@ -16,6 +16,7 @@ import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class WarehouseFormPage extends StatefulWidget {
   final WarehouseEntity? warehouse;
@@ -159,7 +160,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
               }
 
               return SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 child: Form(
                   key: _formKey,
                   child: Column(
@@ -172,7 +173,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: AppConstant.defaultPadding,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -253,7 +254,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: AppConstant.defaultPadding,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -301,7 +302,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Padding(
-                          padding: const EdgeInsets.all(16),
+                          padding: AppConstant.defaultPadding,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

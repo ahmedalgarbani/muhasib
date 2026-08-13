@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class BalanceSheetReportPage extends StatefulWidget {
   const BalanceSheetReportPage({super.key});
@@ -162,7 +163,7 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
         }
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             children: [
               BalanceSheetEquationWidget(result: data),

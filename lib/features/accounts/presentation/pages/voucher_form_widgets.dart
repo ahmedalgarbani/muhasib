@@ -132,11 +132,36 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildList(accounts, null),
-                  _buildList(accounts, 'صندوق'),
-                  _buildList(accounts, 'بنك'),
-                  _buildList(accounts, 'عميل'),
-                  _buildList(accounts, 'مورد'),
+                  VoucherAccountListWidget(
+                    allAccounts: accounts,
+                    searchQuery: _searchQuery,
+                    filter: null,
+                    onSelected: widget.onSelected,
+                  ),
+                  VoucherAccountListWidget(
+                    allAccounts: accounts,
+                    searchQuery: _searchQuery,
+                    filter: 'صندوق',
+                    onSelected: widget.onSelected,
+                  ),
+                  VoucherAccountListWidget(
+                    allAccounts: accounts,
+                    searchQuery: _searchQuery,
+                    filter: 'بنك',
+                    onSelected: widget.onSelected,
+                  ),
+                  VoucherAccountListWidget(
+                    allAccounts: accounts,
+                    searchQuery: _searchQuery,
+                    filter: 'عميل',
+                    onSelected: widget.onSelected,
+                  ),
+                  VoucherAccountListWidget(
+                    allAccounts: accounts,
+                    searchQuery: _searchQuery,
+                    filter: 'مورد',
+                    onSelected: widget.onSelected,
+                  ),
                 ],
               ),
             ),
@@ -145,18 +170,34 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
       ),
     );
   }
+}
 
-  Widget _buildList(List<AccountEntity> all, String? filter) {
-    var filtered = all.where((a) {
+class VoucherAccountListWidget extends StatelessWidget {
+  final List<AccountEntity> allAccounts;
+  final String searchQuery;
+  final String? filter;
+  final Function(AccountEntity) onSelected;
+
+  const VoucherAccountListWidget({
+    super.key,
+    required this.allAccounts,
+    required this.searchQuery,
+    this.filter,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    var filtered = allAccounts.where((a) {
       final matchSearch =
-          a.name.contains(_searchQuery) || a.code.contains(_searchQuery);
+          a.name.contains(searchQuery) || a.code.contains(searchQuery);
       if (filter == null) return matchSearch;
-      final matchFilter = a.name.contains(filter);
+      final matchFilter = a.name.contains(filter!);
       return matchSearch && matchFilter;
     }).toList();
 
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       itemCount: filtered.length,
       itemBuilder: (context, i) {
         final a = filtered[i];
@@ -175,7 +216,7 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
           ),
           subtitle: Text(a.code),
           onTap: () {
-            widget.onSelected(a);
+            onSelected(a);
             Navigator.pop(context);
           },
         );

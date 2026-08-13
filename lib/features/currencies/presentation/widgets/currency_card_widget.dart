@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Standalone Currency Card Widget for displaying currency details in a list.
 class CurrencyCardWidget extends StatelessWidget {
@@ -33,7 +34,7 @@ class CurrencyCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Row(
             children: [
               Container(

@@ -11,6 +11,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ImprovedStep1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -70,7 +71,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

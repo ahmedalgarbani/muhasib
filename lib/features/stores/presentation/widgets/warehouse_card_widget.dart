@@ -3,6 +3,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Standalone Warehouse Card Widget for displaying warehouse details.
 class WarehouseCardWidget extends StatelessWidget {
@@ -34,7 +35,7 @@ class WarehouseCardWidget extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

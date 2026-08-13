@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/invoice_summary_row_widget.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ImprovedStep3Totals extends StatelessWidget {
   final Invoice invoice;
@@ -11,12 +12,12 @@ class ImprovedStep3Totals extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         children: [
           CustomCardContainer(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

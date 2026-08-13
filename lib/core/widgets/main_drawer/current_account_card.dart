@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_tree_view.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CurrentAccountCard extends StatelessWidget {
   const CurrentAccountCard({super.key});
@@ -19,7 +20,7 @@ class CurrentAccountCard extends StatelessWidget {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         color: Colors.grey[50],
         child: Container(
           padding: const EdgeInsets.all(12),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class BalanceSheetEquationWidget extends StatelessWidget {
   final dynamic result;
@@ -11,7 +12,7 @@ class BalanceSheetEquationWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final ok = result.isBalanced;
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: ok ? Colors.green[50] : Colors.red[50],
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -71,7 +72,7 @@ class BalanceSheetSectionWidget extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             decoration: BoxDecoration(
               color: color.withOpacity(0.05),
               borderRadius: const BorderRadius.vertical(
@@ -105,7 +106,7 @@ class BalanceSheetSectionWidget extends StatelessWidget {
           ),
           if (rows.isEmpty)
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               child: Text(
                 'لا توجد حسابات مسجلة في هذا البند',
                 style: TextStyle(fontSize: 12, color: Colors.grey[500]),

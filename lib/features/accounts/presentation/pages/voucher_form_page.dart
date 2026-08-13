@@ -2,16 +2,17 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import '../cubit/vouchers_cubit.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 part 'voucher_form_widgets.dart';
 
@@ -126,315 +127,47 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTopSection(),
+                  VoucherFormTopSectionWidget(
+                    numberController: _numberController,
+                    date: _date,
+                    dateFormat: _dateFormat,
+                    type: _type,
+                    onPickDate: _pickDate,
+                    onTypeChanged: (newType) {
+                      setState(() => _type = newType);
+                      if (widget.voucher == null) {
+                        context.read<VouchersCubit>().refreshNumber(_type);
+                      }
+                    },
+                  ),
                   const SizedBox(height: 20),
-                  _buildAccountAndAmount(),
+                  VoucherFormAccountAndAmountWidget(
+                    accountName: _accountName,
+                    amountController: _amountController,
+                    onPickAccount: () => _pickAccount(isLine: false),
+                  ),
                   const SizedBox(height: 20),
-                  _buildStatementField(),
+                  VoucherFormStatementFieldWidget(
+                    typeLabel: _type.label,
+                    statementController: _statementController,
+                  ),
                   const SizedBox(height: 24),
-                  _buildLinesSection(),
+                  VoucherFormLinesSectionWidget(
+                    lines: _lines,
+                    onAddLine: () => setState(() => _lines.add(_VoucherLineInput())),
+                    onPickLineAccount: (i) =>
+                        _pickAccount(isLine: true, lineIndex: i),
+                    onRemoveLine: (i) =>
+                        setState(() => _lines.removeAt(i).dispose()),
+                  ),
                   const SizedBox(height: 40),
-                  _buildSaveButton(),
+                  VoucherFormSaveButtonWidget(onSave: _onSave),
                 ],
               ),
             ),
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildTopSection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    TextInputField(
-                      label: 'رقم السند',
-                      textEditingController: _numberController,
-                      inputType: TextInputType.number,
-                      validator: (v) => (v?.isEmpty ?? true) ? 'مطلوب' : null,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'تاريخ السند',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 4),
-                    InkWell(
-                      onTap: _pickDate,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 10,
-                          horizontal: 16,
-                        ),
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade400),
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _dateFormat.format(_date),
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Icon(
-                              Icons.calendar_today,
-                              size: 16,
-                              color: AppColors.primary,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _buildTypeToggle(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTypeToggle() {
-    return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(AppRadius.sm14),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _toggleButton(
-              VoucherType.receipt,
-              'سند قبض',
-              Icons.call_received,
-            ),
-          ),
-          Expanded(
-            child: _toggleButton(
-              VoucherType.payment,
-              'سند صرف',
-              Icons.call_made,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _toggleButton(VoucherType type, String label, IconData icon) {
-    final isSelected = _type == type;
-    final color = type == VoucherType.receipt ? Colors.green : Colors.red;
-    return GestureDetector(
-      onTap: () {
-        setState(() => _type = type);
-        if (widget.voucher == null) {
-          context.read<VouchersCubit>().refreshNumber(_type);
-        }
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.sm10),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 4,
-                  ),
-                ]
-              : [],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 16, color: isSelected ? color : Colors.grey),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? color : Colors.grey,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAccountAndAmount() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'الحساب الرئيسي (أمين الصندوق/الحساب)',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 8),
-          _AccountPickerField(
-            selectedAccountName: _accountName,
-            onTap: () => _pickAccount(isLine: false),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'المبلغ الإجمالي',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
-          ),
-          const SizedBox(height: 4),
-          TextInputField(
-            textEditingController: _amountController,
-            inputType: TextInputType.number,
-            prefixIcon: const Icon(
-              Icons.payments_outlined,
-              color: AppColors.primary,
-            ),
-            hint: '0.00',
-            validator: (v) =>
-                (double.tryParse(v ?? '') ?? 0) <= 0 ? 'أدخل مبلغ صحيح' : null,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatementField() {
-    return TextInputField(
-      label: 'البيان العام لسند ${_type.label}',
-      textEditingController: _statementController,
-      maxLines: 2,
-      prefixIcon: const Icon(Icons.description_outlined),
-      validator: (value) => (value?.isEmpty ?? true) ? 'البيان مطلوب' : null,
-    );
-  }
-
-  Widget _buildLinesSection() {
-    final accounts = context.watch<AccountsCubit>().allAccounts ?? [];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'تفاصيل السطور (اختياري)',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            TextButton.icon(
-              onPressed: () => setState(() => _lines.add(_VoucherLineInput())),
-              icon: const Icon(Icons.add_circle_outline),
-              label: const Text('إضافة سطر'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (_lines.isEmpty)
-          const Text(
-            'في حال عدم إضافة سطور، سيتم توجيه المبلغ بالكامل للحساب الرئيسي المختار أعلاه.',
-            style: TextStyle(color: Colors.grey, fontSize: 13),
-          ),
-        ..._lines.asMap().entries.map(
-          (entry) => _buildLineCard(entry.key, entry.value, accounts),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLineCard(
-    int index,
-    _VoucherLineInput line,
-    List<AccountEntity> accounts,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: Colors.grey.shade100),
-      ),
-      child: Column(
-        children: [
-          _AccountPickerField(
-            selectedAccountName: line.accountName,
-            onTap: () => _pickAccount(isLine: true, lineIndex: index),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Expanded(
-                flex: 4,
-                child: TextInputField(
-                  label: 'المبلغ',
-                  textEditingController: line.amountController,
-                  inputType: TextInputType.number,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                flex: 6,
-                child: TextInputField(
-                  label: 'بيان السطر',
-                  textEditingController: line.statementController,
-                ),
-              ),
-              IconButton(
-                onPressed: () =>
-                    setState(() => _lines.removeAt(index).dispose()),
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return BlocBuilder<VouchersCubit, VouchersState>(
-      builder: (context, state) {
-        final saving = state is VoucherActionInProgress;
-        return HasibButton(
-          label: 'حفظ السند الآن',
-          loading: saving,
-          onPressed: saving ? null : _onSave,
-          variant: HasibButtonVariant.primary,
-        );
-      },
     );
   }
 
@@ -501,5 +234,410 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       lines: filteredLines,
     );
     await context.read<VouchersCubit>().saveVoucher(voucher);
+  }
+}
+
+class VoucherFormTopSectionWidget extends StatelessWidget {
+  final TextEditingController numberController;
+  final DateTime date;
+  final intl.DateFormat dateFormat;
+  final VoucherType type;
+  final VoidCallback onPickDate;
+  final ValueChanged<VoucherType> onTypeChanged;
+
+  const VoucherFormTopSectionWidget({
+    super.key,
+    required this.numberController,
+    required this.date,
+    required this.dateFormat,
+    required this.type,
+    required this.onPickDate,
+    required this.onTypeChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: AppConstant.defaultPadding,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextInputField(
+                  label: 'رقم السند',
+                  textEditingController: numberController,
+                  inputType: TextInputType.number,
+                  validator: (v) => (v?.isEmpty ?? true) ? 'مطلوب' : null,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'تاريخ السند',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                    const SizedBox(height: 4),
+                    InkWell(
+                      onTap: onPickDate,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 10,
+                          horizontal: 16,
+                        ),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade400),
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              dateFormat.format(date),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.calendar_today,
+                              size: 16,
+                              color: AppColors.primary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          VoucherFormTypeToggleWidget(
+            type: type,
+            onTypeChanged: onTypeChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherFormTypeToggleWidget extends StatelessWidget {
+  final VoucherType type;
+  final ValueChanged<VoucherType> onTypeChanged;
+
+  const VoucherFormTypeToggleWidget({
+    super.key,
+    required this.type,
+    required this.onTypeChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(AppRadius.sm14),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: VoucherFormToggleButtonWidget(
+              targetType: VoucherType.receipt,
+              label: 'سند قبض',
+              icon: Icons.call_received,
+              currentType: type,
+              onTap: () => onTypeChanged(VoucherType.receipt),
+            ),
+          ),
+          Expanded(
+            child: VoucherFormToggleButtonWidget(
+              targetType: VoucherType.payment,
+              label: 'سند صرف',
+              icon: Icons.call_made,
+              currentType: type,
+              onTap: () => onTypeChanged(VoucherType.payment),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherFormToggleButtonWidget extends StatelessWidget {
+  final VoucherType targetType;
+  final String label;
+  final IconData icon;
+  final VoucherType currentType;
+  final VoidCallback onTap;
+
+  const VoucherFormToggleButtonWidget({
+    super.key,
+    required this.targetType,
+    required this.label,
+    required this.icon,
+    required this.currentType,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = currentType == targetType;
+    final color = targetType == VoucherType.receipt ? Colors.green : Colors.red;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.sm10),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 4,
+                  ),
+                ]
+              : [],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: isSelected ? color : Colors.grey),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                color: isSelected ? color : Colors.grey,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class VoucherFormAccountAndAmountWidget extends StatelessWidget {
+  final String? accountName;
+  final TextEditingController amountController;
+  final VoidCallback onPickAccount;
+
+  const VoucherFormAccountAndAmountWidget({
+    super.key,
+    required this.accountName,
+    required this.amountController,
+    required this.onPickAccount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: AppConstant.defaultPadding,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'الحساب الرئيسي (أمين الصندوق/الحساب)',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 8),
+          _AccountPickerField(
+            selectedAccountName: accountName,
+            onTap: onPickAccount,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'المبلغ الإجمالي',
+            style: TextStyle(fontSize: 12, color: Colors.grey),
+          ),
+          const SizedBox(height: 4),
+          TextInputField(
+            textEditingController: amountController,
+            inputType: TextInputType.number,
+            prefixIcon: const Icon(
+              Icons.payments_outlined,
+              color: AppColors.primary,
+            ),
+            hint: '0.00',
+            validator: (v) =>
+                (double.tryParse(v ?? '') ?? 0) <= 0 ? 'أدخل مبلغ صحيح' : null,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherFormStatementFieldWidget extends StatelessWidget {
+  final String typeLabel;
+  final TextEditingController statementController;
+
+  const VoucherFormStatementFieldWidget({
+    super.key,
+    required this.typeLabel,
+    required this.statementController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextInputField(
+      label: 'البيان العام لسند $typeLabel',
+      textEditingController: statementController,
+      maxLines: 2,
+      prefixIcon: const Icon(Icons.description_outlined),
+      validator: (value) => (value?.isEmpty ?? true) ? 'البيان مطلوب' : null,
+    );
+  }
+}
+
+class VoucherFormLinesSectionWidget extends StatelessWidget {
+  final List<_VoucherLineInput> lines;
+  final VoidCallback onAddLine;
+  final ValueChanged<int> onPickLineAccount;
+  final ValueChanged<int> onRemoveLine;
+
+  const VoucherFormLinesSectionWidget({
+    super.key,
+    required this.lines,
+    required this.onAddLine,
+    required this.onPickLineAccount,
+    required this.onRemoveLine,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'تفاصيل السطور (اختياري)',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            TextButton.icon(
+              onPressed: onAddLine,
+              icon: const Icon(Icons.add_circle_outline),
+              label: const Text('إضافة سطر'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        if (lines.isEmpty)
+          const Text(
+            'في حال عدم إضافة سطور، سيتم توجيه المبلغ بالكامل للحساب الرئيسي المختار أعلاه.',
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        ...lines.asMap().entries.map(
+          (entry) => VoucherFormLineCardWidget(
+            index: entry.key,
+            line: entry.value,
+            onPickAccount: () => onPickLineAccount(entry.key),
+            onRemove: () => onRemoveLine(entry.key),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class VoucherFormLineCardWidget extends StatelessWidget {
+  final int index;
+  final _VoucherLineInput line;
+  final VoidCallback onPickAccount;
+  final VoidCallback onRemove;
+
+  const VoucherFormLineCardWidget({
+    super.key,
+    required this.index,
+    required this.line,
+    required this.onPickAccount,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: AppConstant.defaultPadding,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: Colors.grey.shade100),
+      ),
+      child: Column(
+        children: [
+          _AccountPickerField(
+            selectedAccountName: line.accountName,
+            onTap: onPickAccount,
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                flex: 4,
+                child: TextInputField(
+                  label: 'المبلغ',
+                  textEditingController: line.amountController,
+                  inputType: TextInputType.number,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                flex: 6,
+                child: TextInputField(
+                  label: 'بيان السطر',
+                  textEditingController: line.statementController,
+                ),
+              ),
+              IconButton(
+                onPressed: onRemove,
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class VoucherFormSaveButtonWidget extends StatelessWidget {
+  final VoidCallback onSave;
+
+  const VoucherFormSaveButtonWidget({super.key, required this.onSave});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<VouchersCubit, VouchersState>(
+      builder: (context, state) {
+        final saving = state is VoucherActionInProgress;
+        return HasibButton(
+          label: 'حفظ السند الآن',
+          loading: saving,
+          onPressed: saving ? null : onSave,
+          variant: HasibButtonVariant.primary,
+        );
+      },
+    );
   }
 }

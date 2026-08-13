@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/product_group_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
+import 'package:muhasib/features/products/presentation/widgets/product_groups_widgets.dart';
 
 class ProductGroupsPage extends StatefulWidget {
   const ProductGroupsPage({super.key});
@@ -40,10 +39,19 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
             backgroundColor: AppColors.gray50,
-            appBar: CustomAppBar(),
+            appBar: const CustomAppBar(),
             body: Column(
               children: [
-                _buildHeader(innerContext),
+                ProductGroupsHeaderWidget(
+                  searchController: _searchController,
+                  onSearchChanged: (value) {
+                    if (value.isNotEmpty) {
+                      innerContext.read<ProductGroupsCubit>().searchGroups(value);
+                    } else {
+                      innerContext.read<ProductGroupsCubit>().loadAllGroups();
+                    }
+                  },
+                ),
                 Expanded(
                   child: BlocBuilder<ProductGroupsCubit, ProductGroupsState>(
                     builder: (context, state) {
@@ -64,7 +72,13 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
                             icon: Icons.category_outlined,
                           );
                         }
-                        return _buildGroupsList(innerContext, state.groups);
+                        return ProductGroupsListWidget(
+                          groups: state.groups,
+                          onEditGroup: (group) =>
+                              _showGroupDialog(innerContext, group: group),
+                          onDeleteGroup: (group) =>
+                              _showDeleteConfirmation(innerContext, group),
+                        );
                       }
                       return const Center(
                         child: Text('ابدأ بإضافة مجموعات المنتجات'),
@@ -83,148 +97,6 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext innerContext) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'مجموعات المنتجات',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.gray900,
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextInputField(
-            controller: _searchController,
-            hint: 'ابحث في المجموعات...',
-            decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
-              ),
-            ),
-            onChanged: (value) {
-              if (value.isNotEmpty) {
-                innerContext.read<ProductGroupsCubit>().searchGroups(value);
-              } else {
-                innerContext.read<ProductGroupsCubit>().loadAllGroups();
-              }
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGroupsList(
-    BuildContext innerContext,
-    List<ProductGroupEntity> groups,
-  ) {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: groups.length,
-      itemBuilder: (context, index) {
-        final group = groups[index];
-        return CustomCardContainer(
-          padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
-          ),
-          child: ListTile(
-            leading: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-              child: const Icon(Icons.category, color: AppColors.primary),
-            ),
-            title: Text(
-              group.name,
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            subtitle: group.statement != null
-                ? Text(
-                    group.statement!,
-                    style: TextStyle(color: Colors.grey.shade600),
-                  )
-                : null,
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (group.parentGroupId != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(AppRadius.xs),
-                    ),
-                    child: const Text(
-                      'فرعية',
-                      style: TextStyle(fontSize: 12, color: Colors.blue),
-                    ),
-                  ),
-                const SizedBox(width: 8),
-                PopupMenuButton<String>(
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 20),
-                          SizedBox(width: 8),
-                          Text('تعديل'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('حذف', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                  onSelected: (value) {
-                    if (value == 'edit') {
-                      _showGroupDialog(innerContext, group: group);
-                    } else if (value == 'delete') {
-                      _showDeleteConfirmation(innerContext, group);
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 

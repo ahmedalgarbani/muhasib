@@ -1,20 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/stores/domain/entities/stock_transfer_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
-import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/stores/presentation/widgets/warehouse_page_sections.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class StockTransferPage extends StatefulWidget {
   const StockTransferPage({super.key});
@@ -30,11 +28,8 @@ class _StockTransferPageState extends State<StockTransferPage> {
 
   DateTime _selectedDate = DateTime.now();
   String _transferType = 'regular'; // 'regular', 'return', 'adjustment'
-  final String _transferStatus =
-      'draft'; // 'draft', 'pending', 'in_transit', 'completed'
   WarehouseEntity? _sourceWarehouse;
   WarehouseEntity? _destinationWarehouse;
-  final List<StockTransferLineEntity> _transferLines = [];
 
   final List<Map<String, dynamic>> _transferTypes = [
     {
@@ -102,7 +97,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
           ],
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Form(
             key: _formKey,
             child: Column(
@@ -130,8 +125,9 @@ class _StockTransferPageState extends State<StockTransferPage> {
                   destination: _destinationWarehouse,
                   onSourceChanged: (value) => setState(() {
                     _sourceWarehouse = value;
-                    if (_destinationWarehouse == value)
+                    if (_destinationWarehouse == value) {
                       _destinationWarehouse = null;
+                    }
                   }),
                   onDestinationChanged: (value) =>
                       setState(() => _destinationWarehouse = value),
@@ -152,164 +148,6 @@ class _StockTransferPageState extends State<StockTransferPage> {
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _unusedWarehouseSelectionCard(ColorScheme colorScheme) {
-    return CustomCardContainer(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warehouse, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'المخازن',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            BlocBuilder<WarehousesCubit, WarehousesState>(
-              builder: (context, state) {
-                List<WarehouseEntity> warehouses = [];
-                if (state is WarehousesLoaded) {
-                  warehouses = state.warehouses;
-                }
-
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'من المخزن',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              CustomDropdownField<WarehouseEntity>(
-                                value: _sourceWarehouse,
-                                hint: 'اختر المخزن المصدر',
-                                prefixIcon: const Icon(Icons.output),
-                                items: warehouses.map((warehouse) {
-                                  return DropdownMenuItem(
-                                    value: warehouse,
-                                    child: Text(warehouse.name),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() {
-                                    _sourceWarehouse = value;
-                                    // Ensure source and destination are different
-                                    if (_destinationWarehouse == value) {
-                                      _destinationWarehouse = null;
-                                    }
-                                  });
-                                },
-                                validator: (value) {
-                                  if (value == null) {
-                                    return 'يرجى اختيار المخزن المصدر';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Icon(
-                            Icons.arrow_forward,
-                            color: colorScheme.primary,
-                            size: 32,
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.green,
-                                      shape: BoxShape.circle,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  const Text(
-                                    'إلى المخزن',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 8),
-                              CustomDropdownField<WarehouseEntity>(
-                                value: _destinationWarehouse,
-                                hint: 'اختر المخزن الوجهة',
-                                prefixIcon: const Icon(Icons.input),
-                                items: warehouses
-                                    .where((w) => w != _sourceWarehouse)
-                                    .map((warehouse) {
-                                      return DropdownMenuItem(
-                                        value: warehouse,
-                                        child: Text(warehouse.name),
-                                      );
-                                    })
-                                    .toList(),
-                                onChanged: (value) {
-                                  setState(() => _destinationWarehouse = value);
-                                },
-                                validator: (value) {
-                                  if (value == null) {
-                                    return 'يرجى اختيار المخزن الوجهة';
-                                  }
-                                  return null;
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
         ),
       ),
     );

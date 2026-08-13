@@ -3,6 +3,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class InventoryProductCountCard extends StatelessWidget {
   final TextEditingController searchController;
@@ -26,7 +27,7 @@ class InventoryProductCountCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

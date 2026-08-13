@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/other_fee_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Standalone Other Fee Card Widget for displaying other fee items.
 class OtherFeeCardWidget extends StatelessWidget {
@@ -41,7 +42,7 @@ class OtherFeeCardWidget extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

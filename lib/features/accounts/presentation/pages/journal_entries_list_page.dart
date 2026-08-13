@@ -13,6 +13,7 @@ import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.d
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/journal_entry_card_widget.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/journal_entry_details_sheet.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class JournalEntriesListPage extends StatefulWidget {
   const JournalEntriesListPage({super.key});
@@ -77,7 +78,7 @@ class _JournalEntriesListBody extends StatelessWidget {
             return RefreshIndicator(
               onRefresh: () async => context.read<JournalEntryCubit>().loadEntries(),
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: entries.length,
                 itemBuilder: (context, index) {
                   final entry = entries[index];
@@ -122,7 +123,7 @@ class _JournalEntriesListBody extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Padding(
-                padding: EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 child: Text('طباعة وتصدير قيود اليومية', style: AppTextStyles.titleMedium),
               ),
               ListTile(

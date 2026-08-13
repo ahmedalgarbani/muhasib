@@ -14,6 +14,7 @@ import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 import 'package:muhasib/features/sales/presentation/widgets/components/quotation_detail_components.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Quotation Detail Page
 /// Displays complete quotation information with convert and edit actions
@@ -63,7 +64,7 @@ class QuotationDetailPage extends StatelessWidget {
           ],
         ),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

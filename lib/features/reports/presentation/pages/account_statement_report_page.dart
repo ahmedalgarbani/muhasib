@@ -11,6 +11,7 @@ import 'package:muhasib/features/reports/presentation/cubit/account_statement_st
 import 'package:muhasib/features/reports/presentation/widgets/account_statement_widgets.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class AccountStatementReportPage extends StatefulWidget {
   const AccountStatementReportPage({super.key});
@@ -197,7 +198,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
           return Column(
             children: [
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 child: Row(
                   children: [
                     Expanded(

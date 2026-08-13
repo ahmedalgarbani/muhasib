@@ -1,20 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/pages/account_form_page.dart';
 import 'package:muhasib/features/accounts/presentation/pages/account_transactions_page.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_color_helper.dart';
+import 'package:muhasib/features/accounts/presentation/widgets/accounts_tree_widgets.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/add_account_bottom_sheet.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/main_card_account.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/sub_card_account.dart';
-import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class AccountsTreeScreen extends StatelessWidget {
   const AccountsTreeScreen({super.key});
@@ -125,8 +125,24 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
 
             return Column(
               children: [
-                _buildHeader(state, accounts.length),
-                Expanded(child: _buildContent(state, accounts)),
+                AccountsTreeHeaderWidget(
+                  count: accounts.length,
+                  showSearch: showSearch,
+                  onToggleSearch: _toggleSearch,
+                  onSearchQueryChanged: (value) =>
+                      setState(() => searchQuery = value),
+                ),
+                Expanded(
+                  child: AccountsTreeContentWidget(
+                    state: state,
+                    accounts: accounts,
+                    onAccountClick: _handleAccountClick,
+                    onEditAccount: _showEditAccountDialog,
+                    onDeleteAccount: _confirmDeleteAccount,
+                    onRetry: () =>
+                        context.read<AccountsCubit>().loadAllAccounts(),
+                  ),
+                ),
               ],
             );
           },
@@ -146,9 +162,6 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
         ? state.accounts
         : (cubit.allAccounts ?? const <AccountEntity>[]);
 
-    // Default view: only root accounts (masterId == null)
-    // Search view: search across ALL accounts to ensure seeded accounts that
-    // have incorrect masterId but correct masterCId are still discoverable.
     if (searchQuery.isEmpty) {
       return source.where((account) => account.masterId == null).toList();
     }
@@ -160,173 +173,6 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
               account.name.contains(query) || account.code.contains(query),
         )
         .toList();
-  }
-
-  Widget _buildHeader(AccountsState state, int count) {
-    return Container(
-      decoration: const BoxDecoration(color: AppColors.primary),
-      child: SafeArea(
-        bottom: false,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Builder(
-                    builder: (innerContext) => IconButton(
-                      onPressed: () => Scaffold.of(innerContext).openDrawer(),
-                      icon: const Icon(Icons.menu, color: Colors.white),
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'شجرة الحسابات',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        Text(
-                          '$count حساباً',
-                          style: const TextStyle(color: AppColors.blue200),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _toggleSearch,
-                    icon: const Icon(Icons.search, color: Colors.white),
-                    style: IconButton.styleFrom(
-                      backgroundColor: showSearch
-                          ? Colors.white.withOpacity(0.2)
-                          : null,
-                    ),
-                  ),
-                ],
-              ),
-              if (showSearch)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: TextInputField(
-                    hint: 'ابحث عن حساب...',
-                    autofocus: true,
-                    onChanged: (value) {
-                      setState(() {
-                        searchQuery = value;
-                      });
-                    },
-                    decoration: InputDecoration(
-                      hintStyle: const TextStyle(color: AppColors.blue200),
-                      filled: true,
-                      fillColor: Colors.white.withOpacity(0.1),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide(
-                          color: Colors.white.withOpacity(0.2),
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide(
-                          color: Colors.white.withOpacity(0.2),
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        borderSide: BorderSide(
-                          color: Colors.white.withOpacity(0.3),
-                          width: 2,
-                        ),
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.search,
-                        color: AppColors.blue200,
-                      ),
-                    ),
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildContent(AccountsState state, List<AccountEntity> accounts) {
-    if (state is AccountsLoading && accounts.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (state is AccountsError) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.error_outline, size: 64, color: Colors.red),
-              const SizedBox(height: 16),
-              Text(
-                state.message,
-                style: const TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              HasibButton(
-                label: 'إعادة المحاولة',
-                onPressed: () =>
-                    context.read<AccountsCubit>().loadAllAccounts(),
-                variant: HasibButtonVariant.primary,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    if (accounts.isEmpty) {
-      return const EmptyStateWidget(
-        title: 'لا توجد حسابات حتى الآن',
-        subtitle: 'يمكنك إضافة الحساب الأول بالضغط على زر الإضافة.',
-        icon: Icons.account_balance_wallet_outlined,
-      );
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: accounts.length,
-      itemBuilder: (context, index) {
-        final account = accounts[index];
-        final colors = AccountColorHelper.getColors(account);
-
-        return account.isMaster
-            ? MainCardAccount(
-                account: account,
-                onTap: () => _handleAccountClick(account),
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-                iconColor: colors.icon,
-                onEdit: () => _showEditAccountDialog(account),
-                onDelete: () => _confirmDeleteAccount(account.id!),
-              )
-            : SubCardAccount(
-                account: account,
-                backgroundColor: colors.background,
-                borderColor: colors.border,
-                iconColor: colors.icon,
-                onEdit: () => _showEditAccountDialog(account),
-                onDelete: () => _confirmDeleteAccount(account.id!),
-                onTap: () => _handleAccountClick(account),
-              );
-      },
-    );
   }
 }
 
@@ -360,7 +206,10 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
       body: BlocBuilder<AccountsCubit, AccountsState>(
         builder: (context, state) {
           if (state is AccountsError) {
-            return _buildErrorState(state.message);
+            return AccountsTreeErrorStateWidget(
+              message: state.message,
+              onRetry: () => context.read<AccountsCubit>().loadAllAccounts(),
+            );
           }
 
           final cubit = context.read<AccountsCubit>();
@@ -375,9 +224,7 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
           final childAccounts = allAccounts
               .where(
                 (account) =>
-                    // Primary linkage
                     account.masterId == widget.masterAccount.id ||
-                    // Fallback linkage (used by seeders)
                     account.masterCId == widget.masterAccount.cId,
               )
               .toList();
@@ -391,7 +238,7 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             itemCount: childAccounts.length,
             itemBuilder: (context, index) {
               final account = childAccounts[index];
@@ -482,32 +329,6 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
             variant: HasibButtonVariant.danger,
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildErrorState(String message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(
-              message,
-              style: const TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            HasibButton(
-              label: 'إعادة المحاولة',
-              onPressed: () => context.read<AccountsCubit>().loadAllAccounts(),
-              variant: HasibButtonVariant.primary,
-            ),
-          ],
-        ),
       ),
     );
   }

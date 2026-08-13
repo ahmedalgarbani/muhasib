@@ -5,6 +5,7 @@ import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class InventoryWarehouseSelectorCard extends StatelessWidget {
   final WarehouseEntity? selectedWarehouse;
@@ -26,7 +27,7 @@ class InventoryWarehouseSelectorCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

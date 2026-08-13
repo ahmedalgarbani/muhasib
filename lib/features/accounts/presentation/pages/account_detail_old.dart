@@ -31,33 +31,49 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                     child: Column(
                       children: [
                         Row(
-                          children: [
-                            Expanded(child: _buildDropdown('تنازلياً')),
-                            const SizedBox(width: 8),
-                            Expanded(child: _buildDropdown('التاريخ')),
-                            const SizedBox(width: 8),
-                            Expanded(child: _buildDropdown('نوع العملية')),
+                          children: const [
+                            Expanded(child: AccountDropdownFieldWidget(value: 'تنازلياً')),
+                            SizedBox(width: 8),
+                            Expanded(child: AccountDropdownFieldWidget(value: 'التاريخ')),
+                            SizedBox(width: 8),
+                            Expanded(child: AccountDropdownFieldWidget(value: 'نوع العملية')),
                           ],
                         ),
                         const SizedBox(height: 10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            _buildPeriodOption('سنوي'),
-                            _buildPeriodOption('الكل'),
-                            _buildPeriodOption('شهري'),
-                            _buildPeriodOption('يومي'),
+                            AccountPeriodOptionRadioWidget(
+                              label: 'سنوي',
+                              selectedPeriod: selectedPeriod,
+                              onChanged: (val) => setState(() => selectedPeriod = val),
+                            ),
+                            AccountPeriodOptionRadioWidget(
+                              label: 'الكل',
+                              selectedPeriod: selectedPeriod,
+                              onChanged: (val) => setState(() => selectedPeriod = val),
+                            ),
+                            AccountPeriodOptionRadioWidget(
+                              label: 'شهري',
+                              selectedPeriod: selectedPeriod,
+                              onChanged: (val) => setState(() => selectedPeriod = val),
+                            ),
+                            AccountPeriodOptionRadioWidget(
+                              label: 'يومي',
+                              selectedPeriod: selectedPeriod,
+                              onChanged: (val) => setState(() => selectedPeriod = val),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 10),
                         Row(
                           children: [
                             Expanded(
-                              child: _buildDateField('الى تاريخ:', endDate),
+                              child: AccountDateFieldWidget(label: 'الى تاريخ:', date: endDate),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: _buildDateField('من تاريخ:', startDate),
+                              child: AccountDateFieldWidget(label: 'من تاريخ:', date: startDate),
                             ),
                           ],
                         ),
@@ -103,7 +119,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                   ),
                   const SizedBox(height: 4),
                   ...List.generate(10, (index) {
-                    return _buildTransactionItem(
+                    return AccountOldTransactionItemWidget(
                       title: 'قيد يومي بالرقم: ${index + 1}',
                       debit: '600',
                       credit: '0',
@@ -121,8 +137,15 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
       ),
     );
   }
+}
 
-  Widget _buildDropdown(String value) {
+class AccountDropdownFieldWidget extends StatelessWidget {
+  final String value;
+
+  const AccountDropdownFieldWidget({super.key, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
       itemHeight: 48.0,
       icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
@@ -136,18 +159,31 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
       ),
     );
   }
+}
 
-  Widget _buildPeriodOption(String label) {
-    bool isSelected = selectedPeriod == label;
+class AccountPeriodOptionRadioWidget extends StatelessWidget {
+  final String label;
+  final String selectedPeriod;
+  final ValueChanged<String> onChanged;
+
+  const AccountPeriodOptionRadioWidget({
+    super.key,
+    required this.label,
+    required this.selectedPeriod,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       children: [
         Radio<String>(
           value: label,
           groupValue: selectedPeriod,
           onChanged: (value) {
-            setState(() {
-              selectedPeriod = value!;
-            });
+            if (value != null) {
+              onChanged(value);
+            }
           },
           activeColor: Colors.blue,
         ),
@@ -155,8 +191,20 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
       ],
     );
   }
+}
 
-  Widget _buildDateField(String label, DateTime date) {
+class AccountDateFieldWidget extends StatelessWidget {
+  final String label;
+  final DateTime date;
+
+  const AccountDateFieldWidget({
+    super.key,
+    required this.label,
+    required this.date,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
       decoration: BoxDecoration(
@@ -176,14 +224,26 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
       ),
     );
   }
+}
 
-  Widget _buildTransactionItem({
-    required String title,
-    required String debit,
-    required String credit,
-    required String balance,
-    required String date,
-  }) {
+class AccountOldTransactionItemWidget extends StatelessWidget {
+  final String title;
+  final String debit;
+  final String credit;
+  final String balance;
+  final String date;
+
+  const AccountOldTransactionItemWidget({
+    super.key,
+    required this.title,
+    required this.debit,
+    required this.credit,
+    required this.balance,
+    required this.date,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       color: Colors.white,
@@ -191,7 +251,6 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Row
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

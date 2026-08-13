@@ -14,6 +14,7 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class IncomeStatementReportPage extends StatefulWidget {
   const IncomeStatementReportPage({super.key});
@@ -141,7 +142,7 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
             return const Center(child: Text('لا توجد بيانات للفترة المحددة'));
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Column(
               children: [
                 IncomeStatementSummaryRowWidget(

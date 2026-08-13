@@ -16,6 +16,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ReturnInvoiceFormPage extends StatefulWidget {
   final int? originalInvoiceId;
@@ -124,7 +125,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
           child: Form(
             key: _formKey,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -136,7 +137,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                       side: BorderSide(color: Colors.grey.shade200),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppConstant.defaultPadding,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -214,7 +215,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                         side: BorderSide(color: Colors.grey.shade200),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: AppConstant.defaultPadding,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -297,7 +298,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                         side: const BorderSide(color: AppColors.amber400),
                       ),
                       child: Padding(
-                        padding: const EdgeInsets.all(16),
+                        padding: AppConstant.defaultPadding,
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -463,7 +464,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                       side: const BorderSide(color: AppColors.error),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: AppConstant.defaultPadding,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [

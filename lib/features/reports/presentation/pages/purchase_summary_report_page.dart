@@ -8,6 +8,7 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PurchaseSummaryReportPage extends StatefulWidget {
   const PurchaseSummaryReportPage({super.key});
@@ -131,7 +132,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
         }
 
         return SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

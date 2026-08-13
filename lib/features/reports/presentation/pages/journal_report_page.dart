@@ -10,6 +10,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/reports/presentation/widgets/journal_report_components.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class JournalReportPage extends StatefulWidget {
   const JournalReportPage({super.key});
@@ -168,7 +169,7 @@ class _JournalReportContent extends StatelessWidget {
               ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 itemCount: data.entries.length,
                 itemBuilder: (context, index) => JournalEntryCardWidget(
                   entry: data.entries[index],

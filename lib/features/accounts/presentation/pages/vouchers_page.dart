@@ -14,6 +14,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 part 'vouchers_widgets.dart';
 
@@ -98,7 +99,7 @@ class _VouchersPageState extends State<VouchersPage>
                 onRefresh: () async =>
                     context.read<VouchersCubit>().loadVouchers(type: _filter),
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  padding: AppConstant.defaultPadding,
                   itemCount: vouchers.length,
                   itemBuilder: (context, index) {
                     return _VoucherListItem(
@@ -157,7 +158,7 @@ class _VouchersPageState extends State<VouchersPage>
             mainAxisSize: MainAxisSize.min,
             children: [
               const Padding(
-                padding: EdgeInsets.all(16),
+                padding: AppConstant.defaultPadding,
                 child: Text(
                   'خيارات التصدير والطباعة',
                   style: AppTextStyles.titleMedium,

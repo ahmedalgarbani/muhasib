@@ -5,6 +5,7 @@ import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/invoice_summary_row_widget.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ImprovedStep4Payment extends StatelessWidget {
   final Invoice invoice;
@@ -35,12 +36,12 @@ class ImprovedStep4Payment extends StatelessWidget {
     final remaining = invoice.total - totalPaid;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         children: [
           CustomCardContainer(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: AppConstant.defaultPadding,
               child: Column(
                 children: [
                   InvoiceSummaryRowWidget(

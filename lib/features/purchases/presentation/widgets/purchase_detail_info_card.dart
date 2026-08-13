@@ -4,6 +4,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PurchaseDetailInfoCard extends StatelessWidget {
   final InvoiceEntity invoice;
@@ -27,7 +28,7 @@ class PurchaseDetailInfoCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

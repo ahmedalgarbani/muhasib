@@ -13,6 +13,7 @@ import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/models/bill_models.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class SalePageBody extends StatefulWidget {
   const SalePageBody({super.key});
@@ -104,7 +105,7 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
                 // Stats
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: AppConstant.defaultPadding,
                     child: StatsCards(stats: stats),
                   ),
                 ),
@@ -264,7 +265,7 @@ class BillsHeader extends StatelessWidget {
         border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           children: [
             Row(
@@ -337,7 +338,7 @@ class FilterPanel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -456,7 +457,7 @@ class BillCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

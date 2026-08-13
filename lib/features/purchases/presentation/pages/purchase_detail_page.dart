@@ -17,6 +17,7 @@ import 'package:muhasib/features/purchases/presentation/widgets/purchase_detail_
 import 'package:muhasib/features/purchases/presentation/widgets/purchase_detail_supplier_card.dart';
 import 'package:muhasib/features/purchases/presentation/widgets/purchase_detail_totals_card.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PurchaseDetailPage extends StatefulWidget {
   final InvoiceEntity invoice;
@@ -39,7 +40,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
         backgroundColor: AppColors.neutral100,
         appBar: const CustomAppBar(),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

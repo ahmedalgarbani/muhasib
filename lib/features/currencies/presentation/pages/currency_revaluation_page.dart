@@ -6,6 +6,7 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import '../widgets/currency_revaluation_widgets.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CurrencyRevaluationPage extends StatefulWidget {
   const CurrencyRevaluationPage({super.key});
@@ -77,7 +78,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
       backgroundColor: AppColors.background,
       appBar: CustomAppBar(title: 'إعادة تقييم العملات'),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Form(
           key: _formKey,
           child: Column(

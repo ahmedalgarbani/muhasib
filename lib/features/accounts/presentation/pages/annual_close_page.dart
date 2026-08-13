@@ -5,6 +5,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/annual_close_components.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class AnnualClosePage extends StatefulWidget {
   const AnnualClosePage({super.key});
@@ -68,7 +69,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
         backgroundColor: AppColors.background,
         appBar: CustomAppBar(title: 'الإقفال السنوي'),
         body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
+          padding: AppConstant.defaultPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

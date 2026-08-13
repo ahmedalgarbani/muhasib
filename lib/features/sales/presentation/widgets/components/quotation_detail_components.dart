@@ -6,6 +6,7 @@ import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 String _formatDate(int timestamp) {
   final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
@@ -36,7 +37,7 @@ class QuotationDetailHeaderCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -128,7 +129,7 @@ class QuotationDetailCustomerCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -173,7 +174,7 @@ class QuotationDetailProductsCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -274,7 +275,7 @@ class QuotationDetailTotalsCard extends StatelessWidget {
         side: BorderSide(color: Colors.grey.shade200),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           children: [
             _QuotationTotalRow(label: 'المجموع الفرعي', amount: quotation.amount),
@@ -319,7 +320,7 @@ class QuotationDetailConvertedInfoCard extends StatelessWidget {
         side: const BorderSide(color: AppColors.violet500, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -373,7 +374,7 @@ class QuotationDetailBottomActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [

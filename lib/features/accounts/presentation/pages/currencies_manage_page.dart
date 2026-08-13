@@ -1,11 +1,12 @@
 import "package:flutter/material.dart";
-import "package:muhasib/core/models/entity.dart";
-import "package:muhasib/core/widgets/text_input_field.dart";
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/models/entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CurrencyManagerApp extends StatelessWidget {
   const CurrencyManagerApp({super.key});
@@ -123,13 +124,13 @@ class _CurrencyListScreenState extends State<CurrencyListScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            const CurrencyListHeader(),
             Expanded(
               child: AnimatedBuilder(
                 animation: _controller,
                 builder: (context, _) {
                   return ListView.builder(
-                    padding: const EdgeInsets.all(16),
+                    padding: AppConstant.defaultPadding,
                     itemCount: _controller.currencies.length,
                     itemBuilder: (context, index) {
                       return CurrencyCard(
@@ -144,14 +145,33 @@ class _CurrencyListScreenState extends State<CurrencyListScreen> {
                 },
               ),
             ),
-            _buildAddButton(),
+            CurrencyListAddButton(
+              onPressed: () => _showAddCurrencyModal(),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  void _showAddCurrencyModal() {
+    showDialog(
+      context: context,
+      builder: (context) => AddCurrencyModal(
+        onAdd: (currency) {
+          _controller.addCurrency(currency);
+          Navigator.pop(context);
+        },
+      ),
+    );
+  }
+}
+
+class CurrencyListHeader extends StatelessWidget {
+  const CurrencyListHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -164,7 +184,7 @@ class _CurrencyListScreenState extends State<CurrencyListScreen> {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: AppConstant.defaultPadding,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -192,27 +212,22 @@ class _CurrencyListScreenState extends State<CurrencyListScreen> {
       ),
     );
   }
+}
 
-  Widget _buildAddButton() {
+class CurrencyListAddButton extends StatelessWidget {
+  final VoidCallback onPressed;
+
+  const CurrencyListAddButton({super.key, required this.onPressed});
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: AppConstant.defaultPadding,
       child: HasibButton(
         label: 'إضافة عملة جديدة',
         leading: const Icon(Icons.add, color: Colors.white),
-        onPressed: () => _showAddCurrencyModal(),
+        onPressed: onPressed,
         variant: HasibButtonVariant.primary,
-      ),
-    );
-  }
-
-  void _showAddCurrencyModal() {
-    showDialog(
-      context: context,
-      builder: (context) => AddCurrencyModal(
-        onAdd: (currency) {
-          _controller.addCurrency(currency);
-          Navigator.pop(context);
-        },
       ),
     );
   }
@@ -255,7 +270,7 @@ class CurrencyCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.lg),
           onTap: () {},
           child: Padding(
-            padding: const EdgeInsets.all(16),
+            padding: AppConstant.defaultPadding,
             child: Row(
               children: [
                 Text(
