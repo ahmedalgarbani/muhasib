@@ -4,7 +4,10 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/settings_card.dart';
+import 'package:muhasib/core/widgets/settings_switch_tile.dart';
+import 'package:muhasib/core/widgets/settings_dropdown_tile.dart';
+import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -166,42 +169,46 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  _buildSwitchField(
-                    label: 'استخدام حسيب بشكل مبسط (دفتر حسابات)',
-                    value: useMiniHasib,
-                    icon: Icons.account_tree,
-                    enabled: false,
-                    onChanged: (value) {
-                      setState(() {
-                        useMiniHasib = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildSwitchField(
-                    label: 'إظهار موديول المخازن',
-                    value: showStockModule,
-                    icon: Icons.inventory_2,
-                    onChanged: (value) {
-                      setState(() {
-                        showStockModule = value;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildDropdownField(
-                    label: 'تغيير عرض الشاشة الرئيسية',
-                    value: homeScreenType,
-                    icon: Icons.home_outlined,
-                    items: ['الأولى', 'الثانية', 'الثالثة'],
-                    onChanged: (value) {
-                      setState(() {
-                        homeScreenType = value!;
-                      });
-                    },
-                  ),
-                ]),
+                SettingsCard(
+                  children: [
+                    SettingsSwitchTile(
+                      title: 'استخدام حسيب بشكل مبسط (دفتر حسابات)',
+                      value: useMiniHasib,
+                      icon: Icons.account_tree,
+                      enabled: false,
+                      onChanged: (value) {
+                        setState(() {
+                          useMiniHasib = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'إظهار موديول المخازن',
+                      value: showStockModule,
+                      icon: Icons.inventory_2,
+                      onChanged: (value) {
+                        setState(() {
+                          showStockModule = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      title: 'تغيير عرض الشاشة الرئيسية',
+                      value: homeScreenType,
+                      icon: Icons.home_outlined,
+                      items: ['الأولى', 'الثانية', 'الثالثة']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          homeScreenType = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
@@ -214,25 +221,27 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  ListTile(
-                    leading: Icon(
-                      Icons.text_fields,
-                      size: 20,
-                      color: Colors.grey[600],
+                SettingsCard(
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        Icons.text_fields,
+                        size: 20,
+                        color: Colors.grey[600],
+                      ),
+                      title: const Text(
+                        'حجم الخط',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      subtitle: Text(
+                        fontScale == 1.0
+                            ? 'طبيعي'
+                            : 'x${fontScale.toStringAsFixed(1)}',
+                        style: const TextStyle(fontSize: 13),
+                      ),
                     ),
-                    title: const Text(
-                      'حجم الخط',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    subtitle: Text(
-                      fontScale == 1.0
-                          ? 'طبيعي'
-                          : 'x${fontScale.toStringAsFixed(1)}',
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                ]),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
@@ -245,35 +254,41 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  _buildDropdownField(
-                    label: 'صيغة التاريخ',
-                    value: dateFormat,
-                    icon: Icons.calendar_today,
-                    items: [
-                      'dd - MM - yyyy',
-                      'yyyy - MM - dd',
-                      'MM - dd - yyyy',
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        dateFormat = value!;
-                      });
-                    },
-                  ),
-                  const Divider(),
-                  _buildDropdownField(
-                    label: 'نظام الوقت',
-                    value: timeFormat,
-                    icon: Icons.access_time,
-                    items: ['12 ساعة', '24 ساعة'],
-                    onChanged: (value) {
-                      setState(() {
-                        timeFormat = value!;
-                      });
-                    },
-                  ),
-                ]),
+                SettingsCard(
+                  children: [
+                    SettingsDropdownTile<String>(
+                      title: 'صيغة التاريخ',
+                      value: dateFormat,
+                      icon: Icons.calendar_today,
+                      items: [
+                        'dd - MM - yyyy',
+                        'yyyy - MM - dd',
+                        'MM - dd - yyyy',
+                      ]
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          dateFormat = value!;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      title: 'نظام الوقت',
+                      value: timeFormat,
+                      icon: Icons.access_time,
+                      items: ['12 ساعة', '24 ساعة']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          timeFormat = value!;
+                        });
+                      },
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
@@ -286,39 +301,41 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  ListTile(
-                    leading: Icon(
-                      Icons.numbers,
-                      size: 20,
-                      color: Colors.grey[600],
+                SettingsCard(
+                  children: [
+                    ListTile(
+                      leading: Icon(
+                        Icons.numbers,
+                        size: 20,
+                        color: Colors.grey[600],
+                      ),
+                      title: const Text(
+                        'عدد الارقام بعد الفاصلة عند الإدخال',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      subtitle: Text(
+                        decimalNoInput.toString(),
+                        style: const TextStyle(fontSize: 13),
+                      ),
                     ),
-                    title: const Text(
-                      'عدد الارقام بعد الفاصلة عند الإدخال',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    const Divider(),
+                    ListTile(
+                      leading: Icon(
+                        Icons.numbers,
+                        size: 20,
+                        color: Colors.grey[600],
+                      ),
+                      title: const Text(
+                        'عدد الارقام بعد الفاصلة عند العرض',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                      subtitle: Text(
+                        decimalNoOutput.toString(),
+                        style: const TextStyle(fontSize: 13),
+                      ),
                     ),
-                    subtitle: Text(
-                      decimalNoInput.toString(),
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: Icon(
-                      Icons.numbers,
-                      size: 20,
-                      color: Colors.grey[600],
-                    ),
-                    title: const Text(
-                      'عدد الارقام بعد الفاصلة عند العرض',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    subtitle: Text(
-                      decimalNoOutput.toString(),
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                ]),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
@@ -331,51 +348,23 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  ListTile(
-                    leading: Icon(
-                      Icons.arrow_upward,
-                      size: 20,
-                      color: Colors.grey[600],
-                    ),
-                    title: const Text(
-                      'مدين',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    subtitle: TextInputField(
+                SettingsCard(
+                  children: [
+                    SettingsTextFieldTile(
+                      icon: Icons.arrow_upward,
+                      title: 'مدين',
                       controller: TextEditingController(text: debitText),
                       onChanged: (value) => debitText = value,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
                     ),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    leading: Icon(
-                      Icons.arrow_downward,
-                      size: 20,
-                      color: Colors.grey[600],
-                    ),
-                    title: const Text(
-                      'دائن',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
-                    ),
-                    subtitle: TextInputField(
+                    const Divider(),
+                    SettingsTextFieldTile(
+                      icon: Icons.arrow_downward,
+                      title: 'دائن',
                       controller: TextEditingController(text: creditText),
                       onChanged: (value) => creditText = value,
-                      style: const TextStyle(fontSize: 13),
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        isDense: true,
-                        contentPadding: EdgeInsets.zero,
-                      ),
                     ),
-                  ),
-                ]),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 8),
@@ -388,108 +377,31 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     ),
                   ),
                 ),
-                _buildCard([
-                  _buildSwitchField(
-                    label: 'إظهار تأكيد النسخ الاحتياطي عند الخروج من النظام',
-                    value: showBackupNotifyWhenCloseApp,
-                    icon: Icons.backup,
-                    onChanged: (value) {
-                      setState(() {
-                        showBackupNotifyWhenCloseApp = value;
-                      });
-                    },
-                  ),
-                ]),
+                SettingsCard(
+                  children: [
+                    SettingsSwitchTile(
+                      title: 'إظهار تأكيد النسخ الاحتياطي عند الخروج من النظام',
+                      value: showBackupNotifyWhenCloseApp,
+                      icon: Icons.backup,
+                      onChanged: (value) {
+                        setState(() {
+                          showBackupNotifyWhenCloseApp = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 24),
-                  HasibButton(
-                    label: 'حفظ التغييرات',
-                    onPressed: _saveSettings,
-                    variant: HasibButtonVariant.primary,
-                  ),
+                HasibButton(
+                  label: 'حفظ التغييرات',
+                  onPressed: _saveSettings,
+                  variant: HasibButtonVariant.primary,
+                ),
                 const SizedBox(height: 16),
               ],
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildSwitchField({
-    required String label,
-    required bool value,
-    required IconData icon,
-    required ValueChanged<bool> onChanged,
-    bool enabled = true,
-  }) {
-    return SwitchListTile(
-      secondary: Icon(
-        icon,
-        size: 20,
-        color: enabled ? Colors.grey[600] : Colors.grey[400],
-      ),
-      title: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          color: enabled ? Colors.black87 : Colors.grey[400],
-        ),
-      ),
-      subtitle: Text(
-        value ? 'مفعل' : 'غير مفعل',
-        style: TextStyle(
-          fontSize: 11,
-          color: enabled ? Colors.grey : Colors.grey[400],
-        ),
-      ),
-      value: value,
-      onChanged: enabled ? onChanged : null,
-      activeThumbColor: Theme.of(context).primaryColor,
-      dense: true,
-    );
-  }
-
-  Widget _buildDropdownField({
-    required String label,
-    required String value,
-    required IconData icon,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return ListTile(
-      leading: Icon(icon, size: 20, color: Colors.grey[600]),
-      title: Text(
-        label,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
-      ),
-      subtitle: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: value,
-          isDense: true,
-          isExpanded: true,
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
-          items: items.map((String item) {
-            return DropdownMenuItem<String>(value: item, child: Text(item));
-          }).toList(),
-          onChanged: onChanged,
-        ),
       ),
     );
   }

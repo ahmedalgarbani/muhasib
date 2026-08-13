@@ -5,6 +5,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/amount_info_widget.dart';
 
 class StickyInvoiceHeader extends StatelessWidget {
   final Invoice invoice;
@@ -95,44 +96,31 @@ class StickyInvoiceHeader extends StatelessWidget {
                 height: 1.4,
               ).copyWith(color: AppColors.error),
             ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+              children: [
+                AmountInfoWidget(
+                  label: 'الإجمالي',
+                  amount: invoice.total,
+                  color: AppColors.grey900,
+                ),
+                AmountInfoWidget(
+                  label: 'المدفوع',
+                  amount: invoice.paid,
+                  color: AppColors.success,
+                ),
+                AmountInfoWidget(
+                  label: 'المتبقي',
+                  amount: invoice.remaining,
+                  color: AppColors.warning,
+                ),
+              ],
+            ),
           ],
-          const SizedBox(height: AppSpacing.sm),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _buildAmountInfo('الإجمالي', invoice.total, AppColors.grey900),
-              _buildAmountInfo('المدفوع', invoice.paid, AppColors.success),
-              _buildAmountInfo('المتبقي', invoice.remaining, AppColors.warning),
-            ],
-          ),
         ],
       ),
-    );
-  }
-
-  Widget _buildAmountInfo(String label, double amount, Color color) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.normal,
-            color: AppColors.gray600,
-            height: 1.4,
-          ),
-        ),
-        Text(
-          NumberFormatter.formatNumber(amount),
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.normal,
-            color: AppColors.gray900,
-            height: 1.5,
-          ).copyWith(fontWeight: FontWeight.bold, color: color),
-        ),
-      ],
     );
   }
 }

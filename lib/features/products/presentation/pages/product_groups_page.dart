@@ -7,6 +7,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/products/domain/entities/product_group_entity.dart';
@@ -57,7 +58,11 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
                         );
                       } else if (state is ProductGroupsLoaded) {
                         if (state.groups.isEmpty) {
-                          return _buildEmptyState();
+                          return const EmptyStateWidget(
+                            title: 'لا توجد مجموعات',
+                            subtitle: 'ابدأ بإضافة مجموعة جديدة',
+                            icon: Icons.category_outlined,
+                          );
                         }
                         return _buildGroupsList(innerContext, state.groups);
                       }
@@ -220,31 +225,6 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.category_outlined, size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد مجموعات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'ابدأ بإضافة مجموعة جديدة',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-          ),
-        ],
-      ),
     );
   }
 

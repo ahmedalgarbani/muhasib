@@ -10,6 +10,7 @@ import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.da
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PurchasesListPage extends StatefulWidget {
@@ -61,7 +62,11 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                       );
                     } else if (state is PurchaseInvoicesLoaded) {
                       if (state.invoices.isEmpty) {
-                        return _buildEmptyState();
+                        return const EmptyStateWidget(
+                          title: 'لا توجد فواتير مشتريات',
+                          subtitle: 'ابدأ بإضافة فاتورة مشتريات جديدة',
+                          icon: Icons.receipt_long_outlined,
+                        );
                       }
                       return _buildInvoicesList(innerContext, state.invoices);
                     }
@@ -340,35 +345,6 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
           fontWeight: FontWeight.w600,
           color: color,
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد فواتير مشتريات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'ابدأ بإضافة فاتورة مشتريات جديدة',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-          ),
-        ],
       ),
     );
   }

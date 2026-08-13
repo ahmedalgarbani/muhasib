@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
@@ -12,6 +10,7 @@ import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import '../cubit/currencies_cubit.dart';
 import '../../domain/entities/currency_entity.dart';
+import '../widgets/currencies_list_widget.dart';
 
 class CurrenciesPage extends StatelessWidget {
   const CurrenciesPage({super.key});
@@ -55,7 +54,13 @@ class _CurrenciesView extends StatelessWidget {
             if (state is CurrenciesLoading) {
               return const Center(child: CircularProgressIndicator());
             } else if (state is CurrenciesLoaded) {
-              return _buildCurrenciesList(context, state.currencies);
+              return CurrenciesListWidget(
+                currencies: state.currencies,
+                onEdit: (currency) =>
+                    _showAddEditCurrencyDialog(context, currency: currency),
+                onDelete: (currency) =>
+                    _showDeleteConfirmation(context, currency),
+              );
             } else if (state is CurrenciesError) {
               return Center(
                 child: Column(
@@ -88,92 +93,6 @@ class _CurrenciesView extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildCurrenciesList(
-    BuildContext context,
-    List<CurrencyEntity> currencies,
-  ) {
-    if (currencies.isEmpty) {
-      return const Center(child: Text('لا توجد عملات مضافة'));
-    }
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: currencies.length,
-      itemBuilder: (context, index) {
-        final currency = currencies[index];
-        return CustomCardContainer(
-          padding: EdgeInsets.zero,
-          margin: const EdgeInsets.only(bottom: 12),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
-          ),
-          child: ListTile(
-            leading: CircleAvatar(
-              backgroundColor: currency.isLocalCurrency
-                  ? AppColors.primary.withValues(alpha: 0.1)
-                  : AppColors.gray200,
-              child: Text(
-                currency.symbol ?? currency.code,
-                style: TextStyle(
-                  color: currency.isLocalCurrency
-                      ? AppColors.primary
-                      : AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            title: Row(
-              children: [
-                Text(
-                  currency.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                if (currency.isLocalCurrency) ...[
-                  const SizedBox(width: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 2,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(AppRadius.xs),
-                    ),
-                    child: const Text(
-                      'محلية',
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            subtitle: Text(
-              'الكود: ${currency.code} | سعر الصرف: ${currency.exchangeRate}',
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: AppColors.primary),
-                  onPressed: () =>
-                      _showAddEditCurrencyDialog(context, currency: currency),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _showDeleteConfirmation(context, currency),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 

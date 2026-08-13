@@ -3,6 +3,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
+import 'package:muhasib/features/reports/presentation/widgets/balance_sheet_components.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -164,7 +165,7 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildEquationSummary(data),
+              BalanceSheetEquationWidget(result: data),
               const SizedBox(height: 16),
               Row(
                 children: [
@@ -203,143 +204,27 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildSectionTile(
-                'الأصول',
-                data.totalAssets,
-                Colors.green[800]!,
-                Icons.trending_up,
-                assets,
+              BalanceSheetSectionWidget(
+                title: 'الأصول',
+                value: data.totalAssets,
+                color: Colors.green[800]!,
+                icon: Icons.trending_up,
+                rows: assets,
+                formatCurrency: _format,
               ),
               const SizedBox(height: 16),
-              _buildSectionTile(
-                'الخصوم وحقوق الملكية',
-                data.totalLiabilities + data.totalEquity,
-                Colors.blue[800]!,
-                Icons.account_balance_wallet,
-                liabilitiesAndEquity,
+              BalanceSheetSectionWidget(
+                title: 'الخصوم وحقوق الملكية',
+                value: data.totalLiabilities + data.totalEquity,
+                color: Colors.blue[800]!,
+                icon: Icons.account_balance_wallet,
+                rows: liabilitiesAndEquity,
+                formatCurrency: _format,
               ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildEquationSummary(_BalanceSheetResult d) {
-    final ok = d.isBalanced;
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: ok ? Colors.green[50] : Colors.red[50],
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: ok ? Colors.green : Colors.red, width: 0.5),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            ok ? Icons.check_circle : Icons.warning,
-            color: ok ? Colors.green : Colors.red,
-            size: 20,
-          ),
-          const SizedBox(width: 12),
-          Text(
-            ok
-                ? 'الميزانية العمومية متوازنة تماماً ( الأصول = الخصوم + حقوق الملكية ) ✓'
-                : 'فرق الميزانية: ${d.difference.abs().toStringAsFixed(2)} ⚠',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: ok ? Colors.green[800] : Colors.red[800],
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionTile(
-    String t,
-    double v,
-    Color c,
-    IconData i,
-    List<_AccountBalanceRow> rows,
-  ) {
-    return CustomCardContainer(
-      padding: EdgeInsets.zero,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: c.withOpacity(0.05),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadius.lg),
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(i, color: c, size: 20),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    t,
-                    style: TextStyle(
-                      color: c,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-                Text(
-                  _format(v),
-                  style: TextStyle(
-                    color: c,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (rows.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                'لا توجد حسابات مسجلة في هذا البند',
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
-              ),
-            )
-          else
-            ...rows.map(
-              (r) => ListTile(
-                dense: true,
-                title: Text(
-                  r.name,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                subtitle: Text(
-                  r.code,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                ),
-                trailing: Text(
-                  _format(r.displayAmount),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 

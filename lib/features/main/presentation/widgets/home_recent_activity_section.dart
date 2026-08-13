@@ -76,7 +76,7 @@ class HomeRecentActivitySection extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   if (latestActivities.isEmpty)
-                    _buildEmptyState(isDark)
+                    HomeRecentActivityEmptyState(isDark: isDark)
                   else
                     ...latestActivities.map((activity) {
                       return _ActivityItem(activity: activity);
@@ -89,8 +89,15 @@ class HomeRecentActivitySection extends StatelessWidget {
       },
     );
   }
+}
 
-  Widget _buildEmptyState(bool isDark) {
+class HomeRecentActivityEmptyState extends StatelessWidget {
+  const HomeRecentActivityEmptyState({super.key, required this.isDark});
+
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 24),
       child: Center(

@@ -135,11 +135,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     title: 'المعلومات الأساسية',
                     icon: Icons.info_outline,
                     children: [
-                      _buildTextField(
+                      TextInputField(
                         controller: _nameController,
                         label: 'اسم المنتج',
                         hint: 'أدخل اسم المنتج',
-                        icon: Icons.inventory,
+                        prefixIcon: const Icon(Icons.inventory),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'الرجاء إدخال اسم المنتج';
@@ -151,11 +151,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField(
+                      TextInputField(
                         controller: _statementController,
                         label: 'الوصف',
                         hint: 'أدخل وصف المنتج',
-                        icon: Icons.description,
+                        prefixIcon: const Icon(Icons.description),
                         maxLines: 3,
                         validator: (value) {
                           if (value == null || value.isEmpty) {
@@ -165,11 +165,11 @@ class _ProductFormPageState extends State<ProductFormPage> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField(
+                      TextInputField(
                         controller: _barcodeController,
                         label: 'الباركود',
                         hint: 'أدخل الباركود',
-                        icon: Icons.qr_code,
+                        prefixIcon: const Icon(Icons.qr_code),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'الرجاء إدخال الباركود';
@@ -297,21 +297,21 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildTextField(
+                            child: TextInputField(
                               controller: _costPriceController,
                               label: 'سعر التكلفة',
                               hint: '0.00',
-                              icon: Icons.money_off,
+                              prefixIcon: const Icon(Icons.money_off),
                               keyboardType: TextInputType.number,
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: _buildTextField(
+                            child: TextInputField(
                               controller: _sellPriceController,
                               label: 'سعر البيع',
                               hint: '0.00',
-                              icon: Icons.price_check,
+                              prefixIcon: const Icon(Icons.price_check),
                               keyboardType: TextInputType.number,
                             ),
                           ),
@@ -321,32 +321,32 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       Row(
                         children: [
                           Expanded(
-                            child: _buildTextField(
+                            child: TextInputField(
                               controller: _quantityController,
                               label: 'الكمية',
                               hint: '0',
-                              icon: Icons.inventory_2,
+                              prefixIcon: const Icon(Icons.inventory_2),
                               keyboardType: TextInputType.number,
                             ),
                           ),
                           const SizedBox(width: 16),
                           Expanded(
-                            child: _buildTextField(
+                            child: TextInputField(
                               controller: _minStockController,
                               label: 'الحد الأدنى',
                               hint: '0',
-                              icon: Icons.trending_down,
+                              prefixIcon: const Icon(Icons.trending_down),
                               keyboardType: TextInputType.number,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 16),
-                      _buildTextField(
+                      TextInputField(
                         controller: _maxStockController,
                         label: 'الحد الأقصى (اختياري)',
                         hint: '0',
-                        icon: Icons.trending_up,
+                        prefixIcon: const Icon(Icons.trending_up),
                         keyboardType: TextInputType.number,
                       ),
                     ],
@@ -420,27 +420,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    int maxLines = 1,
-    String? Function(String?)? validator,
-  }) {
-    return TextInputField(
-      label: label,
-      hint: hint,
-      controller: controller,
-      prefixIcon: Icon(icon),
-
-      keyboardType: keyboardType,
-      maxLines: maxLines,
-      validator: validator,
     );
   }
 

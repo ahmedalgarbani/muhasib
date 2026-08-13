@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
-import 'package:muhasib/core/widgets/custom_text_field.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -15,6 +14,7 @@ import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/features/stores/presentation/widgets/warehouse_page_sections.dart';
 
 class StockTransferPage extends StatefulWidget {
   const StockTransferPage({super.key});
@@ -108,15 +108,46 @@ class _StockTransferPageState extends State<StockTransferPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildTransferTypeSelection(),
+                WarehouseTypeSelector(
+                  types: _transferTypes,
+                  value: _transferType,
+                  height: 100,
+                  width: 120,
+                  onChanged: (value) => setState(() => _transferType = value),
+                ),
                 const SizedBox(height: 16),
-                _buildDocumentHeaderCard(colorScheme),
+                WarehouseDocumentCard(
+                  colorScheme: colorScheme,
+                  numberController: _transferNumberController,
+                  date: _selectedDate,
+                  numberLabel: 'رقم التحويل',
+                  onSelectDate: () => _selectDate(context),
+                ),
                 const SizedBox(height: 16),
-                _buildWarehouseSelectionCard(colorScheme),
+                TransferWarehouseSelection(
+                  colorScheme: colorScheme,
+                  source: _sourceWarehouse,
+                  destination: _destinationWarehouse,
+                  onSourceChanged: (value) => setState(() {
+                    _sourceWarehouse = value;
+                    if (_destinationWarehouse == value)
+                      _destinationWarehouse = null;
+                  }),
+                  onDestinationChanged: (value) =>
+                      setState(() => _destinationWarehouse = value),
+                ),
                 const SizedBox(height: 16),
-                _buildNotesCard(colorScheme),
+                WarehouseNotesCard(
+                  colorScheme: colorScheme,
+                  controller: _statementController,
+                  hint: 'أدخل أي ملاحظات عن التحويل',
+                ),
                 const SizedBox(height: 24),
-                _buildActionButtons(colorScheme),
+                WarehouseActionButtons(
+                  primaryLabel: 'إرسال',
+                  onSecondary: _saveTransfer,
+                  onPrimary: _submitTransfer,
+                ),
                 const SizedBox(height: 24),
               ],
             ),
@@ -126,130 +157,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
     );
   }
 
-  Widget _buildTransferTypeSelection() {
-    return SizedBox(
-      height: 100,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _transferTypes.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final type = _transferTypes[index];
-          final isSelected = _transferType == type['value'];
-          return GestureDetector(
-            onTap: () {
-              setState(() => _transferType = type['value']);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 120,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? (type['color'] as Color).withOpacity(0.1)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.lg),
-                border: Border.all(
-                  color: isSelected
-                      ? type['color'] as Color
-                      : Colors.grey[300]!,
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    type['icon'] as IconData,
-                    color: isSelected
-                        ? type['color'] as Color
-                        : Colors.grey[600],
-                    size: 32,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    type['label'],
-                    style: TextStyle(
-                      color: isSelected
-                          ? type['color'] as Color
-                          : Colors.grey[600],
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildDocumentHeaderCard(ColorScheme colorScheme) {
-    return CustomCardContainer(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.receipt_long, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'بيانات المستند',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: CustomTextField(
-                    controller: _transferNumberController,
-                    label: 'رقم التحويل',
-                    hint: 'رقم التحويل',
-                    prefixIcon: Icons.tag,
-                    readOnly: true,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _selectDate(context),
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: 'التاريخ',
-                        prefixIcon: const Icon(Icons.calendar_today),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                      ),
-                      child: Text(
-                        '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day}',
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWarehouseSelectionCard(ColorScheme colorScheme) {
+  Widget _unusedWarehouseSelectionCard(ColorScheme colorScheme) {
     return CustomCardContainer(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -404,67 +312,6 @@ class _StockTransferPageState extends State<StockTransferPage> {
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildNotesCard(ColorScheme colorScheme) {
-    return CustomCardContainer(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.note, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'ملاحظات',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: _statementController,
-              label: 'الملاحظات',
-              hint: 'أدخل أي ملاحظات عن التحويل',
-              prefixIcon: Icons.comment,
-              maxLines: 3,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(ColorScheme colorScheme) {
-    return Row(
-      children: [
-        Expanded(
-          child: HasibButton(
-            label: 'حفظ كمسودة',
-            leading: const Icon(Icons.save),
-            onPressed: () => _saveTransfer(),
-            variant: HasibButtonVariant.secondary,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: HasibButton(
-            label: 'إرسال',
-            leading: const Icon(Icons.send, color: Colors.white),
-            onPressed: () => _submitTransfer(),
-            variant: HasibButtonVariant.primary,
-          ),
-        ),
-      ],
     );
   }
 

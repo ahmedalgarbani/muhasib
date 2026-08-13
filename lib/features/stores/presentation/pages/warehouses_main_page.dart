@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/features/stores/presentation/widgets/warehouse_page_sections.dart';
 
 class WarehousesMainPage extends StatelessWidget {
   const WarehousesMainPage({super.key});
@@ -21,75 +20,31 @@ class WarehousesMainPage extends StatelessWidget {
           mainAxisSpacing: 16,
           childAspectRatio: 1.2,
           children: [
-            _buildMenuCard(
-              context,
+            WarehouseMenuCard(
               title: 'المخازن',
               icon: Icons.warehouse,
               color: AppColors.materialBlue700,
-              route: '/warehouses/list',
+              onTap: () => context.pushNamed('/warehouses/list'),
             ),
-            _buildMenuCard(
-              context,
+            WarehouseMenuCard(
               title: 'الجرد',
               icon: Icons.inventory,
               color: AppColors.materialTeal600,
-              route: '/warehouses/inventory',
+              onTap: () => context.pushNamed('/warehouses/inventory'),
             ),
-            _buildMenuCard(
-              context,
+            WarehouseMenuCard(
               title: 'التسويات',
               icon: Icons.tune,
               color: AppColors.materialOrange500,
-              route: '/warehouses/adjustment',
+              onTap: () => context.pushNamed('/warehouses/adjustment'),
             ),
-            _buildMenuCard(
-              context,
+            WarehouseMenuCard(
               title: 'التحويلات',
               icon: Icons.swap_horiz,
               color: AppColors.materialPurple500,
-              route: '/warehouses/transfer',
+              onTap: () => context.pushNamed('/warehouses/transfer'),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMenuCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required Color color,
-    required String route,
-  }) {
-    return CustomCardContainer(
-      elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: InkWell(
-        onTap: () => context.pushNamed(route),
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            color: color,
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 48, color: Colors.white),
-              const SizedBox(height: 12),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );

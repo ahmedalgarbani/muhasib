@@ -11,6 +11,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 
@@ -240,7 +241,15 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
           );
         } else if (state is PurchaseReturnsLoaded) {
           if (state.returns.isEmpty) {
-            return _buildEmptyState();
+            return EmptyStateWidget(
+              title: 'لا توجد مردودات',
+              subtitle: 'لم يتم إنشاء أي مردودات مشتريات بعد',
+              icon: Icons.assignment_return_outlined,
+              iconSize: 64,
+              iconColor: Colors.red.withOpacity(0.3),
+              actionText: 'إنشاء مردود',
+              onActionPressed: () => _showCreateReturnDialog(context),
+            );
           }
           return _buildReturnsList(innerContext, state.returns);
         }
@@ -694,50 +703,6 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
               );
             },
             icon: Icons.arrow_forward,
-            variant: HasibButtonVariant.danger,
-            fullWidth: false,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.red.withOpacity(0.05),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.assignment_return_outlined,
-              size: 64,
-              color: Colors.red.withOpacity(0.3),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'لا توجد مردودات',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.gray900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'لم يتم إنشاء أي مردودات مشتريات بعد',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
-          const SizedBox(height: 24),
-          HasibButton(
-            label: 'إنشاء مردود',
-            onPressed: () => _showCreateReturnDialog(context),
-            icon: Icons.add,
             variant: HasibButtonVariant.danger,
             fullWidth: false,
           ),

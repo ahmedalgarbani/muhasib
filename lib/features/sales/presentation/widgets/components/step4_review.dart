@@ -5,6 +5,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/review_info_row_widget.dart';
 
 class Step4Review extends StatelessWidget {
   final Invoice invoice;
@@ -91,31 +92,32 @@ class Step4Review extends StatelessWidget {
                     border: Border.all(color: AppColors.grey200),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
+
                   child: Column(
                     children: [
-                      _buildInfoRow('رقم الفاتورة', invoice.number),
+                      ReviewInfoRowWidget(label: 'رقم الفاتورة', value: invoice.number),
                       const Divider(height: AppSpacing.lg),
-                      _buildInfoRow('العميل', invoice.customer?.name ?? ''),
+                      ReviewInfoRowWidget(label: 'العميل', value: invoice.customer?.name ?? ''),
                       const Divider(height: AppSpacing.lg),
-                      _buildInfoRow(
-                        'التاريخ',
-                        invoice.date.toString().split(' ')[0],
+                      ReviewInfoRowWidget(
+                        label: 'التاريخ',
+                        value: invoice.date.toString().split(' ')[0],
                       ),
                       const Divider(height: AppSpacing.lg),
-                      _buildInfoRow(
-                        'عدد الأصناف',
-                        '${invoice.items.length} صنف',
+                      ReviewInfoRowWidget(
+                        label: 'عدد الأصناف',
+                        value: '${invoice.items.length} صنف',
                       ),
                       const Divider(height: AppSpacing.lg),
-                      _buildInfoRow(
-                        'المجموع الفرعي',
-                        NumberFormatter.formatCurrency(invoice.subtotal),
+                      ReviewInfoRowWidget(
+                        label: 'المجموع الفرعي',
+                        value: NumberFormatter.formatCurrency(invoice.subtotal),
                       ),
                       if (invoice.discountAmount > 0) ...[
                         const Divider(height: AppSpacing.lg),
-                        _buildInfoRow(
-                          'الخصم',
-                          NumberFormatter.formatCurrency(
+                        ReviewInfoRowWidget(
+                          label: 'الخصم',
+                          value: NumberFormatter.formatCurrency(
                             invoice.discountAmount,
                           ),
                           valueColor: AppColors.error,
@@ -123,22 +125,23 @@ class Step4Review extends StatelessWidget {
                       ],
                       if (invoice.otherCharges > 0) ...[
                         const Divider(height: AppSpacing.lg),
-                        _buildInfoRow(
-                          'رسوم أخرى',
-                          NumberFormatter.formatCurrency(invoice.otherCharges),
+                        ReviewInfoRowWidget(
+                          label: 'رسوم أخرى',
+                          value: NumberFormatter.formatCurrency(invoice.otherCharges),
                           valueColor: AppColors.primary,
                         ),
                       ],
                       const Divider(height: AppSpacing.lg),
-                      _buildInfoRow(
-                        'الإجمالي النهائي',
-                        NumberFormatter.formatCurrency(invoice.total),
+                      ReviewInfoRowWidget(
+                        label: 'الإجمالي النهائي',
+                        value: NumberFormatter.formatCurrency(invoice.total),
                         isHighlight: true,
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
+
 
                 // Payment Summary (hidden for quotations)
                 if (!isQuotation)
@@ -324,58 +327,11 @@ class Step4Review extends StatelessWidget {
                   variant: HasibButtonVariant.success,
                 ),
               ),
-            ],
+      ],
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(
-    String label,
-    String value, {
-    bool isHighlight = false,
-    Color? valueColor,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: isHighlight
-              ? const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.gray900,
-                  height: 1.4,
-                )
-              : const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal,
-                  color: AppColors.gray600,
-                  height: 1.4,
-                ),
-        ),
-        Text(
-          value,
-          style: isHighlight
-              ? const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.gray900,
-                  height: 1.4,
-                ).copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
-                )
-              : const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.gray900,
-                  height: 1.5,
-                ).copyWith(color: valueColor),
-        ),
-      ],
+          ),
+      ]
     );
   }
 }
+

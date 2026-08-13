@@ -7,6 +7,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -68,7 +69,12 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                             );
                           } else if (state is ProductSubUnitsLoaded) {
                             if (state.subUnits.isEmpty) {
-                              return _buildEmptyState();
+                              return const EmptyStateWidget(
+                                title: 'لا توجد وحدات فرعية',
+                                subtitle:
+                                    'ابدأ بإضافة وحدة فرعية جديدة للمنتجات',
+                                icon: Icons.layers_outlined,
+                              );
                             }
                             return _buildSubUnitsList(
                               innerContext,
@@ -363,31 +369,6 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
           ),
         );
       },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.layers_outlined, size: 80, color: Colors.grey.shade300),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد وحدات فرعية',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'ابدأ بإضافة وحدة فرعية جديدة للمنتجات',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-          ),
-        ],
-      ),
     );
   }
 

@@ -8,6 +8,7 @@ import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/payment_method_chip_widget.dart';
 
 class PaymentDialog extends StatefulWidget {
   final double totalAmount;
@@ -148,26 +149,46 @@ class _PaymentDialogState extends State<PaymentDialog> {
           ),
           const SizedBox(height: 8),
           Row(
+
             children: [
-              _buildPaymentMethodChip(
-                PaymentMethod.cash,
-                'نقدي',
-                Icons.payments,
+              PaymentMethodChipWidget(
+                method: PaymentMethod.cash,
+                label: 'نقدي',
+                icon: Icons.payments,
+                isSelected: _selectedMethod == PaymentMethod.cash,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() => _selectedMethod = PaymentMethod.cash);
+                  }
+                },
               ),
               const SizedBox(width: 8),
-              _buildPaymentMethodChip(
-                PaymentMethod.bank,
-                'بنكي',
-                Icons.account_balance,
+              PaymentMethodChipWidget(
+                method: PaymentMethod.bank,
+                label: 'بنكي',
+                icon: Icons.account_balance,
+                isSelected: _selectedMethod == PaymentMethod.bank,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() => _selectedMethod = PaymentMethod.bank);
+                  }
+                },
               ),
               const SizedBox(width: 8),
-              _buildPaymentMethodChip(
-                PaymentMethod.deferred,
-                'آجل',
-                Icons.schedule,
+              PaymentMethodChipWidget(
+                method: PaymentMethod.deferred,
+                label: 'آجل',
+                icon: Icons.schedule,
+                isSelected: _selectedMethod == PaymentMethod.deferred,
+                onSelected: (selected) {
+                  if (selected) {
+                    setState(() => _selectedMethod = PaymentMethod.deferred);
+                  }
+                },
               ),
             ],
           ),
+
           const SizedBox(height: 16),
 
           Row(
@@ -296,28 +317,8 @@ class _PaymentDialogState extends State<PaymentDialog> {
     );
   }
 
-  Widget _buildPaymentMethodChip(
-    PaymentMethod method,
-    String label,
-    IconData icon,
-  ) {
-    final isSelected = _selectedMethod == method;
-    return ChoiceChip(
-      label: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [Icon(icon, size: 18), const SizedBox(width: 4), Text(label)],
-      ),
-      selected: isSelected,
-      onSelected: (selected) {
-        if (selected) {
-          setState(() => _selectedMethod = method);
-        }
-      },
-      selectedColor: AppColors.primary.withOpacity(0.2),
-    );
-  }
-
   String _getPaymentMethodName(PaymentMethod method) {
+
     switch (method) {
       case PaymentMethod.cash:
         return 'نقدي';

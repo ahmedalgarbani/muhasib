@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
-import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
-import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
-import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
+import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
+import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/improved_step1_customer.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/improved_step2_products.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/improved_step3_totals.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/improved_step4_payment.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_dialog.dart';
-import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 
 class ImprovedSalesInvoiceScreen extends StatefulWidget {
   final InvoiceType invoiceType;
@@ -299,7 +300,7 @@ class _ImprovedSalesInvoiceScreenState
               ),
 
               // Step Content
-              Expanded(child: _buildStepContent()),
+              Expanded(child: _getStepContent()),
 
               // Navigation Buttons
               Container(
@@ -339,7 +340,9 @@ class _ImprovedSalesInvoiceScreenState
                     if (_currentStep > 1) const SizedBox(width: 12),
                     Expanded(
                       child: HasibButton(
-                        label: _currentStep == maxStep ? 'حفظ الفاتورة' : 'التالي',
+                        label: _currentStep == maxStep
+                            ? 'حفظ الفاتورة'
+                            : 'التالي',
                         onPressed: _isSaving
                             ? null
                             : (_currentStep == maxStep
@@ -347,7 +350,9 @@ class _ImprovedSalesInvoiceScreenState
                                   : _handleNext),
                         loading: _isSaving,
                         leading: Icon(
-                          _currentStep == maxStep ? Icons.check : Icons.arrow_forward,
+                          _currentStep == maxStep
+                              ? Icons.check
+                              : Icons.arrow_forward,
                           size: 20,
                         ),
                         variant: _currentStep == maxStep
@@ -397,7 +402,7 @@ class _ImprovedSalesInvoiceScreenState
     }
   }
 
-  Widget _buildStepContent() {
+  Widget _getStepContent() {
     switch (_currentStep) {
       case 1:
         return ImprovedStep1Customer(
@@ -406,230 +411,20 @@ class _ImprovedSalesInvoiceScreenState
           onNext: _nextStep,
         );
       case 2:
-        return _buildStep2Products();
+        return ImprovedStep2Products(
+          invoice: _invoice,
+          onInvoiceUpdate: _updateInvoice,
+        );
       case 3:
-        return _buildStep3Totals();
+        return ImprovedStep3Totals(invoice: _invoice);
       case 4:
-        return _buildStep4Payment();
+        return ImprovedStep4Payment(
+          invoice: _invoice,
+          payments: _payments,
+          onAddPayment: _showPaymentDialog,
+        );
       default:
         return const SizedBox();
-    }
-  }
-
-  Widget _buildStep2Products() {
-    return BlocBuilder<ProductsCubit, ProductsState>(
-      builder: (context, state) {
-        if (state is ProductsInitial) {
-          context.read<ProductsCubit>().loadProducts();
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is ProductsLoading) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (state is ProductsError) {
-          return Center(child: Text('خطأ في تحميل المنتجات: ${state.message}'));
-        } else if (state is ProductsLoaded) {
-          final products = state.products.where((p) => p.isActive).toList();
-          if (products.isEmpty) {
-            return const Center(
-              child: Text(
-                'لا توجد منتجات متاحة',
-                style: TextStyle(fontSize: 16, color: AppColors.gray500),
-              ),
-            );
-          }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: products.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final product = products[index];
-              final isAdded = _invoice.items.any(
-                (item) => item.id == product.id.toString(),
-              );
-              return CustomCardContainer(
-                elevation: 1,
-                child: ListTile(
-                  title: Text(product.name),
-                  subtitle: Text(
-                    'السعر: ${product.sellAmount ?? product.sellLocalAmount ?? 0} | المتوفر: ${product.quantity}',
-                  ),
-                  trailing: isAdded
-                      ? const Icon(Icons.check_circle, color: AppColors.success)
-                      : IconButton(
-                          icon: const Icon(
-                            Icons.add_circle_outline,
-                            color: AppColors.primary,
-                          ),
-                          onPressed: () {
-                            final newItem = InvoiceItem(
-                              id: product.id.toString(),
-                              name: product.name,
-                              barcode: product.barcodeNo ?? '',
-                              price:
-                                  (product.sellAmount ??
-                                          product.sellLocalAmount ??
-                                          0)
-                                      .toDouble(),
-                              costPrice: product.costAmount,
-                              unit: 'قطعة',
-                              stock: product.quantity.toInt(),
-                              quantity: 1,
-                            );
-                            setState(() {
-                              _invoice = _invoice.copyWith(
-                                items: [..._invoice.items, newItem],
-                              );
-                            });
-                          },
-                        ),
-                ),
-              );
-            },
-          );
-        }
-        return const SizedBox();
-      },
-    );
-  }
-
-  Widget _buildStep3Totals() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Invoice Summary Card
-          CustomCardContainer(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'ملخص الفاتورة',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                  const Divider(),
-                  _buildSummaryRow('المجموع الفرعي', _invoice.subtotal),
-                  _buildSummaryRow('الخصم', _invoice.discountAmount),
-                  _buildSummaryRow('الضريبة (15%)', _invoice.subtotal * 0.15),
-                  const Divider(),
-                  _buildSummaryRow('الإجمالي', _invoice.total, isTotal: true),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStep4Payment() {
-    final totalPaid = _payments.fold(0.0, (sum, p) => sum + p.amount);
-    final remaining = _invoice.total - totalPaid;
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          // Payment Summary
-          CustomCardContainer(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildSummaryRow('الإجمالي المطلوب', _invoice.total),
-                  _buildSummaryRow('المدفوع', totalPaid),
-                  _buildSummaryRow(
-                    'المتبقي',
-                    remaining,
-                    isTotal: true,
-                    color: remaining > 0 ? Colors.orange : Colors.green,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          // Add Payment Button
-          HasibButton(
-            label: 'إضافة طريقة دفع',
-            onPressed: _showPaymentDialog,
-            leading: const Icon(Icons.add),
-            variant: HasibButtonVariant.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-
-          // Payments List
-          if (_payments.isNotEmpty) ...[
-            const SizedBox(height: 16),
-            ..._payments.map(
-              (payment) => CustomCardContainer(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: Icon(
-                    payment.method == PaymentMethod.cash
-                        ? Icons.payments
-                        : payment.method == PaymentMethod.bank
-                        ? Icons.account_balance
-                        : Icons.schedule,
-                    color: AppColors.primary,
-                  ),
-                  title: Text(_getPaymentMethodName(payment.method)),
-                  trailing: Text(
-                    NumberFormatter.formatCurrency(payment.amount),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryRow(
-    String label,
-    double amount, {
-    bool isTotal = false,
-    Color? color,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-          Text(
-            NumberFormatter.formatCurrency(amount),
-            style: TextStyle(
-              fontSize: isTotal ? 16 : 14,
-              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: color ?? (isTotal ? AppColors.success : null),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _getPaymentMethodName(PaymentMethod method) {
-    switch (method) {
-      case PaymentMethod.cash:
-        return 'نقدي';
-      case PaymentMethod.bank:
-        return 'بنكي';
-      case PaymentMethod.deferred:
-        return 'آجل';
     }
   }
 

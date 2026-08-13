@@ -1,11 +1,12 @@
-﻿import 'package:flutter/material.dart';
-import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:flutter/material.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
-import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/quantity_button_widget.dart';
 
 class AddItemBottomSheet extends StatefulWidget {
   final InvoiceItem item;
@@ -136,9 +137,13 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              _buildQuantityButton(Icons.remove, () {
-                if (_quantity > 1) setState(() => _quantity--);
-              }, false),
+              QuantityButtonWidget(
+                icon: Icons.remove,
+                onPressed: () {
+                  if (_quantity > 1) setState(() => _quantity--);
+                },
+                isPrimary: false,
+              ),
               Expanded(
                 child: Container(
                   height: 56,
@@ -152,10 +157,10 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
                   ),
                 ),
               ),
-              _buildQuantityButton(
-                Icons.add,
-                () => setState(() => _quantity++),
-                true,
+              QuantityButtonWidget(
+                icon: Icons.add,
+                onPressed: () => setState(() => _quantity++),
+                isPrimary: true,
               ),
             ],
           ),
@@ -210,30 +215,6 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
             },
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildQuantityButton(
-    IconData icon,
-    VoidCallback onPressed,
-    bool isPrimary,
-  ) {
-    return Container(
-      width: 56,
-      height: 56,
-      decoration: BoxDecoration(
-        color: isPrimary ? AppColors.primary : AppColors.grey200,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: IconButton(
-        onPressed: onPressed,
-        icon: Icon(
-          icon,
-          color: isPrimary ? Colors.white : AppColors.grey900,
-          size: 28,
-        ),
-        padding: EdgeInsets.zero,
       ),
     );
   }

@@ -13,8 +13,8 @@ import 'package:muhasib/features/accounts/presentation/widgets/sub_card_account.
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 
 class AccountsTreeScreen extends StatelessWidget {
   const AccountsTreeScreen({super.key});
@@ -93,14 +93,14 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
-           HasibButton(
-             label: 'حذف',
-             onPressed: () {
+          HasibButton(
+            label: 'حذف',
+            onPressed: () {
               context.read<AccountsCubit>().removeAccount(accountId);
               Navigator.pop(dialogContext);
             },
-             variant: HasibButtonVariant.danger,
-           ),
+            variant: HasibButtonVariant.danger,
+          ),
         ],
       ),
     );
@@ -279,8 +279,8 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-               HasibButton(
-                 label: 'إعادة المحاولة',
+              HasibButton(
+                label: 'إعادة المحاولة',
                 onPressed: () =>
                     context.read<AccountsCubit>().loadAllAccounts(),
                 variant: HasibButtonVariant.primary,
@@ -292,7 +292,11 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
     }
 
     if (accounts.isEmpty) {
-      return _buildEmptyState();
+      return const EmptyStateWidget(
+        title: 'لا توجد حسابات حتى الآن',
+        subtitle: 'يمكنك إضافة الحساب الأول بالضغط على زر الإضافة.',
+        icon: Icons.account_balance_wallet_outlined,
+      );
     }
 
     return ListView.builder(
@@ -322,43 +326,6 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
                 onTap: () => _handleAccountClick(account),
               );
       },
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: Colors.grey[200],
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.account_balance_wallet_outlined,
-                size: 36,
-                color: Colors.grey,
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'لا توجد حسابات حتى الآن',
-              style: AppTextStyles.titleMedium,
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'يمكنك إضافة الحساب الأول بالضغط على زر الإضافة.',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -416,7 +383,11 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
               .toList();
 
           if (childAccounts.isEmpty) {
-            return _buildEmptyState();
+            return const EmptyStateWidget(
+              title: 'لا توجد حسابات فرعية حالياً',
+              subtitle: 'يمكنك إضافة حساب فرعي باستخدام زر الإضافة في الأسفل.',
+              icon: Icons.folder_open,
+            );
           }
 
           return ListView.builder(
@@ -502,58 +473,15 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
             onPressed: () => Navigator.pop(dialogContext),
             child: const Text('إلغاء'),
           ),
-           HasibButton(
-             label: 'حذف',
-             onPressed: () {
+          HasibButton(
+            label: 'حذف',
+            onPressed: () {
               context.read<AccountsCubit>().removeAccount(accountId);
               Navigator.pop(dialogContext);
             },
-             variant: HasibButtonVariant.danger,
-           ),
+            variant: HasibButtonVariant.danger,
+          ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                color: AppColors.amber100,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.warning, width: 3),
-              ),
-              child: const Icon(
-                Icons.folder_open,
-                size: 60,
-                color: AppColors.warning,
-              ),
-            ),
-            const SizedBox(height: 32),
-            Text(
-              'لا توجد حسابات فرعية حالياً',
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[800],
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'يمكنك إضافة حساب فرعي باستخدام زر الإضافة في الأسفل.',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }

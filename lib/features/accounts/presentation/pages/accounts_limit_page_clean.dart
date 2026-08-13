@@ -12,6 +12,7 @@ import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 
 class AccountLimitsScreen extends StatefulWidget {
   const AccountLimitsScreen({super.key});
@@ -61,7 +62,13 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
 
             if (state is AccountLimitsLoaded) {
               final limits = state.limits;
-              if (limits.isEmpty) return _buildEmptyState();
+              if (limits.isEmpty) {
+                return const EmptyStateWidget(
+                  title: 'لا توجد سقوف مفعّلة حالياً',
+                  subtitle: 'استخدم السقوف لمنع التجاوزات المالية.',
+                  icon: Icons.security_update_warning_outlined,
+                );
+              }
 
               return ListView.builder(
                 padding: const EdgeInsets.all(16),
@@ -88,35 +95,6 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
             return const SizedBox();
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.security_update_warning_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'لا توجد سقوف مفعّلة حالياً',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'استخدم السقوف لمنع التجاوزات المالية.',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
       ),
     );
   }
@@ -428,13 +406,13 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                 SizedBox(
                   width: double.infinity,
                   height: 60,
-                   child: HasibButton(
-                     label: 'حفظ السقف المالي',
-                     onPressed: _save,
-                     variant: HasibButtonVariant.primary,
-                     height: 60,
-                     fontSize: 18,
-                   ),
+                  child: HasibButton(
+                    label: 'حفظ السقف المالي',
+                    onPressed: _save,
+                    variant: HasibButtonVariant.primary,
+                    height: 60,
+                    fontSize: 18,
+                  ),
                 ),
               ],
             ),

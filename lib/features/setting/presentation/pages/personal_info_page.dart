@@ -5,7 +5,9 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/settings_card.dart';
+import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
+import 'package:muhasib/core/widgets/settings_image_picker_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -118,35 +120,37 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       ),
                     ),
                   ),
-                  _buildCard([
-                    _buildTextField(
-                      controller: _nameArController,
-                      label: 'الاسم باللغة المحلية',
-                      hint: 'حسيب',
-                      icon: Icons.person_outline,
-                    ),
-                    const Divider(),
-                    _buildTextField(
-                      controller: _nameEnController,
-                      label: 'الاسم باللغة الاجنبية',
-                      hint: 'Hasib',
-                      icon: Icons.person_outline,
-                    ),
-                    const Divider(),
-                    _buildTextField(
-                      controller: _addressArController,
-                      label: 'العنوان باللغة المحلية',
-                      hint: 'صنعاء',
-                      icon: Icons.home_outlined,
-                    ),
-                    const Divider(),
-                    _buildTextField(
-                      controller: _addressEnController,
-                      label: 'العنوان باللغة الاجنبية',
-                      hint: 'Sana\'a',
-                      icon: Icons.home_work_outlined,
-                    ),
-                  ]),
+                  SettingsCard(
+                    children: [
+                      SettingsTextFieldTile(
+                        controller: _nameArController,
+                        title: 'الاسم باللغة المحلية',
+                        hintText: 'حسيب',
+                        icon: Icons.person_outline,
+                      ),
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        controller: _nameEnController,
+                        title: 'الاسم باللغة الاجنبية',
+                        hintText: 'Hasib',
+                        icon: Icons.person_outline,
+                      ),
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        controller: _addressArController,
+                        title: 'العنوان باللغة المحلية',
+                        hintText: 'صنعاء',
+                        icon: Icons.home_outlined,
+                      ),
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        controller: _addressEnController,
+                        title: 'العنوان باللغة الاجنبية',
+                        hintText: 'Sana\'a',
+                        icon: Icons.home_work_outlined,
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
@@ -159,22 +163,24 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       ),
                     ),
                   ),
-                  _buildCard([
-                    _buildTextField(
-                      controller: _phoneController,
-                      label: 'رقم الموبايل',
-                      hint: '967782767927',
-                      icon: Icons.phone_outlined,
-                      keyboardType: TextInputType.phone,
-                    ),
-                    const Divider(),
-                    _buildTextField(
-                      controller: _commercialRegisterController,
-                      label: 'السجل التجاري',
-                      hint: '',
-                      icon: Icons.badge_outlined,
-                    ),
-                  ]),
+                  SettingsCard(
+                    children: [
+                      SettingsTextFieldTile(
+                        controller: _phoneController,
+                        title: 'رقم الموبايل',
+                        hintText: '967782767927',
+                        icon: Icons.phone_outlined,
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        controller: _commercialRegisterController,
+                        title: 'السجل التجاري',
+                        hintText: '',
+                        icon: Icons.badge_outlined,
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
@@ -187,14 +193,16 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       ),
                     ),
                   ),
-                  _buildCard([
-                    _buildTextField(
-                      controller: _taxNumberController,
-                      label: 'الرقم الضريبي',
-                      hint: '',
-                      icon: Icons.tag,
-                    ),
-                  ]),
+                  SettingsCard(
+                    children: [
+                      SettingsTextFieldTile(
+                        controller: _taxNumberController,
+                        title: 'الرقم الضريبي',
+                        hintText: '',
+                        icon: Icons.tag,
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 16),
                   const Padding(
                     padding: EdgeInsets.symmetric(vertical: 8),
@@ -207,31 +215,33 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       ),
                     ),
                   ),
-                  _buildCard([
-                    _buildImagePicker(
-                      label: 'الشعار',
-                      icon: Icons.image_outlined,
-                      onTap: () {
-                        // TODO: Implement image picker for logo
-                      },
-                    ),
-                    const Divider(),
-                    _buildImagePicker(
-                      label: 'الختم',
-                      icon: Icons.verified_user_outlined,
-                      onTap: () {
-                        // TODO: Implement image picker for seal
-                      },
-                    ),
-                    const Divider(),
-                    _buildImagePicker(
-                      label: 'التوقيع',
-                      icon: Icons.draw_outlined,
-                      onTap: () {
-                        // TODO: Implement image picker for signature
-                      },
-                    ),
-                  ]),
+                  SettingsCard(
+                    children: [
+                      SettingsImagePickerTile(
+                        label: 'الشعار',
+                        icon: Icons.image_outlined,
+                        onTap: () {
+                          // TODO: Implement image picker for logo
+                        },
+                      ),
+                      const Divider(),
+                      SettingsImagePickerTile(
+                        label: 'الختم',
+                        icon: Icons.verified_user_outlined,
+                        onTap: () {
+                          // TODO: Implement image picker for seal
+                        },
+                      ),
+                      const Divider(),
+                      SettingsImagePickerTile(
+                        label: 'التوقيع',
+                        icon: Icons.draw_outlined,
+                        onTap: () {
+                          // TODO: Implement image picker for signature
+                        },
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 24),
                   HasibButton(
                     label: 'حفظ التغييرات',
@@ -244,70 +254,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             );
           }
         },
-      ),
-    );
-  }
-
-  Widget _buildCard(List<Widget> children) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(children: children),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return ListTile(
-      leading: Icon(icon, size: 20, color: Colors.grey[600]),
-      title: Text(
-        label,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
-      ),
-      subtitle: TextInputField(
-        controller: controller,
-        hint: hint,
-        keyboardType: keyboardType,
-        style: const TextStyle(fontSize: 13),
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.zero,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildImagePicker({
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, size: 20, color: Colors.grey[600]),
-      title: Text(
-        label,
-        style: const TextStyle(fontSize: 13, color: Colors.black87),
-      ),
-      trailing: Icon(
-        Icons.arrow_forward_ios,
-        size: 14,
-        color: Colors.grey[400],
       ),
     );
   }

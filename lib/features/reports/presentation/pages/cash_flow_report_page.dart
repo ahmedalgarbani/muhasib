@@ -9,6 +9,7 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/features/reports/presentation/widgets/cash_flow_components.dart';
 
 class CashFlowReportPage extends StatefulWidget {
   const CashFlowReportPage({super.key});
@@ -169,28 +170,32 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                 ],
               ),
               const SizedBox(height: 20),
-              _buildSection(
-                'الأنشطة التشغيلية (المبيعات، المشتريات، المصروفات)',
-                data.totalOperating,
-                Colors.blue[800]!,
-                Icons.business,
+
+              CashFlowSectionCardWidget(
+                title: 'الأنشطة التشغيلية (المبيعات، المشتريات، المصروفات)',
+                value: data.totalOperating,
+                color: Colors.blue[800]!,
+                icon: Icons.business,
+                formatCurrency: _numberFormat.format,
               ),
               const SizedBox(height: 12),
-              _buildSection(
-                'الأنشطة الاستثمارية (الأصول الثابتة والاستثمارات)',
-                data.totalInvesting,
-                Colors.orange[800]!,
-                Icons.trending_up,
+              CashFlowSectionCardWidget(
+                title: 'الأنشطة الاستثمارية (الأصول الثابتة والاستثمارات)',
+                value: data.totalInvesting,
+                color: Colors.orange[800]!,
+                icon: Icons.trending_up,
+                formatCurrency: _numberFormat.format,
               ),
               const SizedBox(height: 12),
-              _buildSection(
-                'الأنشطة التمويلية (القروض، رأس المال، وسحوبات الشركاء)',
-                data.totalFinancing,
-                Colors.purple[800]!,
-                Icons.account_balance,
+              CashFlowSectionCardWidget(
+                title: 'الأنشطة التمويلية (القروض، رأس المال، وسحوبات الشركاء)',
+                value: data.totalFinancing,
+                color: Colors.purple[800]!,
+                icon: Icons.account_balance,
+                formatCurrency: _numberFormat.format,
               ),
               const SizedBox(height: 20),
-              _buildFinalSummary(data),
+              CashFlowFinalSummaryWidget(result: data),
             ],
           ),
         );
@@ -198,122 +203,6 @@ class _CashFlowContentState extends State<_CashFlowContent> {
     );
   }
 
-  Widget _buildQuickStat(_CashFlowResult d) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.blue[900],
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: [
-          BoxShadow(color: Colors.blue.withOpacity(0.2), blurRadius: 10),
-        ],
-      ),
-      child: Column(
-        children: [
-          const Text(
-            'صافي التدفق النقدي',
-            style: TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '${_numberFormat.format(d.netCashFlow)} ر.س',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const Divider(color: Colors.white24, height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _mini('بداية', d.openingBalance),
-              _mini('نهاية', d.closingBalance),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _mini(String l, double v) => Column(
-    children: [
-      Text(l, style: const TextStyle(color: Colors.white60, fontSize: 10)),
-      Text(
-        _numberFormat.format(v),
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 13,
-        ),
-      ),
-    ],
-  );
-
-  Widget _buildSection(String l, double v, Color c, IconData i) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey[100]!),
-      ),
-      child: Row(
-        children: [
-          Icon(i, color: c, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              l,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-            ),
-          ),
-          Text(
-            '${_numberFormat.format(v)} ر.س',
-            style: TextStyle(
-              color: v >= 0 ? Colors.green : Colors.red,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFinalSummary(_CashFlowResult d) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          const Text(
-            'التوافق مع أرصدة النقد',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
-          ),
-          Text(
-            d.closingBalance.toStringAsFixed(2) ==
-                    d.actualCashBalance.toStringAsFixed(2)
-                ? 'متطابق ✓'
-                : 'فرق: ${(d.closingBalance - d.actualCashBalance).abs().toStringAsFixed(1)}',
-            style: TextStyle(
-              color:
-                  d.closingBalance.toStringAsFixed(2) ==
-                      d.actualCashBalance.toStringAsFixed(2)
-                  ? Colors.green
-                  : Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Future<_CashFlowResult> _load(ReportFilter filter) async {
     final db = await getIt<DatabaseService>().database;

@@ -6,6 +6,7 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/entities/income_statement_entity.dart';
 import 'package:muhasib/features/reports/presentation/cubit/income_statement_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/income_statement_state.dart';
+import 'package:muhasib/features/reports/presentation/widgets/income_statement_components.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -143,7 +144,10 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                _buildSummaryCards(summary),
+                IncomeStatementSummaryRowWidget(
+                  summary: summary,
+                  formatCurrency: _formatCurrency,
+                ),
                 const SizedBox(height: 20),
                 CustomCardContainer(
                   padding: EdgeInsets.zero,
@@ -154,8 +158,16 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
                   ),
                   child: Column(
                     children: [
-                      ...categories.map((cat) => _buildCategorySection(cat)),
-                      _buildFinalNetIncome(summary),
+                      ...categories.map(
+                        (cat) => IncomeStatementCategoryWidget(
+                          category: cat,
+                          formatCurrency: _formatCurrency,
+                        ),
+                      ),
+                      IncomeStatementFinalResultWidget(
+                        summary: summary,
+                        formatCurrency: _formatCurrency,
+                      ),
                     ],
                   ),
                 ),
@@ -165,136 +177,6 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
         }
         return const SizedBox.shrink();
       },
-    );
-  }
-
-  Widget _buildSummaryCards(IncomeStatementSummary s) {
-    final totalExpenses = s.totalOperatingExpenses + s.totalCostOfSales;
-    final isProfit = s.netIncome >= 0;
-    final marginPercent = s.totalRevenue > 0
-        ? (s.netIncome / s.totalRevenue * 100)
-        : 0.0;
-
-    return Row(
-      children: [
-        Expanded(
-          child: ReportKpiCard(
-            title: 'إجمالي الإيرادات',
-            value: _formatCurrency(s.totalRevenue),
-            icon: Icons.trending_up,
-            color: Colors.green[700]!,
-            subtitle: 'جميع دخل الفعالية',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ReportKpiCard(
-            title: 'إجمالي التكاليف والمصروفات',
-            value: _formatCurrency(totalExpenses),
-            icon: Icons.trending_down,
-            color: Colors.red[700]!,
-            subtitle: 'مبيعات + تشغيل',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ReportKpiCard(
-            title: isProfit ? 'صافي الربح' : 'صافي الخسارة',
-            value: _formatCurrency(s.netIncome),
-            icon: isProfit ? Icons.account_balance : Icons.warning,
-            color: isProfit ? Colors.teal[700]! : Colors.deepOrange[700]!,
-            trendText: '${marginPercent.toStringAsFixed(1)}%',
-            isPositiveTrend: isProfit,
-            subtitle: 'هامش الربحية',
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCategorySection(IncomeStatementEntity cat) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            cat.categoryName,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-              color: Colors.blueGrey,
-            ),
-          ),
-        ),
-        ...cat.items.map(
-          (i) => ListTile(
-            dense: true,
-            title: Text(i.accountName, style: const TextStyle(fontSize: 13)),
-            trailing: Text(
-              _formatCurrency(i.amount),
-              style: const TextStyle(fontWeight: FontWeight.w500),
-            ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'إجمالي ${cat.categoryName}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-              Text(
-                _formatCurrency(cat.totalAmount),
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-        ),
-        const Divider(),
-      ],
-    );
-  }
-
-  Widget _buildFinalNetIncome(IncomeStatementSummary s) {
-    final isProfit = s.netIncome >= 0;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isProfit ? Colors.green[50] : Colors.red[50],
-        borderRadius: const BorderRadius.vertical(
-          bottom: Radius.circular(AppRadius.lg20),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            isProfit ? 'صافي الربح' : 'صافي الخسارة',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isProfit ? Colors.green[800] : Colors.red[800],
-            ),
-          ),
-          Text(
-            _formatCurrency(s.netIncome),
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: isProfit ? Colors.green[800] : Colors.red[800],
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

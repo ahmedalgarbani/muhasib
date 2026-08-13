@@ -7,6 +7,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
@@ -146,7 +147,11 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
               );
             } else if (state is ProductSubUnitsLoaded) {
               if (state.subUnits.isEmpty) {
-                return _buildEmptyState();
+                return const EmptyStateWidget(
+                  title: 'لا توجد وحدات فرعية للتسعير',
+                  subtitle: 'يجب إضافة وحدات فرعية للمنتجات أولاً',
+                  icon: Icons.price_change_outlined,
+                );
               }
               return _buildPricingList(innerContext, state, pricesState);
             }
@@ -231,13 +236,13 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                 child: HasibButton(
-                   label: 'إضافة مستوى سعر',
-                   onPressed: () =>
-                       _showPricingDialog(innerContext, subUnitId: subUnit.id),
-                   leading: const Icon(Icons.add),
-                   variant: HasibButtonVariant.primary,
-                 ),
+                child: HasibButton(
+                  label: 'إضافة مستوى سعر',
+                  onPressed: () =>
+                      _showPricingDialog(innerContext, subUnitId: subUnit.id),
+                  leading: const Icon(Icons.add),
+                  variant: HasibButtonVariant.primary,
+                ),
               ),
             ],
           ),
@@ -312,35 +317,6 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
               ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.price_change_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد وحدات فرعية للتسعير',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'يجب إضافة وحدات فرعية للمنتجات أولاً',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-          ),
-        ],
       ),
     );
   }

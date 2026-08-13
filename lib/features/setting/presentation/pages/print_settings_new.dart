@@ -5,6 +5,9 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/settings_card.dart';
+import 'package:muhasib/core/widgets/settings_dropdown_tile.dart';
+import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
@@ -186,52 +189,52 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                     ),
                   ),
                 ),
-                CustomCardContainer(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  elevation: 0.5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildDropdownTile(
-                        icon: Icons.description_outlined,
-                        label: 'نوع الخط في الطباعة',
-                        subtitle: 'الخط الثاني (الكبير)',
-                        value: _printType,
-                        items: ['A4', 'A5', 'Letter'],
-                        onChanged: (value) =>
-                            setState(() => _printType = value!),
-                      ),
-                      _buildDropdownTile(
-                        icon: Icons.print_outlined,
-                        label: 'طريقة الطباعة',
-                        subtitle: _printMethod,
-                        value: _printMethod,
-                        items: ['Pdf', 'Html'],
-                        onChanged: (value) =>
-                            setState(() => _printMethod = value!),
-                      ),
-                      _buildDropdownTile(
-                        icon: Icons.photo_size_select_large_outlined,
-                        label: 'حجم الطباعة',
-                        subtitle: _printSize,
-                        value: _printSize,
-                        items: ['A4', 'A5', 'Letter'],
-                        onChanged: (value) =>
-                            setState(() => _printSize = value!),
-                      ),
-                      _buildDropdownTile(
-                        icon: Icons.link_outlined,
-                        label: 'نوع اتصال الطابعة',
-                        subtitle: _connectionType,
-                        value: _connectionType,
-                        items: ['عبر وسيط آخر', 'غير وسيط آخر'],
-                        onChanged: (value) =>
-                            setState(() => _connectionType = value!),
-                      ),
-                    ],
-                  ),
+                SettingsCard(
+                  children: [
+                    SettingsDropdownTile<String>(
+                      icon: Icons.description_outlined,
+                      title: 'نوع الخط في الطباعة',
+                      value: _printType,
+                      items: ['A4', 'A5', 'Letter']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => _printType = value!),
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      icon: Icons.print_outlined,
+                      title: 'طريقة الطباعة',
+                      value: _printMethod,
+                      items: ['Pdf', 'Html']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => _printMethod = value!),
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      icon: Icons.photo_size_select_large_outlined,
+                      title: 'حجم الطباعة',
+                      value: _printSize,
+                      items: ['A4', 'A5', 'Letter']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => _printSize = value!),
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      icon: Icons.link_outlined,
+                      title: 'نوع اتصال الطابعة',
+                      value: _connectionType,
+                      items: ['عبر وسيط آخر', 'غير وسيط آخر']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) =>
+                          setState(() => _connectionType = value!),
+                    ),
+                  ],
                 ),
 
                 // Section: إعدادات البيانات
@@ -251,44 +254,40 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                     ),
                   ),
                 ),
-                CustomCardContainer(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  elevation: 0.5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildSwitchTile(
-                        icon: Icons.article_outlined,
-                        label: 'عرض بيانات رأس الصفحة',
-                        value: _showHeaderData,
-                        onChanged: (value) =>
-                            setState(() => _showHeaderData = value),
-                      ),
-                      _buildSwitchTile(
-                        icon: Icons.text_fields_outlined,
-                        label: 'عرض الاسم في رأس الصفحة',
-                        value: _showCompanyName,
-                        onChanged: (value) =>
-                            setState(() => _showCompanyName = value),
-                      ),
-                      _buildSwitchTile(
-                        icon: Icons.home_outlined,
-                        label: 'عرض العنوان في رأس الصفحة',
-                        value: _showCompanyAddress,
-                        onChanged: (value) =>
-                            setState(() => _showCompanyAddress = value),
-                      ),
-                      _buildSwitchTile(
-                        icon: Icons.phone_outlined,
-                        label: 'عرض الهاتف في رأس الصفحة',
-                        value: _showCompanyPhone,
-                        onChanged: (value) =>
-                            setState(() => _showCompanyPhone = value),
-                      ),
-                    ],
-                  ),
+                SettingsCard(
+                  children: [
+                    SettingsSwitchTile(
+                      icon: Icons.article_outlined,
+                      title: 'عرض بيانات رأس الصفحة',
+                      value: _showHeaderData,
+                      onChanged: (value) =>
+                          setState(() => _showHeaderData = value),
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      icon: Icons.text_fields_outlined,
+                      title: 'عرض الاسم في رأس الصفحة',
+                      value: _showCompanyName,
+                      onChanged: (value) =>
+                          setState(() => _showCompanyName = value),
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      icon: Icons.home_outlined,
+                      title: 'عرض العنوان في رأس الصفحة',
+                      value: _showCompanyAddress,
+                      onChanged: (value) =>
+                          setState(() => _showCompanyAddress = value),
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      icon: Icons.phone_outlined,
+                      title: 'عرض الهاتف في رأس الصفحة',
+                      value: _showCompanyPhone,
+                      onChanged: (value) =>
+                          setState(() => _showCompanyPhone = value),
+                    ),
+                  ],
                 ),
 
                 Padding(
@@ -303,51 +302,6 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildDropdownTile({
-    required IconData icon,
-    required String label,
-    required String subtitle,
-    required String value,
-    required List<String> items,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey[600]),
-      title: Text(label, style: const TextStyle(fontSize: 14)),
-      subtitle: Text(
-        subtitle,
-        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-      ),
-      onTap: () {
-        // Could show dropdown dialog here
-      },
-    );
-  }
-
-  Widget _buildSwitchTile({
-    required IconData icon,
-    required String label,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey[600]),
-      title: Text(label, style: const TextStyle(fontSize: 14)),
-      subtitle: Text(
-        value ? 'مفعل' : 'غير مفعل',
-        style: TextStyle(
-          fontSize: 12,
-          color: value ? Colors.green : Colors.grey[600],
-        ),
-      ),
-      trailing: Switch(
-        value: value,
-        onChanged: onChanged,
-        activeThumbColor: Theme.of(context).primaryColor,
       ),
     );
   }

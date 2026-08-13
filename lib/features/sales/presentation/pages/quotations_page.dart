@@ -16,8 +16,13 @@ import 'package:muhasib/features/sales/presentation/widgets/components/sales_inv
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+
+import 'package:muhasib/features/sales/presentation/widgets/components/quotation_card_widget.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/quotation_filter_bar_widget.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/quotation_header_widget.dart';
 
 class QuotationsPage extends StatefulWidget {
   const QuotationsPage({super.key});
@@ -59,8 +64,22 @@ class _QuotationsPageState extends State<QuotationsPage> {
       appBar: CustomAppBar(),
       body: Column(
         children: [
-          _buildHeader(),
-          _buildFilterBar(),
+          QuotationHeaderWidget(
+            searchController: _searchController,
+            onRefresh: _loadQuotations,
+            onChanged: (value) {
+              // Implement search logic
+            },
+          ),
+          QuotationFilterBarWidget(
+            showOnlyOpen: _showOnlyOpen,
+            onFilterChanged: (onlyOpen) {
+              setState(() {
+                _showOnlyOpen = onlyOpen;
+                _loadQuotations();
+              });
+            },
+          ),
           Expanded(
             child: BlocConsumer<SalesCubit, SalesState>(
               listener: (context, state) {
@@ -79,9 +98,28 @@ class _QuotationsPageState extends State<QuotationsPage> {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is QuotationsLoaded) {
                   if (state.quotations.isEmpty) {
-                    return _buildEmptyState();
+                    return const EmptyStateWidget(
+                      title: 'لا توجد عروض أسعار',
+                      subtitle: 'ابدأ بإنشاء عرض سعر جديد',
+                      icon: Icons.request_quote_outlined,
+                    );
                   }
-                  return _buildQuotationsList(state.quotations);
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      _loadQuotations();
+                    },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: state.quotations.length,
+                      itemBuilder: (context, index) {
+                        final quotation = state.quotations[index];
+                        return QuotationCardWidget(
+                          quotation: quotation,
+                          onConvert: () => _showConvertDialog(quotation),
+                        );
+                      },
+                    ),
+                  );
                 } else {
                   return const Center(child: Text('ابدأ بتحميل عروض الأسعار'));
                 }
@@ -111,300 +149,6 @@ class _QuotationsPageState extends State<QuotationsPage> {
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.add),
         label: const Text('عرض سعر جديد'),
-      ),
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: TextInputField(
-              controller: _searchController,
-              hint: 'ابحث برقم العرض أو اسم العميل...',
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                  borderSide: const BorderSide(
-                    color: AppColors.primary,
-                    width: 2,
-                  ),
-                ),
-              ),
-              onChanged: (value) {
-                // Implement search logic
-              },
-            ),
-          ),
-          const SizedBox(width: 12),
-          IconButton(
-            onPressed: _loadQuotations,
-            icon: const Icon(Icons.refresh),
-            style: IconButton.styleFrom(
-              backgroundColor: Colors.grey.shade100,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFilterBar() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          const Text(
-            'الفلتر:',
-            style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-          ),
-          const SizedBox(width: 12),
-          FilterChip(
-            label: const Text('مفتوحة فقط'),
-            selected: _showOnlyOpen,
-            onSelected: (value) {
-              setState(() {
-                _showOnlyOpen = value;
-                _loadQuotations();
-              });
-            },
-            backgroundColor: Colors.grey.shade100,
-            selectedColor: AppColors.blue100,
-            checkmarkColor: AppColors.primary,
-          ),
-          const SizedBox(width: 8),
-          FilterChip(
-            label: const Text('الكل'),
-            selected: !_showOnlyOpen,
-            onSelected: (value) {
-              setState(() {
-                _showOnlyOpen = !value;
-                _loadQuotations();
-              });
-            },
-            backgroundColor: Colors.grey.shade100,
-            selectedColor: AppColors.blue100,
-            checkmarkColor: AppColors.primary,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildQuotationsList(List<InvoiceEntity> quotations) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        _loadQuotations();
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: quotations.length,
-        itemBuilder: (context, index) {
-          return _buildQuotationCard(quotations[index]);
-        },
-      ),
-    );
-  }
-
-  Widget _buildQuotationCard(InvoiceEntity quotation) {
-    final isConverted =
-        quotation.nextInvoiceId != null && quotation.nextInvoiceId! > 0;
-    final status = isConverted ? InvoiceStatus.converted : InvoiceStatus.open;
-
-    return CustomCardContainer(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
-      ),
-      child: InkWell(
-        onTap: () {
-          // Navigate to quotation detail
-          // Navigator.pushNamed(context, '/quotations/detail', arguments: quotation.id);
-        },
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              InvoiceTypeUI.getIcon(InvoiceType.quotation),
-                              size: 20,
-                              color: InvoiceTypeUI.getColor(
-                                InvoiceType.quotation,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              quotation.number,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.gray900,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          _formatDate(quotation.date),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  InvoiceStatusBadge(status: status, showIcon: true),
-                ],
-              ),
-              const Divider(height: 24),
-              Row(
-                children: [
-                  Icon(
-                    Icons.person_outline,
-                    size: 16,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'عميل #${quotation.customerId}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'الإجمالي',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatCurrency(quotation.finalAmt ?? quotation.amount),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (!isConverted)
-                    HasibButton(
-                      label: 'تحويل لفاتورة',
-                      onPressed: () {
-                        _showConvertDialog(quotation);
-                      },
-                      icon: Icons.transform,
-                      variant: HasibButtonVariant.success,
-                      fullWidth: false,
-                    ),
-                ],
-              ),
-              if (isConverted) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.purple100,
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(
-                        Icons.check_circle,
-                        color: AppColors.violet500,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'تم التحويل إلى فاتورة: ${quotation.nextInvoiceNumber}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: AppColors.purple800,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.request_quote_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد عروض أسعار',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey.shade700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'ابدأ بإنشاء عرض سعر جديد',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
-          ),
-        ],
       ),
     );
   }
@@ -496,17 +240,8 @@ class _QuotationsPageState extends State<QuotationsPage> {
       ),
     );
   }
-
-  String _formatDate(int timestamp) {
-    final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    return DateFormat('yyyy-MM-dd', 'ar').format(date);
-  }
-
-  String _formatCurrency(double amount) {
-    final formatter = NumberFormat('#,##0.00', 'ar');
-    return '${formatter.format(amount)} ريال';
-  }
 }
+
 
 // Extension to add copyWith to InvoiceEntity
 extension InvoiceEntityExtension on InvoiceEntity {

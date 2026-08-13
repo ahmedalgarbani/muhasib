@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/stat_card.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/models/bill_models.dart';
-import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 
 class SalePageBody extends StatefulWidget {
   const SalePageBody({super.key});
@@ -46,8 +47,6 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   String _searchQuery = "";
   bool _filterOpen = false;
   String _sortBy = "date-desc";
-  // Local filter state
-  // int? _selectedPaymentStatus; // 0: unpaid, 1: paid, etc. (Mapping needed)
 
   void _toggleFilterOpen() {
     setState(() {
@@ -80,8 +79,6 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
                       setState(() {
                         _searchQuery = query;
                       });
-                      // Optionally trigger backend search
-                      // context.read<SalesCubit>().search(query);
                     },
                     onFilterPressed: _toggleFilterOpen,
                     onNewBillPressed: () {
@@ -162,7 +159,6 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   }
 
   List<InvoiceEntity> _filterInvoices(List<InvoiceEntity> invoices) {
-    // This page is "Sales List" -> only show sales invoices
     var filtered = invoices.where((inv) => inv.invoiceType == 1).toList();
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
@@ -174,7 +170,6 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
           .toList();
     }
 
-    // Sorting
     filtered.sort((a, b) {
       switch (_sortBy) {
         case "date-desc":
@@ -199,7 +194,6 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
       0.0,
       (sum, inv) => sum + (inv.totalAmount ?? 0),
     );
-    // Assuming paymentStatus 1 is paid, 0 is unpaid for now
     final paidInvoices = invoices
         .where((inv) => inv.paymentStatus == 1)
         .toList();
@@ -211,7 +205,7 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
     return BillStats(
       total: total,
       paid: paidInvoices.length,
-      partial: 0, // Not supported yet
+      partial: 0,
       unpaid: total - paidInvoices.length,
       totalAmount: totalAmount,
       paidAmount: paidAmount,
@@ -393,45 +387,21 @@ class StatsCards extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: _buildCard('إجمالي الفواتير', '${stats.total}', Colors.blue),
+          child: StatCard(
+            title: 'إجمالي الفواتير',
+            value: '${stats.total}',
+            color: Colors.blue,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
-          child: _buildCard(
-            'إجمالي المبلغ',
-            '${stats.totalAmount.toStringAsFixed(0)} ر.س',
-            Colors.green,
+          child: StatCard(
+            title: 'إجمالي المبلغ',
+            value: '${stats.totalAmount.toStringAsFixed(0)} ر.س',
+            color: Colors.green,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildCard(String title, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(color: Colors.white70, fontSize: 12),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
@@ -458,16 +428,12 @@ class BillCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Invoices store date as seconds since epoch
     final dateStr = DateFormat(
       'yyyy-MM-dd',
     ).format(DateTime.fromMillisecondsSinceEpoch(invoice.date * 1000));
-    // Try to find customer name from AccountsCubit
     final accountsState = context.read<AccountsCubit>().state;
     String customerName = 'Customer #${invoice.customerId}';
     if (accountsState is AccountsLoaded) {
-      // If found, use name. But firstWhere throws if not found unless orElse is provided.
-      // Let's use try/catch or collection firstWhereOrNull if available, or just loop.
       try {
         final customer = accountsState.accounts.firstWhere(
           (a) => a.id == invoice.customerId,

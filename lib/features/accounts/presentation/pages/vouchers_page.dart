@@ -13,6 +13,7 @@ import 'voucher_form_page.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 
 part 'vouchers_widgets.dart';
 
@@ -86,7 +87,11 @@ class _VouchersPageState extends State<VouchersPage>
             if (state is VouchersLoaded) {
               final vouchers = state.vouchers;
               if (vouchers.isEmpty) {
-                return _buildEmptyState();
+                return const EmptyStateWidget(
+                  title: 'لا توجد سندات مسجلة',
+                  subtitle: 'ابدأ بإضافة أول سند قبض أو صرف الآن.',
+                  icon: Icons.receipt_long_outlined,
+                );
               }
 
               return RefreshIndicator(
@@ -110,35 +115,6 @@ class _VouchersPageState extends State<VouchersPage>
             return const Center(child: Text('حدث خطأ في تحميل البيانات'));
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'لا توجد سندات مسجلة',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            'ابدأ بإضافة أول سند قبض أو صرف الآن.',
-            style: TextStyle(color: Colors.grey),
-          ),
-        ],
       ),
     );
   }

@@ -12,6 +12,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
@@ -82,7 +83,20 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                       );
                     } else if (state is PurchaseOrdersLoaded) {
                       if (state.orders.isEmpty) {
-                        return _buildEmptyState();
+                        return EmptyStateWidget(
+                          title: 'لا توجد طلبات شراء',
+                          subtitle: 'ابدأ بإنشاء طلب شراء جديد',
+                          icon: Icons.shopping_basket_outlined,
+                          iconSize: 64,
+                          iconColor: AppColors.info.withOpacity(0.3),
+                          actionText: 'إنشاء طلب شراء',
+                          onActionPressed: () {
+                            AppToast.showWarning(
+                              context,
+                              'سيتم إضافة صفحة إنشاء طلب شراء قريباً',
+                            );
+                          },
+                        );
                       }
                       return _buildOrdersList(innerContext, state.orders);
                     }
@@ -361,7 +375,10 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                       onPressed: () => _showConvertDialog(innerContext, order),
                       leading: const Icon(Icons.transform, size: 16),
                       variant: HasibButtonVariant.success,
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       fontSize: 12,
                     )
                   else
@@ -549,56 +566,6 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             },
             leading: const Icon(Icons.check, size: 18),
             variant: HasibButtonVariant.success,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: AppColors.info.withOpacity(0.05),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.shopping_basket_outlined,
-              size: 64,
-              color: AppColors.info.withOpacity(0.3),
-            ),
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            'لا توجد طلبات شراء',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: AppColors.gray900,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'ابدأ بإنشاء طلب شراء جديد',
-            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
-          ),
-          const SizedBox(height: 24),
-          HasibButton(
-            label: 'إنشاء طلب شراء',
-            onPressed: () {
-              // Navigate to create purchase order
-              AppToast.showWarning(
-                context,
-                'سيتم إضافة صفحة إنشاء طلب شراء قريباً',
-              );
-            },
-            leading: const Icon(Icons.add, size: 18),
-            variant: HasibButtonVariant.primary,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           ),
         ],
       ),

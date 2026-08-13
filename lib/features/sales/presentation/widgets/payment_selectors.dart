@@ -8,6 +8,8 @@ import 'package:muhasib/features/settings_entities/presentation/cubit/banks_cubi
 import 'package:muhasib/features/settings_entities/presentation/cubit/cashboxes_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
+import 'package:muhasib/features/sales/presentation/widgets/components/dropdown_state_widgets.dart';
+
 /// Dynamic bank selector that loads banks from database
 class BankSelectorDropdown extends StatelessWidget {
   final BankEntity? selectedBank;
@@ -39,11 +41,15 @@ class BankSelectorDropdown extends StatelessWidget {
           }
 
           if (isLoading) {
-            return _buildLoadingDropdown();
+            return LoadingDropdownWidget<BankEntity>(label: labelText ?? '');
           }
 
           if (banks.isEmpty) {
-            return _buildEmptyDropdown(context);
+            return EmptyDropdownWidget<BankEntity>(
+              label: labelText ?? '',
+              hint: 'لا توجد بنوك - أضف من الإعدادات',
+              icon: Icons.account_balance,
+            );
           }
 
           return CustomDropdownField<BankEntity>(
@@ -75,31 +81,6 @@ class BankSelectorDropdown extends StatelessWidget {
           );
         },
       ),
-    );
-  }
-
-  Widget _buildLoadingDropdown() {
-    return CustomDropdownField<BankEntity>(
-      value: null,
-      label: labelText ?? '',
-      prefixIcon: const SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-      items: const [],
-      onChanged: null,
-    );
-  }
-
-  Widget _buildEmptyDropdown(BuildContext context) {
-    return CustomDropdownField<BankEntity>(
-      value: null,
-      label: labelText ?? '',
-      hint: 'لا توجد بنوك - أضف من الإعدادات',
-      prefixIcon: const Icon(Icons.account_balance),
-      items: const [],
-      onChanged: null,
     );
   }
 }
@@ -135,11 +116,15 @@ class CashboxSelectorDropdown extends StatelessWidget {
           }
 
           if (isLoading) {
-            return _buildLoadingDropdown();
+            return LoadingDropdownWidget<CashboxEntity>(label: labelText ?? '');
           }
 
           if (cashboxes.isEmpty) {
-            return _buildEmptyDropdown(context);
+            return EmptyDropdownWidget<CashboxEntity>(
+              label: labelText ?? '',
+              hint: 'لا توجد صناديق - أضف من الإعدادات',
+              icon: Icons.account_balance_wallet,
+            );
           }
 
           return CustomDropdownField<CashboxEntity>(
@@ -169,29 +154,5 @@ class CashboxSelectorDropdown extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildLoadingDropdown() {
-    return CustomDropdownField<CashboxEntity>(
-      value: null,
-      label: labelText ?? '',
-      prefixIcon: const SizedBox(
-        width: 24,
-        height: 24,
-        child: CircularProgressIndicator(strokeWidth: 2),
-      ),
-      items: const [],
-      onChanged: null,
-    );
-  }
-
-  Widget _buildEmptyDropdown(BuildContext context) {
-    return CustomDropdownField<CashboxEntity>(
-      value: null,
-      label: labelText ?? '',
-      hint: 'لا توجد صناديق - أضف من الإعدادات',
-      prefixIcon: const Icon(Icons.account_balance_wallet),
-      items: const [],
-      onChanged: null,
-    );
-  }
 }
+

@@ -74,7 +74,9 @@ class AccountCard extends StatelessWidget {
                             ),
                             decoration: BoxDecoration(
                               color: Colors.grey[100],
-                              borderRadius: BorderRadius.circular(AppRadius.sm6),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.sm6,
+                              ),
                             ),
                             child: Text(
                               account.category,
@@ -89,13 +91,13 @@ class AccountCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       account.linked
-                          ? _buildLinkedStatus()
-                          : _buildUnlinkedStatus(),
+                          ? LinkedAccountStatus(linkedTo: account.linkedTo)
+                          : const UnlinkedAccountStatus(),
                     ],
                   ),
                 ),
                 const SizedBox(width: 8),
-                Flexible(child: _buildActionButton()),
+                Flexible(child: AccountLinkActionIcon(linked: account.linked)),
               ],
             ),
           ),
@@ -104,7 +106,7 @@ class AccountCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLinkedStatus() {
+  /* Widget _buildLinkedStatus() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -194,7 +196,99 @@ class AccountCard extends StatelessWidget {
         ],
       ),
     );
-  }
+  } */
+}
+
+class LinkedAccountStatus extends StatelessWidget {
+  final String? linkedTo;
+
+  const LinkedAccountStatus({super.key, required this.linkedTo});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    decoration: BoxDecoration(
+      color: AppColors.success.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(AppRadius.sm10),
+      border: Border.all(color: AppColors.success.withOpacity(0.3), width: 1.5),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.check_circle, color: AppColors.success, size: 16),
+        SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            'مرتبط بـ: $linkedTo',
+            style: TextStyle(
+              fontSize: 10,
+              color: AppColors.success,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class UnlinkedAccountStatus extends StatelessWidget {
+  const UnlinkedAccountStatus({super.key});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    decoration: BoxDecoration(
+      color: AppColors.warning.withOpacity(0.1),
+      borderRadius: BorderRadius.circular(AppRadius.sm10),
+      border: Border.all(color: AppColors.warning.withOpacity(0.3), width: 1.5),
+    ),
+    child: const Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.link_off, color: AppColors.warning, size: 16),
+        SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            'غير مرتبط - يحتاج إلى ربط',
+            style: TextStyle(
+              fontSize: 10,
+              color: AppColors.warning,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+class AccountLinkActionIcon extends StatelessWidget {
+  final bool linked;
+
+  const AccountLinkActionIcon({super.key, required this.linked});
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    decoration: BoxDecoration(
+      color: AppColors.primary,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.blue.withOpacity(0.3),
+          blurRadius: 8,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: Icon(
+      linked ? Icons.swap_horiz : Icons.link,
+      color: Colors.white,
+      size: 20,
+    ),
+  );
 }
 
 class LinkAccountBottomSheet extends StatefulWidget {
@@ -332,7 +426,10 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
           // Accounts List
           Flexible(
             child: filteredAccounts.isEmpty
-                ? _buildEmptyState()
+                ? const EmptyStateWidget(
+                    title: 'لا توجد حسابات مطابقة للبحث',
+                    icon: Icons.search_off,
+                  )
                 : ListView.builder(
                     shrinkWrap: true,
                     padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -340,7 +437,12 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                     itemBuilder: (context, index) {
                       final account = filteredAccounts[index];
                       final isSelected = selectedAccountId == account.id;
-                      return _buildAccountItem(account, isSelected);
+                      return AccountLinkSelectionItem(
+                        account: account,
+                        isSelected: isSelected,
+                        onTap: () =>
+                            setState(() => selectedAccountId = account.id),
+                      );
                     },
                   ),
           ),
@@ -395,7 +497,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
     );
   }
 
-  Widget _buildAccountItem(AccountEntity account, bool isSelected) {
+  /* Widget _buildAccountItem(AccountEntity account, bool isSelected) {
     return GestureDetector(
       onTap: () => setState(() => selectedAccountId = account.id),
       child: Container(
@@ -473,29 +575,87 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
         ),
       ),
     );
-  }
+  } */
+}
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+class AccountLinkSelectionItem extends StatelessWidget {
+  final AccountEntity account;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const AccountLinkSelectionItem({
+    super.key,
+    required this.account,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: onTap,
+    child: Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: isSelected ? Colors.blue[50] : Colors.grey[50],
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(
+          color: isSelected ? AppColors.primary : Colors.transparent,
+          width: 2,
+        ),
+      ),
+      child: Row(
         children: [
-          Container(
-            width: 64,
-            height: 64,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              shape: BoxShape.circle,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  account.name,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Text(
+                      account.code,
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    Text(' • ', style: TextStyle(color: Colors.grey[400])),
+                    Text(
+                      account.type.toString(),
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[700],
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            child: Icon(Icons.search_off, color: Colors.grey[400], size: 32),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'لا توجد حسابات مطابقة للبحث',
-            style: TextStyle(color: Colors.grey[500], fontSize: 16),
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primary : Colors.transparent,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: isSelected ? AppColors.primary : Colors.grey[400]!,
+                width: 2,
+              ),
+            ),
+            child: isSelected
+                ? const Icon(Icons.check, color: Colors.white, size: 16)
+                : null,
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }

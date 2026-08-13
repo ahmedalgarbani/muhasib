@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/features/reports/presentation/widgets/journal_report_components.dart';
 
 class JournalReportPage extends StatefulWidget {
   const JournalReportPage({super.key});
@@ -133,246 +134,51 @@ class _JournalReportContent extends StatelessWidget {
 
         return Column(
           children: [
-            _buildSummaryRow(data),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: Row(
+                children: [
+                  TinySummaryWidget(
+                    title: 'العدد',
+                    value: '${data.entries.length}',
+                    color: Colors.blue,
+                  ),
+                  TinySummaryWidget(
+                    title: 'إجمالي مدين',
+                    value: _formatCurrency(data.totalDebit),
+                    color: Colors.teal,
+                  ),
+                  TinySummaryWidget(
+                    title: 'إجمالي دائن',
+                    value: _formatCurrency(data.totalCredit),
+                    color: Colors.green,
+                  ),
+                  TinySummaryWidget(
+                    title: 'المرحلة',
+                    value: '${data.postedCount}',
+                    color: Colors.indigo,
+                  ),
+                ],
+              ),
+            ),
             if (data.unbalancedCount > 0)
-              _buildWarning(
-                'تحذير: يوجد ${data.unbalancedCount} قيد غير متوازن!',
+              WarningBannerWidget(
+                message: 'تحذير: يوجد ${data.unbalancedCount} قيد غير متوازن!',
               ),
             Expanded(
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: data.entries.length,
-                itemBuilder: (context, index) =>
-                    _buildEntryCard(data.entries[index]),
+                itemBuilder: (context, index) => JournalEntryCardWidget(
+                  entry: data.entries[index],
+                  formatCurrency: _formatCurrency,
+                ),
               ),
             ),
           ],
         );
       },
-    );
-  }
-
-  Widget _buildSummaryRow(_JournalReportResult data) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-      child: Row(
-        children: [
-          _buildTinySummary('العدد', '${data.entries.length}', Colors.blue),
-          _buildTinySummary(
-            'إجمالي مدين',
-            _formatCurrency(data.totalDebit),
-            Colors.teal,
-          ),
-          _buildTinySummary(
-            'إجمالي دائن',
-            _formatCurrency(data.totalCredit),
-            Colors.green,
-          ),
-          _buildTinySummary('المرحلة', '${data.postedCount}', Colors.indigo),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTinySummary(String title, String value, Color color) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(AppRadius.sm10),
-        border: Border.all(color: color.withOpacity(0.2)),
-      ),
-      child: Column(
-        children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 10,
-              color: color,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: color,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildWarning(String message) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.red[50],
-        borderRadius: BorderRadius.circular(AppRadius.sm10),
-        border: Border.all(color: Colors.red.withOpacity(0.2)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.error, color: Colors.red, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            message,
-            style: const TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildEntryCard(_JournalEntryRow entry) {
-    final isBalanced = (entry.totalDebit - entry.totalCredit).abs() < 0.01;
-    return CustomCardContainer(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: entry.isPosted
-                  ? AppColors.blueGrey700
-                  : Colors.orange.withOpacity(0.8),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadius.lg),
-              ),
-            ),
-            child: Row(
-              children: [
-                Text(
-                  entry.number ?? '#${entry.id}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    entry.description ?? 'بدون وصف',
-                    style: const TextStyle(color: Colors.white, fontSize: 13),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Text(
-                  entry.dateLabel,
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.9),
-                    fontSize: 11,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ...entry.lines.map(
-            (l) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: Text(
-                      '${l.accountCode} - ${l.accountName}',
-                      style: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      l.debitAmount > 0 ? _formatCurrency(l.debitAmount) : '-',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.blue[700], fontSize: 12),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      l.creditAmount > 0
-                          ? _formatCurrency(l.creditAmount)
-                          : '-',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.green[700], fontSize: 12),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: const BorderRadius.vertical(
-                bottom: Radius.circular(AppRadius.lg),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isBalanced
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppRadius.sm6),
-                  ),
-                  child: Text(
-                    isBalanced ? 'قيد متوازن ✓' : 'غير متوازن ⚠',
-                    style: TextStyle(
-                      color: isBalanced ? Colors.green[700] : Colors.red[700],
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-                Row(
-                  children: [
-                    Text(
-                      _formatCurrency(entry.totalDebit),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Colors.blue,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Text(
-                      _formatCurrency(entry.totalCredit),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 

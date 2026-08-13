@@ -44,7 +44,10 @@ class JournalEntryCardWidget extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(AppRadius.sm10),
@@ -79,7 +82,7 @@ class JournalEntryCardWidget extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  _buildStatusBadge(entry.isPosted),
+                  JournalEntryStatusBadge(isPosted: entry.isPosted),
                 ],
               ),
               const Divider(height: 32),
@@ -91,7 +94,11 @@ class JournalEntryCardWidget extends StatelessWidget {
                     color: AppColors.primary,
                   ),
                   const Spacer(),
-                  Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey.shade400),
+                  Icon(
+                    Icons.arrow_forward_ios,
+                    size: 14,
+                    color: Colors.grey.shade400,
+                  ),
                 ],
               ),
             ],
@@ -100,8 +107,15 @@ class JournalEntryCardWidget extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildStatusBadge(bool isPosted) {
+class JournalEntryStatusBadge extends StatelessWidget {
+  final bool isPosted;
+
+  const JournalEntryStatusBadge({super.key, required this.isPosted});
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(

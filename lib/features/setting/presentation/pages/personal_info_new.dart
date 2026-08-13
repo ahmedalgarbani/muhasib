@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/settings_card.dart';
+import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
+import 'package:muhasib/core/widgets/settings_image_picker_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -127,36 +128,32 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ),
                 ),
-                CustomCardContainer(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  elevation: 0.5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildTextFieldTile(
-                        icon: Icons.person_outline,
-                        label: 'الاسم باللغة المحلية',
-                        controller: _nameArController,
-                      ),
-                      _buildTextFieldTile(
-                        icon: Icons.person_outline,
-                        label: 'الاسم باللغة الأجنبية',
-                        controller: _nameEnController,
-                      ),
-                      _buildTextFieldTile(
-                        icon: Icons.home_outlined,
-                        label: 'العنوان باللغة المحلية',
-                        controller: _addressArController,
-                      ),
-                      _buildTextFieldTile(
-                        icon: Icons.home_outlined,
-                        label: 'العنوان باللغة الأجنبية',
-                        controller: _addressEnController,
-                      ),
-                    ],
-                  ),
+                SettingsCard(
+                  children: [
+                    SettingsTextFieldTile(
+                      icon: Icons.person_outline,
+                      title: 'الاسم باللغة المحلية',
+                      controller: _nameArController,
+                    ),
+                    const Divider(),
+                    SettingsTextFieldTile(
+                      icon: Icons.person_outline,
+                      title: 'الاسم باللغة الأجنبية',
+                      controller: _nameEnController,
+                    ),
+                    const Divider(),
+                    SettingsTextFieldTile(
+                      icon: Icons.home_outlined,
+                      title: 'العنوان باللغة المحلية',
+                      controller: _addressArController,
+                    ),
+                    const Divider(),
+                    SettingsTextFieldTile(
+                      icon: Icons.home_outlined,
+                      title: 'العنوان باللغة الأجنبية',
+                      controller: _addressEnController,
+                    ),
+                  ],
                 ),
 
                 // Section: بيانات التواصل
@@ -176,22 +173,15 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ),
                 ),
-                CustomCardContainer(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  elevation: 0.5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildTextFieldTile(
-                        icon: Icons.phone_outlined,
-                        label: 'رقم الموبايل',
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                      ),
-                    ],
-                  ),
+                SettingsCard(
+                  children: [
+                    SettingsTextFieldTile(
+                      icon: Icons.phone_outlined,
+                      title: 'رقم الموبايل',
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                    ),
+                  ],
                 ),
 
                 // Section: الهوية التعريفية
@@ -211,37 +201,32 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ),
                 ),
-                CustomCardContainer(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  elevation: 0.5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildImagePickerTile(
-                        icon: Icons.image_outlined,
-                        label: 'الشعار',
-                        onTap: () {
-                          // TODO: Implement image picker
-                        },
-                      ),
-                      _buildImagePickerTile(
-                        icon: Icons.verified_user_outlined,
-                        label: 'الختم',
-                        onTap: () {
-                          // TODO: Implement image picker
-                        },
-                      ),
-                      _buildImagePickerTile(
-                        icon: Icons.draw_outlined,
-                        label: 'التوقيع',
-                        onTap: () {
-                          // TODO: Implement image picker
-                        },
-                      ),
-                    ],
-                  ),
+                SettingsCard(
+                  children: [
+                    SettingsImagePickerTile(
+                      icon: Icons.image_outlined,
+                      label: 'الشعار',
+                      onTap: () {
+                        // TODO: Implement image picker
+                      },
+                    ),
+                    const Divider(),
+                    SettingsImagePickerTile(
+                      icon: Icons.verified_user_outlined,
+                      label: 'الختم',
+                      onTap: () {
+                        // TODO: Implement image picker
+                      },
+                    ),
+                    const Divider(),
+                    SettingsImagePickerTile(
+                      icon: Icons.draw_outlined,
+                      label: 'التوقيع',
+                      onTap: () {
+                        // TODO: Implement image picker
+                      },
+                    ),
+                  ],
                 ),
 
                 // Section: بيانات الضرائب
@@ -261,21 +246,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     ),
                   ),
                 ),
-                CustomCardContainer(
-                  margin: const EdgeInsets.symmetric(vertical: 4),
-                  elevation: 0.5,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildTextFieldTile(
-                        icon: Icons.tag,
-                        label: 'الرقم الضريبي',
-                        controller: _taxNumberController,
-                      ),
-                    ],
-                  ),
+                SettingsCard(
+                  children: [
+                    SettingsTextFieldTile(
+                      icon: Icons.tag,
+                      title: 'الرقم الضريبي',
+                      controller: _taxNumberController,
+                    ),
+                  ],
                 ),
 
                 Padding(
@@ -290,44 +268,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildTextFieldTile({
-    required IconData icon,
-    required String label,
-    required TextEditingController controller,
-    TextInputType? keyboardType,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey[600]),
-      title: TextInputField(
-        controller: controller,
-        label: label,
-        keyboardType: keyboardType,
-        decoration: InputDecoration(
-          labelStyle: const TextStyle(fontSize: 13),
-          border: InputBorder.none,
-          isDense: true,
-          contentPadding: EdgeInsets.zero,
-        ),
-        style: const TextStyle(fontSize: 14),
-      ),
-    );
-  }
-
-  Widget _buildImagePickerTile({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey[600]),
-      title: Text(label, style: const TextStyle(fontSize: 14)),
-      trailing: TextButton(
-        onPressed: onTap,
-        child: const Text('اختر', style: TextStyle(fontSize: 13)),
       ),
     );
   }

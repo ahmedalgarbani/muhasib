@@ -31,6 +31,7 @@ class SettingsDropdownTile<T> extends StatelessWidget {
           items: items,
           onChanged: onChanged,
           isDense: true,
+          isExpanded: true,
           style: const TextStyle(fontSize: 13, color: Colors.black87),
         ),
       ),
