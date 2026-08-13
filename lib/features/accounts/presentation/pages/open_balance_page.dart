@@ -1,9 +1,9 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/constant/app_constant.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -46,7 +46,6 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
   final _formKey = GlobalKey<FormState>();
   final _descriptionController = TextEditingController();
   final _notesController = TextEditingController();
-  final _numberFormat = intl.NumberFormat('#,##0.00', 'ar');
 
   @override
   void dispose() {
@@ -87,7 +86,7 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
           _notesController.text = opening.notes ?? '';
 
           return Scaffold(
-            backgroundColor: AppColors.background,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: CustomAppBar(
               title: 'الأرصدة الافتتاحية',
               actions: [
@@ -116,7 +115,6 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
                           const SizedBox(height: 20),
                           OpeningBalanceSummaryCardWidget(
                             opening: opening,
-                            numberFormat: _numberFormat,
                           ),
                           const SizedBox(height: 24),
                           OpeningBalanceLinesHeaderWidget(
@@ -125,7 +123,6 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
                           const SizedBox(height: 12),
                           OpeningBalanceLinesListWidget(
                             opening: opening,
-                            numberFormat: _numberFormat,
                             onEditLine: (line, i) => _showAddLineDialog(
                               context,
                               line: line,
@@ -239,9 +236,9 @@ class OpeningBalanceMasterDataCardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
@@ -286,7 +283,7 @@ class OpeningBalanceMasterDataCardWidget extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            intl.DateFormat('yyyy/MM/dd').format(opening.entryDate),
+                            DateFormatter.formatDate(opening.entryDate),
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ],
@@ -314,12 +311,10 @@ class OpeningBalanceMasterDataCardWidget extends StatelessWidget {
 
 class OpeningBalanceSummaryCardWidget extends StatelessWidget {
   final OpeningBalanceEntity opening;
-  final intl.NumberFormat numberFormat;
 
   const OpeningBalanceSummaryCardWidget({
     super.key,
     required this.opening,
-    required this.numberFormat,
   });
 
   @override
@@ -343,12 +338,12 @@ class OpeningBalanceSummaryCardWidget extends StatelessWidget {
             children: [
               OpeningBalanceSimpleStatWidget(
                 label: 'إجمالي المدين',
-                value: numberFormat.format(opening.totalDebit),
+                value: NumberFormatter.formatNumber(opening.totalDebit),
                 color: Colors.green,
               ),
               OpeningBalanceSimpleStatWidget(
                 label: 'إجمالي الدائن',
-                value: numberFormat.format(opening.totalCredit),
+                value: NumberFormatter.formatNumber(opening.totalCredit),
                 color: Colors.red,
               ),
             ],
@@ -366,7 +361,7 @@ class OpeningBalanceSummaryCardWidget extends StatelessWidget {
               Text(
                 isBalanced
                     ? 'القيد متوازن حالياً'
-                    : 'القيد غير متوازن (الفرق: ${numberFormat.format(diff)})',
+                    : 'القيد غير متوازن (الفرق: ${NumberFormatter.formatNumber(diff)})',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: isBalanced ? Colors.green : Colors.red,
@@ -441,14 +436,12 @@ class OpeningBalanceLinesHeaderWidget extends StatelessWidget {
 
 class OpeningBalanceLinesListWidget extends StatelessWidget {
   final OpeningBalanceEntity opening;
-  final intl.NumberFormat numberFormat;
   final void Function(OpeningBalanceLineEntity line, int index) onEditLine;
   final ValueChanged<int> onRemoveLine;
 
   const OpeningBalanceLinesListWidget({
     super.key,
     required this.opening,
-    required this.numberFormat,
     required this.onEditLine,
     required this.onRemoveLine,
   });
@@ -460,7 +453,7 @@ class OpeningBalanceLinesListWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 40),
         width: double.infinity,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg20),
         ),
         child: Column(
@@ -483,7 +476,7 @@ class OpeningBalanceLinesListWidget extends StatelessWidget {
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
           child: ListTile(
@@ -504,13 +497,13 @@ class OpeningBalanceLinesListWidget extends StatelessWidget {
                 if (line.debit > 0)
                   OpeningBalanceLineBadgeWidget(
                     label: 'مدين',
-                    value: numberFormat.format(line.debit),
+                    value: NumberFormatter.formatNumber(line.debit),
                     color: Colors.green,
                   ),
                 if (line.credit > 0)
                   OpeningBalanceLineBadgeWidget(
                     label: 'دائن',
-                    value: numberFormat.format(line.credit),
+                    value: NumberFormatter.formatNumber(line.credit),
                     color: Colors.red,
                   ),
               ],
@@ -586,7 +579,7 @@ class OpeningBalanceBottomActionBarWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),

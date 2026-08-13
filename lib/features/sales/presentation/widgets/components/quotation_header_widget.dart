@@ -20,8 +20,10 @@ class QuotationHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       padding: AppConstant.defaultPadding,
       child: Row(
@@ -33,14 +35,20 @@ class QuotationHeaderWidget extends StatelessWidget {
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 filled: true,
-                fillColor: Colors.white,
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm),
-                  borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).dividerColor,
+                    width: 2,
+                  ),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm),
-                  borderSide: BorderSide(color: Colors.grey.shade300, width: 2),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).dividerColor,
+                    width: 2,
+                  ),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -58,7 +66,9 @@ class QuotationHeaderWidget extends StatelessWidget {
             onPressed: onRefresh,
             icon: const Icon(Icons.refresh),
             style: IconButton.styleFrom(
-              backgroundColor: Colors.grey.shade100,
+              backgroundColor: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/models/nav_item.dart';
 import 'package:muhasib/core/route/app_navigator.dart';
+import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/app_drawer_controller.dart';
 import 'package:muhasib/core/widgets/main_drawer/drawer_menu_item.dart';
@@ -10,11 +12,16 @@ class MainAppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mainItems = AppNavigator.bySection(DrawerSection.main);
+    final mainItems = AppNavigator.bySection(DrawerSection.main)
+        .where(
+          (item) =>
+              SettingsCache.showStockModule || item.route != AppRoutes.warehouses,
+        )
+        .toList();
     final bottomItems = AppNavigator.bySection(DrawerSection.bottom);
 
     return ColoredBox(
-      color: AppColors.gray50,
+      color: Theme.of(context).scaffoldBackgroundColor,
       child: Column(
         children: [
           const _MainDrawerHeader(),
@@ -109,8 +116,8 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
       child: Text(
         label,
-        style: const TextStyle(
-          color: AppColors.gray400,
+        style: TextStyle(
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
           fontSize: 12,
           fontWeight: FontWeight.w600,
         ),

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
@@ -34,18 +36,41 @@ class Step2Items extends StatefulWidget {
 
 class _Step2ItemsState extends State<Step2Items> {
   final _searchController = TextEditingController();
+  final _discountController = TextEditingController();
   bool _isScanning = false;
 
   @override
   void dispose() {
     _searchController.dispose();
+    _discountController.dispose();
     super.dispose();
   }
 
   void _addItem(InvoiceItem item) {
+    if (SettingsCache.preventSaleLessThanCost &&
+        item.costPrice != null &&
+        item.price < item.costPrice!) {
+      AppToast.showError(context, 'لا يمكن البيع بسعر أقل من التكلفة');
+      return;
+    }
+
     final existingIndex = widget.invoice.items.indexWhere(
       (i) => i.id == item.id,
     );
+    final existingQuantity = existingIndex >= 0
+        ? widget.invoice.items[existingIndex].quantity
+        : 0;
+
+    if (!SettingsCache.allowNegativeStock &&
+        item.trackInventory &&
+        existingQuantity + item.quantity > item.stock) {
+      AppToast.showError(
+        context,
+        'الكمية المطلوبة تتجاوز المخزون المتوفر (${item.stock})',
+      );
+      return;
+    }
+
     List<InvoiceItem> updatedItems;
 
     if (existingIndex >= 0) {
@@ -63,6 +88,17 @@ class _Step2ItemsState extends State<Step2Items> {
 
   void _updateItemQuantity(int index, int delta) {
     final updatedItems = List<InvoiceItem>.from(widget.invoice.items);
+    final item = updatedItems[index];
+    if (delta > 0 &&
+        !SettingsCache.allowNegativeStock &&
+        item.trackInventory &&
+        item.quantity + delta > item.stock) {
+      AppToast.showError(
+        context,
+        'الكمية المطلوبة تتجاوز المخزون المتوفر (${item.stock})',
+      );
+      return;
+    }
     updatedItems[index] = updatedItems[index].copyWith(
       quantity: (updatedItems[index].quantity + delta).clamp(1, 999),
     );
@@ -100,7 +136,7 @@ class _Step2ItemsState extends State<Step2Items> {
       children: [
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           child: Row(
             children: [
               Expanded(
@@ -138,7 +174,7 @@ class _Step2ItemsState extends State<Step2Items> {
         ),
         if (_searchController.text.isNotEmpty && filteredItems.isNotEmpty)
           Container(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             constraints: const BoxConstraints(maxHeight: 200),
             child: ListView.builder(
               shrinkWrap: true,
@@ -148,7 +184,10 @@ class _Step2ItemsState extends State<Step2Items> {
                 return ListTile(
                   title: Text(item.name),
                   subtitle: Text(
-                    '${NumberFormatter.formatCurrency(item.price)} | متوفر: ${item.stock}',
+                    SettingsCache.showCostWhenAddInvoice &&
+                            item.costPrice != null
+                        ? '${NumberFormatter.formatCurrency(item.price)} | التكلفة: ${NumberFormatter.formatCurrency(item.costPrice!)} | متوفر: ${item.stock}'
+                        : '${NumberFormatter.formatCurrency(item.price)} | متوفر: ${item.stock}',
                   ),
                   onTap: () {
                     AddItemBottomSheet.show(
@@ -184,7 +223,9 @@ class _Step2ItemsState extends State<Step2Items> {
                       Container(
                         padding: const EdgeInsets.all(AppSpacing.md),
                         decoration: BoxDecoration(
-                          color: AppColors.grey50,
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Column(
@@ -214,6 +255,35 @@ class _Step2ItemsState extends State<Step2Items> {
                                 ),
                               ],
                             ),
+                            if (SettingsCache.taxEnabled) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    SettingsCache.taxName,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.gray600,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                  Text(
+                                    NumberFormatter.formatCurrency(
+                                      widget.invoice.taxAmount,
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: AppColors.gray900,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
                             const SizedBox(height: AppSpacing.md),
                             ExpandableSection(
                               title: 'خصومات ورسوم',
@@ -258,21 +328,36 @@ class _Step2ItemsState extends State<Step2Items> {
                                       Expanded(
                                         flex: 2,
                                         child: TextInputField(
+                                          controller: _discountController,
                                           keyboardType: TextInputType.number,
                                           hint: 'الخصم',
                                           onChanged: (value) {
+                                            var parsed = double.tryParse(value) ??
+                                                0;
+                                            final maxDiscount = SettingsCache
+                                                .maxDiscountPercent;
+                                            if (widget.invoice.discount.type ==
+                                                    DiscountType.percent &&
+                                                maxDiscount != null &&
+                                                parsed > maxDiscount) {
+                                              parsed = maxDiscount;
+                                              _discountController.text =
+                                                  maxDiscount.toStringAsFixed(
+                                                    maxDiscount % 1 == 0
+                                                        ? 0
+                                                        : 2,
+                                                  );
+                                              AppToast.showWarning(
+                                                context,
+                                                'الحد الأقصى لنسبة الخصم هو $maxDiscount%',
+                                              );
+                                            }
                                             widget.onInvoiceUpdate(
                                               widget.invoice.copyWith(
                                                 discount: widget
                                                     .invoice
                                                     .discount
-                                                    .copyWith(
-                                                      value:
-                                                          double.tryParse(
-                                                            value,
-                                                          ) ??
-                                                          0,
-                                                    ),
+                                                    .copyWith(value: parsed),
                                               ),
                                             );
                                           },
@@ -335,7 +420,7 @@ class _Step2ItemsState extends State<Step2Items> {
         ),
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           child: Row(
             children: [
               Expanded(

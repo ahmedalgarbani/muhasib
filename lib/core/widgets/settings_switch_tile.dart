@@ -21,22 +21,32 @@ class SettingsSwitchTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return SwitchListTile(
       secondary: icon != null
-          ? Icon(icon, size: 20, color: enabled ? Colors.grey[600] : Colors.grey[400])
+          ? Icon(
+              icon,
+              size: 20,
+              color: enabled
+                  ? colorScheme.onSurfaceVariant
+                  : colorScheme.outlineVariant,
+            )
           : null,
       title: Text(
         title,
         style: TextStyle(
           fontSize: 12,
-          color: enabled ? Colors.black87 : Colors.grey[400],
+          color: enabled ? colorScheme.onSurface : colorScheme.outlineVariant,
         ),
       ),
       subtitle: Text(
         subtitle ?? (value ? 'مفعل' : 'غير مفعل'),
         style: TextStyle(
           fontSize: 11,
-          color: enabled ? Colors.grey : Colors.grey[400],
+          color: enabled
+              ? colorScheme.onSurfaceVariant
+              : colorScheme.outlineVariant,
         ),
       ),
       value: value,

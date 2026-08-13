@@ -49,7 +49,7 @@ class _ProductsPageState extends State<ProductsPage> {
         textDirection: TextDirection.rtl,
         child: Scaffold(
           key: _scaffoldKey,
-          backgroundColor: AppColors.gray50,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: const CustomAppBar(),
           body: Column(
             children: [

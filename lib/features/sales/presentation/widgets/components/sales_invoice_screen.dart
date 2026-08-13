@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/number_sequence_service.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/step1_customer.dart';
@@ -39,17 +41,40 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
   void initState() {
     super.initState();
     _invoice = Invoice(
-      number:
-          'INV-${DateTime.now().millisecondsSinceEpoch}', // Generate a temp number
+      number: '',
       date: DateTime.now(),
       items: [],
       discount: Discount(type: DiscountType.amount, value: 0),
       payments: [],
     );
 
+    _generateNumber();
+
     // Load customers (from customers table) and products
     context.read<CustomersCubit>().loadCustomers();
     context.read<ProductsCubit>().loadProducts();
+  }
+
+  Future<void> _generateNumber() async {
+    final isQuotation = widget.invoiceType.isQuotation;
+    final sequenceType = isQuotation ? 'quotation' : 'sales_invoice';
+    final service = getIt<NumberSequenceService>();
+    if (!isQuotation) {
+      final starting = SettingsCache.invoiceStartingNumber;
+      final current = await service.getCurrentValue(sequenceType);
+      if (current < starting - 1) {
+        await service.resetSequence(sequenceType, starting - 1);
+      }
+    }
+    final number = await service.getNextNumberWithPrefix(
+      sequenceType,
+      isQuotation
+          ? SettingsCache.quotationPrefix
+          : SettingsCache.invoicePrefix,
+    );
+    if (mounted) {
+      setState(() => _invoice = _invoice.copyWith(number: number));
+    }
   }
 
   void _updateInvoice(Invoice invoice) {
@@ -86,11 +111,15 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
       return;
     }
 
+    if (_invoice.number.isEmpty) {
+      await _generateNumber();
+    }
+
     // Calculate discount and tax amounts
     final discountAmount = _invoice.discount.type == DiscountType.percent
         ? _invoice.subtotal * _invoice.discount.value / 100
         : _invoice.discount.value;
-    final taxAmount = 0.0; // No tax system in place yet
+    final taxAmount = _invoice.taxAmount;
     final totalAfterDiscount = _invoice.subtotal - discountAmount;
     final finalAmount = totalAfterDiscount + taxAmount;
 
@@ -121,7 +150,7 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
       amount: _invoice.subtotal,
       totalAmount: _invoice.total,
       taxAmt: taxAmount,
-      taxRatio: 0.0,
+      taxRatio: SettingsCache.taxEnabled ? SettingsCache.defaultTaxRate : 0.0,
       discountAmt: discountAmount,
       discountRatio: _invoice.discount.type == DiscountType.percent
           ? _invoice.discount.value
@@ -135,7 +164,7 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
       currencyCode: 'SAR', // Default currency code
       exchangeRate: 1.0,
       customerId: derivedCustomerId ?? 1,
-      stockId: 1, // Default stock ID
+      stockId: SettingsCache.defaultWarehouse,
       invoiceTransType: derivedTransType,
       paymentStatus: derivedPaymentStatus,
       creatorId: 1, // Default user
@@ -162,7 +191,7 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
           groupId: 1, // TODO: Get from product
           unitId: 1, // TODO: Get from product
           categorySubUnitId: 1, // Required field - using default
-          stockId: 1, // Use default stock
+          stockId: SettingsCache.defaultWarehouse,
           categoryId: int.tryParse(item.id) ?? 1, // Use item ID as category ID
           invoiceId: 0, // Will be set by database
           customerId: derivedCustomerId ?? 1,
@@ -177,6 +206,7 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
     );
 
     // Call Cubit
+    if (!mounted) return;
     await context.read<SalesCubit>().addInvoice(invoiceEntity);
   }
 
@@ -192,7 +222,7 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(
           title: widget.invoiceType == InvoiceType.quotation
               ? 'عرض سعر جديد'
@@ -218,6 +248,8 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
                             price: p.sellAmount ?? 0,
                             unit: p.unitId?.toString() ?? 'قطعة',
                             stock: p.quantity.toInt(),
+                            costPrice: p.costAmount,
+                            trackInventory: p.trackInventory,
                           ),
                         )
                         .toList();

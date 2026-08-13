@@ -57,7 +57,7 @@ class AccountStateCheckerWidget extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: AppConstant.defaultPadding,
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
         child: const Center(child: CircularProgressIndicator()),
@@ -127,7 +127,7 @@ class AccountCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
@@ -175,10 +175,10 @@ class AccountCard extends StatelessWidget {
                           Flexible(
                             child: Text(
                               account.name,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                           ),
@@ -189,7 +189,9 @@ class AccountCard extends StatelessWidget {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .surfaceContainerHighest,
                               borderRadius: BorderRadius.circular(
                                 AppRadius.sm6,
                               ),
@@ -344,9 +346,9 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -356,7 +358,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
             width: 48,
             height: 5,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppRadius.sm10),
             ),
           ),
@@ -372,10 +374,10 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                     Expanded(
                       child: Text(
                         'ربط حساب ${widget.account.name}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: AppColors.textPrimary,
+                          color: Theme.of(context).colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -383,7 +385,9 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                       onPressed: () => Navigator.pop(context),
                       icon: const Icon(Icons.close),
                       style: IconButton.styleFrom(
-                        backgroundColor: Colors.grey[100],
+                        backgroundColor: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                       ),
                     ),
                   ],
@@ -446,8 +450,10 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
-              border: Border(top: BorderSide(color: Colors.grey[200]!)),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              border: Border(
+                top: BorderSide(color: Theme.of(context).dividerColor),
+              ),
             ),
             child: Row(
               children: [
@@ -459,7 +465,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
-                      side: BorderSide(color: Colors.grey[300]!, width: 2),
+                      side: BorderSide(color: Theme.of(context).dividerColor, width: 2),
                     ),
                     child: const Text(
                       'إلغاء',
@@ -513,7 +519,9 @@ class AccountLinkSelectionItem extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: isSelected ? Colors.blue[50] : Colors.grey[50],
+        color: isSelected
+            ? Colors.blue[50]
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
           color: isSelected ? AppColors.primary : Colors.transparent,
@@ -528,10 +536,10 @@ class AccountLinkSelectionItem extends StatelessWidget {
               children: [
                 Text(
                   account.name,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 6),

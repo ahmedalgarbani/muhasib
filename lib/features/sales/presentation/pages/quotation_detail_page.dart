@@ -42,7 +42,7 @@ class QuotationDetailPage extends StatelessWidget {
         }
       },
       child: Scaffold(
-        backgroundColor: AppColors.gray50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(
           title: quotation.number,
           actions: [

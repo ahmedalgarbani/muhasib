@@ -24,8 +24,10 @@ class ProductPricingHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       padding: AppConstant.defaultPadding,
       child: Column(
@@ -162,7 +164,7 @@ class ProductPricingListWidget extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
+            side: BorderSide(color: Theme.of(context).dividerColor),
           ),
           child: ExpansionTile(
             title: BlocBuilder<ProductsCubit, ProductsState>(
@@ -263,7 +265,9 @@ class ProductPriceLevelItemWidget extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: hasPrice ? Colors.green.shade50 : Colors.grey.shade100,
+          color: hasPrice
+              ? Colors.green.shade50
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Icon(

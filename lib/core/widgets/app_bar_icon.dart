@@ -9,7 +9,7 @@ class AppBarIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      icon: Icon(icon, color: Colors.black87),
+      icon: Icon(icon, color: Theme.of(context).colorScheme.onSurface),
       onPressed: () {},
     );
   }

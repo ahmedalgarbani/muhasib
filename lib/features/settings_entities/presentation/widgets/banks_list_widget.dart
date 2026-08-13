@@ -43,7 +43,7 @@ class BanksListWidget extends StatelessWidget {
                     )
                   : null,
               filled: true,
-              fillColor: Colors.white,
+              fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 borderSide: BorderSide.none,

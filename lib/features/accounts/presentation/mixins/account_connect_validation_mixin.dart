@@ -219,7 +219,7 @@ mixin AccountConnectValidationMixin {
               Container(
                 padding: AppConstant.defaultPadding,
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Column(
@@ -237,7 +237,9 @@ mixin AccountConnectValidationMixin {
                     const SizedBox(height: 8),
                     LinearProgressIndicator(
                       value: validation.completionPercentage / 100,
-                      backgroundColor: Colors.grey[200],
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         validation.completionPercentage >= 80
                             ? Colors.green

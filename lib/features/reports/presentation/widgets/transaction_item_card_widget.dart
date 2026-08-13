@@ -31,16 +31,16 @@ class TransactionItemCardWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppRadius.lg),
               ),

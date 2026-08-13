@@ -6,11 +6,11 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class GeneralLedgerReportPage extends StatefulWidget {
   const GeneralLedgerReportPage({super.key});
@@ -86,7 +86,6 @@ class _GeneralLedgerContent extends StatefulWidget {
 }
 
 class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
   int? _selectedAccountId;
 
   @override
@@ -128,7 +127,8 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                   Expanded(
                     child: ReportKpiCard(
                       title: 'إجمالي الحركات المدينة',
-                      value: '${_numberFormat.format(data.totalDebit)} ر.س',
+                      value:
+                          NumberFormatter.formatCurrency(data.totalDebit, symbol: 'ر.س'),
                       icon: Icons.arrow_upward,
                       color: Colors.blue[700]!,
                       subtitle: 'جميع القيود المدينة',
@@ -138,7 +138,8 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                   Expanded(
                     child: ReportKpiCard(
                       title: 'إجمالي الحركات الدائنة',
-                      value: '${_numberFormat.format(data.totalCredit)} ر.س',
+                      value:
+                          NumberFormatter.formatCurrency(data.totalCredit, symbol: 'ر.س'),
                       icon: Icons.arrow_downward,
                       color: Colors.green[700]!,
                       subtitle: 'جميع القيود الدائنة',
@@ -149,7 +150,7 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                     child: ReportKpiCard(
                       title: 'صافي فرق الأستاذ',
                       value:
-                          '${_numberFormat.format((data.totalDebit - data.totalCredit).abs())} ر.س',
+                          NumberFormatter.formatCurrency((data.totalDebit - data.totalCredit).abs(), symbol: 'ر.س'),
                       icon: Icons.balance,
                       color: (data.totalDebit - data.totalCredit).abs() < 0.01
                           ? Colors.teal[700]!
@@ -175,7 +176,7 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.lg),
-                      side: BorderSide(color: Colors.grey[200]!),
+                      side: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ExpansionTile(
@@ -197,7 +198,7 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                         ),
                       ),
                       subtitle: Text(
-                        'الرصيد: ${_numberFormat.format(a.balance)} ر.س',
+                        'الرصيد: ${NumberFormatter.formatCurrency(a.balance, symbol: 'ر.س')}',
                         style: TextStyle(
                           color: a.balance >= 0 ? Colors.blue : Colors.red,
                           fontSize: 11,
@@ -302,7 +303,7 @@ class _AccountTransactionsView extends StatelessWidget {
             ),
           );
         return Container(
-          color: Colors.grey[50],
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: Column(
             children: txns
                 .map(

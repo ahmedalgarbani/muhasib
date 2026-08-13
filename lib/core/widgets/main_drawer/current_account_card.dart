@@ -21,11 +21,11 @@ class CurrentAccountCard extends StatelessWidget {
       },
       child: Container(
         padding: AppConstant.defaultPadding,
-        color: Colors.grey[50],
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(AppRadius.md),
           ),
           child: Row(

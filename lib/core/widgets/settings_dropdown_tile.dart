@@ -19,8 +19,11 @@ class SettingsDropdownTile<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
-      leading: icon != null ? Icon(icon, size: 20, color: Colors.grey[600]) : null,
+      leading: icon != null
+          ? Icon(icon, size: 20, color: colorScheme.onSurfaceVariant)
+          : null,
       title: Text(
         title,
         style: const TextStyle(fontSize: 12, color: Colors.grey),
@@ -32,7 +35,7 @@ class SettingsDropdownTile<T> extends StatelessWidget {
           onChanged: onChanged,
           isDense: true,
           isExpanded: true,
-          style: const TextStyle(fontSize: 13, color: Colors.black87),
+          style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
         ),
       ),
     );

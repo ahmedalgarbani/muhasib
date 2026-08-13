@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
@@ -580,15 +581,17 @@ class VoucherCashPaymentSectionWidget extends StatelessWidget {
                 .toList(),
             onChanged: onBoxBankChanged,
           ),
-          const SizedBox(height: 16),
-          CustomDropdownField<CurrencyEntity>(
-            hint: 'العملة',
-            value: selectedCurrency,
-            items: currencies
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: onCurrencyChanged,
-          ),
+          if (SettingsCache.allowMultiCurrencyInVoucher) ...[
+            const SizedBox(height: 16),
+            CustomDropdownField<CurrencyEntity>(
+              hint: 'العملة',
+              value: selectedCurrency,
+              items: currencies
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                  .toList(),
+              onChanged: onCurrencyChanged,
+            ),
+          ],
         ],
       ),
     );
@@ -629,16 +632,18 @@ class VoucherBankTransferSectionWidget extends StatelessWidget {
       child: Column(
         children: [
           VoucherAmountFieldWidget(amountController: amountController),
-          const SizedBox(height: 16),
-          CustomDropdownField<CurrencyEntity>(
-            hint: 'العملة',
-            isRequired: true,
-            value: selectedCurrency,
-            items: currencies
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: onCurrencyChanged,
-          ),
+          if (SettingsCache.allowMultiCurrencyInVoucher) ...[
+            const SizedBox(height: 16),
+            CustomDropdownField<CurrencyEntity>(
+              hint: 'العملة',
+              isRequired: true,
+              value: selectedCurrency,
+              items: currencies
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                  .toList(),
+              onChanged: onCurrencyChanged,
+            ),
+          ],
           const SizedBox(height: 16),
           CustomDropdownField<AccountEntity>(
             isRequired: true,
@@ -746,8 +751,10 @@ class VoucherCommissionSectionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.only(top: 16),
-      decoration: const BoxDecoration(
-        border: Border(top: BorderSide(color: AppColors.gray200, width: 2)),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: Theme.of(context).dividerColor, width: 2),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -787,15 +794,17 @@ class VoucherCommissionSectionWidget extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          CustomDropdownField<CurrencyEntity>(
-            hint: 'عملة عمولة الحوالة',
-            value: selectedCurrency,
-            items: currencies
-                .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
-                .toList(),
-            onChanged: onCurrencyChanged,
-          ),
+          if (SettingsCache.allowMultiCurrencyInVoucher) ...[
+            const SizedBox(height: 16),
+            CustomDropdownField<CurrencyEntity>(
+              hint: 'عملة عمولة الحوالة',
+              value: selectedCurrency,
+              items: currencies
+                  .map((e) => DropdownMenuItem(value: e, child: Text(e.name)))
+                  .toList(),
+              onChanged: onCurrencyChanged,
+            ),
+          ],
         ],
       ),
     );

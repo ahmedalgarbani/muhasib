@@ -111,6 +111,35 @@ class NumberSequenceService {
     return prefix != null ? '$prefix-$paddedValue' : paddedValue;
   }
 
+  /// Get current raw value without incrementing
+  Future<int> getCurrentValue(String sequenceType) async {
+    final result = await _db.query(
+      'number_sequences',
+      where: 'sequence_type = ?',
+      whereArgs: [sequenceType],
+      limit: 1,
+    );
+
+    if (result.isEmpty) {
+      throw Exception('Sequence type not found: $sequenceType');
+    }
+
+    return result.first['current_value'] as int;
+  }
+
+  /// Get next number formatted with an external prefix (e.g. from settings)
+  /// while keeping the sequence's own padding.
+  Future<String> getNextNumberWithPrefix(
+    String sequenceType,
+    String prefix,
+  ) async {
+    final full = await getNextNumber(sequenceType);
+    final dashIndex = full.indexOf('-');
+    final padded = dashIndex == -1 ? full : full.substring(dashIndex + 1);
+    final normalizedPrefix = prefix.endsWith('-') ? prefix : '$prefix-';
+    return '$normalizedPrefix$padded';
+  }
+
   /// Reset sequence to a specific value
   Future<void> resetSequence(String sequenceType, int newValue) async {
     await _db.update(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/route/route_names.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/settings_navigation_card.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
@@ -14,7 +13,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.neutral100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'الإعدادات'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {

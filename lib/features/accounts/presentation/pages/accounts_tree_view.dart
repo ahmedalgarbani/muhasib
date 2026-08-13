@@ -109,7 +109,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const CustomAppBar(title: 'دليل الحسابات'),
       body: BlocListener<AccountsCubit, AccountsState>(
         listener: (context, state) {
@@ -198,7 +198,7 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'الحسابات الفرعية - ${widget.masterAccount.name}',
         showBack: true,

@@ -34,20 +34,21 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   );
 
   Widget? _buildLeading(BuildContext context) {
+    final iconColor = Theme.of(context).iconTheme.color ?? Colors.black;
     if (onMenuPressed != null) {
       return IconButton(
-        icon: const Icon(Icons.menu, color: Colors.black, size: 26),
+        icon: Icon(Icons.menu, color: iconColor, size: 26),
         onPressed: onMenuPressed,
       );
     }
     if (showBack) {
       return IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black, size: 20),
+        icon: Icon(Icons.arrow_back_ios_new, color: iconColor, size: 20),
         onPressed: () => context.safePop(),
       );
     }
     return IconButton(
-      icon: const Icon(Icons.menu, color: Colors.black, size: 26),
+      icon: Icon(Icons.menu, color: iconColor, size: 26),
       onPressed: toggleAppDrawer,
     );
   }
@@ -55,12 +56,14 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       leading: _buildLeading(context),
       title: Text(
         title ?? 'محاسب',
-        style: const TextStyle(
-          color: AppColors.customBlue,
+        style: TextStyle(
+          color: Theme.of(context).brightness == Brightness.dark
+              ? AppColors.primaryLight
+              : AppColors.customBlue,
           fontSize: 18,
           fontWeight: FontWeight.bold,
         ),

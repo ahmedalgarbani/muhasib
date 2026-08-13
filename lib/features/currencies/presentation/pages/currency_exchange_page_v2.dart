@@ -69,7 +69,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
   Widget build(BuildContext context) => Directionality(
     textDirection: TextDirection.rtl,
     child: Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'صرف العملات'),
       body: BlocBuilder<CurrenciesCubit, CurrenciesState>(
         builder: (context, state) {

@@ -23,9 +23,9 @@ class RecentActionItem extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 6),
       padding: EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

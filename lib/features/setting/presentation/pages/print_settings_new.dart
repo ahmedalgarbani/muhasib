@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
@@ -160,7 +159,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.neutral100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'إعدادات الطباعة'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {

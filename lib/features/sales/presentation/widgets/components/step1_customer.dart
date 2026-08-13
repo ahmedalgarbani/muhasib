@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
@@ -100,7 +101,9 @@ class _Step1CustomerState extends State<Step1Customer> {
                     child: Container(
                       padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
-                        border: Border.all(color: AppColors.grey300),
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                        ),
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       child: Row(
@@ -125,6 +128,7 @@ class _Step1CustomerState extends State<Step1Customer> {
                                   ),
                                 ),
                                 if (hasCustomer &&
+                                    SettingsCache.showCustomerPhoneInInvoice &&
                                     widget.invoice.customer!.phone != null)
                                   Text(
                                     widget.invoice.customer!.phone!,
@@ -141,7 +145,8 @@ class _Step1CustomerState extends State<Step1Customer> {
                       ),
                     ),
                   ),
-                  if (hasCustomer) ...[
+                  if (hasCustomer &&
+                      SettingsCache.showCustomerBalanceInInvoice) ...[
                     const SizedBox(height: AppSpacing.sm),
                     Container(
                       padding: const EdgeInsets.all(AppSpacing.sm),

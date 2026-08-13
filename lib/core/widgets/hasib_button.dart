@@ -32,6 +32,7 @@ class HasibButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isEnabled = onPressed != null && !loading;
 
     Color backgroundColor;
@@ -40,20 +41,26 @@ class HasibButton extends StatelessWidget {
 
     switch (variant) {
       case HasibButtonVariant.primary:
-        backgroundColor = isEnabled ? AppColors.primary : Colors.grey[300]!;
-        foregroundColor = isEnabled ? Colors.white : Colors.grey[500]!;
+        backgroundColor = isEnabled
+            ? AppColors.primary
+            : colorScheme.surfaceContainerHighest;
+        foregroundColor = isEnabled ? Colors.white : colorScheme.onSurfaceVariant;
         break;
       case HasibButtonVariant.secondary:
         backgroundColor = Colors.transparent;
-        foregroundColor = isEnabled ? AppColors.primary : Colors.grey[500]!;
+        foregroundColor = isEnabled
+            ? AppColors.primary
+            : colorScheme.onSurfaceVariant;
         borderSide = BorderSide(
-          color: isEnabled ? AppColors.primary : Colors.grey[300]!,
+          color: isEnabled ? AppColors.primary : Theme.of(context).dividerColor,
           width: 1.5,
         );
         break;
       case HasibButtonVariant.text:
         backgroundColor = Colors.transparent;
-        foregroundColor = isEnabled ? AppColors.primary : Colors.grey[500]!;
+        foregroundColor = isEnabled
+            ? AppColors.primary
+            : colorScheme.onSurfaceVariant;
         break;
       case HasibButtonVariant.danger:
         backgroundColor = isEnabled ? Colors.red : Colors.red.shade200;
@@ -116,40 +123,46 @@ class HasibButton extends StatelessWidget {
       );
     }
 
-    return Container(
-      width: fullWidth ? double.infinity : null,
-      height: height,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        boxShadow: (variant == HasibButtonVariant.primary ||
-                variant == HasibButtonVariant.danger ||
-                variant == HasibButtonVariant.success) &&
-                isEnabled
-            ? [
-                BoxShadow(
-                  color: backgroundColor.withValues(alpha: 0.25),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                )
-              ]
-            : null,
-      ),
-      child: ElevatedButton(
-        onPressed: isEnabled ? onPressed : null,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor,
-          foregroundColor: foregroundColor,
-          disabledBackgroundColor: backgroundColor,
-          disabledForegroundColor: foregroundColor,
-          padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-          elevation: 0,
-          shape: RoundedRectangleBorder(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool shouldExpand = fullWidth && constraints.hasBoundedWidth;
+
+        return Container(
+          width: shouldExpand ? double.infinity : null,
+          height: height,
+          decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.md),
-            side: borderSide,
+            boxShadow: (variant == HasibButtonVariant.primary ||
+                    variant == HasibButtonVariant.danger ||
+                    variant == HasibButtonVariant.success) &&
+                    isEnabled
+                ? [
+                    BoxShadow(
+                      color: backgroundColor.withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    )
+                  ]
+                : null,
           ),
-        ),
-        child: content,
-      ),
+          child: ElevatedButton(
+            onPressed: isEnabled ? onPressed : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: backgroundColor,
+              foregroundColor: foregroundColor,
+              disabledBackgroundColor: backgroundColor,
+              disabledForegroundColor: foregroundColor,
+              padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                side: borderSide,
+              ),
+            ),
+            child: content,
+          ),
+        );
+      },
     );
   }
 }

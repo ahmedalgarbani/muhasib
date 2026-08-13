@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
@@ -99,7 +98,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.neutral100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'البيانات الشخصية'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {

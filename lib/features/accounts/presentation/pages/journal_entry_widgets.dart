@@ -106,9 +106,9 @@ class JournalEntriesCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: AppColors.slate100, width: 1.5),
+        border: Border.all(color: Theme.of(context).dividerColor, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.015),
@@ -125,12 +125,12 @@ class JournalEntriesCardWidget extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'تفاصيل القيد',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
                 Container(
@@ -139,7 +139,9 @@ class JournalEntriesCardWidget extends StatelessWidget {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.slate100,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(AppRadius.sm10),
                   ),
                   child: Text(
@@ -153,9 +155,9 @@ class JournalEntriesCardWidget extends StatelessWidget {
                 ),
               ],
             ),
-            const Divider(
+            Divider(
               height: 24,
-              color: AppColors.slate100,
+              color: Theme.of(context).dividerColor,
               thickness: 1.5,
             ),
             if (entries.isEmpty)
@@ -166,9 +168,9 @@ class JournalEntriesCardWidget extends StatelessWidget {
                   horizontal: 16,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.background,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppRadius.lg),
-                  border: Border.all(color: AppColors.slate100),
+                  border: Border.all(color: Theme.of(context).dividerColor),
                 ),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -186,12 +188,12 @@ class JournalEntriesCardWidget extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'لم يتم إضافة أي تفصيل بعد',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -245,7 +247,7 @@ class JournalSummaryCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
@@ -729,10 +731,12 @@ class _DirectionChip extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
-            color: selected ? color : AppColors.borderLight,
+            color: selected ? color : Theme.of(context).dividerColor,
             width: 1.5,
           ),
-          color: selected ? color.withOpacity(0.08) : Colors.white,
+          color: selected
+              ? color.withOpacity(0.08)
+              : Theme.of(context).colorScheme.surface,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -784,9 +788,9 @@ class _EntryTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.slate100, width: 1.5),
+        border: Border.all(color: Theme.of(context).dividerColor, width: 1.5),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.015),
@@ -825,10 +829,10 @@ class _EntryTile extends StatelessWidget {
                   children: [
                     Text(
                       entry.account,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -840,7 +844,9 @@ class _EntryTile extends StatelessWidget {
                             vertical: 4,
                           ),
                           decoration: BoxDecoration(
-                            color: AppColors.slate100,
+                            color: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(AppRadius.sm6),
                           ),
                           child: Text(

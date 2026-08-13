@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ReportSummaryCard extends StatelessWidget {
   final String title;
@@ -25,7 +25,7 @@ class ReportSummaryCard extends StatelessWidget {
     return Container(
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(

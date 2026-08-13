@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/cubit/theme_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -35,6 +36,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
   bool showBackupNotifyWhenCloseApp = true;
   String homeScreenType = 'الأولى';
   double fontScale = 1.0;
+  ThemeMode themeMode = ThemeMode.system;
 
   @override
   void initState() {
@@ -59,6 +61,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
       otherSettings['homeScrrenType'] ?? 1,
     );
     fontScale = (otherSettings['fontScale'] ?? 1.0).toDouble();
+    themeMode = context.read<ThemeCubit>().state;
   }
 
   String _getDateFormatString(int format) {
@@ -121,6 +124,28 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     }
   }
 
+  String _themeModeLabel(ThemeMode mode) {
+    switch (mode) {
+      case ThemeMode.light:
+        return 'فاتح';
+      case ThemeMode.dark:
+        return 'داكن';
+      case ThemeMode.system:
+        return 'النظام الافتراضي';
+    }
+  }
+
+  ThemeMode _themeModeFromLabel(String label) {
+    switch (label) {
+      case 'فاتح':
+        return ThemeMode.light;
+      case 'داكن':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
+    }
+  }
+
   Future<void> _saveSettings() async {
     final cubit = context.read<SettingsCubit>();
     final otherSettings = {
@@ -150,7 +175,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'إعدادات أخرى'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
@@ -240,6 +265,22 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                             : 'x${fontScale.toStringAsFixed(1)}',
                         style: const TextStyle(fontSize: 13),
                       ),
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      title: 'المظهر',
+                      value: _themeModeLabel(themeMode),
+                      icon: Icons.dark_mode_outlined,
+                      items: ['النظام الافتراضي', 'فاتح', 'داكن']
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (value) {
+                        final mode = _themeModeFromLabel(value!);
+                        setState(() {
+                          themeMode = mode;
+                        });
+                        context.read<ThemeCubit>().updateTheme(mode);
+                      },
                     ),
                   ],
                 ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
@@ -8,7 +8,7 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PurchaseSummaryReportPage extends StatefulWidget {
   const PurchaseSummaryReportPage({super.key});
@@ -77,7 +77,6 @@ class _PurchaseSummaryContent extends StatefulWidget {
 }
 
 class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
   late Future<_PurchaseSummaryResult> _future;
   _PurchaseSummaryResult? _notifiedResult;
 
@@ -100,7 +99,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
     _future = _load(widget.filter);
   }
 
-  String _format(double v) => '${_numberFormat.format(v)} ر.س';
+  String _format(double v) => NumberFormatter.formatCurrency(v, symbol: 'ر.س');
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +196,9 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                             radius: 12,
                             backgroundColor: index < 3
                                 ? Colors.deepOrange[100]
-                                : Colors.grey[200],
+                                : Theme.of(context)
+                                      .colorScheme
+                                      .surfaceContainerHighest,
                             child: Text(
                               '${index + 1}',
                               style: TextStyle(

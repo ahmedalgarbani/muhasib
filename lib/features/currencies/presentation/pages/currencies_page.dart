@@ -32,7 +32,7 @@ class _CurrenciesView extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(
           title: 'إدارة العملات',
           actions: [

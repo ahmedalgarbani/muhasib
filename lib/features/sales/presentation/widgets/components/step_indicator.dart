@@ -15,7 +15,7 @@ class StepIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
         vertical: AppSpacing.sm,
@@ -35,7 +35,11 @@ class StepIndicator extends StatelessWidget {
                     height: 40,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: isActive ? AppColors.primary : AppColors.gray200,
+                      color: isActive
+                          ? AppColors.primary
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                     ),
                     child: Center(
                       child: isCompleted
@@ -74,7 +78,11 @@ class StepIndicator extends StatelessWidget {
               child: Container(
                 height: 2,
                 margin: const EdgeInsets.only(bottom: 28),
-                color: isActive ? AppColors.primary : AppColors.gray200,
+                color: isActive
+                    ? AppColors.primary
+                    : Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
               ),
             );
           }

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/route/route_names.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
@@ -16,7 +15,7 @@ class SettingsPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.neutral100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'الإعدادات'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {
@@ -24,7 +23,7 @@ class SettingsPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 110),
             child: Column(
               children: [
                 SettingsNavigationCard(

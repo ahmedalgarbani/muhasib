@@ -29,9 +29,9 @@ class ReportKpiCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.gray200),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: color.withValues(alpha: 0.06),

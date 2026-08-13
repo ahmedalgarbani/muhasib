@@ -3,7 +3,6 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/currency_exchange_service.dart';
 import 'package:muhasib/core/services/database_service.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import '../widgets/currency_revaluation_widgets.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
@@ -75,7 +74,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   Widget build(BuildContext context) => Directionality(
     textDirection: TextDirection.rtl,
     child: Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'إعادة تقييم العملات'),
       body: SingleChildScrollView(
         padding: AppConstant.defaultPadding,

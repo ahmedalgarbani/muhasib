@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
@@ -30,9 +30,9 @@ class _SelectPurchaseForReturnPageState
   }
 
   String _formatDate(int tsSeconds) {
-    return DateFormat(
-      'yyyy-MM-dd',
-    ).format(DateTime.fromMillisecondsSinceEpoch(tsSeconds * 1000));
+    return DateFormatter.formatDate(
+      DateTime.fromMillisecondsSinceEpoch(tsSeconds * 1000),
+    );
   }
 
   Future<void> _confirmCreateReturn(

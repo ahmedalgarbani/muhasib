@@ -145,9 +145,9 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
         }
       },
       child: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppRadius.lg20),
           ),
         ),
@@ -168,7 +168,9 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(AppRadius.xxs),
                       ),
                     ),

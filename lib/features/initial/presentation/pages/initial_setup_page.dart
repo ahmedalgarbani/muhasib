@@ -238,7 +238,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(title: 'معالج الإعداد الأولي للنظام'),
         body: Theme(
           data: Theme.of(context).copyWith(

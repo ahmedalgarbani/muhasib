@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -121,7 +121,6 @@ class _TrialBalanceContent extends StatefulWidget {
 }
 
 class _TrialBalanceContentState extends State<_TrialBalanceContent> {
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
   @override
   void initState() {
     super.initState();
@@ -138,7 +137,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
     }
   }
 
-  String _format(double v) => v == 0 ? '-' : _numberFormat.format(v);
+  String _format(double v) => v == 0 ? '-' : NumberFormatter.formatNumber(v);
 
   @override
   Widget build(BuildContext context) {

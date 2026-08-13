@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
@@ -21,8 +21,10 @@ class StickyInvoiceHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: const Border(bottom: BorderSide(color: AppColors.grey200)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -75,7 +77,7 @@ class StickyInvoiceHeader extends StatelessWidget {
                 ],
               ),
               Text(
-                DateFormat('yyyy-MM-dd').format(invoice.date),
+                DateFormatter.formatDate(invoice.date),
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.normal,
@@ -85,7 +87,8 @@ class StickyInvoiceHeader extends StatelessWidget {
               ),
             ],
           ),
-          if (invoice.customer?.hasDebt ?? false) ...[
+          if ((invoice.customer?.hasDebt ?? false) &&
+              SettingsCache.showCustomerBalanceInInvoice) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
               'تنبيه: العميل عليه مديونية بقيمة ${NumberFormatter.formatCurrency(invoice.customer!.balance.abs())}',

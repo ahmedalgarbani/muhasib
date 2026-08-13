@@ -56,9 +56,9 @@ class CustomConfirmDialog extends StatelessWidget {
         ),
         content: Text(
           message,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
-            color: AppColors.textSecondary,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             height: 1.5,
           ),
         ),

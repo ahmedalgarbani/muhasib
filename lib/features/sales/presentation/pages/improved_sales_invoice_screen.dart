@@ -213,7 +213,7 @@ class _ImprovedSalesInvoiceScreenState
         },
         child: Scaffold(
           key: _scaffoldKey,
-          backgroundColor: AppColors.neutral100,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: CustomAppBar(
             title: isQuotation ? 'عرض سعر جديد' : 'فاتورة مبيعات جديدة',
           ),
@@ -221,7 +221,7 @@ class _ImprovedSalesInvoiceScreenState
             children: [
               // Progress Indicator
               Container(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -238,7 +238,9 @@ class _ImprovedSalesInvoiceScreenState
                           decoration: BoxDecoration(
                             color: isActive
                                 ? AppColors.success
-                                : AppColors.gray200,
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -265,7 +267,9 @@ class _ImprovedSalesInvoiceScreenState
                             height: 2,
                             color: isCompleted
                                 ? AppColors.success
-                                : AppColors.gray200,
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                           ),
                       ],
                     );
@@ -277,7 +281,7 @@ class _ImprovedSalesInvoiceScreenState
               Container(
                 width: double.infinity,
                 padding: AppConstant.defaultPadding,
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 child: Column(
                   children: [
                     Text(
@@ -316,7 +320,7 @@ class _ImprovedSalesInvoiceScreenState
               Container(
                 padding: AppConstant.defaultPadding,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withOpacity(0.05),

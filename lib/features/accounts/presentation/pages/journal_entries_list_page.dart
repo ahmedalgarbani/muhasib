@@ -45,7 +45,7 @@ class _JournalEntriesListBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final numberFormat = intl.NumberFormat('#,##0.00', 'ar');
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'دفتر القيود اليومية',
         actions: [
@@ -84,7 +84,6 @@ class _JournalEntriesListBody extends StatelessWidget {
                   final entry = entries[index];
                   return JournalEntryCardWidget(
                     entry: entry,
-                    numberFormat: numberFormat,
                     onTap: () => _showEntryDetails(context, entry, numberFormat),
                   );
                 },

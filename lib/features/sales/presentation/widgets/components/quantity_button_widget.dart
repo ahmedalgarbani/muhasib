@@ -20,7 +20,9 @@ class QuantityButtonWidget extends StatelessWidget {
       width: 56,
       height: 56,
       decoration: BoxDecoration(
-        color: isPrimary ? AppColors.primary : AppColors.grey200,
+        color: isPrimary
+            ? AppColors.primary
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: IconButton(

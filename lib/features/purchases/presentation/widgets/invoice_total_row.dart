@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 
 class InvoiceTotalRow extends StatelessWidget {
@@ -22,7 +22,7 @@ class InvoiceTotalRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final amountText = '${NumberFormat('#,##0.00', 'ar').format(amount)} ريال';
+    final amountText = NumberFormatter.formatCurrency(amount);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [

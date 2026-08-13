@@ -6,7 +6,7 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
@@ -169,7 +169,6 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
           return const Center(child: Text('لا توجد أرصدة مسجلة حالياً'));
 
         final total = rows.fold<double>(0, (s, r) => s + r.balance);
-        final fmt = NumberFormat('#,##0.00', 'ar');
 
         return SingleChildScrollView(
           padding: AppConstant.defaultPadding,
@@ -181,7 +180,8 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                   Expanded(
                     child: ReportKpiCard(
                       title: 'إجمالي الأرصدة القائمة',
-                      value: '${fmt.format(total)} ر.س',
+                      value:
+                          NumberFormatter.formatCurrency(total, symbol: 'ر.س'),
                       icon: Icons.monetization_on,
                       color: widget.customerType == 1
                           ? Colors.green[700]!
@@ -259,7 +259,7 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        '${fmt.format(r.balance.abs())} ر.س',
+                        NumberFormatter.formatCurrency(r.balance.abs(), symbol: 'ر.س'),
                         textAlign: TextAlign.end,
                         style: TextStyle(
                           fontSize: 13,
@@ -288,7 +288,7 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                     Expanded(
                       flex: 2,
                       child: Text(
-                        '${fmt.format(total)} ر.س',
+                        NumberFormatter.formatCurrency(total, symbol: 'ر.س'),
                         textAlign: TextAlign.end,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,

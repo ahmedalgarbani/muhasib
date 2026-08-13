@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
@@ -30,8 +31,8 @@ class ItemCard extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: AppSpacing.sm),
         padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
-          color: Colors.white,
-          border: Border.all(color: AppColors.grey200, width: 2),
+          color: Theme.of(context).colorScheme.surface,
+          border: Border.all(color: Theme.of(context).dividerColor, width: 2),
           borderRadius: BorderRadius.circular(AppRadius.md),
         ),
         child: Column(
@@ -46,7 +47,10 @@ class ItemCard extends StatelessWidget {
                       Text(item.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.gray900, height: 1.5)),
                       const SizedBox(height: 4),
                       Text(
-                        '${NumberFormatter.formatCurrency(item.price)} × ${item.quantity} = ${NumberFormatter.formatCurrency(item.total)}',
+                        SettingsCache.showCostInInvoice &&
+                                item.costPrice != null
+                            ? '${NumberFormatter.formatCurrency(item.price)} × ${item.quantity} = ${NumberFormatter.formatCurrency(item.total)} | التكلفة: ${NumberFormatter.formatCurrency(item.costPrice!)}'
+                            : '${NumberFormatter.formatCurrency(item.price)} × ${item.quantity} = ${NumberFormatter.formatCurrency(item.total)}',
                         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4),
                       ),
                     ],
@@ -113,7 +117,9 @@ class _QuantityButton extends StatelessWidget {
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: isPrimary ? AppColors.primary : AppColors.grey100,
+        color: isPrimary
+            ? AppColors.primary
+            : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: IconButton(

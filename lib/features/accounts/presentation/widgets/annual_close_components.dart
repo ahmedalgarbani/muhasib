@@ -24,7 +24,7 @@ class AnnualCloseYearSelector extends StatelessWidget {
     elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.lg),
-      side: BorderSide(color: Colors.grey[200]!),
+      side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Padding(
       padding: const EdgeInsets.all(20),
@@ -54,10 +54,10 @@ class AnnualCloseYearSelector extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   '$year',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ],
@@ -66,13 +66,21 @@ class AnnualCloseYearSelector extends StatelessWidget {
           IconButton(
             onPressed: onPrevious,
             icon: const Icon(Icons.chevron_right),
-            style: IconButton.styleFrom(backgroundColor: Colors.grey[100]),
+            style: IconButton.styleFrom(
+              backgroundColor: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest,
+            ),
           ),
           const SizedBox(width: 8),
           IconButton(
             onPressed: onNext,
             icon: const Icon(Icons.chevron_left),
-            style: IconButton.styleFrom(backgroundColor: Colors.grey[100]),
+            style: IconButton.styleFrom(
+              backgroundColor: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHighest,
+            ),
           ),
         ],
       ),
@@ -136,7 +144,7 @@ class AnnualCloseSummaryCard extends StatelessWidget {
     elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.lg),
-      side: BorderSide(color: Colors.grey[200]!),
+      side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Padding(
       padding: AppConstant.defaultPadding,
@@ -180,19 +188,19 @@ class AnnualCloseStepsCard extends StatelessWidget {
     elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.lg),
-      side: BorderSide(color: Colors.grey[200]!),
+      side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Padding(
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'خطوات الإقفال',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 20),
@@ -260,10 +268,10 @@ class AnnualCloseStepItem extends StatelessWidget {
                   children: [
                     Text(
                       step.title,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                        color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
                     const Spacer(),

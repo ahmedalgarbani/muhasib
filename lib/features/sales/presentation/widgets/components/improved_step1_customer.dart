@@ -115,11 +115,11 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                             child: Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: Theme.of(context).colorScheme.surface,
                                 border: Border.all(
                                   color: widget.invoice.customer != null
                                       ? AppColors.success
-                                      : AppColors.gray300,
+                                      : Theme.of(context).dividerColor,
                                   width: 2,
                                 ),
                                 borderRadius: BorderRadius.circular(
@@ -205,8 +205,10 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                             Container(
                               constraints: const BoxConstraints(maxHeight: 300),
                               decoration: BoxDecoration(
-                                color: Colors.white,
-                                border: Border.all(color: AppColors.gray200),
+                                color: Theme.of(context).colorScheme.surface,
+                                border: Border.all(
+                                  color: Theme.of(context).dividerColor,
+                                ),
                                 borderRadius: BorderRadius.circular(
                                   AppRadius.sm,
                                 ),
@@ -419,8 +421,10 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       child: Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(color: AppColors.gray200),
+                          color: Theme.of(context).colorScheme.surface,
+                          border: Border.all(
+                            color: Theme.of(context).dividerColor,
+                          ),
                           borderRadius: BorderRadius.circular(AppRadius.sm),
                         ),
                         child: Row(
@@ -455,8 +459,12 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: AppColors.gray50,
-                        border: Border.all(color: AppColors.gray200),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        border: Border.all(
+                          color: Theme.of(context).dividerColor,
+                        ),
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(

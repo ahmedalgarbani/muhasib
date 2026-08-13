@@ -17,12 +17,13 @@ class SettingsImagePickerTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       onTap: onTap,
-      leading: Icon(icon, size: 20, color: Colors.grey[600]),
+      leading: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
       title: Text(
         label,
-        style: const TextStyle(fontSize: 13, color: Colors.black87),
+        style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -38,7 +39,7 @@ class SettingsImagePickerTile extends StatelessWidget {
           Icon(
             Icons.arrow_forward_ios,
             size: 14,
-            color: Colors.grey[400],
+            color: colorScheme.outlineVariant,
           ),
         ],
       ),

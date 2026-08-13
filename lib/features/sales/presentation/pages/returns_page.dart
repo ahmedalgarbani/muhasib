@@ -41,7 +41,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.gray50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'مرتجعات المبيعات'),
       body: Column(
         children: [

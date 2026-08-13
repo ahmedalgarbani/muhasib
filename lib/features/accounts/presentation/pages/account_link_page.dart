@@ -215,7 +215,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(
           title: 'ربط الحسابات',
           showBack: true,
@@ -247,7 +247,7 @@ class _AccountLinkingScreenState extends State<AccountLinkingScreen> {
           child: Column(
             children: [
               Container(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: TextInputField(
                   hint: 'ابحث عن حساب...',

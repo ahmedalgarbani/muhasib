@@ -5,7 +5,7 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/reports/presentation/widgets/invoice_report_components.dart';
@@ -127,9 +127,8 @@ class _InvoicesListContent extends StatelessWidget {
   final String? partyTypeLabel;
   final Color themeColor;
   final Function(_InvoicesListResult) onLoad;
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
 
-  _InvoicesListContent({
+  const _InvoicesListContent({
     required this.filter,
     required this.invoiceTypes,
     required this.partyTypeLabel,
@@ -138,7 +137,7 @@ class _InvoicesListContent extends StatelessWidget {
   });
 
   String _formatCurrency(double value) {
-    return '${_numberFormat.format(value)} ر.س';
+    return NumberFormatter.formatCurrency(value, symbol: 'ر.س');
   }
 
   @override

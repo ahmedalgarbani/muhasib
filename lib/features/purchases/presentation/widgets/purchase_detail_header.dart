@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
@@ -15,7 +15,7 @@ class PurchaseDetailHeader extends StatelessWidget {
 
   String _formatDate(int timestamp) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    return DateFormat('yyyy-MM-dd').format(date);
+    return DateFormatter.formatDate(date);
   }
 
   @override

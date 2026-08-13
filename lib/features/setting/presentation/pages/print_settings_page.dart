@@ -131,7 +131,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'إعدادات الطباعة'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {

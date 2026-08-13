@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
@@ -22,13 +22,17 @@ class AccountPeriodOptionWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : Colors.grey[100],
+          color: isSelected
+              ? AppColors.primary
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.lg20),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.black,
+            color: isSelected
+                ? Colors.white
+                : Theme.of(context).colorScheme.onSurface,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -58,7 +62,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       child: InkWell(
         onTap: () => onTap(transaction),
         child: Padding(
@@ -89,7 +93,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      debit > 0 ? NumberFormat('#,##0.00').format(debit) : '-',
+                      debit > 0 ? NumberFormatter.formatNumber(debit) : '-',
                       style: TextStyle(
                         color: debit > 0 ? Colors.red : Colors.grey,
                       ),
@@ -99,7 +103,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       credit > 0
-                          ? NumberFormat('#,##0.00').format(credit)
+                          ? NumberFormatter.formatNumber(credit)
                           : '-',
                       style: TextStyle(
                         color: credit > 0 ? Colors.green : Colors.grey,
@@ -109,7 +113,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      NumberFormat('#,##0.00').format(balance),
+                      NumberFormatter.formatNumber(balance),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: balance >= 0 ? Colors.blue : Colors.orange,
@@ -119,7 +123,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                   ),
                   Expanded(
                     child: Text(
-                      DateFormat('dd/MM/yyyy').format(date),
+                      DateFormatter.formatDate(date),
                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       textAlign: TextAlign.center,
                     ),
@@ -192,7 +196,7 @@ class AccountDetailRowWidget extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.w500,
                 fontSize: 14,
-                color: valueColor ?? Colors.black,
+                color: valueColor ?? Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ),

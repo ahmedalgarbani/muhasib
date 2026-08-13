@@ -37,7 +37,7 @@ class ReturnCardWidget extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: InkWell(
         onTap: onTap,

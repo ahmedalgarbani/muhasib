@@ -9,9 +9,9 @@ import 'package:muhasib/features/reports/presentation/widgets/report_base_page.d
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class SalesSummaryReportPage extends StatefulWidget {
   const SalesSummaryReportPage({super.key});
@@ -87,8 +87,6 @@ class _SalesSummaryContent extends StatefulWidget {
 }
 
 class _SalesSummaryContentState extends State<_SalesSummaryContent> {
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
-
   @override
   void initState() {
     super.initState();
@@ -104,7 +102,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
       context.read<SalesSummaryCubit>().updateDateRange(widget.filter);
   }
 
-  String _format(double v) => '${_numberFormat.format(v)} ر.س';
+  String _format(double v) => NumberFormatter.formatCurrency(v, symbol: 'ر.س');
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +195,9 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
                               radius: 12,
                               backgroundColor: index < 3
                                   ? Colors.amber[100]
-                                  : Colors.grey[200],
+                                  : Theme.of(context)
+                                        .colorScheme
+                                        .surfaceContainerHighest,
                               child: Text(
                                 '${index + 1}',
                                 style: TextStyle(

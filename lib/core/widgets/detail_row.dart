@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 
 /// Shared label/value row used in detail sheets and cards.
 class DetailRow extends StatelessWidget {
@@ -41,7 +40,7 @@ class DetailRow extends StatelessWidget {
             style: TextStyle(
               fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
               fontSize: iconSize != null ? 14 : null,
-              color: isBold ? AppColors.textPrimary : null,
+              color: isBold ? colorScheme.onSurface : null,
             ),
           ),
         ],

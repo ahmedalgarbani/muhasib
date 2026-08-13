@@ -10,6 +10,8 @@ import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/number_sequence_service.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
@@ -61,7 +63,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      backgroundColor: AppColors.gray50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(),
       body: Column(
         children: [
@@ -206,13 +208,21 @@ class _QuotationsPageState extends State<QuotationsPage> {
           ),
           HasibButton(
             label: 'تأكيد التحويل',
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(dialogContext);
 
-              // Generate proper invoice number with timestamp
+              final service = getIt<NumberSequenceService>();
+              final starting = SettingsCache.invoiceStartingNumber;
+              final current = await service.getCurrentValue('sales_invoice');
+              if (current < starting - 1) {
+                await service.resetSequence('sales_invoice', starting - 1);
+              }
+              final invoiceNumber = await service.getNextNumberWithPrefix(
+                'sales_invoice',
+                SettingsCache.invoicePrefix,
+              );
+
               final now = DateTime.now();
-              final invoiceNumber =
-                  'INV-${now.year}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}-${now.millisecondsSinceEpoch % 10000}';
 
               // Create sales invoice from quotation
               final salesInvoice = quotation.copyWith(
@@ -228,6 +238,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
                 nextInvoiceNumber: null,
               );
 
+              if (!mounted) return;
               context.read<SalesCubit>().convertQuotation(
                 quotation.id!,
                 salesInvoice,

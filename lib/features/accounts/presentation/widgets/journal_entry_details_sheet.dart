@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
@@ -26,9 +27,9 @@ class JournalEntryDetailsSheet extends StatelessWidget {
       maxChildSize: 0.95,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(
               top: Radius.circular(AppRadius.xl30),
             ),
           ),
@@ -39,7 +40,7 @@ class JournalEntryDetailsSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppRadius.xxs),
                 ),
               ),
@@ -149,7 +150,7 @@ class JournalEntryLineCard extends StatelessWidget {
     backgroundColor: AppColors.slate100.withValues(alpha: 0.5),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.lg),
-      side: BorderSide(color: Colors.grey.shade200),
+      side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Column(
       children: [
@@ -158,7 +159,7 @@ class JournalEntryLineCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(AppRadius.sm10),
               ),
               child: const Icon(
@@ -192,13 +193,13 @@ class JournalEntryLineCard extends StatelessWidget {
         Row(
           children: [
             _LineAmount(
-              label: 'مدين',
+              label: SettingsCache.debitLabel,
               amount: numberFormat.format(line.debit),
               isDebit: true,
             ),
             const Spacer(),
             _LineAmount(
-              label: 'دائن',
+              label: SettingsCache.creditLabel,
               amount: numberFormat.format(line.credit),
               isDebit: false,
             ),
@@ -210,7 +211,7 @@ class JournalEntryLineCard extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Text(
@@ -245,13 +246,13 @@ class JournalEntryDetailedSummary extends StatelessWidget {
     child: Column(
       children: [
         _SummaryRow(
-          label: 'إجمالي المدين',
+          label: 'إجمالي ${SettingsCache.debitLabel}',
           value: numberFormat.format(entry.totalDebit),
           color: Colors.green,
         ),
         const SizedBox(height: 12),
         _SummaryRow(
-          label: 'إجمالي الدائن',
+          label: 'إجمالي ${SettingsCache.creditLabel}',
           value: numberFormat.format(entry.totalCredit),
           color: Colors.red,
         ),
@@ -375,7 +376,7 @@ class _InfoItem extends StatelessWidget {
                   value,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: color ?? Colors.black87,
+                    color: color ?? Theme.of(context).colorScheme.onSurface,
                     fontSize: 14,
                   ),
                 ),

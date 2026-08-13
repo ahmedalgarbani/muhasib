@@ -84,12 +84,15 @@ class _ReportsHubPageState extends State<ReportsHubPage>
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.neutral100,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: Theme.of(context).colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: Icon(
+              Icons.arrow_back,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
             onPressed: () => context.safePop(),
           ),
           title: const Text(
@@ -144,7 +147,7 @@ class _ReportsHubPageState extends State<ReportsHubPage>
                         )
                       : null,
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     borderSide: BorderSide.none,
@@ -183,7 +186,7 @@ class _ReportsHubPageState extends State<ReportsHubPage>
                     );
                   }
                   return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                     itemCount: reports.length,
                     itemBuilder: (context, index) {
                       return ReportCardWidget(report: reports[index]);

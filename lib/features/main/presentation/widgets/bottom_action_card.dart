@@ -11,7 +11,7 @@ class BottomActionCard extends StatelessWidget {
       margin: AppConstant.defaultPadding,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         boxShadow: [
           BoxShadow(
@@ -31,7 +31,7 @@ class BottomActionCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: const Icon(Icons.menu, color: Colors.grey),

@@ -27,6 +27,7 @@ import 'package:muhasib/features/stores/presentation/cubit/stores_cubit.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:muhasib/core/theme/theme.dart';
 import 'package:muhasib/features/accounts/accounts.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:path_provider/path_provider.dart';
@@ -41,6 +42,10 @@ void main() async {
 
   // Initialize GetIt dependencies
   await GetItHelper.init();
+
+  // Load app settings into the shared cubit + SettingsCache so every
+  // feature reads live values from the DB (formatting, sales rules, print...).
+  await getIt<SettingsCubit>().loadSettings();
 
   final storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
@@ -65,7 +70,14 @@ void main() async {
         BlocProvider(create: (context) => getIt<ItemMovementsCubit>()),
         // Global simple cubits (no external deps)
         BlocProvider(create: (context) => getIt<InitialCubit>()),
-        BlocProvider(create: (context) => MainCubit()),
+        BlocProvider(
+          create: (context) => MainCubit(
+            customerRepository: getIt(),
+            getInvoices: getIt(),
+            purchaseRepository: getIt(),
+            voucherRepository: getIt(),
+          ),
+        ),
         BlocProvider(create: (context) => ReportsCubit()),
         BlocProvider(create: (context) => SettingCubit()),
         BlocProvider(create: (context) => StoresCubit()),
@@ -103,11 +115,8 @@ class MohasebFinanceApp extends StatelessWidget {
               title: 'محاسب',
               routerConfig: router,
               themeMode: mode,
-              theme: ThemeData(
-                primarySwatch: Colors.blue,
-                fontFamily: 'Tajawal',
-                scaffoldBackgroundColor: Colors.white,
-              ),
+              theme: appLightTheme,
+              darkTheme: appDarkTheme,
               builder: (context, child) => Directionality(
                 textDirection: TextDirection.rtl,
                 child: ResponsiveTextScale(child: RootShell(child: child!)),

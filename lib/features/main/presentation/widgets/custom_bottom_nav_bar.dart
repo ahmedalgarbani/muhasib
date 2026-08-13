@@ -37,7 +37,7 @@ class CustomBottomNavBar extends StatelessWidget {
             height: 72,
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.85),
+              color: Theme.of(context).colorScheme.surface.withOpacity(0.85),
               borderRadius: BorderRadius.circular(AppRadius.xl28),
               border: Border.all(
                 color: Colors.white.withOpacity(0.2),

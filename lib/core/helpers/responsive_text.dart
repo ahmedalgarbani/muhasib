@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 
 /// Helper class for responsive font size calculations.
 class ResponsiveText {
@@ -10,11 +11,12 @@ class ResponsiveText {
     double lowerLimitFactor = 0.8,
     double upperLimitFactor = 1.2,
   }) {
-    final double scaleFactor = getScaleFactor(context);
+    final double userScale = SettingsCache.fontScale.clamp(0.8, 1.6);
+    final double scaleFactor = getScaleFactor(context) * userScale;
     final double responsiveFontSize = fontSize * scaleFactor;
 
-    final double lowerLimit = fontSize * lowerLimitFactor;
-    final double upperLimit = fontSize * upperLimitFactor;
+    final double lowerLimit = fontSize * lowerLimitFactor * userScale;
+    final double upperLimit = fontSize * upperLimitFactor * userScale;
 
     return responsiveFontSize.clamp(lowerLimit, upperLimit);
   }
@@ -62,9 +64,12 @@ class ResponsiveTextScale extends StatelessWidget {
       context,
     ).clamp(0.8, 1.2);
     final double systemFactor = mediaQuery.textScaler.scale(1.0);
+    final double userFactor = SettingsCache.fontScale.clamp(0.8, 1.6);
     return MediaQuery(
       data: mediaQuery.copyWith(
-        textScaler: TextScaler.linear(widthFactor * systemFactor),
+        textScaler: TextScaler.linear(
+          widthFactor * systemFactor * userFactor,
+        ),
       ),
       child: child,
     );

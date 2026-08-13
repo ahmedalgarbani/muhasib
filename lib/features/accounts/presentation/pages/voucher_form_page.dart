@@ -1,8 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
@@ -28,7 +28,6 @@ class VoucherFormPage extends StatefulWidget {
 
 class _VoucherFormPageState extends State<VoucherFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final _dateFormat = intl.DateFormat('yyyy/MM/dd');
 
   late VoucherType _type;
   late DateTime _date;
@@ -114,7 +113,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
           }
         },
         child: Scaffold(
-          backgroundColor: AppColors.background,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: CustomAppBar(
             title: widget.voucher == null
                 ? 'إضافة ${_type.label}'
@@ -130,7 +129,6 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                   VoucherFormTopSectionWidget(
                     numberController: _numberController,
                     date: _date,
-                    dateFormat: _dateFormat,
                     type: _type,
                     onPickDate: _pickDate,
                     onTypeChanged: (newType) {
@@ -240,7 +238,6 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
 class VoucherFormTopSectionWidget extends StatelessWidget {
   final TextEditingController numberController;
   final DateTime date;
-  final intl.DateFormat dateFormat;
   final VoucherType type;
   final VoidCallback onPickDate;
   final ValueChanged<VoucherType> onTypeChanged;
@@ -249,7 +246,6 @@ class VoucherFormTopSectionWidget extends StatelessWidget {
     super.key,
     required this.numberController,
     required this.date,
-    required this.dateFormat,
     required this.type,
     required this.onPickDate,
     required this.onTypeChanged,
@@ -260,9 +256,9 @@ class VoucherFormTopSectionWidget extends StatelessWidget {
     return Container(
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
@@ -301,7 +297,7 @@ class VoucherFormTopSectionWidget extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              dateFormat.format(date),
+                              DateFormatter.formatDate(date),
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -346,7 +342,7 @@ class VoucherFormTypeToggleWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.sm14),
       ),
       child: Row(
@@ -400,7 +396,9 @@ class VoucherFormToggleButtonWidget extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
+          color: isSelected
+              ? Theme.of(context).colorScheme.surface
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.sm10),
           boxShadow: isSelected
               ? [
@@ -447,9 +445,9 @@ class VoucherFormAccountAndAmountWidget extends StatelessWidget {
     return Container(
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -580,9 +578,9 @@ class VoucherFormLineCardWidget extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: Colors.grey.shade100),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [

@@ -30,7 +30,7 @@ class ReturnDetailHeaderCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -165,7 +165,7 @@ class ReturnDetailCustomerCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -204,7 +204,7 @@ class ReturnDetailProductsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -307,7 +307,7 @@ class ReturnDetailTotalsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -358,7 +358,7 @@ class ReturnDetailAccountingCard extends StatelessWidget {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
+            side: BorderSide(color: Theme.of(context).dividerColor),
           ),
           child: Padding(
             padding: AppConstant.defaultPadding,
@@ -417,9 +417,11 @@ class ReturnDetailAccountingCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: Theme.of(context).dividerColor),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,

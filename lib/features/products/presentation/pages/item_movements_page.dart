@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/products/presentation/cubit/item_movements_cubit.dart';
@@ -41,7 +40,7 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: AppColors.gray50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: const CustomAppBar(),
         body: Column(
           children: [

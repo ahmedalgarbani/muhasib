@@ -34,7 +34,7 @@ class QuotationDetailHeaderCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -126,7 +126,7 @@ class QuotationDetailCustomerCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -171,7 +171,7 @@ class QuotationDetailProductsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -218,7 +218,9 @@ class _QuotationProductLineWidget extends StatelessWidget {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: AppColors.gray100,
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(AppRadius.sm),
           ),
           child: const Center(
@@ -272,7 +274,7 @@ class QuotationDetailTotalsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -376,7 +378,7 @@ class QuotationDetailBottomActions extends StatelessWidget {
     return Container(
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),

@@ -45,7 +45,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
         child: Builder(
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
-            backgroundColor: AppColors.gray50,
+            backgroundColor: Theme.of(innerContext).scaffoldBackgroundColor,
             appBar: const CustomAppBar(),
             body: Column(
               children: [

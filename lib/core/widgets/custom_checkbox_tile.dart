@@ -23,12 +23,13 @@ class CustomCheckboxTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: enabled ? AppColors.gray50 : Colors.grey.shade100,
+        color: enabled ? colorScheme.surface : colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: AppColors.gray200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: CheckboxListTile(
         value: value,
@@ -48,7 +49,7 @@ class CustomCheckboxTile extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 14,
-            color: enabled ? AppColors.textPrimary : Colors.grey,
+            color: enabled ? colorScheme.onSurface : Colors.grey,
           ),
         ),
         subtitle: subtitle != null
@@ -56,7 +57,7 @@ class CustomCheckboxTile extends StatelessWidget {
                 subtitle!,
                 style: TextStyle(
                   fontSize: 12,
-                  color: enabled ? AppColors.textSecondary : Colors.grey,
+                  color: enabled ? colorScheme.onSurfaceVariant : Colors.grey,
                 ),
               )
             : null,

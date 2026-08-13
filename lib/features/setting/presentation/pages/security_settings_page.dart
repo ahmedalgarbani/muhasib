@@ -55,7 +55,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'إعدادات الأمان'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {

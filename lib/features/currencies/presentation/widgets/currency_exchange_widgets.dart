@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' hide TextDirection;
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
@@ -105,7 +105,7 @@ class CurrencyExchangeCard extends StatelessWidget {
     elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.lg20),
-      side: BorderSide(color: Colors.grey[200]!),
+      side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Padding(
       padding: const EdgeInsets.all(20),
@@ -256,7 +256,7 @@ class CurrencyDateNotes extends StatelessWidget {
             },
             child: InputDecorator(
               decoration: const InputDecoration(labelText: 'تاريخ العملية'),
-              child: Text(DateFormat('yyyy-MM-dd').format(selectedDate)),
+              child: Text(DateFormatter.formatDate(selectedDate)),
             ),
           ),
           const SizedBox(height: 16),

@@ -293,7 +293,7 @@ class AccountUsageRowWidget extends StatelessWidget {
           const SizedBox(height: 4),
           LinearProgressIndicator(
             value: usagePercentage / 100,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation<Color>(color),
           ),
           const SizedBox(height: 4),

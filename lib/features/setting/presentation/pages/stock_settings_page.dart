@@ -74,7 +74,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const CustomAppBar(title: 'إعدادات المخزون والفواتير'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {

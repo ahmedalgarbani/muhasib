@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 
 /// Reusable widget to display account balance with formatting
 class AccountBalanceRow extends StatelessWidget {
@@ -33,7 +33,7 @@ class AccountBalanceRow extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              _formatNumber(balance),
+              NumberFormatter.formatNumber(balance),
               style: TextStyle(
                 color: Colors.grey[800],
                 fontSize: 18,
@@ -52,10 +52,5 @@ class AccountBalanceRow extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _formatNumber(double number) {
-    final formatter = NumberFormat('#,##0', 'ar_SA');
-    return formatter.format(number);
   }
 }

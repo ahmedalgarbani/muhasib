@@ -35,9 +35,9 @@ class SectionHeader extends StatelessWidget {
           else if (trailing != null)
             Text(
               trailing!,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 13,
-                color: AppColors.textSecondary,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           if (showChevron)

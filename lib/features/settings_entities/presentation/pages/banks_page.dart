@@ -45,7 +45,7 @@ class _BanksViewState extends State<_BanksView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.neutral100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'البنوك',
         actions: [

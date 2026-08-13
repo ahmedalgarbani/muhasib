@@ -5,7 +5,6 @@ import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/domain/templates/sales_accounting_template.dart';
 import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
 import 'package:muhasib/core/services/database_service.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
@@ -23,7 +22,7 @@ class ReturnDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.gray50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: returnInvoice.number,
         actions: [

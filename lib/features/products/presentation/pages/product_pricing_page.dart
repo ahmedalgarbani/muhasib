@@ -43,7 +43,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
         child: Builder(
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
-            backgroundColor: AppColors.gray50,
+            backgroundColor: Theme.of(innerContext).scaffoldBackgroundColor,
             appBar: const CustomAppBar(),
             body: Column(
               children: [

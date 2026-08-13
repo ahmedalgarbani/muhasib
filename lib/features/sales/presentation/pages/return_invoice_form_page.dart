@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/number_sequence_service.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
@@ -44,7 +46,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
   @override
   void initState() {
     super.initState();
-    _returnDateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
+    _returnDateController.text = DateFormatter.formatDate(_selectedDate);
     _generateReturnNumber();
     if (widget.originalInvoiceId != null) {
       _loadOriginalInvoice();
@@ -53,9 +55,15 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
     context.read<CustomersCubit>().loadCustomers();
   }
 
-  void _generateReturnNumber() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch;
-    _returnNumberController.text = 'RET-${timestamp.toString().substring(7)}';
+  Future<void> _generateReturnNumber() async {
+    final service = getIt<NumberSequenceService>();
+    final number = await service.getNextNumberWithPrefix(
+      'sales_return',
+      SettingsCache.returnPrefix,
+    );
+    if (mounted) {
+      setState(() => _returnNumberController.text = number);
+    }
   }
 
   void _loadOriginalInvoice() {
@@ -80,7 +88,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
         BlocProvider(create: (context) => getIt<CustomersCubit>()),
       ],
       child: Scaffold(
-        backgroundColor: AppColors.gray50,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(
           title: 'إنشاء مرتجع مبيعات',
           actions: [
@@ -134,7 +142,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      side: BorderSide(color: Colors.grey.shade200),
+                      side: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                     child: Padding(
                       padding: AppConstant.defaultPadding,
@@ -177,9 +185,8 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                     if (picked != null) {
                                       setState(() {
                                         _selectedDate = picked;
-                                        _returnDateController.text = DateFormat(
-                                          'yyyy-MM-dd',
-                                        ).format(picked);
+                                        _returnDateController.text =
+                                            DateFormatter.formatDate(picked);
                                       });
                                     }
                                   },
@@ -212,7 +219,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                       elevation: 0,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
-                        side: BorderSide(color: Colors.grey.shade200),
+                        side: BorderSide(color: Theme.of(context).dividerColor),
                       ),
                       child: Padding(
                         padding: AppConstant.defaultPadding,
@@ -369,7 +376,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
-                          side: BorderSide(color: Colors.grey.shade200),
+                          side: BorderSide(color: Theme.of(context).dividerColor),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
@@ -511,7 +518,8 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
 
   void _saveReturn() {
     if (_formKey.currentState!.validate()) {
-      if (_originalInvoice == null) {
+      if (_originalInvoice == null &&
+          !SettingsCache.allowReturnWithoutInvoice) {
         AppToast.showError(context, 'يرجى اختيار الفاتورة الأصلية');
         return;
       }
@@ -554,10 +562,10 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
         invoiceTransType: 0,
         number: _returnNumberController.text,
         date: _selectedDate.millisecondsSinceEpoch ~/ 1000,
-        customerId: _originalInvoice!.customerId,
-        stockId: _originalInvoice!.stockId,
-        parentInvoiceId: _originalInvoice!.id,
-        parentInvoiceNumber: _originalInvoice!.number,
+        customerId: _originalInvoice?.customerId ?? 1,
+        stockId: _originalInvoice?.stockId ?? SettingsCache.defaultWarehouse,
+        parentInvoiceId: _originalInvoice?.id,
+        parentInvoiceNumber: _originalInvoice?.number,
         amount: _totalReturnAmount,
         finalAmt: _totalReturnAmount,
         statement: _reasonController.text,
@@ -566,18 +574,20 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
       );
 
       String customerName = 'Unknown';
-      final customersState = context.read<CustomersCubit>().state;
-      if (customersState is CustomersLoaded) {
-        final customer = customersState.customers.firstWhere(
-          (c) => c.id == _originalInvoice!.customerId.toString(),
-          orElse: () => Customer(id: '0', name: 'Unknown'),
-        );
-        customerName = customer.name;
+      if (_originalInvoice != null) {
+        final customersState = context.read<CustomersCubit>().state;
+        if (customersState is CustomersLoaded) {
+          final customer = customersState.customers.firstWhere(
+            (c) => c.id == _originalInvoice!.customerId.toString(),
+            orElse: () => Customer(id: '0', name: 'Unknown'),
+          );
+          customerName = customer.name;
+        }
       }
 
       context.read<SalesCubit>().createReturn(
         returnInvoice,
-        _originalInvoice!.id!,
+        _originalInvoice?.id ?? 0,
         customerName,
       );
     }
@@ -585,11 +595,10 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
 
   String _formatDate(int timestamp) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    return DateFormat('yyyy-MM-dd').format(date);
+    return DateFormatter.formatDate(date);
   }
 
   String _formatCurrency(double amount) {
-    final formatter = NumberFormat('#,##0.00', 'ar');
-    return '${formatter.format(amount)} ريال';
+    return NumberFormatter.formatCurrency(amount);
   }
 }

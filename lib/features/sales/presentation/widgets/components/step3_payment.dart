@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
@@ -30,7 +31,7 @@ class Step3Payment extends StatefulWidget {
 
 class _Step3PaymentState extends State<Step3Payment> {
   final _amountController = TextEditingController();
-  PaymentMethod _selectedMethod = PaymentMethod.cash;
+  late PaymentMethod _selectedMethod;
   String? _selectedCashBox = 'الصندوق الرئيسي';
   String? _selectedBank = 'الراجحي';
   String? _transferNumber;
@@ -45,12 +46,24 @@ class _Step3PaymentState extends State<Step3Payment> {
   @override
   void initState() {
     super.initState();
+    _selectedMethod = _defaultPaymentMethod();
     // Default payment amount is the full remaining balance
     _amountController.text = widget.invoice.remaining > 0
         ? widget.invoice.remaining.toStringAsFixed(0)
         : '0';
 
     _amountController.addListener(_validateAmount);
+  }
+
+  PaymentMethod _defaultPaymentMethod() {
+    switch (SettingsCache.defaultPaymentMethod) {
+      case 'bank':
+        return PaymentMethod.bank;
+      case 'deferred':
+        return PaymentMethod.deferred;
+      default:
+        return PaymentMethod.cash;
+    }
   }
 
   @override
@@ -96,7 +109,7 @@ class _Step3PaymentState extends State<Step3Payment> {
           : _selectedMethod == PaymentMethod.bank
           ? '$_selectedBank - ${_transferNumber ?? ''}'
           : _deferredDate != null
-          ? 'استحقاق: ${_deferredDate!.year}-${_deferredDate!.month}-${_deferredDate!.day}'
+          ? 'استحقاق: ${DateFormatter.formatDate(_deferredDate!)}'
           : null,
       date: DateTime.now(),
     );
@@ -281,11 +294,11 @@ class _Step3PaymentState extends State<Step3Payment> {
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppColors.primary
-                                : Colors.white,
+                                : Theme.of(context).colorScheme.surface,
                             border: Border.all(
                               color: isSelected
                                   ? AppColors.primary
-                                  : AppColors.gray300,
+                                  : Theme.of(context).dividerColor,
                             ),
                             borderRadius: BorderRadius.circular(AppRadius.md),
                           ),
@@ -319,7 +332,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.grey50,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Column(
@@ -341,7 +356,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           filled: true,
-                          fillColor: Colors.white,
+                          fillColor: Theme.of(context).colorScheme.surface,
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppRadius.md),
                             borderSide: BorderSide(
@@ -349,7 +364,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                                   ? Colors.orange
                                   : (_showUnderpaymentWarning
                                         ? Colors.blue
-                                        : AppColors.grey300),
+                                        : Theme.of(context).dividerColor),
                               width: 2,
                             ),
                           ),
@@ -412,7 +427,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 onChanged: (value) => _transferNumber = value,
                                 decoration: InputDecoration(
                                   filled: true,
-                                  fillColor: Colors.white,
+                                  fillColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surface,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                       AppRadius.md,
@@ -426,7 +443,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 onChanged: (value) => _senderName = value,
                                 decoration: InputDecoration(
                                   filled: true,
-                                  fillColor: Colors.white,
+                                  fillColor: Theme.of(
+                                    context,
+                                  ).colorScheme.surface,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                       AppRadius.md,
@@ -456,7 +475,11 @@ class _Step3PaymentState extends State<Step3Payment> {
                               context: context,
                               initialDate:
                                   _deferredDate ??
-                                  DateTime.now().add(const Duration(days: 30)),
+                                  DateTime.now().add(
+                                    Duration(
+                                      days: SettingsCache.paymentDueDays,
+                                    ),
+                                  ),
                               firstDate: DateTime.now(),
                               lastDate: DateTime.now().add(
                                 const Duration(days: 365),
@@ -469,9 +492,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                           child: Container(
                             padding: const EdgeInsets.all(AppSpacing.md),
                             decoration: BoxDecoration(
-                              color: Colors.white,
+                              color: Theme.of(context).colorScheme.surface,
                               border: Border.all(
-                                color: AppColors.grey300,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -482,7 +505,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 const SizedBox(width: AppSpacing.sm),
                                 Text(
                                   _deferredDate != null
-                                      ? '${_deferredDate!.year}-${_deferredDate!.month.toString().padLeft(2, '0')}-${_deferredDate!.day.toString().padLeft(2, '0')}'
+                                      ? DateFormatter.formatDate(
+                                          _deferredDate!,
+                                        )
                                       : 'اختر التاريخ',
                                   style: const TextStyle(
                                     fontSize: 16,
@@ -708,9 +733,11 @@ class _Step3PaymentState extends State<Step3Payment> {
         // Bottom Buttons
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: AppColors.grey200)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              top: BorderSide(color: Theme.of(context).dividerColor),
+            ),
           ),
           child: Row(
             children: [

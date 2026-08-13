@@ -20,6 +20,7 @@ class SettingsNavigationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return CustomCardContainer(
       elevation: 0.5,
       shape: RoundedRectangleBorder(
@@ -48,7 +49,7 @@ class SettingsNavigationCard extends StatelessWidget {
                       subtitle,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[600],
+                        color: colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -57,10 +58,10 @@ class SettingsNavigationCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
-                child: Icon(icon, size: 24, color: Colors.grey[700]),
+                child: Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
               ),
             ],
           ),

@@ -6,6 +6,7 @@ import 'package:printing/printing.dart';
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:muhasib/core/services/settings_cache.dart';
 
 class ExportService {
   /// تصدير البيانات إلى PDF والطباعة المباشرة
@@ -69,7 +70,7 @@ class ExportService {
 
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: _pageFormat(),
         textDirection: pw.TextDirection.rtl,
         theme: pw.ThemeData.withFont(base: ttf),
         build: (context) => [
@@ -85,17 +86,62 @@ class ExportService {
     return pdf;
   }
 
+  static PdfPageFormat _pageFormat() {
+    final size = SettingsCache.printPaperSize;
+    final landscape = SettingsCache.printOrientation == 'landscape';
+    if (landscape) {
+      return size == 'A5' ? PdfPageFormat.a5.landscape : PdfPageFormat.a4.landscape;
+    }
+    return size == 'A5' ? PdfPageFormat.a5 : PdfPageFormat.a4;
+  }
+
   static pw.Widget _buildHeader(String title, Map<String, String>? settings, pw.Font font) {
-    final companyName = settings?['company_name'] ?? 'نظام محاسب الرقمي';
-    final dateStr = intl.DateFormat('yyyy/MM/dd HH:mm').format(DateTime.now());
+    final personal = SettingsCache.personal;
+    final companyName = settings?['company_name'] ??
+        (SettingsCache.showPrintCompanyName
+            ? personal['name']?.toString()
+            : null) ??
+        'نظام محاسب الرقمي';
+
+    final infoLines = <String>[
+      if (SettingsCache.showPrintCompanyAddress &&
+          (personal['address']?.toString() ?? '').isNotEmpty)
+        personal['address'].toString(),
+      if (SettingsCache.showPrintCompanyPhone &&
+          (personal['phone']?.toString() ?? '').isNotEmpty)
+        'هاتف: ${personal['phone']}',
+    ];
+
+    String dateStr = '';
+    if (SettingsCache.showPrintDate || SettingsCache.showPrintTime) {
+      final datePart = intl.DateFormat('yyyy/MM/dd').format(DateTime.now());
+      final timePart = intl.DateFormat('HH:mm').format(DateTime.now());
+      if (SettingsCache.showPrintDate && SettingsCache.showPrintTime) {
+        dateStr = '$datePart $timePart';
+      } else if (SettingsCache.showPrintDate) {
+        dateStr = datePart;
+      } else {
+        dateStr = timePart;
+      }
+    }
 
     return pw.Column(
       children: [
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
-            pw.Text(companyName, style: pw.TextStyle(font: font, fontSize: 18, fontWeight: pw.FontWeight.bold)),
-            pw.Text('تاريخ التقرير: $dateStr', style: pw.TextStyle(font: font, fontSize: 10)),
+            pw.Expanded(
+              child: pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: [
+                  pw.Text(companyName, style: pw.TextStyle(font: font, fontSize: 18, fontWeight: pw.FontWeight.bold)),
+                  for (final line in infoLines)
+                    pw.Text(line, style: pw.TextStyle(font: font, fontSize: 9)),
+                ],
+              ),
+            ),
+            if (dateStr.isNotEmpty)
+              pw.Text('تاريخ التقرير: $dateStr', style: pw.TextStyle(font: font, fontSize: 10)),
           ],
         ),
         pw.Divider(),

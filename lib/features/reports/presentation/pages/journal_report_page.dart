@@ -5,7 +5,7 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
@@ -109,11 +109,10 @@ class _JournalReportPageState extends State<JournalReportPage> {
 class _JournalReportContent extends StatelessWidget {
   final ReportFilter filter;
   final Function(_JournalReportResult) onLoad;
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
 
-  _JournalReportContent({required this.filter, required this.onLoad});
+  const _JournalReportContent({required this.filter, required this.onLoad});
 
-  String _formatCurrency(double value) => _numberFormat.format(value);
+  String _formatCurrency(double value) => NumberFormatter.formatNumber(value);
 
   @override
   Widget build(BuildContext context) {

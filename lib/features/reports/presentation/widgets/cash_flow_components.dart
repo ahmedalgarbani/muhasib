@@ -23,9 +23,9 @@ class CashFlowSectionCardWidget extends StatelessWidget {
     return Container(
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         children: [
@@ -67,9 +67,9 @@ class CashFlowFinalSummaryWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

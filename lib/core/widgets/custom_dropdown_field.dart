@@ -42,16 +42,18 @@ class CustomDropdownField<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final dividerColor = Theme.of(context).dividerColor;
     final defaultFillColor = enabled
-        ? (backgroundColor ?? AppColors.surface)
-        : AppColors.slate100.withValues(alpha: 0.6);
+        ? (backgroundColor ?? colorScheme.surface)
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.6);
 
-    final defaultBorderColor = borderColor ?? AppColors.slate200;
+    final defaultBorderColor = borderColor ?? dividerColor;
     final defaultFocusColor = focusBorderColor ?? AppColors.primary;
 
     final defaultPrefixIcon = prefixIcon != null
         ? IconTheme(
-            data: const IconThemeData(color: AppColors.slate500, size: 20),
+            data: IconThemeData(color: colorScheme.onSurfaceVariant, size: 20),
             child: prefixIcon!,
           )
         : null;
@@ -65,10 +67,10 @@ class CustomDropdownField<T> extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 6.0),
             child: RichText(
               text: TextSpan(
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.slate800,
+                  color: colorScheme.onSurface,
                   letterSpacing: 0.1,
                 ),
                 children: [
@@ -97,16 +99,20 @@ class CustomDropdownField<T> extends StatelessWidget {
             duration: const Duration(milliseconds: 200),
             child: Icon(
               Icons.keyboard_arrow_down_rounded,
-              color: enabled ? AppColors.slate500 : AppColors.slate300,
+              color: enabled
+                  ? colorScheme.onSurfaceVariant
+                  : colorScheme.outlineVariant,
               size: 22,
             ),
           ),
-          dropdownColor: Colors.white,
+          dropdownColor: colorScheme.surface,
           menuMaxHeight: 320,
           borderRadius: BorderRadius.circular(AppRadius.md),
           elevation: 3,
           style: TextStyle(
-            color: enabled ? AppColors.slate900 : AppColors.slate400,
+            color: enabled
+                ? colorScheme.onSurface
+                : colorScheme.onSurfaceVariant,
             fontSize: 14.5,
             fontWeight: FontWeight.w500,
           ),
@@ -116,8 +122,8 @@ class CustomDropdownField<T> extends StatelessWidget {
                     children: [
                       Expanded(child: item.child),
                       IconTheme(
-                        data: const IconThemeData(
-                          color: AppColors.slate500,
+                        data: IconThemeData(
+                          color: colorScheme.onSurfaceVariant,
                           size: 20,
                         ),
                         child: suffixIcon!,
@@ -128,8 +134,8 @@ class CustomDropdownField<T> extends StatelessWidget {
               : null,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(
-              color: AppColors.slate400,
+            hintStyle: TextStyle(
+              color: colorScheme.onSurfaceVariant,
               fontSize: 14,
               fontWeight: FontWeight.w400,
             ),
@@ -169,7 +175,7 @@ class CustomDropdownField<T> extends StatelessWidget {
             disabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
               borderSide: BorderSide(
-                color: AppColors.slate200.withValues(alpha: 0.5),
+                color: dividerColor.withValues(alpha: 0.5),
                 width: 1.0,
               ),
             ),

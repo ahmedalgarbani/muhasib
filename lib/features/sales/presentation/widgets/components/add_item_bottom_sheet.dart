@@ -63,8 +63,8 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       child: Column(
@@ -93,7 +93,9 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: AppColors.grey50,
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Column(

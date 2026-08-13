@@ -48,7 +48,7 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.neutral100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'أدوات أخرى',
         actions: [

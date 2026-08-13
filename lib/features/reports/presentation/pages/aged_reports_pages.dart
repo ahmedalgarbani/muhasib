@@ -8,7 +8,7 @@ import 'package:muhasib/features/reports/presentation/widgets/report_summary_car
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class AgedReceivablesReportPage extends StatefulWidget {
   const AgedReceivablesReportPage({super.key});
@@ -166,7 +166,7 @@ class _AgedInvoicesContent extends StatelessWidget {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.lg),
-                          side: BorderSide(color: Colors.grey[200]!),
+                          side: BorderSide(color: Theme.of(context).dividerColor),
                         ),
                         margin: const EdgeInsets.only(bottom: 12),
                         child: ListTile(

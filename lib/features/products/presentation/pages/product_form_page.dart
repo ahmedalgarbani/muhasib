@@ -122,7 +122,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
         child: Directionality(
           textDirection: TextDirection.rtl,
           child: Scaffold(
-            backgroundColor: AppColors.gray50,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: CustomAppBar(
               title: widget.product == null ? 'منتج جديد' : 'تعديل المنتج',
             ),

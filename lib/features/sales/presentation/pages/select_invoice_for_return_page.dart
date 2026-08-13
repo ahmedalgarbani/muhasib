@@ -57,14 +57,14 @@ class _SelectInvoiceForReturnPageState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.gray50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'اختر الفاتورة لإنشاء مرتجع'),
       body: Column(
         children: [
           // Search Bar
           Container(
             padding: AppConstant.defaultPadding,
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             child: TextInputField(
               controller: _searchController,
               hint: 'ابحث برقم الفاتورة أو اسم العميل...',
@@ -72,7 +72,9 @@ class _SelectInvoiceForReturnPageState
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
                 filled: true,
-                fillColor: AppColors.gray100,
+                fillColor: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide.none,

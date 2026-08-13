@@ -87,7 +87,7 @@ class _RootShellState extends State<RootShell>
                       initialEntries: [
                         OverlayEntry(
                           builder: (context) => Material(
-                            color: Colors.white,
+                            color: Theme.of(context).colorScheme.surface,
                             elevation: 16,
                             shadowColor: Colors.black38,
                             child: const SafeArea(

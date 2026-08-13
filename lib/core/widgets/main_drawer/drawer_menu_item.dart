@@ -55,6 +55,7 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final item = widget.item;
     final hasChildren = item.children.isNotEmpty;
     final isChild = widget.isChild;
@@ -93,8 +94,8 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
                           fontSize: isChild ? 13 : 14.5,
                           fontWeight: FontWeight.w600,
                           color: isChild
-                              ? AppColors.textSecondary
-                              : AppColors.textPrimary,
+                              ? colorScheme.onSurfaceVariant
+                              : colorScheme.onSurface,
                         ),
                       ),
                     ),

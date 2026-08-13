@@ -1,3 +1,5 @@
+import 'package:muhasib/core/services/settings_cache.dart';
+
 class Customer {
   final String id;
   final String name;
@@ -327,7 +329,19 @@ class Invoice {
   // Computed properties
   double get subtotal => items.fold(0.0, (sum, item) => sum + item.total);
   double get discountAmount => discount.calculate(subtotal);
-  double get total => subtotal - discountAmount + otherCharges;
+  double get taxAmount {
+    if (!SettingsCache.taxEnabled) return 0;
+    final taxable = subtotal - discountAmount;
+    if (taxable <= 0) return 0;
+    if (SettingsCache.taxInclusivePricing) {
+      return taxable *
+          SettingsCache.defaultTaxRate /
+          (100 + SettingsCache.defaultTaxRate);
+    }
+    return taxable * SettingsCache.defaultTaxRate / 100;
+  }
+
+  double get total => subtotal - discountAmount + otherCharges + taxAmount;
   double get paid => payments.fold(0.0, (sum, p) => sum + p.amount);
   double get remaining => total - paid;
 

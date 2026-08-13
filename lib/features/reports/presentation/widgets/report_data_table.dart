@@ -36,9 +36,9 @@ class ReportDataTable<T> extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: AppColors.gray200),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Center(
           child: Column(
@@ -63,9 +63,9 @@ class ReportDataTable<T> extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: AppColors.gray200),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.02),
@@ -81,7 +81,7 @@ class ReportDataTable<T> extends StatelessWidget {
             // Table Header
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: AppColors.gray100,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Row(
                 children: columns.map((col) {
                   return Expanded(
@@ -99,7 +99,7 @@ class ReportDataTable<T> extends StatelessWidget {
                 }).toList(),
               ),
             ),
-            const Divider(height: 1, color: AppColors.gray200),
+            Divider(height: 1, color: Theme.of(context).dividerColor),
 
             // Rows
             ListView.separated(
@@ -107,13 +107,16 @@ class ReportDataTable<T> extends StatelessWidget {
               physics: const NeverScrollableScrollPhysics(),
               itemCount: items.length,
               separatorBuilder: (context, index) =>
-                  const Divider(height: 1, color: AppColors.gray100),
+                  Divider(height: 1, color: Theme.of(context).dividerColor),
               itemBuilder: (context, index) {
                 final isEven = index % 2 == 0;
                 return Container(
                   color: isEven
-                      ? Colors.white
-                      : Colors.grey[50]?.withValues(alpha: 0.5),
+                      ? Theme.of(context).colorScheme.surface
+                      : Theme.of(context)
+                            .colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.5),
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 12,
@@ -131,7 +134,7 @@ class ReportDataTable<T> extends StatelessWidget {
                   horizontal: 16,
                   vertical: 14,
                 ),
-                color: AppColors.gray50,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 child: footerRow,
               ),
             ],

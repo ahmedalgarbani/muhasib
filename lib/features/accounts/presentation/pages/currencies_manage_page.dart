@@ -120,7 +120,7 @@ class _CurrencyListScreenState extends State<CurrencyListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -174,7 +174,7 @@ class CurrencyListHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -254,7 +254,7 @@ class CurrencyCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
@@ -341,7 +341,7 @@ class AnimatedToggleSwitch extends StatelessWidget {
         height: 28,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.sm14),
-          color: value ? AppColors.primary : Colors.grey[300],
+          color: value ? AppColors.primary : Theme.of(context).colorScheme.surfaceContainerHighest,
         ),
         child: AnimatedAlign(
           duration: const Duration(milliseconds: 200),

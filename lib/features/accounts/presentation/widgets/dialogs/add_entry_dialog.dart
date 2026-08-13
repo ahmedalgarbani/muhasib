@@ -97,12 +97,12 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // التاريخ
-                        const Text(
+                        Text(
                           'التاريخ',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -124,7 +124,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                             padding: AppConstant.defaultPadding,
                             decoration: BoxDecoration(
                               border: Border.all(
-                                color: Colors.grey[300]!,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -147,12 +147,12 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         const SizedBox(height: 16),
 
                         // رقم القيد
-                        const Text(
+                        Text(
                           'رقم القيد',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -161,25 +161,27 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                           enabled: false,
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: Colors.grey[100],
+                            fillColor: Theme.of(context)
+                                .colorScheme
+                                .surfaceContainerHighest,
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
-                                color: Colors.grey[300]!,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
-                                color: Colors.grey[300]!,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                             ),
                             disabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
-                                color: Colors.grey[300]!,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                             ),
@@ -188,12 +190,12 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         const SizedBox(height: 16),
 
                         // البيان
-                        const Text(
+                        Text(
                           'البيان',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -205,14 +207,14 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
-                                color: Colors.grey[300]!,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
-                                color: Colors.grey[300]!,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                             ),
@@ -251,12 +253,12 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         const SizedBox(height: 16),
 
                         // المبلغ المدين
-                        const Text(
+                        Text(
                           'المبلغ المدين',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -291,12 +293,12 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                         const SizedBox(height: 16),
 
                         // المبلغ الدائن
-                        const Text(
+                        Text(
                           'المبلغ الدائن',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.black87,
+                            color: Theme.of(context).colorScheme.onSurface,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -308,14 +310,14 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
-                                color: Colors.grey[300]!,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
                               borderSide: BorderSide(
-                                color: Colors.grey[300]!,
+                                color: Theme.of(context).dividerColor,
                                 width: 2,
                               ),
                             ),

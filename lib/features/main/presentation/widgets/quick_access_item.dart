@@ -28,9 +28,9 @@ class QuickAccessItem extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

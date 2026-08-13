@@ -26,9 +26,10 @@ class SettingsTextFieldTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
       leading: icon != null
-          ? Icon(icon, size: 20, color: Colors.grey[600])
+          ? Icon(icon, size: 20, color: colorScheme.onSurfaceVariant)
           : null,
       title: Text(
         title,

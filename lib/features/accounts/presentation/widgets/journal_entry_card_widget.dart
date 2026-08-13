@@ -1,31 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' as intl;
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Standalone Journal Entry Item Card for the journal entries list page.
 class JournalEntryCardWidget extends StatelessWidget {
   final JournalEntryEntity entry;
-  final intl.NumberFormat numberFormat;
   final VoidCallback onTap;
 
   const JournalEntryCardWidget({
     super.key,
     required this.entry,
-    required this.numberFormat,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final dateStr = intl.DateFormat('yyyy/MM/dd').format(entry.entryDate);
-
+    final dateStr = DateFormatter.formatDate(entry.entryDate);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
         boxShadow: [
           BoxShadow(
@@ -91,7 +89,7 @@ class JournalEntryCardWidget extends StatelessWidget {
                 children: [
                   _AmountSummary(
                     label: 'إجمالي القيد',
-                    amount: numberFormat.format(entry.totalDebit),
+                    amount: NumberFormatter.formatNumber(entry.totalDebit),
                     color: AppColors.primary,
                   ),
                   const Spacer(),

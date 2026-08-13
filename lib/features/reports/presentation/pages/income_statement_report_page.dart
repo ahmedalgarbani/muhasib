@@ -10,11 +10,11 @@ import 'package:muhasib/features/reports/presentation/widgets/income_statement_c
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class IncomeStatementReportPage extends StatefulWidget {
   const IncomeStatementReportPage({super.key});
@@ -108,8 +108,6 @@ class _IncomeStatementContent extends StatefulWidget {
 }
 
 class _IncomeStatementContentState extends State<_IncomeStatementContent> {
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
-
   @override
   void initState() {
     super.initState();
@@ -125,7 +123,8 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
       context.read<IncomeStatementCubit>().updateDateRange(widget.filter);
   }
 
-  String _formatCurrency(double v) => '${_numberFormat.format(v)} ر.س';
+  String _formatCurrency(double v) =>
+      NumberFormatter.formatCurrency(v, symbol: 'ر.س');
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +154,7 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
                   elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.lg20),
-                    side: BorderSide(color: Colors.grey[200]!),
+                    side: BorderSide(color: Theme.of(context).dividerColor),
                   ),
                   child: Column(
                     children: [

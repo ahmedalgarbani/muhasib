@@ -42,6 +42,8 @@ class CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final dividerColor = Theme.of(context).dividerColor;
     return TextFormField(
       controller: controller,
       readOnly: readOnly,
@@ -57,16 +59,24 @@ class CustomTextField extends StatelessWidget {
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.slate400, fontSize: 14),
+        hintStyle: TextStyle(
+          color: colorScheme.onSurfaceVariant,
+          fontSize: 14,
+        ),
         prefixIcon: prefixIcon != null
             ? IconTheme(
-                data: const IconThemeData(color: AppColors.slate500, size: 20),
+                data: IconThemeData(
+                  color: colorScheme.onSurfaceVariant,
+                  size: 20,
+                ),
                 child: Icon(prefixIcon),
               )
             : null,
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: enabled ? AppColors.surface : AppColors.slate100,
+        fillColor: enabled
+            ? colorScheme.surface
+            : colorScheme.surfaceContainerHighest,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 15,
@@ -74,11 +84,11 @@ class CustomTextField extends StatelessWidget {
         isDense: true,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.slate200),
+          borderSide: BorderSide(color: dividerColor),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.slate200),
+          borderSide: BorderSide(color: dividerColor),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -94,7 +104,7 @@ class CustomTextField extends StatelessWidget {
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.md),
-          borderSide: const BorderSide(color: AppColors.slate200),
+          borderSide: BorderSide(color: dividerColor),
         ),
         errorStyle: const TextStyle(
           color: AppColors.red500,

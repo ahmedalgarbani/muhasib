@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
@@ -231,14 +232,14 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                   ? Column(
                       children: [
                         _StatCard(
-                          title: 'إجمالي المدين',
+                          title: 'إجمالي ${SettingsCache.debitLabel}',
                           value: formatNumber(summary.totalDebit),
                           color: Colors.green,
                           fontSize: baseFont,
                         ),
                         const SizedBox(height: 10),
                         _StatCard(
-                          title: 'إجمالي الدائن',
+                          title: 'إجمالي ${SettingsCache.creditLabel}',
                           value: formatNumber(summary.totalCredit),
                           color: Colors.red,
                           fontSize: baseFont,
@@ -256,7 +257,7 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                       children: [
                         Expanded(
                           child: _StatCard(
-                            title: 'إجمالي المدين',
+                            title: 'إجمالي ${SettingsCache.debitLabel}',
                             value: formatNumber(summary.totalDebit),
                             color: Colors.green,
                             fontSize: baseFont,
@@ -265,7 +266,7 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                         const SizedBox(width: 16),
                         Expanded(
                           child: _StatCard(
-                            title: 'إجمالي الدائن',
+                            title: 'إجمالي ${SettingsCache.creditLabel}',
                             value: formatNumber(summary.totalCredit),
                             color: Colors.red,
                             fontSize: baseFont,
@@ -308,7 +309,7 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
           else
             Container(
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: SingleChildScrollView(
@@ -317,7 +318,7 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                   constraints: const BoxConstraints(minWidth: 600),
                   child: Table(
                     border: TableBorder.all(
-                      color: Colors.grey[200]!,
+                      color: Theme.of(context).dividerColor,
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     columnWidths: const {
@@ -330,13 +331,15 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                     children: [
                       TableRow(
                         decoration: BoxDecoration(
-                          color: Colors.grey[200],
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surfaceContainerHighest,
                         ),
-                        children: const [
+                        children: [
                           _TableHeader('التاريخ'),
                           _TableHeader('البيان'),
-                          _TableHeader('مدين'),
-                          _TableHeader('دائن'),
+                          _TableHeader(SettingsCache.debitLabel),
+                          _TableHeader(SettingsCache.creditLabel),
                           _TableHeader('الرصيد'),
                         ],
                       ),
@@ -431,10 +434,10 @@ class _TableHeader extends StatelessWidget {
       child: Text(
         text,
         textAlign: TextAlign.center,
-        style: const TextStyle(
+        style: TextStyle(
           fontWeight: FontWeight.bold,
           fontSize: 14,
-          color: Colors.black87,
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
     );
@@ -457,7 +460,7 @@ class _TableCell extends StatelessWidget {
         textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 13,
-          color: color ?? Colors.black87,
+          color: color ?? Theme.of(context).colorScheme.onSurface,
           fontWeight: color != null ? FontWeight.bold : FontWeight.normal,
         ),
       ),

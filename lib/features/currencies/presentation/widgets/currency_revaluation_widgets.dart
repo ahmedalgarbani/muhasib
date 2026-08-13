@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart' hide TextDirection;
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
@@ -18,12 +18,12 @@ class RevaluationInfoCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.lg),
       side: BorderSide(color: AppColors.info.withOpacity(0.2)),
     ),
-    child: const Padding(
+    child: Padding(
       padding: AppConstant.defaultPadding,
       child: Row(
         children: [
-          Icon(Icons.info_outline, color: AppColors.info),
-          SizedBox(width: 12),
+          const Icon(Icons.info_outline, color: AppColors.info),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -32,11 +32,11 @@ class RevaluationInfoCard extends StatelessWidget {
                   'ما هي إعادة التقييم؟',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                SizedBox(height: 4),
-                Text(
+                const SizedBox(height: 4),
+                const Text(
                   'إعادة تقييم الأرصدة بالعملات الأجنبية عند تغير سعر الصرف، ينتج عنها أرباح أو خسائر فروق صرف تُسجل في قائمة الدخل.',
                   style: TextStyle(
                     fontSize: 12,
@@ -74,12 +74,12 @@ class RevaluationSelectionCard extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'تحديد الحساب والعملة',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 16),
@@ -151,7 +151,7 @@ class _Card extends StatelessWidget {
     elevation: 0,
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.lg),
-      side: BorderSide(color: Colors.grey[200]!),
+      side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Padding(padding: AppConstant.defaultPadding, child: child),
   );
@@ -176,12 +176,12 @@ class RevaluationRateCard extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'سعر الصرف الجديد',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.bold,
-            color: AppColors.textPrimary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 16),
@@ -189,7 +189,7 @@ class RevaluationRateCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey[100],
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppRadius.sm),
             ),
             child: Row(
@@ -247,7 +247,7 @@ class RevaluationRateCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
             ),
-            child: Text(DateFormat('yyyy-MM-dd').format(date)),
+            child: Text(DateFormatter.formatDate(date)),
           ),
         ),
       ],

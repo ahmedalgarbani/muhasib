@@ -150,7 +150,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const CustomAppBar(title: 'إعدادات السندات'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {

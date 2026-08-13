@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -192,25 +192,27 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
               ),
               AccountDetailRowWidget(
                 label: 'التاريخ',
-                value: DateFormat('yyyy-MM-dd').format(date),
+                value: DateFormatter.formatDate(date),
               ),
               AccountDetailRowWidget(
                 label: 'مدين',
-                value: NumberFormat(
-                  '#,##0.00',
-                ).format(transaction['debit_amount'] ?? 0.0),
+                value: NumberFormatter.formatNumber(
+                  transaction['debit_amount'] ?? 0.0,
+                ),
                 valueColor: Colors.red,
               ),
               AccountDetailRowWidget(
                 label: 'دائن',
-                value: NumberFormat(
-                  '#,##0.00',
-                ).format(transaction['credit_amount'] ?? 0.0),
+                value: NumberFormatter.formatNumber(
+                  transaction['credit_amount'] ?? 0.0,
+                ),
                 valueColor: Colors.green,
               ),
               AccountDetailRowWidget(
                 label: 'الرصيد',
-                value: NumberFormat('#,##0.00').format(transaction['balance'] ?? 0.0),
+                value: NumberFormatter.formatNumber(
+                  transaction['balance'] ?? 0.0,
+                ),
                 valueColor: Colors.blue,
               ),
               if (transaction['notes'] != null &&
@@ -230,7 +232,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: '${widget.account.name} - كود: ${widget.account.code}',
         actions: [
@@ -248,7 +250,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
         children: [
           // Filters Section
           Container(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             padding: AppConstant.defaultPadding,
             child: Column(
               children: [
@@ -286,7 +288,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: Theme.of(context).dividerColor),
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Row(
@@ -301,7 +303,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'من: ${DateFormat('yyyy-MM-dd').format(startDate)}',
+                              'من: ${DateFormatter.formatDate(startDate)}',
                               style: const TextStyle(fontSize: 14),
                             ),
                           ],
@@ -315,7 +317,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                             ),
                             const SizedBox(width: 8),
                             Text(
-                              'إلى: ${DateFormat('yyyy-MM-dd').format(endDate)}',
+                              'إلى: ${DateFormatter.formatDate(endDate)}',
                               style: const TextStyle(fontSize: 14),
                             ),
                           ],
@@ -331,7 +333,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
 
           // Table Header
           Container(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             child: Row(
               children: const [
@@ -416,7 +418,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
 
       // Bottom Summary
       bottomSheet: Container(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         padding: AppConstant.defaultPadding,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -441,7 +443,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                         Text(
-                          NumberFormat('#,##0.00').format(totalDebit),
+                          NumberFormatter.formatNumber(totalDebit),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.red,
@@ -458,7 +460,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                           style: TextStyle(fontSize: 12, color: Colors.grey),
                         ),
                         Text(
-                          NumberFormat('#,##0.00').format(totalCredit),
+                          NumberFormatter.formatNumber(totalCredit),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.green,
@@ -479,7 +481,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 Text(
-                  NumberFormat('#,##0.00').format(currentBalance),
+                  NumberFormatter.formatNumber(currentBalance),
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,

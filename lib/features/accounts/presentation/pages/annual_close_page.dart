@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/annual_close_components.dart';
@@ -66,7 +65,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(title: 'الإقفال السنوي'),
         body: SingleChildScrollView(
           padding: AppConstant.defaultPadding,

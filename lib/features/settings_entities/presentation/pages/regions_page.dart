@@ -46,7 +46,7 @@ class _RegionsViewState extends State<_RegionsView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'المناطق',
         actions: [

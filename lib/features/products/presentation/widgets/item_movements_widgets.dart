@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
@@ -34,8 +34,10 @@ class ItemMovementsHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       padding: AppConstant.defaultPadding,
       child: Column(
@@ -59,7 +61,7 @@ class ItemMovementsHeaderWidget extends StatelessWidget {
                   decoration: InputDecoration(
                     prefixIcon: const Icon(Icons.search, color: Colors.grey),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: Theme.of(context).colorScheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                       borderSide: BorderSide(color: Colors.grey.shade300),
@@ -168,7 +170,7 @@ class ItemMovementsListWidget extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
+            side: BorderSide(color: Theme.of(context).dividerColor),
           ),
           child: Padding(
             padding: AppConstant.defaultPadding,
@@ -221,7 +223,7 @@ class ItemMovementsListWidget extends StatelessWidget {
                       ],
                     ),
                     Text(
-                      DateFormat('yyyy-MM-dd').format(date),
+                      DateFormatter.formatDate(date),
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -264,7 +266,7 @@ class ItemMovementsListWidget extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade100,
+                        color: Theme.of(context).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(

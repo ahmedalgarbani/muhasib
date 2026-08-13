@@ -6,7 +6,7 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/reports/presentation/widgets/cash_flow_components.dart';
@@ -84,7 +84,6 @@ class _CashFlowContent extends StatefulWidget {
 }
 
 class _CashFlowContentState extends State<_CashFlowContent> {
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
   late Future<_CashFlowResult> _future;
   _CashFlowResult? _notifiedResult;
 
@@ -134,7 +133,8 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                   Expanded(
                     child: ReportKpiCard(
                       title: 'التدفق التشغيلي',
-                      value: '${_numberFormat.format(data.totalOperating)} ر.س',
+                      value:
+                          NumberFormatter.formatCurrency(data.totalOperating, symbol: 'ر.س'),
                       icon: Icons.business,
                       color: Colors.blue[700]!,
                       subtitle: 'حركة المبيعات والمشتريات',
@@ -146,7 +146,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                     child: ReportKpiCard(
                       title: 'التدفق الاستثماري والتمويلي',
                       value:
-                          '${_numberFormat.format(data.totalInvesting + data.totalFinancing)} ر.س',
+                          NumberFormatter.formatCurrency(data.totalInvesting + data.totalFinancing, symbol: 'ر.س'),
                       icon: Icons.account_balance,
                       color: Colors.purple[700]!,
                       subtitle: 'الأصول الثابتة والتمويل',
@@ -156,7 +156,8 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                   Expanded(
                     child: ReportKpiCard(
                       title: 'صافي التغير النقدي',
-                      value: '${_numberFormat.format(data.netCashFlow)} ر.س',
+                      value:
+                          NumberFormatter.formatCurrency(data.netCashFlow, symbol: 'ر.س'),
                       icon: data.netCashFlow >= 0
                           ? Icons.water_drop
                           : Icons.warning,
@@ -164,7 +165,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                           ? Colors.teal[700]!
                           : Colors.deepOrange[700]!,
                       subtitle:
-                          'بداية: ${_numberFormat.format(data.openingBalance)} | نهاية: ${_numberFormat.format(data.closingBalance)}',
+                          'بداية: ${NumberFormatter.formatNumber(data.openingBalance)} | نهاية: ${NumberFormatter.formatNumber(data.closingBalance)}',
                       isPositiveTrend: data.netCashFlow >= 0,
                     ),
                   ),
@@ -177,7 +178,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                 value: data.totalOperating,
                 color: Colors.blue[800]!,
                 icon: Icons.business,
-                formatCurrency: _numberFormat.format,
+                formatCurrency: NumberFormatter.formatNumber,
               ),
               const SizedBox(height: 12),
               CashFlowSectionCardWidget(
@@ -185,7 +186,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                 value: data.totalInvesting,
                 color: Colors.orange[800]!,
                 icon: Icons.trending_up,
-                formatCurrency: _numberFormat.format,
+                formatCurrency: NumberFormatter.formatNumber,
               ),
               const SizedBox(height: 12),
               CashFlowSectionCardWidget(
@@ -193,7 +194,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                 value: data.totalFinancing,
                 color: Colors.purple[800]!,
                 icon: Icons.account_balance,
-                formatCurrency: _numberFormat.format,
+                formatCurrency: NumberFormatter.formatNumber,
               ),
               const SizedBox(height: 20),
               CashFlowFinalSummaryWidget(result: data),

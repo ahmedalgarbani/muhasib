@@ -14,7 +14,7 @@ class QuotationFilterBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       child: Row(
         children: [
@@ -27,7 +27,9 @@ class QuotationFilterBarWidget extends StatelessWidget {
             label: const Text('مفتوحة فقط'),
             selected: showOnlyOpen,
             onSelected: (value) => onFilterChanged(true),
-            backgroundColor: Colors.grey.shade100,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
             selectedColor: AppColors.blue100,
             checkmarkColor: AppColors.primary,
           ),
@@ -36,7 +38,9 @@ class QuotationFilterBarWidget extends StatelessWidget {
             label: const Text('الكل'),
             selected: !showOnlyOpen,
             onSelected: (value) => onFilterChanged(false),
-            backgroundColor: Colors.grey.shade100,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
             selectedColor: AppColors.blue100,
             checkmarkColor: AppColors.primary,
           ),

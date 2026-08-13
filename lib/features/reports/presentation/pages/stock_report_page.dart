@@ -7,7 +7,7 @@ import 'package:muhasib/features/reports/presentation/cubit/stock_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
@@ -100,8 +100,6 @@ class _StockReportContent extends StatefulWidget {
 }
 
 class _StockReportContentState extends State<_StockReportContent> {
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<StockCubit, StockState>(
@@ -124,7 +122,8 @@ class _StockReportContentState extends State<_StockReportContent> {
                     Expanded(
                       child: ReportKpiCard(
                         title: 'إجمالي قيمة المخزون',
-                        value: '${_numberFormat.format(s.totalStockValue)} ر.س',
+                        value:
+                            NumberFormatter.formatCurrency(s.totalStockValue, symbol: 'ر.س'),
                         icon: Icons.monetization_on,
                         color: Colors.green[700]!,
                         subtitle: 'بالتكلفة الفعلية',
@@ -248,7 +247,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            '${_numberFormat.format(item.costPrice)} ر.س',
+                            NumberFormatter.formatCurrency(item.costPrice, symbol: 'ر.س'),
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 12),
                           ),
@@ -256,7 +255,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            '${_numberFormat.format(item.stockValue)} ر.س',
+                            NumberFormatter.formatCurrency(item.stockValue, symbol: 'ر.س'),
                             textAlign: TextAlign.end,
                             style: TextStyle(
                               fontSize: 13,
@@ -295,7 +294,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          '${_numberFormat.format(s.totalStockValue)} ر.س',
+                          NumberFormatter.formatCurrency(s.totalStockValue, symbol: 'ر.س'),
                           textAlign: TextAlign.end,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,

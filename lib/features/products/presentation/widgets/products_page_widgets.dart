@@ -31,8 +31,10 @@ class ProductsHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       padding: AppConstant.defaultPadding,
       child: Column(
@@ -90,7 +92,7 @@ class ProductsHeaderWidget extends StatelessWidget {
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search, color: Colors.grey),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -134,7 +136,7 @@ class ProductsGridWidget extends StatelessWidget {
         return CustomCardContainer(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
+            side: BorderSide(color: Theme.of(context).dividerColor),
           ),
           child: InkWell(
             onTap: () => onProductTap(product),
@@ -145,7 +147,7 @@ class ProductsGridWidget extends StatelessWidget {
                 Container(
                   height: 120,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
+                    color: Theme.of(context).colorScheme.surfaceContainerHighest,
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(AppRadius.md),
                     ),
@@ -254,7 +256,7 @@ class ProductsListWidget extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
+            side: BorderSide(color: Theme.of(context).dividerColor),
           ),
           child: ListTile(
             onTap: () => onProductTap(product),
@@ -262,7 +264,7 @@ class ProductsListWidget extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Icon(Icons.inventory, color: Colors.grey.shade400),

@@ -1,8 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
@@ -23,7 +23,6 @@ class AccountLimitsScreen extends StatefulWidget {
 }
 
 class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
-  final _numberFormat = intl.NumberFormat('#,##0.00', 'ar');
   @override
   void initState() {
     super.initState();
@@ -35,7 +34,7 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(
           title: 'إدارة سقوف الحسابات',
           actions: [
@@ -76,7 +75,6 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
                 itemCount: limits.length,
                 itemBuilder: (context, index) => _AccountLimitCard(
                   limit: limits[index],
-                  numberFormat: _numberFormat,
                   onEdit: () =>
                       _showAddLimitSheet(context, limit: limits[index]),
                   onDelete: () => _confirmDelete(limits[index]),
@@ -137,13 +135,11 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
 
 class _AccountLimitCard extends StatelessWidget {
   final AccountLimitEntity limit;
-  final intl.NumberFormat numberFormat;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _AccountLimitCard({
     required this.limit,
-    required this.numberFormat,
     required this.onEdit,
     required this.onDelete,
   });
@@ -158,9 +154,9 @@ class _AccountLimitCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
@@ -209,7 +205,6 @@ class _AccountLimitCard extends StatelessWidget {
                     percentage: limit.debitUsagePercentage,
                     color: color,
                     max: limit.debitLimit,
-                    numberFormat: numberFormat,
                   ),
                 if (limit.creditLimit > 0) ...[
                   const SizedBox(height: 16),
@@ -218,7 +213,6 @@ class _AccountLimitCard extends StatelessWidget {
                     percentage: limit.creditUsagePercentage,
                     color: color,
                     max: limit.creditLimit,
-                    numberFormat: numberFormat,
                   ),
                 ],
               ],
@@ -265,7 +259,6 @@ class AccountLimitProgressBarWidget extends StatelessWidget {
   final double percentage;
   final Color color;
   final double max;
-  final intl.NumberFormat numberFormat;
 
   const AccountLimitProgressBarWidget({
     super.key,
@@ -273,7 +266,6 @@ class AccountLimitProgressBarWidget extends StatelessWidget {
     required this.percentage,
     required this.color,
     required this.max,
-    required this.numberFormat,
   });
 
   @override
@@ -286,7 +278,7 @@ class AccountLimitProgressBarWidget extends StatelessWidget {
           children: [
             Text(label, style: const TextStyle(fontSize: 12)),
             Text(
-              numberFormat.format(max),
+              NumberFormatter.formatNumber(max),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -296,7 +288,7 @@ class AccountLimitProgressBarWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.xs),
           child: LinearProgressIndicator(
             value: percentage / 100,
-            backgroundColor: Colors.grey.shade100,
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation(color),
             minHeight: 8,
           ),
@@ -347,9 +339,9 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.85,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppRadius.xl30),
         ),
       ),
@@ -360,7 +352,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppRadius.xxs),
             ),
           ),
@@ -496,9 +488,9 @@ class AccountLimitPickerWidget extends StatelessWidget {
       child: Container(
         padding: AppConstant.defaultPadding,
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           children: [
@@ -511,7 +503,9 @@ class AccountLimitPickerWidget extends StatelessWidget {
               style: TextStyle(
                 color: limit != null
                     ? Colors.grey
-                    : (selectedAccount == null ? Colors.grey : Colors.black87),
+                    : (selectedAccount == null
+                          ? Colors.grey
+                          : Theme.of(context).colorScheme.onSurface),
               ),
             ),
             const Spacer(),
@@ -585,9 +579,9 @@ class _AccountSearchSheetState extends State<_AccountSearchSheet> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppRadius.xl30),
         ),
       ),

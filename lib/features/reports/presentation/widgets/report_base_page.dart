@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -134,7 +133,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(
           title: widget.title,
           actions: [
@@ -244,7 +243,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
             // Search bar & Quick filters
             if (widget.showSearch || (_showFilters && widget.showDateFilter))
               Container(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 12,
@@ -275,7 +274,10 @@ class _ReportBasePageState extends State<ReportBasePage> {
                                   )
                                 : null,
                             filled: true,
-                            fillColor: AppColors.gray50,
+                            fillColor:
+                                Theme.of(context)
+                                    .colorScheme
+                                    .surfaceContainerHighest,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 8,
@@ -286,7 +288,9 @@ class _ReportBasePageState extends State<ReportBasePage> {
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: BorderSide(color: Colors.grey[200]!),
+                              borderSide: BorderSide(
+                                color: Theme.of(context).dividerColor,
+                              ),
                             ),
                           ),
                           onChanged: (val) {

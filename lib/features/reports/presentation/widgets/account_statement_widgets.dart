@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
@@ -46,7 +46,6 @@ class AccountStatementSummaryItemWidget extends StatelessWidget {
   final double value;
   final Color color;
   final bool isBold;
-  final NumberFormat numberFormat;
 
   const AccountStatementSummaryItemWidget({
     super.key,
@@ -54,7 +53,6 @@ class AccountStatementSummaryItemWidget extends StatelessWidget {
     required this.value,
     required this.color,
     this.isBold = false,
-    required this.numberFormat,
   });
 
   @override
@@ -64,7 +62,7 @@ class AccountStatementSummaryItemWidget extends StatelessWidget {
       margin: const EdgeInsets.only(left: 10),
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
         border: Border.all(color: color.withOpacity(0.1)),
         boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10)],
@@ -84,7 +82,7 @@ class AccountStatementSummaryItemWidget extends StatelessWidget {
           const SizedBox(height: 8),
           FittedBox(
             child: Text(
-              '${numberFormat.format(value)} ر.س',
+              NumberFormatter.formatCurrency(value, symbol: 'ر.س'),
               style: TextStyle(
                 color: color,
                 fontSize: 13,
@@ -100,12 +98,10 @@ class AccountStatementSummaryItemWidget extends StatelessWidget {
 
 class AccountStatementTransactionCardWidget extends StatelessWidget {
   final dynamic transaction;
-  final NumberFormat numberFormat;
 
   const AccountStatementTransactionCardWidget({
     super.key,
     required this.transaction,
-    required this.numberFormat,
   });
 
   @override
@@ -115,7 +111,7 @@ class AccountStatementTransactionCardWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8),
@@ -135,7 +131,7 @@ class AccountStatementTransactionCardWidget extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  '${numberFormat.format(t.balance)} ر.س',
+                  NumberFormatter.formatCurrency(t.balance, symbol: 'ر.س'),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -173,12 +169,12 @@ class AccountStatementTransactionCardWidget extends StatelessWidget {
             child: Row(
               children: [
                 AccountStatementAmountBadgeWidget(
-                  label: 'مدين: ${numberFormat.format(t.debitAmount)}',
+                  label: 'مدين: ${NumberFormatter.formatNumber(t.debitAmount)}',
                   color: Colors.green,
                 ),
                 const SizedBox(width: 10),
                 AccountStatementAmountBadgeWidget(
-                  label: 'دائن: ${numberFormat.format(t.creditAmount)}',
+                  label: 'دائن: ${NumberFormatter.formatNumber(t.creditAmount)}',
                   color: Colors.red,
                 ),
               ],

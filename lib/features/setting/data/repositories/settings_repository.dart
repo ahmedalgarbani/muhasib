@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:sqflite/sqflite.dart';
+import 'package:muhasib/core/database/seeders/settings_seeder.dart';
 import 'package:muhasib/features/setting/domain/models/setting_model.dart';
 
 abstract class ISettingsRepository {
@@ -47,14 +48,11 @@ class SettingsRepository implements ISettingsRepository {
 
   @override
   Future<void> updateSetting(String key, dynamic value) async {
-    final valueString = value is Map || value is List
-        ? jsonEncode(value)
-        : value.toString();
-    
+    final merged = await _mergeWithCurrent(key, value);
     await database.update(
       'settings',
       {
-        'setting_value': valueString,
+        'setting_value': _encodeValue(merged),
         'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       },
       where: 'setting_key = ?',
@@ -65,183 +63,46 @@ class SettingsRepository implements ISettingsRepository {
   @override
   Future<void> updateMultipleSettings(Map<String, dynamic> settings) async {
     final batch = database.batch();
-    
+
     for (final entry in settings.entries) {
-      final valueString = entry.value is Map || entry.value is List
-          ? jsonEncode(entry.value)
-          : entry.value.toString();
-      
+      final merged = await _mergeWithCurrent(entry.key, entry.value);
       batch.update(
         'settings',
         {
-          'setting_value': valueString,
+          'setting_value': _encodeValue(merged),
           'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         },
         where: 'setting_key = ?',
         whereArgs: [entry.key],
       );
     }
-    
+
     await batch.commit();
+  }
+
+  /// Keeps existing fields that the caller did not provide, so partial
+  /// saves never wipe keys from a JSON setting row.
+  Future<dynamic> _mergeWithCurrent(String key, dynamic newValue) async {
+    if (newValue is! Map) {
+      return newValue;
+    }
+    final current = await getSetting(key);
+    if (current is Map) {
+      final merged = Map<String, dynamic>.from(current);
+      merged.addAll(Map<String, dynamic>.from(newValue));
+      return merged;
+    }
+    return newValue;
+  }
+
+  String _encodeValue(dynamic value) {
+    return value is Map || value is List ? jsonEncode(value) : value.toString();
   }
 
   @override
   Future<void> initializeDefaultSettings() async {
-    final currentTime = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    
-    final defaultSettings = [
-      {
-        'creator_id': 1,
-        'last_modifier_id': 1,
-        'creation_time': currentTime,
-        'last_modification_time': currentTime,
-        'setting_key': 'personal_info',
-        'setting_value': jsonEncode({
-          'name': 'حسيب',
-          'address': 'صنعاء',
-          'logoPath': null,
-          'signature': null,
-          'nameFrn': 'Hasib',
-          'AddressFrn': 'Sana\'a',
-          'taxNo': null,
-          'phone': '967782767927',
-          'phoneFrn': '967782767927',
-          'sealingPath': null,
-        }),
-      },
-      {
-        'creator_id': 1,
-        'last_modifier_id': 1,
-        'creation_time': currentTime,
-        'last_modification_time': currentTime,
-        'setting_key': 'initial_setup_done',
-        'setting_value': 'false',
-        'setting_type': 'BOOLEAN',
-        'description': 'Flag that marks whether the onboarding wizard was completed',
-        'category': 'General',
-      },
-      {
-        'creator_id': 1,
-        'last_modifier_id': 1,
-        'creation_time': currentTime,
-        'last_modification_time': currentTime,
-        'setting_key': 'security_info',
-        'setting_value': jsonEncode({
-          'isActive': false,
-          'password': null,
-        }),
-      },
-      {
-        'creator_id': 1,
-        'last_modifier_id': 1,
-        'creation_time': currentTime,
-        'last_modification_time': currentTime,
-        'setting_key': 'printer_info',
-        'setting_value': jsonEncode({
-          'printType': 1,
-          'printSize': 0,
-          'printerConnect': 1,
-          'showHeaderData': true,
-          'repateHeaderInAllPages': true,
-          'showDate': false,
-          'showTime': false,
-          'showSignatureAndSealingInVoucher': 2,
-          'showSignatureAndSealingInInvoice': 2,
-          'showSignatureAndSealingInJournal': 2,
-          'tafqeetAmount': false,
-          'showHeaderCompanyName': true,
-          'showHeaderCompanyAddress': true,
-          'showHeaderCompanyPhone': true,
-          'printFontType': 'assets/fonts/Alexandria-Regular.ttf',
-        }),
-      },
-      {
-        'creator_id': 1,
-        'last_modifier_id': 1,
-        'creation_time': currentTime,
-        'last_modification_time': currentTime,
-        'setting_key': 'other_setting',
-        'setting_value': jsonEncode({
-          'dateFormat': 0,
-          'timeFormat': 0,
-          'decimalNoInput': 7,
-          'decimalNoOutput': 2,
-          'debit': 'مدين',
-          'credit': 'دائن',
-          'showStockModule': true,
-          'showAccountantAdvanceModule': true,
-          'updateCostAmountType': 2,
-          'showTaxModule': false,
-          'homeScrrenType': 1,
-          'useMiniHasib': false,
-          'showBackupNotifyWhenCloseApp': true,
-          'fontScale': 1,
-        }),
-      },
-      {
-        'creator_id': 1,
-        'last_modifier_id': 1,
-        'creation_time': currentTime,
-        'last_modification_time': currentTime,
-        'setting_key': 'voucher_setting',
-        'setting_value': jsonEncode({
-          'paymentVoucherLine1': 'الاخ',
-          'paymentVoucherLine2': 'عليكم مبلغ',
-          'receiptVoucherVoucherLine1': 'الاخ',
-          'receiptVoucherVoucherLine2': 'لكم مبلغ',
-          'paymentVoucherSignature': true,
-          'paymentVoucherFirstSignature': 'المستلم',
-          'paymentVoucherSecondSignature': 'مدير الحسابات',
-          'paymentVoucherThirdSignature': 'الصندوق',
-          'paymentVoucherFourthSignature': 'المدير العام',
-          'receiptVoucherSignature': true,
-          'receiptVoucherFirstSignature': 'المستلم',
-          'receiptVoucherSecondSignature': 'مدير الحسابات',
-          'receiptVoucherThirdSignature': 'الصندوق',
-          'receiptVoucherFourthSignature': 'المدير العام',
-          'notesInBotton': null,
-          'allowMultiCurrencyInVoucher': false,
-          'showAccountBalanceInVoucher': false,
-          'checkFundAndBankBalanceEnabledInVoucher': false,
-        }),
-      },
-      {
-        'creator_id': 1,
-        'last_modifier_id': 1,
-        'creation_time': currentTime,
-        'last_modification_time': currentTime,
-        'setting_key': 'stock_setting',
-        'setting_value': jsonEncode({
-          'allowReturnWithoutInvoice': true,
-          'showCustomerBalanceInInvoice': false,
-          'showMonetaryInvoiceInCustomerAccount': true,
-          'preventWhenSaleLessThanCost': true,
-          'showCoseAmountInInvoice': true,
-          'showCustomPhoneInInvoice': true,
-          'showCostAmountInCategoryWhenAddInvoice': true,
-          'showCostAmountInCategoryWhenAddInvoicePOS': false,
-          'checkFundAndBankBalanceEnabledInInvoice': false,
-          'isStockNegativeAllowed': false,
-        }),
-      },
-      {
-        'creator_id': 1,
-        'last_modifier_id': 1,
-        'creation_time': currentTime,
-        'last_modification_time': currentTime,
-        'setting_key': 'backup_settings',
-        'setting_value': jsonEncode({
-          'deviceSaveMethod': 1,
-          'deviceSaveTime': null,
-          'driveSaveMethod': 0,
-          'hours': 24,
-          'driveHours': 24,
-        }),
-      },
-    ];
-
     final batch = database.batch();
-    for (final setting in defaultSettings) {
+    for (final setting in SettingsSeeder.defaultSettings) {
       batch.insert(
         'settings',
         setting,

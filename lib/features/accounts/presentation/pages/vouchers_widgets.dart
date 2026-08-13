@@ -2,14 +2,12 @@ part of 'vouchers_page.dart';
 
 class _VoucherListItem extends StatelessWidget {
   final VoucherEntity voucher;
-  final intl.NumberFormat numberFormat;
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   const _VoucherListItem({
     required this.voucher,
-    required this.numberFormat,
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
@@ -23,7 +21,7 @@ class _VoucherListItem extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(
@@ -78,7 +76,7 @@ class _VoucherListItem extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    numberFormat.format(voucher.amount),
+                    NumberFormatter.formatNumber(voucher.amount),
                     style: TextStyle(
                       color: color,
                       fontWeight: FontWeight.bold,
@@ -115,7 +113,7 @@ class _VoucherListItem extends StatelessWidget {
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    intl.DateFormat('yyyy/MM/dd').format(voucher.date),
+                    DateFormatter.formatDate(voucher.date),
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
                   ),
                 ],
@@ -158,11 +156,9 @@ class _VoucherListItem extends StatelessWidget {
 
 class _VoucherDetailsSheet extends StatelessWidget {
   final VoucherEntity voucher;
-  final intl.NumberFormat numberFormat;
 
   const _VoucherDetailsSheet({
     required this.voucher,
-    required this.numberFormat,
   });
 
   @override
@@ -177,9 +173,9 @@ class _VoucherDetailsSheet extends StatelessWidget {
         maxChildSize: 0.95,
         minChildSize: 0.5,
         builder: (context, scrollController) => Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl30)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.xl30)),
           ),
           child: Column(
             children: [
@@ -188,7 +184,7 @@ class _VoucherDetailsSheet extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(AppRadius.xxs),
                 ),
               ),
@@ -221,7 +217,6 @@ class _VoucherDetailsSheet extends StatelessWidget {
                     VoucherInfoCardWidget(
                       voucher: voucher,
                       color: color,
-                      numberFormat: numberFormat,
                     ),
                     const SizedBox(height: 24),
                     const Text(
@@ -237,7 +232,6 @@ class _VoucherDetailsSheet extends StatelessWidget {
                         (line) => VoucherLineItemWidget(
                           line: line,
                           color: color,
-                          numberFormat: numberFormat,
                         ),
                       )
                     else
@@ -259,13 +253,11 @@ class _VoucherDetailsSheet extends StatelessWidget {
 class VoucherInfoCardWidget extends StatelessWidget {
   final VoucherEntity voucher;
   final Color color;
-  final intl.NumberFormat numberFormat;
 
   const VoucherInfoCardWidget({
     super.key,
     required this.voucher,
     required this.color,
-    required this.numberFormat,
   });
 
   @override
@@ -287,7 +279,7 @@ class VoucherInfoCardWidget extends StatelessWidget {
           const SizedBox(height: 12),
           _DetailRow(
             label: 'تاريخ السند',
-            value: intl.DateFormat('yyyy/MM/dd').format(voucher.date),
+            value: DateFormatter.formatDate(voucher.date),
             icon: Icons.calendar_today,
           ),
           const SizedBox(height: 12),
@@ -306,7 +298,7 @@ class VoucherInfoCardWidget extends StatelessWidget {
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
               ),
               Text(
-                numberFormat.format(voucher.amount),
+                NumberFormatter.formatNumber(voucher.amount),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 24,
@@ -324,13 +316,11 @@ class VoucherInfoCardWidget extends StatelessWidget {
 class VoucherLineItemWidget extends StatelessWidget {
   final VoucherLineEntity line;
   final Color color;
-  final intl.NumberFormat numberFormat;
 
   const VoucherLineItemWidget({
     super.key,
     required this.line,
     required this.color,
-    required this.numberFormat,
   });
 
   @override
@@ -339,9 +329,9 @@ class VoucherLineItemWidget extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: Theme.of(context).dividerColor),
       ),
       child: Row(
         children: [
@@ -365,7 +355,7 @@ class VoucherLineItemWidget extends StatelessWidget {
             ),
           ),
           Text(
-            numberFormat.format(line.amount ?? 0),
+            NumberFormatter.formatNumber(line.amount ?? 0),
             style: TextStyle(fontWeight: FontWeight.bold, color: color),
           ),
         ],
@@ -382,7 +372,7 @@ class VoucherSingleLineItemWidget extends StatelessWidget {
     return Container(
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
       child: const Text(

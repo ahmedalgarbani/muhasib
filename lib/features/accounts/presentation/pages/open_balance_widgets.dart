@@ -48,9 +48,9 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
   Widget build(BuildContext context) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppRadius.xl30),
         ),
       ),
@@ -61,7 +61,7 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppRadius.xxs),
             ),
           ),
@@ -164,9 +164,9 @@ class OpenBalanceAccountPickerWidget extends StatelessWidget {
       child: Container(
         padding: AppConstant.defaultPadding,
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           children: [
@@ -175,7 +175,9 @@ class OpenBalanceAccountPickerWidget extends StatelessWidget {
             Text(
               selectedAccount?.name ?? 'اضغط لاختيار الحساب المالي...',
               style: TextStyle(
-                color: selectedAccount == null ? Colors.grey : Colors.black87,
+                color: selectedAccount == null
+                    ? Colors.grey
+                    : Theme.of(context).colorScheme.onSurface,
                 fontWeight: selectedAccount != null
                     ? FontWeight.bold
                     : FontWeight.normal,
@@ -254,7 +256,9 @@ class OpenBalanceTypeButtonWidget extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? color.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: active ? color : Colors.grey.shade300),
+          border: Border.all(
+            color: active ? color : Theme.of(context).dividerColor,
+          ),
         ),
         child: Center(
           child: Text(
@@ -292,9 +296,9 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector> {
       textDirection: ui.TextDirection.rtl,
       child: Container(
         height: MediaQuery.of(context).size.height * 0.8,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppRadius.xl30),
           ),
         ),

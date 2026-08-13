@@ -28,6 +28,7 @@ class CustomListTileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return CustomCardContainer(
       onTap: onTap,
       child: Row(
@@ -45,10 +46,10 @@ class CustomListTileCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 15,
-                          color: AppColors.textPrimary,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ),
@@ -59,9 +60,9 @@ class CustomListTileCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle!,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 13,
-                      color: AppColors.textSecondary,
+                      color: colorScheme.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -73,7 +74,10 @@ class CustomListTileCard extends StatelessWidget {
             trailing!,
           ] else if (onEdit != null || onDelete != null) ...[
             PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: AppColors.textSecondary),
+              icon: Icon(
+                Icons.more_vert,
+                color: colorScheme.onSurfaceVariant,
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),

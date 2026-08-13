@@ -23,7 +23,7 @@ class InvoiceReportSummaryCardWidget extends StatelessWidget {
       margin: const EdgeInsets.only(left: 12),
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
         boxShadow: [
           BoxShadow(
@@ -209,7 +209,7 @@ class InvoiceReportCardWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         boxShadow: [
           BoxShadow(

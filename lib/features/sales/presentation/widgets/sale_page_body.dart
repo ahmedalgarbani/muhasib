@@ -58,7 +58,7 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: BlocBuilder<SalesCubit, SalesState>(
         builder: (context, state) {
           if (state is SalesLoading) {
@@ -261,8 +261,10 @@ class BillsHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -297,7 +299,7 @@ class BillsHeader extends StatelessWidget {
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Theme.of(context).colorScheme.surface,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
@@ -310,7 +312,7 @@ class BillsHeader extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     backgroundColor: isFilterOpen
                         ? AppColors.blue50
-                        : Colors.white,
+                        : Theme.of(context).colorScheme.surface,
                   ),
                   icon: const Icon(Icons.filter_list, size: 20),
                   label: const Text('فلتر'),
@@ -337,7 +339,7 @@ class FilterPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       padding: AppConstant.defaultPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -446,7 +448,7 @@ class BillCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(

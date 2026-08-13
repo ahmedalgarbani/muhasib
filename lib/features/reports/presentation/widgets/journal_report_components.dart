@@ -101,7 +101,7 @@ class JournalEntryCardWidget extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: Colors.grey[200]!),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [
@@ -146,7 +146,9 @@ class JournalEntryCardWidget extends StatelessWidget {
             (l) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey[100]!)),
+                border: Border(
+                  bottom: BorderSide(color: Theme.of(context).dividerColor),
+                ),
               ),
               child: Row(
                 children: [
@@ -180,7 +182,7 @@ class JournalEntryCardWidget extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: const BorderRadius.vertical(
                 bottom: Radius.circular(AppRadius.lg),
               ),

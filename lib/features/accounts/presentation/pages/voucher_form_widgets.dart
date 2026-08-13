@@ -13,9 +13,9 @@ class _AccountPickerField extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade50,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: Theme.of(context).dividerColor),
         ),
         child: Row(
           children: [
@@ -26,7 +26,7 @@ class _AccountPickerField extends StatelessWidget {
                 selectedAccountName ?? 'اختر الحساب من القائمة...',
                 style: TextStyle(
                   color: selectedAccountName != null
-                      ? Colors.black87
+                      ? Theme.of(context).colorScheme.onSurface
                       : Colors.grey,
                   fontWeight: selectedAccountName != null
                       ? FontWeight.bold
@@ -76,9 +76,9 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
       textDirection: ui.TextDirection.rtl,
       child: Container(
         height: MediaQuery.of(context).size.height * 0.8,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: const BorderRadius.vertical(
             top: Radius.circular(AppRadius.xl),
           ),
         ),
@@ -89,7 +89,7 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.grey.shade300,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppRadius.xxs),
               ),
             ),

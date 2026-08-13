@@ -52,16 +52,18 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
       child: Column(
         children: [
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: const BoxDecoration(
-              border: Border(bottom: BorderSide(color: AppColors.grey200)),
+            decoration: BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Theme.of(context).dividerColor),
+              ),
             ),
             child: Column(
               children: [
@@ -117,7 +119,7 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
                           padding: const EdgeInsets.all(AppSpacing.md),
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: AppColors.grey200,
+                              color: Theme.of(context).dividerColor,
                               width: 2,
                             ),
                             borderRadius: BorderRadius.circular(AppRadius.md),

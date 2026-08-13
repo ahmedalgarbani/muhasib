@@ -26,7 +26,8 @@ class EmptyStateWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final defaultIconColor = iconColor ?? Colors.grey[300];
+    final colorScheme = Theme.of(context).colorScheme;
+    final defaultIconColor = iconColor ?? colorScheme.outlineVariant;
 
     return Center(
       child: Padding(
@@ -48,7 +49,7 @@ class EmptyStateWidget extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                color: colorScheme.onSurface,
               ),
             ),
             if (subtitle != null && subtitle!.isNotEmpty) ...[
@@ -58,7 +59,7 @@ class EmptyStateWidget extends StatelessWidget {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[500],
+                  color: colorScheme.onSurfaceVariant,
                 ),
               ),
             ],

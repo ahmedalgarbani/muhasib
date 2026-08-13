@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -50,12 +49,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     _phoneController = TextEditingController(
       text: personalInfo['phone'] ?? '967782767927',
     );
-    _emailController = TextEditingController(text: personalInfo['email'] ?? '');
+    _emailController = TextEditingController(
+      text: personalInfo['company_email'] ?? '',
+    );
     _taxNumberController = TextEditingController(
       text: personalInfo['taxNo'] ?? '',
     );
     _commercialRegisterController = TextEditingController(
-      text: personalInfo['commercialRegister'] ?? '',
+      text: personalInfo['company_commercial_register'] ?? '',
     );
   }
 
@@ -80,12 +81,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       'address': _addressArController.text,
       'AddressFrn': _addressEnController.text,
       'phone': _phoneController.text,
-      'email': _emailController.text,
+      'company_email': _emailController.text,
       'taxNo': _taxNumberController.text,
-      'commercialRegister': _commercialRegisterController.text,
-      'logoPath': null,
-      'signature': null,
-      'sealingPath': null,
+      'company_commercial_register': _commercialRegisterController.text,
     };
 
     await cubit.updateSetting('personal_info', personalInfo);
@@ -98,7 +96,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.neutral100,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(title: 'البيانات الشخصية'),
       body: BlocBuilder<SettingsCubit, SettingsState>(
         builder: (context, state) {

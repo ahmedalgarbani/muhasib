@@ -46,7 +46,7 @@ class _CashboxesViewState extends State<_CashboxesView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'الصناديق المالية',
         actions: [

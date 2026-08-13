@@ -37,7 +37,9 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
-          color: hasReturn ? Colors.orange.shade200 : Colors.grey.shade200,
+          color: hasReturn
+              ? Colors.orange.shade200
+              : Theme.of(context).dividerColor,
         ),
       ),
       child: InkWell(
@@ -162,7 +164,9 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.gray100,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
                     ),
                     child: Row(

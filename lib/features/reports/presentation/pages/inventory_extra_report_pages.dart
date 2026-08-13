@@ -5,7 +5,7 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
@@ -203,7 +203,7 @@ class _StockMovementsContent extends StatelessWidget {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.lg),
-                      side: BorderSide(color: Colors.grey[100]!),
+                      side: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
@@ -340,7 +340,6 @@ class _StockValuationContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fmt = NumberFormat('#,##0.00', 'ar');
     return FutureBuilder<List<_ValuationRow>>(
       future: _load(),
       builder: (context, snapshot) {
@@ -354,7 +353,9 @@ class _StockValuationContent extends StatelessWidget {
               cards: [
                 ReportSummaryCard(
                   title: 'إجمالي القيمة',
-                  value: fmt.format(rows.fold(0.0, (s, r) => s + r.value)),
+                  value: NumberFormatter.formatNumber(
+                    rows.fold(0.0, (s, r) => s + r.value),
+                  ),
                   icon: Icons.account_balance_wallet,
                   color: Colors.purple,
                 ),
@@ -371,7 +372,7 @@ class _StockValuationContent extends StatelessWidget {
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.lg),
-                      side: BorderSide(color: Colors.grey[100]!),
+                      side: BorderSide(color: Theme.of(context).dividerColor),
                     ),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ListTile(
@@ -387,7 +388,7 @@ class _StockValuationContent extends StatelessWidget {
                         style: const TextStyle(fontSize: 10),
                       ),
                       trailing: Text(
-                        '${fmt.format(r.value)} ر.س',
+                        NumberFormatter.formatCurrency(r.value, symbol: 'ر.س'),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Colors.purple,

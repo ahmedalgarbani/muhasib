@@ -45,7 +45,7 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
   Widget build(BuildContext context) => Directionality(
     textDirection: TextDirection.rtl,
     child: Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: CustomAppBar(
         title: 'تحويل العملات',
         actions: [

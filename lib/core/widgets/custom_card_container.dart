@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
 
@@ -52,14 +51,19 @@ class CustomCardContainer extends StatelessWidget {
     final cardContent = Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: backgroundColor ?? color ?? Colors.white,
+        color:
+            backgroundColor ?? color ?? Theme.of(context).colorScheme.surface,
         borderRadius: inkBorderRadius,
         border: roundedShape?.side != BorderSide.none
             ? Border.fromBorderSide(
                 roundedShape?.side ??
-                    BorderSide(color: borderColor ?? AppColors.gray200),
+                    BorderSide(
+                      color: borderColor ?? Theme.of(context).dividerColor,
+                    ),
               )
-            : Border.all(color: borderColor ?? AppColors.gray200),
+            : Border.all(
+                color: borderColor ?? Theme.of(context).dividerColor,
+              ),
         boxShadow: elevation > 0
             ? [
                 BoxShadow(

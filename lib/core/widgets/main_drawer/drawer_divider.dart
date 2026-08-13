@@ -7,7 +7,7 @@ class DrawerDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       height: 2,
-      color: Colors.grey[50],
+      color: Theme.of(context).dividerColor,
     );
   }
 }

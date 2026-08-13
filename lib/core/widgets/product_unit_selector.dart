@@ -113,10 +113,15 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: Theme.of(context).dividerColor),
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
-        child: const Text('وحدة', style: TextStyle(color: Colors.grey)),
+        child: Text(
+          'وحدة',
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
       );
     }
 
@@ -125,7 +130,7 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
       return Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Text(
@@ -152,7 +157,7 @@ class _ProductUnitSelectorState extends State<ProductUnitSelector> {
                       '(${unit.packaging})',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
@@ -21,12 +21,11 @@ class PurchaseOrderCard extends StatelessWidget {
 
   String _formatDate(int timestamp) {
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    return DateFormat('yyyy-MM-dd').format(date);
+    return DateFormatter.formatDate(date);
   }
 
   String _formatCurrency(double amount) {
-    final formatter = NumberFormat('#,##0.00', 'ar');
-    return '${formatter.format(amount)} ريال';
+    return NumberFormatter.formatCurrency(amount);
   }
 
   @override

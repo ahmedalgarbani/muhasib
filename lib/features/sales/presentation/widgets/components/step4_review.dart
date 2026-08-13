@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -88,8 +89,8 @@ class Step4Review extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: AppColors.grey200),
+                    color: Theme.of(context).colorScheme.surface,
+                    border: Border.all(color: Theme.of(context).dividerColor),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
 
@@ -101,7 +102,7 @@ class Step4Review extends StatelessWidget {
                       const Divider(height: AppSpacing.lg),
                       ReviewInfoRowWidget(
                         label: 'التاريخ',
-                        value: invoice.date.toString().split(' ')[0],
+                        value: DateFormatter.formatDate(invoice.date),
                       ),
                       const Divider(height: AppSpacing.lg),
                       ReviewInfoRowWidget(
@@ -113,6 +114,15 @@ class Step4Review extends StatelessWidget {
                         label: 'المجموع الفرعي',
                         value: NumberFormatter.formatCurrency(invoice.subtotal),
                       ),
+                      if (SettingsCache.taxEnabled) ...[
+                        const Divider(height: AppSpacing.lg),
+                        ReviewInfoRowWidget(
+                          label: SettingsCache.taxName,
+                          value: NumberFormatter.formatCurrency(
+                            invoice.taxAmount,
+                          ),
+                        ),
+                      ],
                       if (invoice.discountAmount > 0) ...[
                         const Divider(height: AppSpacing.lg),
                         ReviewInfoRowWidget(
@@ -304,9 +314,11 @@ class Step4Review extends StatelessWidget {
         // Bottom Buttons
         Container(
           padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: AppColors.grey200)),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            border: Border(
+              top: BorderSide(color: Theme.of(context).dividerColor),
+            ),
           ),
           child: Row(
             children: [

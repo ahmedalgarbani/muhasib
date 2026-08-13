@@ -5,6 +5,7 @@ import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
@@ -59,7 +60,7 @@ class _VouchersPageState extends State<VouchersPage>
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: AppColors.background,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         appBar: CustomAppBar(
           title: 'سندات القبض والصرف',
           actions: [
@@ -104,7 +105,6 @@ class _VouchersPageState extends State<VouchersPage>
                   itemBuilder: (context, index) {
                     return _VoucherListItem(
                       voucher: vouchers[index],
-                      numberFormat: _numberFormat,
                       onTap: () => _showVoucherDetails(vouchers[index]),
                       onEdit: () => _onEditVoucher(vouchers[index]),
                       onDelete: () => _onDeleteVoucher(vouchers[index]),
@@ -204,8 +204,7 @@ class _VouchersPageState extends State<VouchersPage>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) =>
-          _VoucherDetailsSheet(voucher: voucher, numberFormat: _numberFormat),
+      builder: (context) => _VoucherDetailsSheet(voucher: voucher),
     );
   }
 

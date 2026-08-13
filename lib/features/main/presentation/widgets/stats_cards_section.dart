@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/features/main/presentation/widgets/stats_card.dart';
 
 class StatsCardsSection extends StatelessWidget {
-  const StatsCardsSection({super.key});
+  final int customersCount;
+  final int suppliersCount;
+
+  const StatsCardsSection({
+    super.key,
+    required this.customersCount,
+    required this.suppliersCount,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,16 +22,16 @@ class StatsCardsSection extends StatelessWidget {
             child: StatsCard(
               icon: Icons.people,
               title: 'الزبائن',
-              value: '156',
-              subtitle: '45 زبون نشط',
+              value: '$customersCount',
+              subtitle: '$customersCount زبون مسجل',
             ),
           ),
           Expanded(
             child: StatsCard(
               icon: Icons.handshake,
               title: 'الموردين',
-              value: '89',
-              subtitle: '23 مورد نشط',
+              value: '$suppliersCount',
+              subtitle: '$suppliersCount مورد مسجل',
             ),
           ),
         ],

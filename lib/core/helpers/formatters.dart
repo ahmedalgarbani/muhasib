@@ -1,14 +1,26 @@
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 
 class NumberFormatter {
+  static NumberFormat get _formatter {
+    final decimals = SettingsCache.decimalNoOutput;
+    final arabicSeparators = SettingsCache.decimalSeparator == '،';
+    final locale = arabicSeparators ? 'ar' : 'en_US';
+    if (decimals <= 0) {
+      return NumberFormat('#,##0', locale);
+    }
+    return NumberFormat(
+      '#,##0.${'0' * decimals}',
+      locale,
+    );
+  }
+
   static String formatCurrency(double amount, {String symbol = 'ريال'}) {
-    final formatter = NumberFormat('#,##0', 'ar');
-    return '${formatter.format(amount)} $symbol';
+    return '${_formatter.format(amount)} $symbol';
   }
 
   static String formatNumber(double number) {
-    final formatter = NumberFormat('#,##0.##', 'ar');
-    return formatter.format(number);
+    return _formatter.format(number);
   }
 
   static String formatPercentage(double value) {
@@ -17,12 +29,27 @@ class NumberFormatter {
 }
 
 class DateFormatter {
+  static String get _datePattern {
+    switch (SettingsCache.dateFormat) {
+      case 1:
+        return 'yyyy - MM - dd';
+      case 2:
+        return 'MM - dd - yyyy';
+      default:
+        return 'dd - MM - yyyy';
+    }
+  }
+
+  static String get _timePattern {
+    return SettingsCache.timeFormat == 1 ? 'HH:mm' : 'hh:mm a';
+  }
+
   static String formatDate(DateTime date) {
-    return DateFormat('yyyy-MM-dd', 'ar').format(date);
+    return DateFormat(_datePattern, 'ar').format(date);
   }
 
   static String formatDateTime(DateTime date) {
-    return DateFormat('yyyy-MM-dd HH:mm', 'ar').format(date);
+    return DateFormat('$_datePattern $_timePattern', 'ar').format(date);
   }
 
   static String formatRelativeDate(DateTime date) {

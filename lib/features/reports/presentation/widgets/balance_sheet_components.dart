@@ -67,7 +67,7 @@ class BalanceSheetSectionWidget extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: Colors.grey[200]!),
+        side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Column(
         children: [

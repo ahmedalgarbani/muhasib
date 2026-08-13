@@ -20,8 +20,10 @@ class ProductGroupsHeaderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        color: Theme.of(context).colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(color: Theme.of(context).dividerColor),
+        ),
       ),
       padding: AppConstant.defaultPadding,
       child: Column(
@@ -42,7 +44,7 @@ class ProductGroupsHeaderWidget extends StatelessWidget {
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search, color: Colors.grey),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: BorderSide(color: Colors.grey.shade300),
@@ -84,7 +86,7 @@ class ProductGroupsListWidget extends StatelessWidget {
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
+            side: BorderSide(color: Theme.of(context).dividerColor),
           ),
           child: ListTile(
             leading: Container(

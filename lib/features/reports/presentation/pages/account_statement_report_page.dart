@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -134,8 +134,6 @@ class _AccountStatementContent extends StatefulWidget {
 }
 
 class _AccountStatementContentState extends State<_AccountStatementContent> {
-  final _numberFormat = NumberFormat('#,##0.00', 'ar');
-
   @override
   void initState() {
     super.initState();
@@ -205,7 +203,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                       child: ReportKpiCard(
                         title: 'رصيد أول الفترة',
                         value:
-                            '${_numberFormat.format(summary.openingBalance)} ر.س',
+                            NumberFormatter.formatCurrency(summary.openingBalance, symbol: 'ر.س'),
                         icon: Icons.history,
                         color: Colors.blue[700]!,
                         subtitle: 'الافتتاحي المنقول',
@@ -216,7 +214,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                       child: ReportKpiCard(
                         title: 'إجمالي الحركات المدينة',
                         value:
-                            '${_numberFormat.format(summary.totalDebits)} ر.س',
+                            NumberFormatter.formatCurrency(summary.totalDebits, symbol: 'ر.س'),
                         icon: Icons.arrow_upward,
                         color: Colors.green[700]!,
                         subtitle: 'مقبوضات / مدين',
@@ -227,7 +225,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                       child: ReportKpiCard(
                         title: 'إجمالي الحركات الدائنة',
                         value:
-                            '${_numberFormat.format(summary.totalCredits)} ر.س',
+                            NumberFormatter.formatCurrency(summary.totalCredits, symbol: 'ر.س'),
                         icon: Icons.arrow_downward,
                         color: Colors.red[700]!,
                         subtitle: 'مدفوعات / دائن',
@@ -238,7 +236,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                       child: ReportKpiCard(
                         title: 'الرصيد الختامي الصافي',
                         value:
-                            '${_numberFormat.format(summary.closingBalance)} ر.س',
+                            NumberFormatter.formatCurrency(summary.closingBalance, symbol: 'ر.س'),
                         icon: Icons.account_balance_wallet,
                         color: Colors.purple[700]!,
                         subtitle: 'الرصيد المستحق الحالي',
@@ -257,7 +255,6 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                   itemBuilder: (context, index) =>
                       AccountStatementTransactionCardWidget(
                     transaction: transactions[index],
-                    numberFormat: _numberFormat,
                   ),
                 ),
               ),

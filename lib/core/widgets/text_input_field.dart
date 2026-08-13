@@ -76,6 +76,8 @@ class TextInputField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final dividerColor = Theme.of(context).dividerColor;
     final effectiveController = controller ?? textEditingController;
     final effectiveInitialValue = effectiveController == null
         ? initialValue
@@ -83,35 +85,43 @@ class TextInputField extends StatelessWidget {
     final effectiveKeyboardType = keyboardType ?? inputType;
 
     final defaultFillColor = enabled
-        ? (readOnly ? AppColors.slate100 : AppColors.surface)
-        : AppColors.slate100.withValues(alpha: 0.6);
+        ? (readOnly
+              ? colorScheme.surfaceContainerHighest
+              : colorScheme.surface)
+        : colorScheme.surfaceContainerHighest.withValues(alpha: 0.6);
 
-    final defaultBorderColor = borderColor ?? AppColors.slate200;
+    final defaultBorderColor = borderColor ?? dividerColor;
     final defaultFocusColor = focusBorderColor ?? AppColors.primary;
 
     final defaultStyle = TextStyle(
       fontSize: 14.5,
       fontWeight: FontWeight.w500,
-      color: enabled ? AppColors.slate900 : AppColors.slate400,
+      color: enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant,
       height: 1.4,
     );
 
     final defaultHintStyle = TextStyle(
       fontSize: 14.0,
       fontWeight: FontWeight.w400,
-      color: AppColors.slate400,
+      color: colorScheme.onSurfaceVariant,
     );
 
     final defaultPrefixIcon = prefixIcon != null
         ? IconTheme(
-            data: const IconThemeData(color: AppColors.slate500, size: 20),
+            data: IconThemeData(
+              color: colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
             child: prefixIcon!,
           )
         : null;
 
     final defaultSuffixIcon = suffixIcon != null
         ? IconTheme(
-            data: const IconThemeData(color: AppColors.slate500, size: 20),
+            data: IconThemeData(
+              color: colorScheme.onSurfaceVariant,
+              size: 20,
+            ),
             child: suffixIcon!,
           )
         : null;
@@ -123,14 +133,14 @@ class TextInputField extends StatelessWidget {
         if (label.isNotEmpty) ...[
           Padding(
             padding: const EdgeInsets.only(bottom: 6.0),
-            child: RichText(
-              text: TextSpan(
-                style: const TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.slate800,
-                  letterSpacing: 0.1,
-                ),
+              child: RichText(
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
+                    letterSpacing: 0.1,
+                  ),
                 children: [
                   TextSpan(text: label),
                   if (isRequired)
@@ -218,7 +228,7 @@ class TextInputField extends StatelessWidget {
                 disabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   borderSide: BorderSide(
-                    color: AppColors.slate200.withValues(alpha: 0.5),
+                    color: dividerColor.withValues(alpha: 0.5),
                     width: 1.0,
                   ),
                 ),

@@ -36,13 +36,13 @@ class CurrenciesListWidget extends StatelessWidget {
             leading: CircleAvatar(
               backgroundColor: currency.isLocalCurrency
                   ? AppColors.primary.withValues(alpha: 0.1)
-                  : AppColors.gray200,
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Text(
                 currency.symbol ?? currency.code,
                 style: TextStyle(
                   color: currency.isLocalCurrency
                       ? AppColors.primary
-                      : AppColors.textPrimary,
+                      : Theme.of(context).colorScheme.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
               ),

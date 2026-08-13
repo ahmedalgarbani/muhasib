@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/route/route_names.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/main/presentation/widgets/quick_access_item.dart';
 
@@ -13,9 +12,9 @@ class QuickAccessSection extends StatelessWidget {
       margin: const EdgeInsets.all(8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: AppColors.gray200),
+        border: Border.all(color: Theme.of(context).dividerColor),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),

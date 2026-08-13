@@ -16,7 +16,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: const CustomAppBarAccountDetail(onMenuPressed: null),
       body: Column(
         children: [
@@ -26,7 +26,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
               child: Column(
                 children: [
                   Container(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     padding: const EdgeInsets.all(8),
                     child: Column(
                       children: [
@@ -82,7 +82,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    color: Colors.white,
+                    color: Theme.of(context).colorScheme.surface,
                     padding: const EdgeInsets.symmetric(
                       vertical: 8,
                       horizontal: 8,
@@ -148,8 +148,7 @@ class AccountDropdownFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
       itemHeight: 48.0,
-      icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
-      items: const [],
+      icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface),      items: const [],
       onChanged: (a) {},
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
@@ -208,9 +207,9 @@ class AccountDateFieldWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: Theme.of(context).dividerColor),
         borderRadius: BorderRadius.circular(AppRadius.xs),
-        color: Colors.grey[50],
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -246,7 +245,7 @@ class AccountOldTransactionItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,9 +268,9 @@ class AccountOldTransactionItemWidget extends StatelessWidget {
                     onPressed: () {},
                   ),
                   IconButton(
-                    icon: const Icon(
+                    icon: Icon(
                       Icons.share,
-                      color: Colors.black,
+                      color: Theme.of(context).colorScheme.onSurface,
                       size: 20,
                     ),
                     onPressed: () {},
@@ -317,7 +316,7 @@ class BottomCollectionDataCalculator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: Colors.white,
+      color: Theme.of(context).colorScheme.surface,
       padding: const EdgeInsets.all(10),
       child: Column(
         children: [
@@ -351,24 +350,24 @@ class CustomAppBarAccountDetail extends StatelessWidget
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       title: const Text(
         'حسيب',
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
       actions: [
         IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.search_outlined,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             size: 20,
           ),
           onPressed: () {},
         ),
         IconButton(
-          icon: const Icon(
+          icon: Icon(
             Icons.filter_alt_off_rounded,
-            color: Colors.black,
+            color: Theme.of(context).colorScheme.onSurface,
             size: 20,
           ),
           onPressed: () {},

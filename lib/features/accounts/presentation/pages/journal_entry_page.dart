@@ -272,7 +272,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
           }
         },
         child: Scaffold(
-          backgroundColor: Colors.grey.shade100,
+          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
           appBar: CustomAppBar(title: 'القيود اليومية'),
           floatingActionButton: FloatingActionButton(
             onPressed: () => _showEntryDialog(),

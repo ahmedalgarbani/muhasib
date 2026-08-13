@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/features/setting/data/repositories/settings_repository.dart';
 import 'settings_state.dart';
 
@@ -14,6 +15,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     try {
       emit(SettingsLoading());
       _settings = await repository.getAllSettings();
+      SettingsCache.update(_settings);
       emit(SettingsLoaded(settings: _settings));
     } catch (e) {
       emit(SettingsError('Failed to load settings: $e'));
@@ -24,6 +26,7 @@ class SettingsCubit extends Cubit<SettingsState> {
     try {
       await repository.updateSetting(key, value);
       _settings[key] = value;
+      SettingsCache.update(_settings);
       emit(SettingUpdated(key: key, value: value));
       emit(SettingsLoaded(settings: _settings));
     } catch (e) {
@@ -36,6 +39,7 @@ class SettingsCubit extends Cubit<SettingsState> {
       emit(SettingsLoading());
       await repository.updateMultipleSettings(settings);
       _settings.addAll(settings);
+      SettingsCache.update(_settings);
       emit(SettingsLoaded(settings: _settings));
     } catch (e) {
       emit(SettingsError('Failed to update settings: $e'));
@@ -78,6 +82,11 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Map<String, dynamic> getBackupSettings() {
     final info = getSetting('backup_settings', defaultValue: {});
+    return info is Map<String, dynamic> ? info : {};
+  }
+
+  Map<String, dynamic> getPosSettings() {
+    final info = getSetting('pos_setting', defaultValue: {});
     return info is Map<String, dynamic> ? info : {};
   }
 
