@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
-import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page.dart';
-import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
+import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page.dart';
+import 'package:muhasib/features/purchases/presentation/widgets/purchase_order_card.dart';
+import 'package:muhasib/features/purchases/presentation/widgets/purchase_orders_header.dart';
+import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
   const PurchaseOrdersPage({super.key});
@@ -40,10 +39,14 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
         builder: (innerContext) => Scaffold(
           key: _scaffoldKey,
           backgroundColor: AppColors.gray50,
-          appBar: CustomAppBar(),
+          appBar: const CustomAppBar(),
           body: Column(
             children: [
-              _buildHeader(innerContext),
+              PurchaseOrdersHeader(
+                searchController: _searchController,
+                onRefresh: () =>
+                    innerContext.read<PurchasesCubit>().loadPurchaseOrders(),
+              ),
               Expanded(
                 child: BlocBuilder<PurchasesCubit, PurchasesState>(
                   builder: (context, state) {
@@ -98,7 +101,22 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                           },
                         );
                       }
-                      return _buildOrdersList(innerContext, state.orders);
+                      return RefreshIndicator(
+                        onRefresh: () async {
+                          innerContext.read<PurchasesCubit>().loadPurchaseOrders();
+                        },
+                        child: ListView.builder(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: state.orders.length,
+                          itemBuilder: (context, index) {
+                            final order = state.orders[index];
+                            return PurchaseOrderCard(
+                              order: order,
+                              onConvert: () => _showConvertDialog(innerContext, order),
+                            );
+                          },
+                        ),
+                      );
                     }
                     return const Center(
                       child: Text('ابدأ بتحميل طلبات الشراء'),
@@ -124,361 +142,6 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
         ),
       ),
     );
-  }
-
-  Widget _buildHeader(BuildContext innerContext) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
-            spreadRadius: 0,
-            blurRadius: 1,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppColors.info.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: const Icon(
-                  Icons.shopping_basket,
-                  color: AppColors.info,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'طلبات الشراء',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.gray900,
-                      ),
-                    ),
-                    SizedBox(height: 2),
-                    Text(
-                      'إدارة طلبات الشراء والموافقات',
-                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
-                    ),
-                  ],
-                ),
-              ),
-              IconButton(
-                onPressed: () =>
-                    innerContext.read<PurchasesCubit>().loadPurchaseOrders(),
-                icon: const Icon(Icons.refresh),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.grey.shade100,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          TextInputField(
-            controller: _searchController,
-            hint: 'البحث في طلبات الشراء...',
-            decoration: InputDecoration(
-              hintStyle: const TextStyle(fontSize: 13),
-              prefixIcon: const Icon(
-                Icons.search,
-                color: Colors.grey,
-                size: 20,
-              ),
-              filled: true,
-              fillColor: AppColors.gray50,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide.none,
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide.none,
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: const BorderSide(color: AppColors.info, width: 1),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 8,
-              ),
-            ),
-            style: const TextStyle(fontSize: 13),
-            onChanged: (value) {
-              // TODO: Implement search functionality
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildOrdersList(
-    BuildContext innerContext,
-    List<InvoiceEntity> orders,
-  ) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        innerContext.read<PurchasesCubit>().loadPurchaseOrders();
-      },
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: orders.length,
-        itemBuilder: (context, index) {
-          return _buildOrderCard(innerContext, orders[index]);
-        },
-      ),
-    );
-  }
-
-  Widget _buildOrderCard(BuildContext innerContext, InvoiceEntity order) {
-    final isConverted = order.nextInvoiceId != null;
-
-    return CustomCardContainer(
-      margin: const EdgeInsets.only(bottom: 12),
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(
-          color: isConverted ? Colors.green.shade200 : Colors.grey.shade200,
-        ),
-      ),
-      child: InkWell(
-        onTap: () {
-          // Navigate to order details
-        },
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: AppColors.info.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(AppRadius.sm6),
-                          ),
-                          child: const Icon(
-                            Icons.description,
-                            size: 18,
-                            color: AppColors.info,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'طلب شراء #${order.number}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.gray900,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                _formatDate(order.date),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _buildOrderStatusChip(isConverted),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Divider(height: 1),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Icon(Icons.business, size: 14, color: Colors.grey.shade600),
-                  const SizedBox(width: 6),
-                  Text(
-                    'المورد #${order.customerId}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  ),
-                  const SizedBox(width: 16),
-                  Icon(
-                    Icons.inventory_2,
-                    size: 14,
-                    color: Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '${order.lines.length} منتج',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'القيمة الإجمالية',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatCurrency(order.finalAmt ?? order.amount),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.success,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (!isConverted)
-                    HasibButton(
-                      label: 'تحويل لفاتورة',
-                      onPressed: () => _showConvertDialog(innerContext, order),
-                      leading: const Icon(Icons.transform, size: 16),
-                      variant: HasibButtonVariant.success,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      fontSize: 12,
-                    )
-                  else
-                    TextButton.icon(
-                      onPressed: () {
-                        // Navigate to converted invoice
-                      },
-                      icon: const Icon(Icons.receipt_long, size: 16),
-                      label: Text(
-                        'الفاتورة #${order.nextInvoiceNumber}',
-                        style: const TextStyle(fontSize: 12),
-                      ),
-                    ),
-                ],
-              ),
-              if (order.statement != null && order.statement!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(AppRadius.sm6),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(Icons.note, size: 14, color: Colors.grey.shade600),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          order.statement!,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey.shade700,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildOrderStatusChip(bool isConverted) {
-    if (isConverted) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.green.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: Colors.green.withOpacity(0.3)),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.check_circle, size: 14, color: Colors.green),
-            SizedBox(width: 4),
-            Text(
-              'تم التحويل',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Colors.green,
-              ),
-            ),
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: Colors.orange.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: Colors.orange.withOpacity(0.3)),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.hourglass_empty, size: 14, color: Colors.orange),
-            SizedBox(width: 4),
-            Text(
-              'قيد الانتظار',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: Colors.orange,
-              ),
-            ),
-          ],
-        ),
-      );
-    }
   }
 
   void _showConvertDialog(BuildContext innerContext, InvoiceEntity order) {
@@ -534,7 +197,6 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             label: 'تحويل',
             onPressed: () {
               Navigator.of(context).pop();
-              // Generate new invoice number
               final newInvoiceNumber =
                   'INV-${DateTime.now().millisecondsSinceEpoch}';
               final newInvoice = InvoiceEntity(
@@ -560,9 +222,9 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                 paymentStatus: 0,
               );
               innerContext.read<PurchasesCubit>().convertOrderToInvoice(
-                order.id!,
-                newInvoice,
-              );
+                    order.id!,
+                    newInvoice,
+                  );
             },
             leading: const Icon(Icons.check, size: 18),
             variant: HasibButtonVariant.success,
@@ -570,15 +232,5 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
         ],
       ),
     );
-  }
-
-  String _formatDate(int timestamp) {
-    final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    return DateFormat('yyyy-MM-dd').format(date);
-  }
-
-  String _formatCurrency(double amount) {
-    final formatter = NumberFormat('#,##0.00', 'ar');
-    return '${formatter.format(amount)} ريال';
   }
 }

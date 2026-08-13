@@ -698,52 +698,39 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
               ),
               child: Column(
                 children: [
-                  _buildTotalRow('المجموع الفرعي', _subtotal),
-                  const SizedBox(height: 8),
-                  _buildTotalRow(
-                    'الخصم',
-                    -_discountAmount,
-                    color: Colors.orange,
+                  InvoiceTotalRow(
+                    label: 'المجموع الفرعي',
+                    amount: _subtotal,
+                    normalFontSize: 12,
                   ),
                   const SizedBox(height: 8),
-                  _buildTotalRow('الضريبة', _taxAmount, color: Colors.blue),
+                  InvoiceTotalRow(
+                    label: 'الخصم',
+                    amount: -_discountAmount,
+                    color: Colors.orange,
+                    normalFontSize: 12,
+                  ),
+                  const SizedBox(height: 8),
+                  InvoiceTotalRow(
+                    label: 'الضريبة',
+                    amount: _taxAmount,
+                    color: Colors.blue,
+                    normalFontSize: 12,
+                  ),
                   const Divider(height: 16),
-                  _buildTotalRow('الإجمالي', _total, isTotal: true),
+                  InvoiceTotalRow(
+                    label: 'الإجمالي',
+                    amount: _total,
+                    isTotal: true,
+                    totalFontSize: 14,
+                    normalFontSize: 12,
+                  ),
                 ],
               ),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildTotalRow(
-    String label,
-    double amount, {
-    Color? color,
-    bool isTotal = false,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: isTotal ? 14 : 12,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: color ?? (isTotal ? AppColors.gray900 : Colors.grey[700]),
-          ),
-        ),
-        Text(
-          '${NumberFormat('#,##0.00').format(amount)} ريال',
-          style: TextStyle(
-            fontSize: isTotal ? 14 : 12,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: color ?? (isTotal ? AppColors.success : Colors.grey[700]),
-          ),
-        ),
-      ],
     );
   }
 
@@ -815,7 +802,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
               return HasibButton(
                 label: isLoading
                     ? 'جاري الحفظ...'
-                    : (widget.invoice != null ? 'تحديث الفاتورة' : 'حفظ الفاتورة'),
+                    : (widget.invoice != null
+                          ? 'تحديث الفاتورة'
+                          : 'حفظ الفاتورة'),
                 onPressed: isLoading ? null : _saveInvoice,
                 leading: const Icon(Icons.save, size: 18),
                 loading: isLoading,

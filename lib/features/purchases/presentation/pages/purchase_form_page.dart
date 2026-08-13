@@ -11,6 +11,7 @@ import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/widgets/add_line_dialog.dart';
+import 'package:muhasib/features/purchases/presentation/widgets/invoice_total_row.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';

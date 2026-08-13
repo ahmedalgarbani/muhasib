@@ -1,21 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/widgets/custom_dialog.dart';
-import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:muhasib/core/widgets/custom_text_field.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
-import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/features/stores/presentation/widgets/inventory_action_buttons.dart';
+import 'package:muhasib/features/stores/presentation/widgets/inventory_document_header_card.dart';
+import 'package:muhasib/features/stores/presentation/widgets/inventory_lines_card.dart';
+import 'package:muhasib/features/stores/presentation/widgets/inventory_notes_card.dart';
+import 'package:muhasib/features/stores/presentation/widgets/inventory_product_count_card.dart';
+import 'package:muhasib/features/stores/presentation/widgets/inventory_summary_card.dart';
+import 'package:muhasib/features/stores/presentation/widgets/inventory_type_selector.dart';
+import 'package:muhasib/features/stores/presentation/widgets/inventory_warehouse_selector_card.dart';
 
 class WarehousesInventoryPage extends StatefulWidget {
   const WarehousesInventoryPage({super.key});
@@ -37,7 +40,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   final List<InventoryLineEntity> _inventoryLines = [];
   bool _isCountMode = false;
 
-  final List<Map<String, dynamic>> _inventoryTypes = [
+  final List<Map<String, dynamic>> _inventoryTypes = const [
     {
       'value': 'spot',
       'label': 'جرد فوري',
@@ -86,8 +89,6 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -125,574 +126,73 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Inventory Type Selection
-                _buildInventoryTypeSelection(),
+                InventoryTypeSelector(
+                  selectedType: _inventoryType,
+                  inventoryTypes: _inventoryTypes,
+                  onTypeSelected: (type) {
+                    setState(() => _inventoryType = type);
+                  },
+                ),
                 const SizedBox(height: 16),
-
-                // Document Header Card
-                _buildDocumentHeaderCard(colorScheme),
+                InventoryDocumentHeaderCard(
+                  inventoryNumberController: _inventoryNumberController,
+                  selectedDate: _selectedDate,
+                  onSelectDate: () => _selectDate(context),
+                ),
                 const SizedBox(height: 16),
-
-                // Warehouse Selection Card
-                _buildWarehouseSelectionCard(colorScheme),
-                const SizedBox(height: 16),
-
-                // Product Search & Count Card
-                if (_isCountMode) _buildProductCountCard(colorScheme),
-
-                // Inventory Lines Card
-                _buildInventoryLinesCard(colorScheme),
-                const SizedBox(height: 16),
-
-                // Summary Card
-                if (_inventoryLines.isNotEmpty) _buildSummaryCard(colorScheme),
-
-                // Notes Card
-                _buildNotesCard(colorScheme),
-                const SizedBox(height: 24),
-
-                // Action Buttons
-                _buildActionButtons(colorScheme),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInventoryTypeSelection() {
-    return SizedBox(
-      height: 90,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: _inventoryTypes.length,
-        separatorBuilder: (context, index) => const SizedBox(width: 12),
-        itemBuilder: (context, index) {
-          final type = _inventoryTypes[index];
-          final isSelected = _inventoryType == type['value'];
-          return GestureDetector(
-            onTap: () {
-              setState(() => _inventoryType = type['value']);
-            },
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              width: 100,
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? (type['color'] as Color).withOpacity(0.1)
-                    : Colors.white,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                border: Border.all(
-                  color: isSelected
-                      ? type['color'] as Color
-                      : Colors.grey[300]!,
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    type['icon'] as IconData,
-                    color: isSelected
-                        ? type['color'] as Color
-                        : Colors.grey[600],
-                    size: 28,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    type['label'],
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isSelected
-                          ? type['color'] as Color
-                          : Colors.grey[600],
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildDocumentHeaderCard(ColorScheme colorScheme) {
-    return CustomCardContainer(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.receipt_long, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'بيانات المستند',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: CustomTextField(
-                    controller: _inventoryNumberController,
-                    label: 'رقم الجرد',
-                    hint: 'رقم الجرد',
-                    prefixIcon: Icons.tag,
-                    readOnly: true,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: InkWell(
-                    onTap: () => _selectDate(context),
-                    child: InputDecorator(
-                      decoration: InputDecoration(
-                        labelText: 'التاريخ',
-                        prefixIcon: const Icon(Icons.calendar_today),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                        ),
-                        filled: true,
-                        fillColor: Colors.grey[50],
-                      ),
-                      child: Text(
-                        '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day}',
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildWarehouseSelectionCard(ColorScheme colorScheme) {
-    return CustomCardContainer(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.warehouse, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'المخزن',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            BlocBuilder<WarehousesCubit, WarehousesState>(
-              builder: (context, state) {
-                List<WarehouseEntity> warehouses = [];
-                if (state is WarehousesLoaded) {
-                  warehouses = state.warehouses;
-                }
-
-                return CustomDropdownField<WarehouseEntity>(
-                  value: _selectedWarehouse,
-                  label: 'اختر المخزن',
-                  prefixIcon: const Icon(Icons.store),
-                  items: warehouses.map((warehouse) {
-                    return DropdownMenuItem(
-                      value: warehouse,
-                      child: Text(warehouse.name),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
+                InventoryWarehouseSelectorCard(
+                  selectedWarehouse: _selectedWarehouse,
+                  onWarehouseChanged: (value) {
                     setState(() {
                       _selectedWarehouse = value;
-                      // Load products for selected warehouse if needed
                     });
                   },
-                  validator: (value) {
-                    if (value == null) {
-                      return 'يرجى اختيار المخزن';
-                    }
-                    return null;
+                ),
+                const SizedBox(height: 16),
+                if (_isCountMode) ...[
+                  InventoryProductCountCard(
+                    searchController: _searchController,
+                    onScanBarcode: _scanBarcode,
+                    onAddProduct: _addProductToInventory,
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                InventoryLinesCard(
+                  inventoryLines: _inventoryLines,
+                  isCountMode: _isCountMode,
+                  onQuantityChanged: (index, qty) {
+                    final line = _inventoryLines[index];
+                    setState(() {
+                      _inventoryLines[index] = line.copyWith(
+                        actualQuantity: qty,
+                        difference: qty - line.quantity,
+                      );
+                    });
                   },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildProductCountCard(ColorScheme colorScheme) {
-    return CustomCardContainer(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.qr_code_scanner, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'إضافة منتج للجرد',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                  onDeleteLine: (index) {
+                    setState(() {
+                      _inventoryLines.removeAt(index);
+                    });
+                  },
                 ),
+                const SizedBox(height: 16),
+                if (_inventoryLines.isNotEmpty) ...[
+                  InventorySummaryCard(inventoryLines: _inventoryLines),
+                  const SizedBox(height: 16),
+                ],
+                InventoryNotesCard(statementController: _statementController),
+                const SizedBox(height: 24),
+                InventoryActionButtons(
+                  isEmpty: _inventoryLines.isEmpty,
+                  onSaveDraft: _saveInventory,
+                  onPostInventory: _postInventory,
+                ),
+                const SizedBox(height: 24),
               ],
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: CustomTextField(
-                    controller: _searchController,
-                    label: 'البحث عن منتج',
-                    hint: 'اسم المنتج أو الباركود',
-                    prefixIcon: Icons.search,
-                    suffixIcon: IconButton(
-                      icon: const Icon(Icons.qr_code_scanner),
-                      onPressed: () => _scanBarcode(),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                HasibButton(
-                  label: 'إضافة',
-                  onPressed: () => _addProductToInventory(),
-                  leading: const Icon(Icons.add),
-                  variant: HasibButtonVariant.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInventoryLinesCard(ColorScheme colorScheme) {
-    return CustomCardContainer(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.inventory, color: colorScheme.primary),
-                    const SizedBox(width: 8),
-                    Text(
-                      'قائمة الجرد',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                if (_inventoryLines.isNotEmpty)
-                  Text(
-                    '${_inventoryLines.length} صنف',
-                    style: TextStyle(
-                      color: colorScheme.primary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (_inventoryLines.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(32),
-                alignment: Alignment.center,
-                child: Column(
-                  children: [
-                    Icon(
-                      Icons.inventory_2_outlined,
-                      size: 48,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'لا توجد أصناف للجرد',
-                      style: TextStyle(color: Colors.grey[600]),
-                    ),
-                    if (!_isCountMode)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Text(
-                          'انتقل لوضع الجرد لبدء العد',
-                          style: TextStyle(
-                            color: Colors.orange[600],
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              )
-            else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _inventoryLines.length,
-                separatorBuilder: (context, index) => const Divider(),
-                itemBuilder: (context, index) {
-                  return _buildInventoryLineItem(index);
-                },
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInventoryLineItem(int index) {
-    final line = _inventoryLines[index];
-    final difference = line.actualQuantity - line.quantity;
-    final isPositive = difference >= 0;
-
-    return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: isPositive
-            ? Colors.green.withOpacity(0.1)
-            : Colors.red.withOpacity(0.1),
-        child: Text(
-          '${index + 1}',
-          style: TextStyle(
-            color: isPositive ? Colors.green : Colors.red,
-            fontWeight: FontWeight.bold,
           ),
         ),
       ),
-      title: Text(
-        line.statement.isNotEmpty ? line.statement : 'صنف ${index + 1}',
-      ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'متوقع: ${line.quantity} | فعلي: ${line.actualQuantity}',
-            style: const TextStyle(fontSize: 12),
-          ),
-          Text(
-            'الفرق: ${difference > 0 ? '+' : ''}$difference',
-            style: TextStyle(
-              fontSize: 12,
-              color: isPositive ? Colors.green : Colors.red,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ],
-      ),
-      trailing: _isCountMode
-          ? SizedBox(
-              width: 100,
-              child: TextInputField(
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                hint: '0',
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.sm),
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 8,
-                  ),
-                ),
-                onChanged: (value) {
-                  final qty = double.tryParse(value) ?? 0;
-                  setState(() {
-                    _inventoryLines[index] = line.copyWith(
-                      actualQuantity: qty,
-                      difference: qty - line.quantity,
-                    );
-                  });
-                },
-                controller: TextEditingController(
-                  text: line.actualQuantity.toString(),
-                ),
-              ),
-            )
-          : IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
-              onPressed: () {
-                setState(() {
-                  _inventoryLines.removeAt(index);
-                });
-              },
-            ),
-    );
-  }
-
-  Widget _buildSummaryCard(ColorScheme colorScheme) {
-    final totalExpected = _inventoryLines.fold<double>(
-      0,
-      (sum, line) => sum + line.quantity,
-    );
-    final totalActual = _inventoryLines.fold<double>(
-      0,
-      (sum, line) => sum + line.actualQuantity,
-    );
-    final totalDifference = totalActual - totalExpected;
-
-    return CustomCardContainer(
-      elevation: 2,
-      color: colorScheme.primaryContainer,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _buildSummaryItem(
-                  'المتوقع',
-                  totalExpected.toString(),
-                  Colors.blue,
-                ),
-                _buildSummaryItem(
-                  'الفعلي',
-                  totalActual.toString(),
-                  Colors.green,
-                ),
-                _buildSummaryItem(
-                  'الفرق',
-                  '${totalDifference > 0 ? '+' : ''}$totalDifference',
-                  totalDifference >= 0 ? Colors.green : Colors.red,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSummaryItem(String label, String value, Color color) {
-    return Column(
-      children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildNotesCard(ColorScheme colorScheme) {
-    return CustomCardContainer(
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.note, color: colorScheme.primary),
-                const SizedBox(width: 8),
-                Text(
-                  'ملاحظات',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            CustomTextField(
-              controller: _statementController,
-              label: 'الملاحظات',
-              hint: 'أدخل أي ملاحظات عن الجرد',
-              prefixIcon: Icons.comment,
-              maxLines: 3,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(ColorScheme colorScheme) {
-    return Row(
-      children: [
-        Expanded(
-          child: OutlinedButton.icon(
-            onPressed: _inventoryLines.isEmpty ? null : () => _saveInventory(),
-            icon: const Icon(Icons.save),
-            label: const Text('حفظ كمسودة'),
-            style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: HasibButton(
-            label: 'ترحيل الجرد',
-            onPressed: _inventoryLines.isEmpty ? null : () => _postInventory(),
-            leading: const Icon(Icons.check),
-            variant: HasibButtonVariant.primary,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-          ),
-        ),
-      ],
     );
   }
 

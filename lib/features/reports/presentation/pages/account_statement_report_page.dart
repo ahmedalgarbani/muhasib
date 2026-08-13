@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/cubit/account_statement_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/account_statement_state.dart';
+import 'package:muhasib/features/reports/presentation/widgets/account_statement_widgets.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:intl/intl.dart';
-import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 
 class AccountStatementReportPage extends StatefulWidget {
   const AccountStatementReportPage({super.key});
@@ -47,43 +46,21 @@ class _AccountStatementReportPageState
                 _lastState == null || _lastState!.transactions.isEmpty
                 ? null
                 : () => _exportExcel(context),
-            additionalFilters: [_buildAccountSelector(context, state)],
+            additionalFilters: [
+              if (state is AccountStatementLoaded)
+                AccountStatementAccountSelectorWidget(
+                  selectedAccountId: state.selectedAccountId,
+                  accounts: state.accounts,
+                  onAccountSelected: (id) {
+                    context.read<AccountStatementCubit>().selectAccount(id);
+                  },
+                ),
+            ],
             reportBuilder: (filter) => _AccountStatementContent(filter: filter),
           );
         },
       ),
     );
-  }
-
-  Widget _buildAccountSelector(
-    BuildContext context,
-    AccountStatementState state,
-  ) {
-    if (state is AccountStatementLoaded) {
-      return Container(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: CustomDropdownField<int>(
-          label: 'اختر الحساب المطلوب',
-          value: state.selectedAccountId,
-          prefixIcon: const Icon(Icons.account_tree),
-          items: state.accounts
-              .map(
-                (a) => DropdownMenuItem<int>(
-                  value: a['id'] as int,
-                  child: Text(
-                    '${a['code']} - ${a['name']}',
-                    style: const TextStyle(fontSize: 14),
-                  ),
-                ),
-              )
-              .toList(),
-          onChanged: (v) => v != null
-              ? context.read<AccountStatementCubit>().selectAccount(v)
-              : null,
-        ),
-      );
-    }
-    return const SizedBox.shrink();
   }
 
   Future<void> _exportPdf(BuildContext context) async {
@@ -178,15 +155,17 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
   Widget build(BuildContext context) {
     return BlocBuilder<AccountStatementCubit, AccountStatementState>(
       builder: (context, state) {
-        if (state is AccountStatementLoading)
+        if (state is AccountStatementLoading) {
           return const Center(child: CircularProgressIndicator());
-        if (state is AccountStatementError)
+        }
+        if (state is AccountStatementError) {
           return Center(
             child: Text(
               'خطأ: ${state.message}',
               style: const TextStyle(color: Colors.red),
             ),
           );
+        }
         if (state is AccountStatementLoaded) {
           var transactions = state.transactions;
           if (widget.filter.searchQuery != null &&
@@ -275,7 +254,10 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                   ),
                   itemCount: transactions.length,
                   itemBuilder: (context, index) =>
-                      _buildTransactionCard(transactions[index]),
+                      AccountStatementTransactionCardWidget(
+                    transaction: transactions[index],
+                    numberFormat: _numberFormat,
+                  ),
                 ),
               ),
             ],
@@ -283,176 +265,6 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
         }
         return const Center(child: Text('يرجى اختيار حساب لعرض الكشف'));
       },
-    );
-  }
-
-  Widget _buildSummaryArea(dynamic summary) {
-    return Container(
-      height: 110,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        children: [
-          _buildSummaryItem(
-            'رصيد افتتاحي',
-            summary.openingBalance,
-            Colors.blue,
-          ),
-          _buildSummaryItem(
-            'إجمالي مديونية',
-            summary.totalDebits,
-            Colors.green,
-          ),
-          _buildSummaryItem('إجمالي دائنية', summary.totalCredits, Colors.red),
-          _buildSummaryItem(
-            'الرصيد النهائي',
-            summary.closingBalance,
-            Colors.deepPurple,
-            isBold: true,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSummaryItem(
-    String label,
-    double value,
-    Color color, {
-    bool isBold = false,
-  }) {
-    return Container(
-      width: 140,
-      margin: const EdgeInsets.only(left: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
-        border: Border.all(color: color.withOpacity(0.1)),
-        boxShadow: [BoxShadow(color: color.withOpacity(0.05), blurRadius: 10)],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          FittedBox(
-            child: Text(
-              '${_numberFormat.format(value)} ر.س',
-              style: TextStyle(
-                color: color,
-                fontSize: 13,
-                fontWeight: isBold ? FontWeight.bold : FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransactionCard(dynamic t) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8),
-        ],
-      ),
-      child: Column(
-        children: [
-          ListTile(
-            title: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  t.description,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  '${_numberFormat.format(t.balance)} ر.س',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: Colors.blueGrey,
-                  ),
-                ),
-              ],
-            ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(
-                children: [
-                  const Icon(Icons.date_range, size: 12, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${t.transactionDate.day}/${t.transactionDate.month}/${t.transactionDate.year}',
-                    style: const TextStyle(fontSize: 11),
-                  ),
-                  const SizedBox(width: 16),
-                  const Icon(Icons.tag, size: 12, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Expanded(
-                    child: Text(
-                      t.reference,
-                      style: const TextStyle(fontSize: 11),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                _buildAmountBadge(
-                  'مدين: ${_numberFormat.format(t.debitAmount)}',
-                  Colors.green,
-                ),
-                const SizedBox(width: 10),
-                _buildAmountBadge(
-                  'دائن: ${_numberFormat.format(t.creditAmount)}',
-                  Colors.red,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAmountBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(AppRadius.sm),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
     );
   }
 }
