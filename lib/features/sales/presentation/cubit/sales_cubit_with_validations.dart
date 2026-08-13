@@ -1,10 +1,11 @@
 /// Example of integrating both Account Limits and Account Connections validation
-/// 
+///
 /// This example shows how to use both validation systems together in a Cubit
 /// to ensure all requirements are met before allowing operations.
 library;
 
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/accounts/presentation/mixins/account_limit_mixin.dart';
 import 'package:muhasib/features/accounts/presentation/mixins/account_connect_validation_mixin.dart';
@@ -13,9 +14,8 @@ import 'package:muhasib/features/accounts/domain/services/account_connect_valida
 import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 
 /// Example Sales Cubit with complete validation
-class SalesCubitWithValidations extends Cubit<dynamic> 
+class SalesCubitWithValidations extends Cubit<dynamic>
     with AccountLimitMixin, AccountConnectValidationMixin {
-  
   final AccountLimitService accountLimitService;
   final AccountConnectValidator accountConnectValidator;
 
@@ -39,19 +39,19 @@ class SalesCubitWithValidations extends Cubit<dynamic>
     // Step 1: Check account connections
     print('Checking account connections...');
     final hasConnections = await validateSalesConnections(context);
-    
+
     if (!hasConnections) {
       print('Account connections validation failed');
       // Dialog will be shown automatically by the mixin
       return false;
     }
-    
+
     print('Account connections validated successfully');
 
     // Step 2: Get connected account IDs
     final customersAccountId = await getConnectedAccountId(2); // العملاء
     final salesAccountId = await getConnectedAccountId(7); // المبيعات
-    
+
     if (customersAccountId == null || salesAccountId == null) {
       print('Could not retrieve connected account IDs');
       return false;
@@ -127,7 +127,7 @@ class SalesCubitWithValidations extends Cubit<dynamic>
     // Get connected accounts
     final suppliersAccountId = await getConnectedAccountId(3); // الموردون
     final purchasesAccountId = await getConnectedAccountId(10); // المشتريات
-    
+
     if (suppliersAccountId == null || purchasesAccountId == null) {
       return false;
     }
@@ -182,20 +182,20 @@ class SalesCubitWithValidations extends Cubit<dynamic>
   /// Check system readiness on startup
   Future<void> checkSystemReadiness(BuildContext context) async {
     print('Checking system readiness...');
-    
+
     // Check all account connections
     await checkConnectionStatus(context);
-    
+
     // Check for accounts near limits
     await checkAccountWarnings(context);
-    
+
     print('System readiness check complete');
   }
 
   void _showErrorDialog(BuildContext context, String message) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: Row(
           children: [
             Icon(Icons.error_outline, color: Colors.red[600], size: 28),

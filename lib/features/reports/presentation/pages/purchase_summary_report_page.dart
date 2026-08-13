@@ -4,9 +4,10 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
 
 class PurchaseSummaryReportPage extends StatefulWidget {
   const PurchaseSummaryReportPage({super.key});
@@ -120,161 +121,125 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
         }
         if (data == null) return const Center(child: Text('لا توجد بيانات'));
 
+        var topSuppliers = data.topSuppliers;
+        if (widget.filter.searchQuery != null &&
+            widget.filter.searchQuery!.isNotEmpty) {
+          final q = widget.filter.searchQuery!.toLowerCase();
+          topSuppliers = topSuppliers
+              .where((s) => s.name.toLowerCase().contains(q))
+              .toList();
+        }
+
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildMainStat(data),
-              const SizedBox(height: 16),
-              _buildDetailsRow(data),
-              const SizedBox(height: 16),
-              _buildTopSuppliers(data),
+              Row(
+                children: [
+                  Expanded(
+                    child: ReportKpiCard(
+                      title: 'صافي المشتريات',
+                      value: _format(data.netPurchases),
+                      icon: Icons.shopping_basket,
+                      color: Colors.deepOrange[700]!,
+                      subtitle: 'عدد الفواتير: ${data.invoiceCount}',
+                      isPositiveTrend: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ReportKpiCard(
+                      title: 'إجمالي المشتريات قبل الخصم',
+                      value: _format(data.totalPurchases),
+                      icon: Icons.shopping_bag,
+                      color: Colors.purple[700]!,
+                      subtitle: 'المرتجعات: ${_format(data.totalReturns)}',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ReportKpiCard(
+                      title: 'الخصومات والضرائب المدفوعة',
+                      value: _format(data.totalDiscounts + data.totalTaxes),
+                      icon: Icons.receipt_long,
+                      color: Colors.teal[700]!,
+                      subtitle:
+                          'خصم: ${_format(data.totalDiscounts)} | ضريبة: ${_format(data.totalTaxes)}',
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const Text(
+                'أكثر الموردين تعاملاً في المشتريات',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ReportDataTable<_SupplierRow>(
+                columns: const [
+                  ReportTableColumn(title: 'اسم المورد', flex: 4),
+                  ReportTableColumn(
+                    title: 'إجمالي المشتريات منه',
+                    flex: 3,
+                    alignment: TextAlign.end,
+                  ),
+                ],
+                items: topSuppliers,
+                rowBuilder: (context, s, index) => Row(
+                  children: [
+                    Expanded(
+                      flex: 4,
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 12,
+                            backgroundColor: index < 3
+                                ? Colors.deepOrange[100]
+                                : Colors.grey[200],
+                            child: Text(
+                              '${index + 1}',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: index < 3
+                                    ? Colors.deepOrange[900]
+                                    : Colors.grey[700],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              s.name,
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        _format(s.total),
+                        textAlign: TextAlign.end,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.deepOrange[800],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildMainStat(_PurchaseSummaryResult d) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.materialDeepOrange700,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: [
-          BoxShadow(color: Colors.deepOrange.withOpacity(0.2), blurRadius: 10),
-        ],
-      ),
-      child: Column(
-        children: [
-          const Text(
-            'صافي مشتريات الفترة',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _format(d.netPurchases),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const Divider(color: Colors.white24, height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _miniStat('إجمالي', _format(d.totalPurchases)),
-              _miniStat('المرتجعات', _format(d.totalReturns)),
-              _miniStat('الفواتير', '${d.invoiceCount}'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _miniStat(String l, String v) => Column(
-    children: [
-      Text(l, style: const TextStyle(color: Colors.white, fontSize: 10)),
-      Text(
-        v,
-        style: const TextStyle(
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-          fontSize: 12,
-        ),
-      ),
-    ],
-  );
-
-  Widget _buildDetailsRow(_PurchaseSummaryResult d) => Row(
-    children: [
-      Expanded(
-        child: _infoCard('الضرائب', d.totalTaxes, Colors.purple, Icons.receipt),
-      ),
-      const SizedBox(width: 12),
-      Expanded(
-        child: _infoCard(
-          'الخصومات',
-          d.totalDiscounts,
-          Colors.teal,
-          Icons.local_offer,
-        ),
-      ),
-    ],
-  );
-
-  Widget _infoCard(String l, double v, Color c, IconData i) => Container(
-    padding: const EdgeInsets.all(16),
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(AppRadius.lg20),
-      border: Border.all(color: c.withOpacity(0.1)),
-    ),
-    child: Row(
-      children: [
-        Icon(i, color: c, size: 20),
-        const SizedBox(width: 10),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Colors.grey,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              _format(v),
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: c,
-              ),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
-
-  Widget _buildTopSuppliers(_PurchaseSummaryResult d) {
-    if (d.topSuppliers.isEmpty) return const SizedBox.shrink();
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
-        side: BorderSide(color: Colors.grey[200]!),
-      ),
-      child: ExpansionTile(
-        initiallyExpanded: true,
-        leading: const Icon(Icons.local_shipping, color: Colors.blue),
-        title: const Text(
-          'أكثر الموردين تعاملاً',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-        ),
-        children: d.topSuppliers
-            .take(5)
-            .map<Widget>(
-              (s) => ListTile(
-                dense: true,
-                title: Text(s.name, style: const TextStyle(fontSize: 13)),
-                trailing: Text(
-                  _format(s.total),
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            )
-            .toList(),
-      ),
     );
   }
 
@@ -292,7 +257,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
       args,
     );
     final top = await db.rawQuery(
-      'SELECT c.name, COALESCE(SUM(COALESCE(i.final_amt, i.total_amount, i.amount, 0)), 0) as total FROM invoices i JOIN customers c ON c.id = i.customer_id WHERE i.invoice_type = 2 AND COALESCE(i.approval_status, 1) != 3 $df GROUP BY c.id ORDER BY total DESC LIMIT 5',
+      'SELECT c.name, COALESCE(SUM(COALESCE(i.final_amt, i.total_amount, i.amount, 0)), 0) as total FROM invoices i JOIN customers c ON c.id = i.customer_id WHERE i.invoice_type = 2 AND COALESCE(i.approval_status, 1) != 3 $df GROUP BY c.id ORDER BY total DESC',
       args,
     );
     return _PurchaseSummaryResult(

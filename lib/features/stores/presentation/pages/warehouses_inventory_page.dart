@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
@@ -222,7 +224,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildDocumentHeaderCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -283,7 +287,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildWarehouseSelectionCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -350,7 +356,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildProductCountCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -408,7 +416,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildInventoryLinesCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -527,11 +537,11 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
       trailing: _isCountMode
           ? SizedBox(
               width: 100,
-              child: TextField(
+              child: TextInputField(
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
-                decoration: InputDecoration(
-                  hintText: '0',
+                  hint: '0',
+                  decoration: InputDecoration(
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
@@ -579,7 +589,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     return Card(
       elevation: 2,
       color: colorScheme.primaryContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -630,7 +642,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget _buildNotesCard(ColorScheme colorScheme) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -767,7 +781,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: const Text('ترحيل الجرد'),
         content: SingleChildScrollView(
           child: Column(

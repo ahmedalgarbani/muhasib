@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 /// Reusable Text Field Tile for settings pages.
 class SettingsTextFieldTile extends StatelessWidget {
@@ -48,7 +49,7 @@ class SettingsTextFieldTile extends StatelessWidget {
                     color: AppColors.slate500,
                   ),
                 ),
-                TextField(
+                TextInputField(
                   controller: controller,
                   keyboardType: keyboardType,
                   style: const TextStyle(

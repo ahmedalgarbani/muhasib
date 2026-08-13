@@ -147,7 +147,9 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
       child: Container(
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(AppRadius.lg20),
+          ),
         ),
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -202,7 +204,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                   const SizedBox(height: 24),
 
                   TextInputField(
-                    label: 'اسم الحساب',
+                    label: 'اسم سسسسالحساب',
                     hint: 'أدخل اسم الحساب',
                     textEditingController: _nameController,
                     isRequired: true,

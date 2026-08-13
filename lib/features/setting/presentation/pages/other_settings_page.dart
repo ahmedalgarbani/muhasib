@@ -5,6 +5,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class OtherSettingsPage extends StatefulWidget {
   const OtherSettingsPage({super.key});
@@ -15,7 +16,7 @@ class OtherSettingsPage extends StatefulWidget {
 
 class _OtherSettingsPageState extends State<OtherSettingsPage> {
   late Map<String, dynamic> otherSettings;
-  
+
   String dateFormat = 'dd - MM - yyyy';
   String timeFormat = '12 ساعة';
   int decimalNoInput = 7;
@@ -35,7 +36,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     super.initState();
     final cubit = context.read<SettingsCubit>();
     otherSettings = cubit.getOtherSettings();
-    
+
     dateFormat = _getDateFormatString(otherSettings['dateFormat'] ?? 0);
     timeFormat = _getTimeFormatString(otherSettings['timeFormat'] ?? 0);
     decimalNoInput = otherSettings['decimalNoInput'] ?? 7;
@@ -43,11 +44,15 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     debitText = otherSettings['debit'] ?? 'مدين';
     creditText = otherSettings['credit'] ?? 'دائن';
     showStockModule = otherSettings['showStockModule'] ?? true;
-    showAccountantAdvanceModule = otherSettings['showAccountantAdvanceModule'] ?? true;
+    showAccountantAdvanceModule =
+        otherSettings['showAccountantAdvanceModule'] ?? true;
     showTaxModule = otherSettings['showTaxModule'] ?? false;
     useMiniHasib = otherSettings['useMiniHasib'] ?? false;
-    showBackupNotifyWhenCloseApp = otherSettings['showBackupNotifyWhenCloseApp'] ?? true;
-    homeScreenType = _getHomeScreenTypeString(otherSettings['homeScrrenType'] ?? 1);
+    showBackupNotifyWhenCloseApp =
+        otherSettings['showBackupNotifyWhenCloseApp'] ?? true;
+    homeScreenType = _getHomeScreenTypeString(
+      otherSettings['homeScrrenType'] ?? 1,
+    );
     fontScale = (otherSettings['fontScale'] ?? 1.0).toDouble();
   }
 
@@ -129,9 +134,9 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
       'showBackupNotifyWhenCloseApp': showBackupNotifyWhenCloseApp,
       'fontScale': fontScale,
     };
-    
+
     await cubit.updateSetting('other_setting', otherSettings);
-    
+
     if (mounted) {
       AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
     }
@@ -210,13 +215,19 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                 ),
                 _buildCard([
                   ListTile(
-                    leading: Icon(Icons.text_fields, size: 20, color: Colors.grey[600]),
+                    leading: Icon(
+                      Icons.text_fields,
+                      size: 20,
+                      color: Colors.grey[600],
+                    ),
                     title: const Text(
                       'حجم الخط',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     subtitle: Text(
-                      fontScale == 1.0 ? 'طبيعي' : 'x${fontScale.toStringAsFixed(1)}',
+                      fontScale == 1.0
+                          ? 'طبيعي'
+                          : 'x${fontScale.toStringAsFixed(1)}',
                       style: const TextStyle(fontSize: 13),
                     ),
                   ),
@@ -238,7 +249,11 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     label: 'صيغة التاريخ',
                     value: dateFormat,
                     icon: Icons.calendar_today,
-                    items: ['dd - MM - yyyy', 'yyyy - MM - dd', 'MM - dd - yyyy'],
+                    items: [
+                      'dd - MM - yyyy',
+                      'yyyy - MM - dd',
+                      'MM - dd - yyyy',
+                    ],
                     onChanged: (value) {
                       setState(() {
                         dateFormat = value!;
@@ -272,7 +287,11 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                 ),
                 _buildCard([
                   ListTile(
-                    leading: Icon(Icons.numbers, size: 20, color: Colors.grey[600]),
+                    leading: Icon(
+                      Icons.numbers,
+                      size: 20,
+                      color: Colors.grey[600],
+                    ),
                     title: const Text(
                       'عدد الارقام بعد الفاصلة عند الإدخال',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -284,7 +303,11 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                   ),
                   const Divider(),
                   ListTile(
-                    leading: Icon(Icons.numbers, size: 20, color: Colors.grey[600]),
+                    leading: Icon(
+                      Icons.numbers,
+                      size: 20,
+                      color: Colors.grey[600],
+                    ),
                     title: const Text(
                       'عدد الارقام بعد الفاصلة عند العرض',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
@@ -309,12 +332,16 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                 ),
                 _buildCard([
                   ListTile(
-                    leading: Icon(Icons.arrow_upward, size: 20, color: Colors.grey[600]),
+                    leading: Icon(
+                      Icons.arrow_upward,
+                      size: 20,
+                      color: Colors.grey[600],
+                    ),
                     title: const Text(
                       'مدين',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                    subtitle: TextField(
+                    subtitle: TextInputField(
                       controller: TextEditingController(text: debitText),
                       onChanged: (value) => debitText = value,
                       style: const TextStyle(fontSize: 13),
@@ -327,12 +354,16 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                   ),
                   const Divider(),
                   ListTile(
-                    leading: Icon(Icons.arrow_downward, size: 20, color: Colors.grey[600]),
+                    leading: Icon(
+                      Icons.arrow_downward,
+                      size: 20,
+                      color: Colors.grey[600],
+                    ),
                     title: const Text(
                       'دائن',
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-                    subtitle: TextField(
+                    subtitle: TextInputField(
                       controller: TextEditingController(text: creditText),
                       onChanged: (value) => creditText = value,
                       style: const TextStyle(fontSize: 13),
@@ -424,7 +455,11 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     bool enabled = true,
   }) {
     return SwitchListTile(
-      secondary: Icon(icon, size: 20, color: enabled ? Colors.grey[600] : Colors.grey[400]),
+      secondary: Icon(
+        icon,
+        size: 20,
+        color: enabled ? Colors.grey[600] : Colors.grey[400],
+      ),
       title: Text(
         label,
         style: TextStyle(
@@ -457,25 +492,16 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
       leading: Icon(icon, size: 20, color: Colors.grey[600]),
       title: Text(
         label,
-        style: const TextStyle(
-          fontSize: 12,
-          color: Colors.grey,
-        ),
+        style: const TextStyle(fontSize: 12, color: Colors.grey),
       ),
       subtitle: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: value,
           isDense: true,
           isExpanded: true,
-          style: const TextStyle(
-            fontSize: 13,
-            color: Colors.black87,
-          ),
+          style: const TextStyle(fontSize: 13, color: Colors.black87),
           items: items.map((String item) {
-            return DropdownMenuItem<String>(
-              value: item,
-              child: Text(item),
-            );
+            return DropdownMenuItem<String>(value: item, child: Text(item));
           }).toList(),
           onChanged: onChanged,
         ),

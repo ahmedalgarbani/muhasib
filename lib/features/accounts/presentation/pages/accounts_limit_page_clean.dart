@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/theme/app_color.dart';
@@ -9,6 +10,7 @@ import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubi
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class AccountLimitsScreen extends StatefulWidget {
   const AccountLimitsScreen({super.key});
@@ -130,7 +132,7 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
   void _confirmDelete(AccountLimitEntity limit) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: const Text('حذف السقف'),
         content: Text(
           'هل أنت متأكد من حذف سقف الحساب لـ ${limit.accountName}؟',
@@ -353,7 +355,9 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
       height: MediaQuery.of(context).size.height * 0.85,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl30)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.xl30),
+        ),
       ),
       child: Column(
         children: [
@@ -493,13 +497,15 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
       children: [
         Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
         const SizedBox(height: 8),
-        TextField(
+        TextInputField(
           controller: controller,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, color: color, size: 18),
             hintText: '0.00',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
           ),
         ),
       ],
@@ -568,14 +574,16 @@ class _AccountSearchSheetState extends State<_AccountSearchSheet> {
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: const BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl30)),
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(AppRadius.xl30),
+        ),
       ),
       child: Column(
         children: [
           const SizedBox(height: 20),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: TextField(
+            child: TextInputField(
               onChanged: (v) => setState(() => _query = v),
               decoration: InputDecoration(
                 hintText: 'ابحث عن حساب...',

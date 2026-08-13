@@ -6,10 +6,11 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/cubit/sales_summary_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/sales_summary_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 
 class SalesSummaryReportPage extends StatefulWidget {
   const SalesSummaryReportPage({super.key});
@@ -53,13 +54,26 @@ class _SalesSummaryReportPageState extends State<SalesSummaryReportPage> {
       ['صافي المبيعات', s.netSales.toStringAsFixed(2)],
       ['عدد الفواتير', s.invoiceCount.toString()],
     ];
-    await ExportService.printData(title: 'ملخص المبيعات', headers: ['البيان', 'المبلغ'], data: data);
+    await ExportService.printData(
+      title: 'ملخص المبيعات',
+      headers: ['البيان', 'المبلغ'],
+      data: data,
+    );
   }
 
   Future<void> _exportExcel() async {
     if (_lastState == null) return;
     final s = _lastState!.summary;
-    final path = await ExportService.exportToExcel(fileName: 'sales_summary', headers: ['البيان', 'المبلغ'], data: [['إجمالي المبيعات', s.totalSales.toStringAsFixed(2)], ['المرتجعات', s.totalReturns.toStringAsFixed(2)], ['صافي المبيعات', s.netSales.toStringAsFixed(2)], ['عدد الفواتير', s.invoiceCount.toString()]]);
+    final path = await ExportService.exportToExcel(
+      fileName: 'sales_summary',
+      headers: ['البيان', 'المبلغ'],
+      data: [
+        ['إجمالي المبيعات', s.totalSales.toStringAsFixed(2)],
+        ['المرتجعات', s.totalReturns.toStringAsFixed(2)],
+        ['صافي المبيعات', s.netSales.toStringAsFixed(2)],
+        ['عدد الفواتير', s.invoiceCount.toString()],
+      ],
+    );
     AppToast.showSuccess(context, 'تم تصدير Excel: $path');
   }
 }
@@ -85,7 +99,8 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
   @override
   void didUpdateWidget(_SalesSummaryContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.filter != widget.filter) context.read<SalesSummaryCubit>().updateDateRange(widget.filter);
+    if (oldWidget.filter != widget.filter)
+      context.read<SalesSummaryCubit>().updateDateRange(widget.filter);
   }
 
   String _format(double v) => '${_numberFormat.format(v)} ر.س';
@@ -94,69 +109,147 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
   Widget build(BuildContext context) {
     return BlocBuilder<SalesSummaryCubit, SalesSummaryState>(
       builder: (context, state) {
-        if (state is SalesSummaryLoading) return const Center(child: CircularProgressIndicator());
-        if (state is SalesSummaryError) return Center(child: Text('خطأ: ${state.message}'));
+        if (state is SalesSummaryLoading)
+          return const Center(child: CircularProgressIndicator());
+        if (state is SalesSummaryError)
+          return Center(child: Text('خطأ: ${state.message}'));
         if (state is SalesSummaryLoaded) {
           final s = state.summary;
+
+          var topProducts = s.topProducts;
+          if (widget.filter.searchQuery != null &&
+              widget.filter.searchQuery!.isNotEmpty) {
+            final q = widget.filter.searchQuery!.toLowerCase();
+            topProducts = topProducts
+                .where((p) => p.productName.toLowerCase().contains(q))
+                .toList();
+          }
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(16),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMainTile(s),
-                const SizedBox(height: 16),
-                _buildDetailRow(s),
-                const SizedBox(height: 16),
-                _buildProductExpansion(s),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ReportKpiCard(
+                        title: 'صافي المبيعات',
+                        value: _format(s.netSales),
+                        icon: Icons.trending_up,
+                        color: Colors.green[700]!,
+                        subtitle: 'عدد الفواتير: ${s.invoiceCount}',
+                        isPositiveTrend: true,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ReportKpiCard(
+                        title: 'إجمالي المبيعات قبل الخصم',
+                        value: _format(s.totalSales),
+                        icon: Icons.point_of_sale,
+                        color: Colors.blue[700]!,
+                        subtitle: 'المرتجعات: ${_format(s.totalReturns)}',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ReportKpiCard(
+                        title: 'إجمالي الخصومات والضرائب',
+                        value: _format(s.totalDiscounts + s.totalTaxes),
+                        icon: Icons.discount,
+                        color: Colors.orange[700]!,
+                        subtitle:
+                            'خصم: ${_format(s.totalDiscounts)} | ضريبة: ${_format(s.totalTaxes)}',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  'ترتيب المنتجات الأكثر مبيعاً',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                ReportDataTable<dynamic>(
+                  columns: const [
+                    ReportTableColumn(title: 'اسم المنتج', flex: 3),
+                    ReportTableColumn(
+                      title: 'الكمية المباعة',
+                      flex: 2,
+                      alignment: TextAlign.center,
+                    ),
+                    ReportTableColumn(
+                      title: 'إجمالي قيمة المبيعات',
+                      flex: 2,
+                      alignment: TextAlign.end,
+                    ),
+                  ],
+                  items: topProducts,
+                  rowBuilder: (context, p, index) => Row(
+                    children: [
+                      Expanded(
+                        flex: 3,
+                        child: Row(
+                          children: [
+                            CircleAvatar(
+                              radius: 12,
+                              backgroundColor: index < 3
+                                  ? Colors.amber[100]
+                                  : Colors.grey[200],
+                              child: Text(
+                                '${index + 1}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: index < 3
+                                      ? Colors.amber[900]
+                                      : Colors.grey[700],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                p.productName,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          '${p.quantity.toInt()} قطعة',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(fontSize: 12),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          _format(p.totalAmount),
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[800],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           );
         }
         return const SizedBox.shrink();
       },
-    );
-  }
-
-  Widget _buildMainTile(dynamic s) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: AppColors.materialBlue900, borderRadius: BorderRadius.circular(AppRadius.xl), boxShadow: [BoxShadow(color: Colors.blue.withOpacity(0.2), blurRadius: 10, offset: const Offset(0, 4))]),
-      child: Column(children: [
-        const Text('صافي مبيعات الفترة', style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.bold)),
-        const SizedBox(height: 12),
-        Text(_format(s.netSales), style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-        const Divider(color: Colors.white24, height: 32),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceAround, children: [
-          _miniStat('الإجمالي', _format(s.totalSales)),
-          _miniStat('المرتجعات', _format(s.totalReturns)),
-          _miniStat('الفواتير', '${s.invoiceCount}'),
-        ]),
-      ]),
-    );
-  }
-
-  Widget _miniStat(String l, String v) => Column(children: [Text(l, style: const TextStyle(color: Colors.white70, fontSize: 10)), const SizedBox(height: 4), Text(v, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))]);
-
-  Widget _buildDetailRow(dynamic s) {
-    return Row(children: [
-      Expanded(child: _infoCard('الخصومات', s.totalDiscounts, Colors.orange, Icons.sell)),
-      const SizedBox(width: 12),
-      Expanded(child: _infoCard('الضرائب', s.totalTaxes, Colors.purple, Icons.account_balance)),
-    ]);
-  }
-
-  Widget _infoCard(String l, double v, Color c, IconData i) => Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(AppRadius.lg20), border: Border.all(color: c.withOpacity(0.1))), child: Row(children: [Icon(i, color: c, size: 20), const SizedBox(width: 12), Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(l, style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)), Text(_format(v), style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: c))])]));
-
-  Widget _buildProductExpansion(dynamic s) {
-    if (s.topProducts.isEmpty) return const SizedBox.shrink();
-    return Card(
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20), side: BorderSide(color: Colors.grey[200]!)),
-      child: ExpansionTile(
-        initiallyExpanded: true,
-        leading: const Icon(Icons.star, color: Colors.amber),
-        title: const Text('أهم المنتجات مبيعًا', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        children: s.topProducts.take(5).map<Widget>((p) => ListTile(dense: true, title: Text(p.productName, style: const TextStyle(fontSize: 13)), subtitle: Text('الكمية: ${p.quantity.toInt()}', style: const TextStyle(fontSize: 11)), trailing: Text(_format(p.totalAmount), style: const TextStyle(fontWeight: FontWeight.bold)))).toList(),
-      ),
     );
   }
 }

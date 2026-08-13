@@ -1,16 +1,21 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class AddItemBottomSheet extends StatefulWidget {
   final InvoiceItem item;
   final Function(InvoiceItem) onAdd;
 
-  const AddItemBottomSheet({super.key, required this.item, required this.onAdd});
+  const AddItemBottomSheet({
+    super.key,
+    required this.item,
+    required this.onAdd,
+  });
 
   static Future<void> show(
     BuildContext context, {
@@ -155,10 +160,10 @@ class _AddItemBottomSheetState extends State<AddItemBottomSheet> {
             ],
           ),
           const SizedBox(height: AppSpacing.lg),
-          TextField(
+          TextInputField(
             controller: _priceController,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'السعر'),
+            label: 'السعر',
             onChanged: (value) =>
                 setState(() => _price = double.tryParse(value) ?? _price),
           ),

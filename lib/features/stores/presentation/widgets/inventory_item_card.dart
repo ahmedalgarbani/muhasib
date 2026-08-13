@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 
 class InventoryItemCard extends StatelessWidget {
@@ -126,14 +127,15 @@ class InventoryItemCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.attach_money, size: 16, color: Colors.grey[600]),
+                      Icon(
+                        Icons.attach_money,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         'التكلفة الإجمالية',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -164,10 +166,7 @@ class InventoryItemCard extends StatelessWidget {
                     Expanded(
                       child: Text(
                         item.statement,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[700],
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                     ),
                   ],
@@ -210,10 +209,7 @@ class QuantityColumnWidget extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -283,21 +279,18 @@ class _EditableQuantityWidgetState extends State<EditableQuantityWidget> {
           const SizedBox(height: 4),
           const Text(
             'الكمية الفعلية',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 10, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
           SizedBox(
             height: 36,
-            child: TextField(
+            child: TextInputField(
               controller: _controller,
               keyboardType: TextInputType.number,
               textAlign: TextAlign.center,
+              hint: '0',
               decoration: InputDecoration(
-                hintText: '0',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
@@ -349,10 +342,7 @@ class DifferenceColumnWidget extends StatelessWidget {
           const SizedBox(height: 4),
           const Text(
             'الفرق',
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 10, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -366,10 +356,7 @@ class DifferenceColumnWidget extends StatelessWidget {
           ),
           Text(
             '${percentageDiff.toStringAsFixed(1)}%',
-            style: TextStyle(
-              fontSize: 10,
-              color: color,
-            ),
+            style: TextStyle(fontSize: 10, color: color),
           ),
         ],
       ),

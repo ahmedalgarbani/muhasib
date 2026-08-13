@@ -9,6 +9,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PurchasesListPage extends StatefulWidget {
   const PurchasesListPage({super.key});
@@ -41,8 +42,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
         builder: (innerContext) => Scaffold(
           key: _scaffoldKey,
           backgroundColor: AppColors.gray50,
-          appBar: CustomAppBar(
-          ),
+          appBar: CustomAppBar(),
           body: Column(
             children: [
               _buildHeader(innerContext),
@@ -107,7 +107,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: TextInputField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'ابحث في فواتير المشتريات...',
@@ -129,9 +129,13 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                   ),
                   onChanged: (value) {
                     if (value.isNotEmpty) {
-                      innerContext.read<PurchasesCubit>().searchPurchases(value);
+                      innerContext.read<PurchasesCubit>().searchPurchases(
+                        value,
+                      );
                     } else {
-                      innerContext.read<PurchasesCubit>().loadPurchaseInvoices();
+                      innerContext
+                          .read<PurchasesCubit>()
+                          .loadPurchaseInvoices();
                     }
                   },
                 ),
@@ -156,7 +160,10 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
     );
   }
 
-  Widget _buildInvoicesList(BuildContext innerContext, List<InvoiceEntity> invoices) {
+  Widget _buildInvoicesList(
+    BuildContext innerContext,
+    List<InvoiceEntity> invoices,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         innerContext.read<PurchasesCubit>().loadPurchaseInvoices();
@@ -227,7 +234,10 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.success.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(AppRadius.lg20),
@@ -250,10 +260,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                   const SizedBox(width: 8),
                   Text(
                     'المورد #${invoice.customerId}', // In purchases, customer field holds supplier
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade700,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                   ),
                 ],
               ),
@@ -261,10 +268,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
               if (invoice.statement != null) ...[
                 Text(
                   invoice.statement!,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -307,7 +311,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
   Widget _buildPaymentStatusChip(int status) {
     String text;
     Color color;
-    
+
     switch (status) {
       case 1:
         text = 'مدفوعة';
@@ -321,7 +325,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
         text = 'غير مدفوعة';
         color = Colors.red;
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -361,10 +365,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
           const SizedBox(height: 8),
           Text(
             'ابدأ بإضافة فاتورة مشتريات جديدة',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),

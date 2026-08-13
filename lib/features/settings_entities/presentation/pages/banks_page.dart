@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -6,6 +8,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/banks_cubit.dart';
 import 'package:muhasib/features/settings_entities/presentation/widgets/banks_list_widget.dart';
@@ -147,7 +150,7 @@ class _BanksViewState extends State<_BanksView> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
+        builder: (context, setState) => CustomDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg20),
           ),
@@ -173,44 +176,29 @@ class _BanksViewState extends State<_BanksView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                TextInputField(
                   controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم البنك *',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(labelText: 'اسم البنك *'),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextInputField(
                   controller: contactController,
-                  decoration: const InputDecoration(
-                    labelText: 'رقم التواصل',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(labelText: 'رقم التواصل'),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextInputField(
                   controller: branchController,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم الفرع',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(labelText: 'اسم الفرع'),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextInputField(
                   controller: accountNumberController,
-                  decoration: const InputDecoration(
-                    labelText: 'رقم الحساب',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(labelText: 'رقم الحساب'),
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextInputField(
                   controller: bankCodeController,
-                  decoration: const InputDecoration(
-                    labelText: 'كود البنك',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(labelText: 'كود البنك'),
                 ),
                 const SizedBox(height: 16),
                 SwitchListTile(
@@ -226,7 +214,8 @@ class _BanksViewState extends State<_BanksView> {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('إلغاء'),
             ),
-            ElevatedButton(
+            HasibButton(
+              label: isEditing ? 'تحديث' : 'إضافة',
               onPressed: () {
                 if (nameController.text.isEmpty) {
                   AppToast.showError(context, 'الرجاء إدخال اسم البنك');
@@ -258,11 +247,6 @@ class _BanksViewState extends State<_BanksView> {
                   this.context.read<BanksCubit>().createBank(newBank);
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.materialBlue700,
-                foregroundColor: Colors.white,
-              ),
-              child: Text(isEditing ? 'تحديث' : 'إضافة'),
             ),
           ],
         ),
@@ -273,7 +257,7 @@ class _BanksViewState extends State<_BanksView> {
   void _showDeleteDialog(BuildContext context, BankEntity bank) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => CustomDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg20),
         ),
@@ -301,16 +285,13 @@ class _BanksViewState extends State<_BanksView> {
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          HasibButton(
+            label: 'حذف',
+            variant: HasibButtonVariant.danger,
             onPressed: () {
               Navigator.of(dialogContext).pop();
               this.context.read<BanksCubit>().deleteBank(bank.id!);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('حذف'),
           ),
         ],
       ),

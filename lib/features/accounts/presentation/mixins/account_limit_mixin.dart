@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 import 'package:muhasib/features/accounts/domain/services/account_limit_service.dart';
@@ -111,7 +112,7 @@ mixin AccountLimitMixin {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: Row(
           children: [
             Icon(Icons.error_outline, color: Colors.red[600], size: 28),
@@ -178,7 +179,7 @@ mixin AccountLimitMixin {
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: Row(
           children: [
             Icon(

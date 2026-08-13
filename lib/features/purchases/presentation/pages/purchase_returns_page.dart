@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -9,6 +10,7 @@ import 'package:muhasib/features/purchases/presentation/pages/select_purchase_fo
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PurchaseReturnsPage extends StatefulWidget {
   const PurchaseReturnsPage({super.key});
@@ -17,17 +19,18 @@ class PurchaseReturnsPage extends StatefulWidget {
   State<PurchaseReturnsPage> createState() => _PurchaseReturnsPageState();
 }
 
-class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTickerProviderStateMixin {
+class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
+    with SingleTickerProviderStateMixin {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
   late TabController _tabController;
-  
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -42,9 +45,8 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
       child: Builder(
         builder: (innerContext) => Scaffold(
           key: _scaffoldKey,
-          backgroundColor:  AppColors.gray50,
-          appBar: CustomAppBar(
-          ),
+          backgroundColor: AppColors.gray50,
+          appBar: CustomAppBar(),
           body: Column(
             children: [
               _buildHeader(innerContext),
@@ -128,16 +130,14 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                     SizedBox(height: 2),
                     Text(
                       'إدارة المردودات والمرتجعات',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.gray500,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                onPressed: () => innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
+                onPressed: () =>
+                    innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
                 icon: const Icon(Icons.refresh),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.grey.shade100,
@@ -149,12 +149,16 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
             ],
           ),
           const SizedBox(height: 16),
-          TextField(
+          TextInputField(
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'البحث في المردودات...',
               hintStyle: const TextStyle(fontSize: 13),
-              prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: Colors.grey,
+                size: 20,
+              ),
               filled: true,
               fillColor: AppColors.gray50,
               border: OutlineInputBorder(
@@ -169,7 +173,10 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: const BorderSide(color: Colors.red, width: 1),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
             ),
             style: const TextStyle(fontSize: 13),
             onChanged: (value) {
@@ -193,14 +200,8 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(fontSize: 13),
         tabs: const [
-          Tab(
-            icon: Icon(Icons.list_alt, size: 20),
-            text: 'قائمة المردودات',
-          ),
-          Tab(
-            icon: Icon(Icons.analytics, size: 20),
-            text: 'الإحصائيات',
-          ),
+          Tab(icon: Icon(Icons.list_alt, size: 20), text: 'قائمة المردودات'),
+          Tab(icon: Icon(Icons.analytics, size: 20), text: 'الإحصائيات'),
         ],
       ),
     );
@@ -225,12 +226,14 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton.icon(
-                  onPressed: () => innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
+                  onPressed: () =>
+                      innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
                   icon: const Icon(Icons.refresh, size: 18),
-                  label: const Text('إعادة المحاولة', style: TextStyle(fontSize: 13)),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
+                  label: const Text(
+                    'إعادة المحاولة',
+                    style: TextStyle(fontSize: 13),
                   ),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 ),
               ],
             ),
@@ -241,14 +244,15 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
           }
           return _buildReturnsList(innerContext, state.returns);
         }
-        return const Center(
-          child: Text('ابدأ بتحميل المردودات'),
-        );
+        return const Center(child: Text('ابدأ بتحميل المردودات'));
       },
     );
   }
 
-  Widget _buildReturnsList(BuildContext innerContext, List<InvoiceEntity> returns) {
+  Widget _buildReturnsList(
+    BuildContext innerContext,
+    List<InvoiceEntity> returns,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         innerContext.read<PurchasesCubit>().loadPurchaseReturns();
@@ -315,7 +319,11 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                               const SizedBox(height: 2),
                               Row(
                                 children: [
-                                  Icon(Icons.calendar_today, size: 12, color: Colors.grey[600]),
+                                  Icon(
+                                    Icons.calendar_today,
+                                    size: 12,
+                                    color: Colors.grey[600],
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     _formatDate(returnInvoice.date),
@@ -333,7 +341,10 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(AppRadius.md),
@@ -382,20 +393,14 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                   const SizedBox(width: 6),
                   Text(
                     'المورد #${returnInvoice.customerId}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                   ),
                   const SizedBox(width: 16),
                   Icon(Icons.inventory_2, size: 14, color: Colors.grey[600]),
                   const SizedBox(width: 6),
                   Text(
                     '${returnInvoice.lines.length} منتج',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[700],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                   ),
                 ],
               ),
@@ -408,14 +413,13 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                     children: [
                       Text(
                         'قيمة المردود',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatCurrency(returnInvoice.finalAmt ?? returnInvoice.amount),
+                        _formatCurrency(
+                          returnInvoice.finalAmt ?? returnInvoice.amount,
+                        ),
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -446,7 +450,8 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                   ),
                 ],
               ),
-              if (returnInvoice.statement != null && returnInvoice.statement!.isNotEmpty) ...[
+              if (returnInvoice.statement != null &&
+                  returnInvoice.statement!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.all(8),
@@ -550,7 +555,12 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
     );
   }
 
-  Widget _buildStatCard(String title, String value, IconData icon, Color color) {
+  Widget _buildStatCard(
+    String title,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -576,10 +586,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 4),
                   Text(
@@ -604,10 +611,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
       children: [
         Expanded(
           flex: 3,
-          child: Text(
-            reason,
-            style: const TextStyle(fontSize: 12),
-          ),
+          child: Text(reason, style: const TextStyle(fontSize: 12)),
         ),
         Expanded(
           flex: 5,
@@ -634,8 +638,10 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
   void _showCreateReturnDialog(BuildContext innerContext) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      builder: (context) => CustomDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
         title: const Row(
           children: [
             Icon(Icons.assignment_return, color: Colors.red),
@@ -681,13 +687,14 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
           ElevatedButton.icon(
             onPressed: () {
               Navigator.of(context).pop();
-              AppToast.showInfo(context, 'سيتم إضافة نموذج إنشاء المردود قريباً');
+              AppToast.showInfo(
+                context,
+                'سيتم إضافة نموذج إنشاء المردود قريباً',
+              );
             },
             icon: const Icon(Icons.arrow_forward, size: 18),
             label: const Text('متابعة'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
           ),
         ],
       ),
@@ -723,10 +730,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage> with SingleTi
           const SizedBox(height: 8),
           Text(
             'لم يتم إنشاء أي مردودات مشتريات بعد',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(

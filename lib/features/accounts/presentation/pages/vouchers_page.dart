@@ -1,5 +1,6 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -263,7 +264,7 @@ class _VouchersPageState extends State<VouchersPage>
       context: context,
       builder: (context) => Directionality(
         textDirection: ui.TextDirection.rtl,
-        child: AlertDialog(
+        child: CustomDialog(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg20),
           ),

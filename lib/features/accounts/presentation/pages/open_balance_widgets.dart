@@ -240,7 +240,7 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector> {
             const SizedBox(height: 40),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: TextField(
+              child: TextInputField(
                 onChanged: (v) => setState(() => _query = v),
                 decoration: InputDecoration(
                   hintText: 'ابحث عن حساب...',

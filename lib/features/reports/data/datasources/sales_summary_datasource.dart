@@ -3,9 +3,7 @@ import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/entities/sales_summary_entity.dart';
 
 abstract class SalesSummaryDataSource {
-  Future<SalesSummaryEntity> getSalesSummary({
-    required ReportFilter filter,
-  });
+  Future<SalesSummaryEntity> getSalesSummary({required ReportFilter filter});
 }
 
 class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
@@ -22,13 +20,23 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
     String dateFilter = '';
     final args = <Object?>[];
     if (filter.startDate != null && filter.endDate != null) {
-      dateFilter = 'AND i.date >= ? AND i.date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      // Older invoices use seconds while the sales form historically stored
+      // milliseconds. Support both formats so a new invoice is not hidden.
+      dateFilter = '''AND ((i.date >= ? AND i.date <= ?) OR
+          (i.date >= ? AND i.date <= ?))''';
+      final startSeconds = filter.startDate!.millisecondsSinceEpoch ~/ 1000;
+      final endSeconds = filter.endDate!.millisecondsSinceEpoch ~/ 1000;
+      args.addAll([
+        startSeconds,
+        endSeconds,
+        startSeconds * 1000,
+        endSeconds * 1000,
+      ]);
     }
 
     // Get sales totals
-    final salesQuery = '''
+    final salesQuery =
+        '''
       SELECT 
         COUNT(CASE WHEN i.invoice_type = 1 THEN 1 END) as invoice_count,
         COUNT(CASE WHEN i.invoice_type = 4 THEN 1 END) as return_count,
@@ -43,7 +51,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
     ''';
 
     final salesResult = await db.rawQuery(salesQuery, args);
-    
+
     double totalSales = 0;
     double totalReturns = 0;
     double totalDiscounts = 0;
@@ -64,7 +72,8 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
     }
 
     // Get top products
-    final topProductsQuery = '''
+    final topProductsQuery =
+        '''
       SELECT 
         c.id as product_id,
         c.name as product_name,
@@ -82,16 +91,21 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
     ''';
 
     final topProductsResult = await db.rawQuery(topProductsQuery, args);
-    final topProducts = topProductsResult.map((row) => TopProductEntity(
-      productId: row['product_id'] as int,
-      productName: row['product_name'] as String,
-      quantity: (row['quantity'] as num?)?.toDouble() ?? 0.0,
-      totalAmount: (row['total_amount'] as num?)?.toDouble() ?? 0.0,
-      salesCount: row['sales_count'] as int,
-    )).toList();
+    final topProducts = topProductsResult
+        .map(
+          (row) => TopProductEntity(
+            productId: row['product_id'] as int,
+            productName: row['product_name'] as String,
+            quantity: (row['quantity'] as num?)?.toDouble() ?? 0.0,
+            totalAmount: (row['total_amount'] as num?)?.toDouble() ?? 0.0,
+            salesCount: row['sales_count'] as int,
+          ),
+        )
+        .toList();
 
     // Get top customers
-    final topCustomersQuery = '''
+    final topCustomersQuery =
+        '''
       SELECT 
         c.id as customer_id,
         c.name as customer_name,
@@ -107,17 +121,22 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
     ''';
 
     final topCustomersResult = await db.rawQuery(topCustomersQuery, args);
-    final topCustomers = topCustomersResult.map((row) => TopCustomerEntity(
-      customerId: row['customer_id'] as int,
-      customerName: row['customer_name'] as String,
-      totalPurchases: (row['total_purchases'] as num?)?.toDouble() ?? 0.0,
-      invoiceCount: row['invoice_count'] as int,
-    )).toList();
+    final topCustomers = topCustomersResult
+        .map(
+          (row) => TopCustomerEntity(
+            customerId: row['customer_id'] as int,
+            customerName: row['customer_name'] as String,
+            totalPurchases: (row['total_purchases'] as num?)?.toDouble() ?? 0.0,
+            invoiceCount: row['invoice_count'] as int,
+          ),
+        )
+        .toList();
 
     // Get daily sales
-    final dailySalesQuery = '''
+    final dailySalesQuery =
+        '''
       SELECT 
-        date(i.date, 'unixepoch') as sale_date,
+         date(CASE WHEN i.date > 1000000000000 THEN i.date / 1000 ELSE i.date END, 'unixepoch') as sale_date,
         SUM(COALESCE(i.final_amt, i.total_amount, i.amount)) as daily_total
       FROM invoices i
       WHERE i.invoice_type = 1
@@ -128,10 +147,12 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
 
     final dailySalesResult = await db.rawQuery(dailySalesQuery, args);
     final dailySales = Map<String, double>.fromEntries(
-      dailySalesResult.map((row) => MapEntry(
-        row['sale_date'] as String,
-        (row['daily_total'] as num?)?.toDouble() ?? 0.0,
-      )),
+      dailySalesResult.map(
+        (row) => MapEntry(
+          row['sale_date'] as String,
+          (row['daily_total'] as num?)?.toDouble() ?? 0.0,
+        ),
+      ),
     );
 
     final netSales = totalSales - totalReturns;

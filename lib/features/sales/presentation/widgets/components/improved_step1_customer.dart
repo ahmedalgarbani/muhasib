@@ -8,6 +8,7 @@ import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class ImprovedStep1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -35,7 +36,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
   void initState() {
     super.initState();
     _notesController = TextEditingController(text: widget.invoice.notes);
-    
+
     // Load customers and warehouses
     context.read<CustomersCubit>().loadCustomers();
     context.read<WarehousesCubit>().loadWarehouses();
@@ -54,9 +55,11 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
         _filteredCustomers = customers;
       } else {
         _filteredCustomers = customers
-            .where((customer) =>
-                customer.name.toLowerCase().contains(query.toLowerCase()) ||
-                (customer.phone?.contains(query) ?? false))
+            .where(
+              (customer) =>
+                  customer.name.toLowerCase().contains(query.toLowerCase()) ||
+                  (customer.phone?.contains(query) ?? false),
+            )
             .toList();
       }
     });
@@ -79,7 +82,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // Customer Input with Add Button
           Row(
             children: [
@@ -87,17 +90,15 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                 child: BlocBuilder<CustomersCubit, CustomersState>(
                   builder: (context, state) {
                     if (state is CustomersLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return const Center(child: CircularProgressIndicator());
                     }
-                    
+
                     if (state is CustomersLoaded) {
                       // Only real customers (customers table: type=1). Suppliers are type=2.
                       final customers = state.customers
                           .where((c) => c.type == 1)
                           .toList();
-                      
+
                       return Column(
                         children: [
                           // Selected Customer or Search Field
@@ -118,7 +119,9 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                       : AppColors.gray300,
                                   width: 2,
                                 ),
-                                borderRadius: BorderRadius.circular(AppRadius.sm),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.sm,
+                                ),
                               ),
                               child: Row(
                                 children: [
@@ -133,7 +136,8 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                   Expanded(
                                     child: widget.invoice.customer != null
                                         ? Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               Text(
                                                 widget.invoice.customer!.name,
@@ -142,9 +146,16 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                                   fontWeight: FontWeight.w600,
                                                 ),
                                               ),
-                                              if (widget.invoice.customer!.phone != null)
+                                              if (widget
+                                                      .invoice
+                                                      .customer!
+                                                      .phone !=
+                                                  null)
                                                 Text(
-                                                  widget.invoice.customer!.phone!,
+                                                  widget
+                                                      .invoice
+                                                      .customer!
+                                                      .phone!,
                                                   style: const TextStyle(
                                                     fontSize: 12,
                                                     color: AppColors.gray500,
@@ -154,7 +165,12 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                                 'الرصيد: ${NumberFormatter.formatCurrency(widget.invoice.customer!.balance)}',
                                                 style: TextStyle(
                                                   fontSize: 12,
-                                                  color: widget.invoice.customer!.balance > 0
+                                                  color:
+                                                      widget
+                                                              .invoice
+                                                              .customer!
+                                                              .balance >
+                                                          0
                                                       ? Colors.red
                                                       : Colors.green,
                                                 ),
@@ -179,7 +195,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                               ),
                             ),
                           ),
-                          
+
                           // Customers List Dropdown
                           if (_showCustomersList) ...[
                             const SizedBox(height: 8),
@@ -188,7 +204,9 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                               decoration: BoxDecoration(
                                 color: Colors.white,
                                 border: Border.all(color: AppColors.gray200),
-                                borderRadius: BorderRadius.circular(AppRadius.sm),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.sm,
+                                ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.05),
@@ -202,19 +220,22 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                   // Search Field
                                   Padding(
                                     padding: const EdgeInsets.all(8),
-                                    child: TextField(
+                                    child: TextInputField(
                                       controller: _searchController,
                                       decoration: const InputDecoration(
                                         hintText: 'ابحث عن عميل...',
-                                        prefixIcon: Icon(Icons.search, size: 20),
+                                        prefixIcon: Icon(
+                                          Icons.search,
+                                          size: 20,
+                                        ),
                                         isDense: true,
                                         contentPadding: EdgeInsets.symmetric(
                                           horizontal: 12,
                                           vertical: 8,
                                         ),
-                                        border: OutlineInputBorder(),
                                       ),
-                                      onChanged: (value) => _filterCustomers(value, customers),
+                                      onChanged: (value) =>
+                                          _filterCustomers(value, customers),
                                     ),
                                   ),
                                   // Customers List
@@ -225,10 +246,11 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                           ? customers.length
                                           : _filteredCustomers.length,
                                       itemBuilder: (context, index) {
-                                        final customer = _filteredCustomers.isEmpty
+                                        final customer =
+                                            _filteredCustomers.isEmpty
                                             ? customers[index]
                                             : _filteredCustomers[index];
-                                        
+
                                         return ListTile(
                                           leading: CircleAvatar(
                                             backgroundColor: AppColors.blue50,
@@ -242,15 +264,20 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                           ),
                                           title: Text(
                                             customer.name,
-                                            style: const TextStyle(fontSize: 14),
+                                            style: const TextStyle(
+                                              fontSize: 14,
+                                            ),
                                           ),
                                           subtitle: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
                                               if (customer.phone != null)
                                                 Text(
                                                   customer.phone!,
-                                                  style: const TextStyle(fontSize: 12),
+                                                  style: const TextStyle(
+                                                    fontSize: 12,
+                                                  ),
                                                 ),
                                               Row(
                                                 children: [
@@ -258,18 +285,26 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                                     'الرصيد: ${NumberFormatter.formatCurrency(customer.balance)}',
                                                     style: TextStyle(
                                                       fontSize: 11,
-                                                      color: customer.balance > 0
+                                                      color:
+                                                          customer.balance > 0
                                                           ? Colors.red
                                                           : Colors.green,
                                                     ),
                                                   ),
-                                                  if (customer.creditLimit > 0) ...[
-                                                    const Text(' | ', style: TextStyle(fontSize: 11)),
+                                                  if (customer.creditLimit >
+                                                      0) ...[
+                                                    const Text(
+                                                      ' | ',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                      ),
+                                                    ),
                                                     Text(
                                                       'الحد: ${NumberFormatter.formatCurrency(customer.creditLimit)}',
                                                       style: const TextStyle(
                                                         fontSize: 11,
-                                                        color: AppColors.gray500,
+                                                        color:
+                                                            AppColors.gray500,
                                                       ),
                                                     ),
                                                   ],
@@ -279,7 +314,9 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                           ),
                                           onTap: () {
                                             widget.onInvoiceUpdate(
-                                              widget.invoice.copyWith(customer: customer),
+                                              widget.invoice.copyWith(
+                                                customer: customer,
+                                              ),
                                             );
                                             setState(() {
                                               _showCustomersList = false;
@@ -297,7 +334,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                         ],
                       );
                     }
-                    
+
                     if (state is CustomersError) {
                       return Center(
                         child: Text(
@@ -306,13 +343,13 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                         ),
                       );
                     }
-                    
+
                     return const SizedBox();
                   },
                 ),
               ),
               const SizedBox(width: 8),
-              
+
               // Add Customer Button
               Container(
                 width: 48,
@@ -331,12 +368,12 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                         child: const AddCustomerDialog(partyType: 1),
                       ),
                     );
-                    
+
                     if (newCustomer != null && mounted) {
                       widget.onInvoiceUpdate(
                         widget.invoice.copyWith(customer: newCustomer),
                       );
-                      
+
                       // Ensure list is refreshed (cubit also reloads on add)
                       cubit.loadCustomers();
                     }
@@ -347,9 +384,9 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Date and Currency Row
           Row(
             children: [
@@ -359,10 +396,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                   children: [
                     const Text(
                       'التاريخ',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.gray500,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
                     ),
                     const SizedBox(height: 4),
                     InkWell(
@@ -412,10 +446,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                   children: [
                     const Text(
                       'العملة',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.gray500,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
                     ),
                     const SizedBox(height: 4),
                     Container(
@@ -448,9 +479,9 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
               ),
             ],
           ),
-          
+
           const SizedBox(height: 24),
-          
+
           // Warehouse Selection
           BlocBuilder<WarehousesCubit, WarehousesState>(
             builder: (context, state) {
@@ -460,10 +491,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                   children: [
                     const Text(
                       'المخزن',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.gray500,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
                     ),
                     const SizedBox(height: 4),
                     DropdownButtonFormField<String>(
@@ -502,13 +530,13 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
               return const SizedBox();
             },
           ),
-          
+
           // Notes Section
           ExpandableSection(
             title: 'معلومات إضافية',
             child: Padding(
               padding: const EdgeInsets.only(top: 12),
-              child: TextField(
+              child: TextInputField(
                 controller: _notesController,
                 maxLines: 3,
                 decoration: InputDecoration(
@@ -519,16 +547,14 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                   contentPadding: const EdgeInsets.all(12),
                 ),
                 onChanged: (value) {
-                  widget.onInvoiceUpdate(
-                    widget.invoice.copyWith(notes: value),
-                  );
+                  widget.onInvoiceUpdate(widget.invoice.copyWith(notes: value));
                 },
               ),
             ),
           ),
-          
+
           const SizedBox(height: 32),
-          
+
           // Next Button
           SizedBox(
             width: double.infinity,
@@ -546,10 +572,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                 children: [
                   Text(
                     'التالي: إضافة الأصناف',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                   ),
                   SizedBox(width: 8),
                   Icon(Icons.arrow_forward, size: 20),

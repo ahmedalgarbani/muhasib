@@ -5,7 +5,8 @@ import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/presentation/cubit/stock_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/stock_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
-import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_data_table.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -45,21 +46,49 @@ class _StockReportPageState extends State<StockReportPage> {
   Future<void> _exportPdf() async {
     if (_lastState == null) return;
     final headers = ['الصنف', 'الكود', 'الكمية', 'التكلفة', 'القيمة'];
-    final data = _lastState!.filteredStocks.map((s) => [
-      s.productName, s.productCode, s.currentStock.toStringAsFixed(2),
-      s.costPrice.toStringAsFixed(2), s.stockValue.toStringAsFixed(2),
-    ]).toList();
-    await ExportService.printData(title: 'تقرير جرد المخزون', headers: headers, data: data);
+    final data = _lastState!.filteredStocks
+        .map(
+          (s) => [
+            s.productName,
+            s.productCode,
+            s.currentStock.toStringAsFixed(2),
+            s.costPrice.toStringAsFixed(2),
+            s.stockValue.toStringAsFixed(2),
+          ],
+        )
+        .toList();
+    await ExportService.printData(
+      title: 'تقرير جرد المخزون',
+      headers: headers,
+      data: data,
+    );
   }
 
   Future<void> _exportExcel() async {
     if (_lastState == null) return;
-    final headers = ['اسم الصنف', 'الكود', 'الكمية الحالية', 'سعر التكلفة', 'إجمالي القيمة'];
-    final data = _lastState!.filteredStocks.map((s) => [
-      s.productName, s.productCode, s.currentStock.toStringAsFixed(2),
-      s.costPrice.toStringAsFixed(2), s.stockValue.toStringAsFixed(2),
-    ]).toList();
-    await ExportService.exportToExcel(fileName: 'stock_inventory', headers: headers, data: data);
+    final headers = [
+      'اسم الصنف',
+      'الكود',
+      'الكمية الحالية',
+      'سعر التكلفة',
+      'إجمالي القيمة',
+    ];
+    final data = _lastState!.filteredStocks
+        .map(
+          (s) => [
+            s.productName,
+            s.productCode,
+            s.currentStock.toStringAsFixed(2),
+            s.costPrice.toStringAsFixed(2),
+            s.stockValue.toStringAsFixed(2),
+          ],
+        )
+        .toList();
+    await ExportService.exportToExcel(
+      fileName: 'stock_inventory',
+      headers: headers,
+      data: data,
+    );
   }
 }
 
@@ -70,55 +99,215 @@ class _StockReportContent extends StatefulWidget {
 }
 
 class _StockReportContentState extends State<_StockReportContent> {
-  final TextEditingController _searchController = TextEditingController();
   final _numberFormat = NumberFormat('#,##0.00', 'ar');
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<StockCubit, StockState>(
       builder: (context, state) {
-        if (state is StockLoading) return const Center(child: CircularProgressIndicator());
-        if (state is StockError) return Center(child: Text('خطأ: ${state.message}'));
+        if (state is StockLoading)
+          return const Center(child: CircularProgressIndicator());
+        if (state is StockError)
+          return Center(child: Text('خطأ: ${state.message}'));
         if (state is StockLoaded) {
           final stocks = state.filteredStocks;
           final s = state.summary;
 
-          return Column(
-            children: [
-              ReportSummaryRow(cards: [
-                ReportSummaryCard(title: 'قيمة المخزون', value: '${_numberFormat.format(s.totalStockValue)} ر.س', icon: Icons.monetization_on, color: Colors.green),
-                ReportSummaryCard(title: 'إجمالي الوحدات', value: s.totalQuantity.toInt().toString(), icon: Icons.inventory, color: Colors.blue),
-                ReportSummaryCard(title: 'نقص المخزون', value: s.lowStockCount.toString(), icon: Icons.warning, color: Colors.orange),
-              ]),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(hintText: 'بحث في الأصناف...', prefixIcon: const Icon(Icons.search), filled: true, fillColor: Colors.grey[50], border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.lg), borderSide: BorderSide.none)),
-                  onChanged: (v) => context.read<StockCubit>().updateSearch(v),
-                ),
-              ),
-              Expanded(
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: stocks.length,
-                  itemBuilder: (context, index) {
-                    final item = stocks[index];
-                    return Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg), side: BorderSide(color: item.currentStock <= item.minStock ? Colors.orange.withOpacity(0.3) : Colors.grey[100]!)),
-                      margin: const EdgeInsets.only(bottom: 12),
-                      child: ListTile(
-                        leading: Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.blueGrey[50], borderRadius: BorderRadius.circular(AppRadius.sm)), child: const Icon(Icons.inventory_2, color: Colors.blueGrey)),
-                        title: Text(item.productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                        subtitle: Text('كود: ${item.productCode}', style: const TextStyle(fontSize: 10)),
-                        trailing: Column(mainAxisAlignment: MainAxisAlignment.center, crossAxisAlignment: CrossAxisAlignment.end, children: [Text('${item.currentStock.toInt()}', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: item.currentStock <= item.minStock ? Colors.orange : Colors.blueGrey)), Text('${_numberFormat.format(item.stockValue)} ر.س', style: const TextStyle(fontSize: 9, color: Colors.grey))]),
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: ReportKpiCard(
+                        title: 'إجمالي قيمة المخزون',
+                        value: '${_numberFormat.format(s.totalStockValue)} ر.س',
+                        icon: Icons.monetization_on,
+                        color: Colors.green[700]!,
+                        subtitle: 'بالتكلفة الفعلية',
                       ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ReportKpiCard(
+                        title: 'إجمالي كمية الأصناف',
+                        value: '${s.totalQuantity.toInt()} قطعة',
+                        icon: Icons.inventory,
+                        color: Colors.blue[700]!,
+                        subtitle: 'عدد الأنواع: ${stocks.length}',
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: ReportKpiCard(
+                        title: 'تنبيهات حد النقص',
+                        value: '${s.lowStockCount} صنف',
+                        icon: Icons.warning,
+                        color: s.lowStockCount > 0
+                            ? Colors.orange[700]!
+                            : Colors.grey[700]!,
+                        subtitle: s.lowStockCount > 0
+                            ? 'يحتاج إلى إعادة طلب ⚠'
+                            : 'المخزون آمن ✓',
+                        isPositiveTrend: s.lowStockCount == 0,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                ReportDataTable<dynamic>(
+                  columns: const [
+                    ReportTableColumn(title: 'رمز الصنف / اسم المنتج', flex: 3),
+                    ReportTableColumn(
+                      title: 'الكمية المتوفرة',
+                      flex: 2,
+                      alignment: TextAlign.center,
+                    ),
+                    ReportTableColumn(
+                      title: 'سعر التكلفة',
+                      flex: 2,
+                      alignment: TextAlign.center,
+                    ),
+                    ReportTableColumn(
+                      title: 'إجمالي قيمة المخزون',
+                      flex: 2,
+                      alignment: TextAlign.end,
+                    ),
+                  ],
+                  items: stocks,
+                  rowBuilder: (context, item, index) {
+                    final isLow = item.currentStock <= item.minStock;
+                    return Row(
+                      children: [
+                        Expanded(
+                          flex: 3,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                item.productName,
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Text(
+                                    item.productCode,
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey[600],
+                                    ),
+                                  ),
+                                  if (isLow) ...[
+                                    const SizedBox(width: 6),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 2,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.orange[100],
+                                        borderRadius: BorderRadius.circular(
+                                          AppRadius.xs,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        'حد النقص',
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          color: Colors.orange[900],
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            '${item.currentStock.toInt()}',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: isLow
+                                  ? Colors.orange[800]
+                                  : Colors.grey[900],
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            '${_numberFormat.format(item.costPrice)} ر.س',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 12),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 2,
+                          child: Text(
+                            '${_numberFormat.format(item.stockValue)} ر.س',
+                            textAlign: TextAlign.end,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green[800],
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   },
+                  footerRow: Row(
+                    children: [
+                      const Expanded(
+                        flex: 3,
+                        child: Text(
+                          'الإجمالي العام للمخزون',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          '${s.totalQuantity.toInt()} قطعة',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                      const Expanded(flex: 2, child: SizedBox()),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          '${_numberFormat.format(s.totalStockValue)} ر.س',
+                          textAlign: TextAlign.end,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: Colors.green[800],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         }
         return const SizedBox.shrink();

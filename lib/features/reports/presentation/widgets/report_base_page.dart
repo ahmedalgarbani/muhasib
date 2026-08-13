@@ -3,6 +3,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class ReportBasePage extends StatefulWidget {
   final String title;
@@ -10,6 +11,8 @@ class ReportBasePage extends StatefulWidget {
   final Color color;
   final Widget Function(ReportFilter filter) reportBuilder;
   final bool showDateFilter;
+  final bool showSearch;
+  final String searchHint;
   final List<Widget>? additionalFilters;
   final List<Widget>? actions;
   final VoidCallback? onPrint;
@@ -22,6 +25,8 @@ class ReportBasePage extends StatefulWidget {
     required this.color,
     required this.reportBuilder,
     this.showDateFilter = true,
+    this.showSearch = true,
+    this.searchHint = 'بحث بالاسم، الكود، أو التفاصيل...',
     this.additionalFilters,
     this.actions,
     this.onPrint,
@@ -35,11 +40,18 @@ class ReportBasePage extends StatefulWidget {
 class _ReportBasePageState extends State<ReportBasePage> {
   late ReportFilter _filter;
   bool _showFilters = false;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     _filter = ReportFilter.currentMonth();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
   }
 
   Future<void> _selectDateRange() async {
@@ -67,7 +79,15 @@ class _ReportBasePageState extends State<ReportBasePage> {
       setState(() {
         _filter = _filter.copyWith(
           startDate: picked.start,
-          endDate: DateTime(picked.end.year, picked.end.month, picked.end.day, 23, 59, 59, 999),
+          endDate: DateTime(
+            picked.end.year,
+            picked.end.month,
+            picked.end.day,
+            23,
+            59,
+            59,
+            999,
+          ),
         );
       });
     }
@@ -86,7 +106,11 @@ class _ReportBasePageState extends State<ReportBasePage> {
         case 'week':
           final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
           _filter = _filter.copyWith(
-            startDate: DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day),
+            startDate: DateTime(
+              startOfWeek.year,
+              startOfWeek.month,
+              startOfWeek.day,
+            ),
             endDate: now,
           );
           break;
@@ -116,7 +140,9 @@ class _ReportBasePageState extends State<ReportBasePage> {
           actions: [
             if (widget.showDateFilter)
               IconButton(
-                icon: Icon(_showFilters ? Icons.filter_alt : Icons.filter_alt_outlined),
+                icon: Icon(
+                  _showFilters ? Icons.filter_alt : Icons.filter_alt_outlined,
+                ),
                 onPressed: () => setState(() => _showFilters = !_showFilters),
                 tooltip: 'الفلاتر',
               ),
@@ -153,7 +179,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
               ),
               child: Row(
                 children: [
-                   Container(
+                  Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white.withOpacity(0.2),
@@ -174,11 +200,16 @@ class _ReportBasePageState extends State<ReportBasePage> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        if (widget.showDateFilter && _filter.startDate != null) ...[
+                        if (widget.showDateFilter &&
+                            _filter.startDate != null) ...[
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              Icon(Icons.date_range, color: Colors.white.withOpacity(0.8), size: 14),
+                              Icon(
+                                Icons.date_range,
+                                color: Colors.white.withOpacity(0.8),
+                                size: 14,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 '${_formatDate(_filter.startDate)} - ${_formatDate(_filter.endDate)}',
@@ -198,7 +229,10 @@ class _ReportBasePageState extends State<ReportBasePage> {
                       color: Colors.white.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       child: IconButton(
-                        icon: const Icon(Icons.calendar_month, color: Colors.white),
+                        icon: const Icon(
+                          Icons.calendar_month,
+                          color: Colors.white,
+                        ),
                         onPressed: _selectDateRange,
                         tooltip: 'تغيير الفترة',
                       ),
@@ -206,46 +240,99 @@ class _ReportBasePageState extends State<ReportBasePage> {
                 ],
               ),
             ),
-      
-            // Quick filters
-            if (_showFilters && widget.showDateFilter)
+
+            // Search bar & Quick filters
+            if (widget.showSearch || (_showFilters && widget.showDateFilter))
               Container(
                 color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'الفترة الزمنية السريعة:',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey),
-                    ),
-                    const SizedBox(height: 12),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _buildQuickFilterChip('اليوم', 'today'),
-                          const SizedBox(width: 10),
-                          _buildQuickFilterChip('الأسبوع', 'week'),
-                          const SizedBox(width: 10),
-                          _buildQuickFilterChip('الشهر الحالي', 'month'),
-                          const SizedBox(width: 10),
-                          _buildQuickFilterChip('العام الحالي', 'year'),
-                        ],
+                    if (widget.showSearch)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: TextInputField(
+                          controller: _searchController,
+                          decoration: InputDecoration(
+                            hintText: widget.searchHint,
+                            hintStyle: const TextStyle(fontSize: 13),
+                            prefixIcon: const Icon(Icons.search, size: 20),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear, size: 18),
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() {
+                                        _filter = _filter.copyWith(
+                                          searchQuery: '',
+                                        );
+                                      });
+                                    },
+                                  )
+                                : null,
+                            filled: true,
+                            fillColor: AppColors.gray50,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              borderSide: BorderSide(color: Colors.grey[300]!),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(AppRadius.md),
+                              borderSide: BorderSide(color: Colors.grey[200]!),
+                            ),
+                          ),
+                          onChanged: (val) {
+                            setState(() {
+                              _filter = _filter.copyWith(
+                                searchQuery: val.trim(),
+                              );
+                            });
+                          },
+                        ),
                       ),
-                    ),
-                    if (widget.additionalFilters != null) ...[
-                      const Divider(height: 24),
-                      ...widget.additionalFilters!,
+                    if (_showFilters && widget.showDateFilter) ...[
+                      const Text(
+                        'الفترة الزمنية السريعة:',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          color: Colors.blueGrey,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: [
+                            _buildQuickFilterChip('اليوم', 'today'),
+                            const SizedBox(width: 8),
+                            _buildQuickFilterChip('الأسبوع', 'week'),
+                            const SizedBox(width: 8),
+                            _buildQuickFilterChip('الشهر الحالي', 'month'),
+                            const SizedBox(width: 8),
+                            _buildQuickFilterChip('العام الحالي', 'year'),
+                          ],
+                        ),
+                      ),
+                      if (widget.additionalFilters != null) ...[
+                        const Divider(height: 16),
+                        ...widget.additionalFilters!,
+                      ],
                     ],
                   ],
                 ),
               ),
-      
+
             // Report content
-            Expanded(
-              child: widget.reportBuilder(_filter),
-            ),
+            Expanded(child: widget.reportBuilder(_filter)),
           ],
         ),
       ),
@@ -256,7 +343,11 @@ class _ReportBasePageState extends State<ReportBasePage> {
     return ActionChip(
       label: Text(label),
       backgroundColor: widget.color.withOpacity(0.05),
-      labelStyle: TextStyle(color: widget.color, fontWeight: FontWeight.bold, fontSize: 12),
+      labelStyle: TextStyle(
+        color: widget.color,
+        fontWeight: FontWeight.bold,
+        fontSize: 12,
+      ),
       side: BorderSide(color: widget.color.withOpacity(0.2)),
       onPressed: () => _applyQuickFilter(type),
     );

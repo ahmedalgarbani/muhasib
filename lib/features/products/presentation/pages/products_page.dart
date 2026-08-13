@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
@@ -77,9 +79,7 @@ class _ProductsPageState extends State<ProductsPage> {
                           ? _buildProductsGrid(state.products)
                           : _buildProductsList(state.products);
                     }
-                    return const Center(
-                      child: Text('ابدأ بإضافة منتجات'),
-                    );
+                    return const Center(child: Text('ابدأ بإضافة منتجات'));
                   },
                 ),
               ),
@@ -136,16 +136,19 @@ class _ProductsPageState extends State<ProductsPage> {
                               value: null,
                               child: Text('كل المجموعات'),
                             ),
-                            ...groupsState.groups.map((group) =>
-                                DropdownMenuItem(
-                                  value: group.id,
-                                  child: Text(group.name),
-                                )),
+                            ...groupsState.groups.map(
+                              (group) => DropdownMenuItem(
+                                value: group.id,
+                                child: Text(group.name),
+                              ),
+                            ),
                           ],
                           onChanged: (value) {
                             setState(() => _selectedGroupFilter = value);
                             if (value != null) {
-                              context.read<ProductsCubit>().loadProductsByGroup(value);
+                              context.read<ProductsCubit>().loadProductsByGroup(
+                                value,
+                              );
                             } else {
                               context.read<ProductsCubit>().loadProducts();
                             }
@@ -160,7 +163,7 @@ class _ProductsPageState extends State<ProductsPage> {
             ],
           ),
           const SizedBox(height: 16),
-          TextField(
+          TextInputField(
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'ابحث بالاسم أو الباركود...',
@@ -216,7 +219,9 @@ class _ProductsPageState extends State<ProductsPage> {
                   height: 120,
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(AppRadius.md)),
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.md),
+                    ),
                   ),
                   child: Center(
                     child: Icon(
@@ -268,7 +273,9 @@ class _ProductsPageState extends State<ProductsPage> {
                                 color: product.quantity > 0
                                     ? Colors.green.shade50
                                     : Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(AppRadius.xs),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.xs,
+                                ),
                               ),
                               child: Text(
                                 product.quantity.toStringAsFixed(0),
@@ -315,10 +322,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 color: Colors.grey.shade100,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
-              child: Icon(
-                Icons.inventory,
-                color: Colors.grey.shade400,
-              ),
+              child: Icon(Icons.inventory, color: Colors.grey.shade400),
             ),
             title: Text(
               product.name,
@@ -328,7 +332,9 @@ class _ProductsPageState extends State<ProductsPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('الباركود: ${product.barcodeNo}'),
-                Text('السعر: ${product.sellAmount?.toStringAsFixed(2) ?? '0'} ر.س'),
+                Text(
+                  'السعر: ${product.sellAmount?.toStringAsFixed(2) ?? '0'} ر.س',
+                ),
               ],
             ),
             trailing: Column(
@@ -336,7 +342,10 @@ class _ProductsPageState extends State<ProductsPage> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: product.quantity > 0
                         ? Colors.green.shade50
@@ -408,7 +417,7 @@ class _ProductsPageState extends State<ProductsPage> {
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
-        child: AlertDialog(
+        child: CustomDialog(
           title: const Text('تأكيد الحذف'),
           content: Text('هل أنت متأكد من حذف منتج "${product.name}"؟'),
           actions: [

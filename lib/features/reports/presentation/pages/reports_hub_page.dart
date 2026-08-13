@@ -5,6 +5,7 @@ import 'package:muhasib/features/reports/data/reports_data.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class ReportsHubPage extends StatefulWidget {
   const ReportsHubPage({super.key});
@@ -126,7 +127,7 @@ class _ReportsHubPageState extends State<ReportsHubPage>
             // Search bar
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: TextField(
+              child: TextInputField(
                 controller: _searchController,
                 decoration: InputDecoration(
                   hintText: 'بحث في التقارير...',

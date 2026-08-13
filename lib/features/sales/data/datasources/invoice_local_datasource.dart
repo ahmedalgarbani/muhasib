@@ -12,11 +12,11 @@ abstract class InvoiceLocalDataSource {
   Future<void> updateInvoice(InvoiceModel invoice);
   Future<void> deleteInvoice(int id);
   Future<List<InvoiceModel>> searchInvoices(String query);
-  
+
   // Filter operations
   Future<List<InvoiceModel>> getInvoicesByType(int invoiceType);
   Future<List<InvoiceModel>> getInvoicesByCustomer(int customerId);
-  
+
   // Quotations
   Future<List<InvoiceModel>> getQuotations();
   Future<List<InvoiceModel>> getOpenQuotations();
@@ -24,7 +24,7 @@ abstract class InvoiceLocalDataSource {
     int quotationId,
     InvoiceModel salesInvoice,
   );
-  
+
   // Returns
   Future<List<InvoiceModel>> getReturnInvoices();
   Future<List<InvoiceModel>> getReturnsByParentInvoice(int parentInvoiceId);
@@ -83,7 +83,9 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
       _ => null,
     };
     if (cId == null) {
-      throw LocalStorageException('لا يوجد حساب افتراضي لنوع الربط: $label (type=$connectType)');
+      throw LocalStorageException(
+        'لا يوجد حساب افتراضي لنوع الربط: $label (type=$connectType)',
+      );
     }
 
     final account = await txn.query(
@@ -105,10 +107,15 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
       if (byName.isNotEmpty && byName.first['id'] != null) {
         return byName.first['id'] as int;
       }
-      
+
       // Create the missing account automatically
       try {
-        final newAccountId = await _createMissingAccount(txn, cId, label, connectType);
+        final newAccountId = await _createMissingAccount(
+          txn,
+          cId,
+          label,
+          connectType,
+        );
         return newAccountId;
       } catch (e) {
         throw LocalStorageException(
@@ -118,7 +125,7 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
     }
     return account.first['id'] as int;
   }
-  
+
   // Helper method to create missing default account
   Future<int> _createMissingAccount(
     Transaction txn,
@@ -128,34 +135,38 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
   ) async {
     // Determine parent account and code based on account type
     final accountInfo = _getAccountInfo(cId, label, connectType);
-    
+
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final newAccountId = await txn.insert(
-      _accountsTable,
-      {
-        'c_id': cId,
-        'name': label,
-        'code': accountInfo['code'],
-        'parent_id': accountInfo['parent_id'],
-        'is_main': 0,
-        'is_active': 1,
-        'acc_type': accountInfo['acc_type'],
-        'creation_time': now,
-        'last_modification_time': now,
-      },
-      conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
-    
+    final newAccountId = await txn.insert(_accountsTable, {
+      'c_id': cId,
+      'name': label,
+      'code': accountInfo['code'],
+      'parent_id': accountInfo['parent_id'],
+      'is_main': 0,
+      'is_active': 1,
+      'acc_type': accountInfo['acc_type'],
+      'creation_time': now,
+      'last_modification_time': now,
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
+
     return newAccountId;
   }
-  
+
   Map<String, dynamic> _getAccountInfo(int cId, String label, int connectType) {
     // Return account info based on account type
     switch (connectType) {
       case AccountConnectTypes.salesReturns:
-        return {'code': '4150', 'parent_id': 4000, 'acc_type': 2}; // Revenue contra
+        return {
+          'code': '4150',
+          'parent_id': 4000,
+          'acc_type': 2,
+        }; // Revenue contra
       case AccountConnectTypes.purchaseReturns:
-        return {'code': '502', 'parent_id': 3000, 'acc_type': 2}; // Expense contra
+        return {
+          'code': '502',
+          'parent_id': 3000,
+          'acc_type': 2,
+        }; // Expense contra
       case AccountConnectTypes.sales:
         return {'code': '4110', 'parent_id': 4000, 'acc_type': 2}; // Revenue
       case AccountConnectTypes.purchases:
@@ -194,11 +205,15 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
       whereArgs: [customerId],
       limit: 1,
     );
-    final accountId = (rows.isNotEmpty ? rows.first['account_id'] : null) as int?;
+    final accountId =
+        (rows.isNotEmpty ? rows.first['account_id'] : null) as int?;
     return accountId ?? fallbackCustomersAccountId;
   }
 
-  Future<Map<String, dynamic>> _getAccountMeta(Transaction txn, int accountId) async {
+  Future<Map<String, dynamic>> _getAccountMeta(
+    Transaction txn,
+    int accountId,
+  ) async {
     final rows = await txn.query(
       _accountsTable,
       columns: ['id', 'code', 'name'],
@@ -286,7 +301,13 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
 
       final limitRows = await txn.query(
         _accountLimitsTable,
-        columns: ['debit_limit', 'credit_limit', 'current_debit', 'current_credit', 'is_active'],
+        columns: [
+          'debit_limit',
+          'credit_limit',
+          'current_debit',
+          'current_credit',
+          'is_active',
+        ],
         where: 'account_id = ? AND currency_id = ?',
         whereArgs: [accountId, currencyId],
         limit: 1,
@@ -300,7 +321,8 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
       final debitLimit = (limit['debit_limit'] as num?)?.toDouble() ?? 0.0;
       final creditLimit = (limit['credit_limit'] as num?)?.toDouble() ?? 0.0;
       final currentDebit = (limit['current_debit'] as num?)?.toDouble() ?? 0.0;
-      final currentCredit = (limit['current_credit'] as num?)?.toDouble() ?? 0.0;
+      final currentCredit =
+          (limit['current_credit'] as num?)?.toDouble() ?? 0.0;
 
       if (debitLimit > 0 && currentDebit + debit > debitLimit + 0.000001) {
         violations.add('تجاوز حد المدين للحساب $accountId');
@@ -352,8 +374,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     if (invoiceType != 1) return; // sales only
 
     final invoiceNumber = (invoiceData['number'] as String?) ?? '';
-    final rawDate = (invoiceData['date'] as int?) ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-    final entryDate = rawDate > 1000000000000 ? (rawDate ~/ 1000) : rawDate; // normalize to seconds
+    final rawDate =
+        (invoiceData['date'] as int?) ??
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    final entryDate = rawDate > 1000000000000
+        ? (rawDate ~/ 1000)
+        : rawDate; // normalize to seconds
     final statement = (invoiceData['statement'] as String?) ?? 'فاتورة مبيعات';
     final currencyId = await _resolveCurrencyId(
       txn,
@@ -365,12 +391,14 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final tax = (invoiceData['tax_amt'] as num?)?.toDouble() ?? 0.0;
     final otherFee = (invoiceData['other_fee_amt'] as num?)?.toDouble() ?? 0.0;
 
-    final totalAfterDiscount = (invoiceData['total_amount_after_discount'] as num?)?.toDouble() ??
+    final totalAfterDiscount =
+        (invoiceData['total_amount_after_discount'] as num?)?.toDouble() ??
         (subtotal - discount);
-    final netRevenue = (invoiceData['net_revenue_amt'] as num?)?.toDouble() ??
+    final netRevenue =
+        (invoiceData['net_revenue_amt'] as num?)?.toDouble() ??
         (totalAfterDiscount + otherFee);
-    final total = (invoiceData['final_amt'] as num?)?.toDouble() ??
-        (netRevenue + tax);
+    final total =
+        (invoiceData['final_amt'] as num?)?.toDouble() ?? (netRevenue + tax);
 
     final isCredit = ((invoiceData['invoice_trans_type'] as int?) ?? 0) == 1;
 
@@ -387,18 +415,33 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       fallbackCustomersAccountId: customersParentId,
     );
 
-    final cashAccountId = await _resolveConnectedAccountId(txn, 1, label: 'الصناديق');
+    final cashAccountId = await _resolveConnectedAccountId(
+      txn,
+      1,
+      label: 'الصناديق',
+    );
     // banks is optional for sales posting unless you support bank payments explicitly
-    final salesAccountId = await _resolveConnectedAccountId(txn, 7, label: 'المبيعات');
-    final taxAccountId = tax > 0 ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب') : 0;
-    final discountAllowedId =
-        discount > 0 ? await _resolveConnectedAccountId(txn, 8, label: 'الخصم المسموح به') : 0;
+    final salesAccountId = await _resolveConnectedAccountId(
+      txn,
+      7,
+      label: 'المبيعات',
+    );
+    final taxAccountId = tax > 0
+        ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب')
+        : 0;
+    final discountAllowedId = discount > 0
+        ? await _resolveConnectedAccountId(txn, 8, label: 'الخصم المسموح به')
+        : 0;
 
     // ========== Split Payment Support ==========
     // paidAmount = cash portion; remainder = credit portion
     final paidAmount = (invoiceData['paid_amount'] as num?)?.toDouble() ?? 0.0;
-    final cashPortion = isCredit ? paidAmount : total;  // If credit, use paidAmount as cash
-    final creditPortion = isCredit ? (total - paidAmount) : 0.0;  // If credit, remainder goes to customer account
+    final cashPortion = isCredit
+        ? paidAmount
+        : total; // If credit, use paidAmount as cash
+    final creditPortion = isCredit
+        ? (total - paidAmount)
+        : 0.0; // If credit, remainder goes to customer account
 
     // Build lines (balanced)
     final rawLines = <Map<String, dynamic>>[];
@@ -432,7 +475,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         'debit_amount': total,
         'credit_amount': 0.0,
         'notes': statement,
-        'description': isCredit ? 'ذمم العملاء - $invoiceNumber' : 'مبيعات نقدية - $invoiceNumber',
+        'description': isCredit
+            ? 'ذمم العملاء - $invoiceNumber'
+            : 'مبيعات نقدية - $invoiceNumber',
       });
     }
 
@@ -470,7 +515,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     // Other fee account - use default if not specified to ensure accounting integrity
     if (otherFee > 0) {
       // Use provided account or default to "Other Revenue" account (4260)
-      final effectiveAccountId = invoiceData['other_fee_account_id'] as int? ?? 4260;
+      final effectiveAccountId =
+          invoiceData['other_fee_account_id'] as int? ?? 4260;
       rawLines.add({
         'account_id': effectiveAccountId,
         'debit_amount': 0.0,
@@ -485,16 +531,26 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     double totalCogs = 0.0;
     final costLines = await txn.query(
       _linesTable,
-      columns: ['category_id', 'stock_id', 'quantity', 'base_quantity', 'cost_price', 'cost_total'],
+      columns: [
+        'category_id',
+        'stock_id',
+        'quantity',
+        'base_quantity',
+        'cost_price',
+        'cost_total',
+      ],
       where: 'invoice_id = ?',
       whereArgs: [invoiceId],
     );
     for (final line in costLines) {
       final productId = line['category_id'] as int?;
-      final warehouseId = (line['stock_id'] as int?) ?? (invoiceData['stock_id'] as int?);
-      if (productId == null || warehouseId == null) continue;
+      final warehouseId =
+          (line['stock_id'] as int?) ?? (invoiceData['stock_id'] as int?);
+      if (productId == null) continue;
 
-      final quantity = ((line['base_quantity'] as num?) ?? (line['quantity'] as num?) ?? 0).toDouble();
+      final quantity =
+          ((line['base_quantity'] as num?) ?? (line['quantity'] as num?) ?? 0)
+              .toDouble();
       if (quantity <= 0) continue;
 
       var lineCost = (line['cost_total'] as num?)?.toDouble() ?? 0.0;
@@ -502,7 +558,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         final unitCost = (line['cost_price'] as num?)?.toDouble() ?? 0.0;
         lineCost = quantity * unitCost;
       }
-      if (lineCost <= 0) {
+      if (lineCost <= 0 && warehouseId != null) {
         final stockRows = await txn.query(
           'warehouse_stocks',
           columns: ['avg_cost'],
@@ -514,6 +570,19 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             ? 0.0
             : ((stockRows.first['avg_cost'] as num?)?.toDouble() ?? 0.0);
         lineCost = quantity * averageCost;
+      }
+      if (lineCost <= 0) {
+        final productRows = await txn.query(
+          'categories',
+          columns: ['cost_amount'],
+          where: 'id = ?',
+          whereArgs: [productId],
+          limit: 1,
+        );
+        final productCost = productRows.isEmpty
+            ? 0.0
+            : ((productRows.first['cost_amount'] as num?)?.toDouble() ?? 0.0);
+        lineCost = quantity * productCost;
       }
       totalCogs += lineCost;
     }
@@ -555,7 +624,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     );
     final diff = (totalDebit - totalCredit);
     if (diff.abs() > 0.01) {
-      throw LocalStorageException('قيد غير متوازن لفاتورة $invoiceNumber (فرق: ${diff.toStringAsFixed(2)})');
+      throw LocalStorageException(
+        'قيد غير متوازن لفاتورة $invoiceNumber (فرق: ${diff.toStringAsFixed(2)})',
+      );
     }
 
     // Enforce limits if invoice has currency
@@ -569,26 +640,22 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
     // Insert journal entry
     final journalNumber = await _nextJournalNumber(txn, 'SI');
-    final journalEntryId = await txn.insert(
-      _journalEntriesTable,
-      {
-        'number': journalNumber,
-        'entry_date': entryDate,
-        'description': 'قيد فاتورة مبيعات $invoiceNumber',
-        'reference_type': 'sales_invoice',
-        'reference_id': invoiceId,
-        'reference_number': invoiceNumber,
-        'notes': statement,
-        'status': 1,
-        'is_posted': 1,
-        'total_debit': totalDebit,
-        'total_credit': totalCredit,
-        'difference': 0.0,
-        'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      },
-      conflictAlgorithm: ConflictAlgorithm.abort,
-    );
+    final journalEntryId = await txn.insert(_journalEntriesTable, {
+      'number': journalNumber,
+      'entry_date': entryDate,
+      'description': 'قيد فاتورة مبيعات $invoiceNumber',
+      'reference_type': 'sales_invoice',
+      'reference_id': invoiceId,
+      'reference_number': invoiceNumber,
+      'notes': statement,
+      'status': 1,
+      'is_posted': 1,
+      'total_debit': totalDebit,
+      'total_credit': totalCredit,
+      'difference': 0.0,
+      'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    }, conflictAlgorithm: ConflictAlgorithm.abort);
 
     // Insert journal lines + update balances
     for (int i = 0; i < rawLines.length; i++) {
@@ -598,22 +665,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       final debit = (l['debit_amount'] as num?)?.toDouble() ?? 0.0;
       final credit = (l['credit_amount'] as num?)?.toDouble() ?? 0.0;
 
-      await txn.insert(
-        _journalLinesTable,
-        {
-          'journal_entry_id': journalEntryId,
-          'line_number': i + 1,
-          'account_id': accountId,
-          'account_code': meta['code'],
-          'account_name': meta['name'],
-          'currency_id': currencyId,
-          'debit_amount': debit,
-          'credit_amount': credit,
-          'description': l['description'],
-          'notes': l['notes'],
-        },
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
+      await txn.insert(_journalLinesTable, {
+        'journal_entry_id': journalEntryId,
+        'line_number': i + 1,
+        'account_id': accountId,
+        'account_code': meta['code'],
+        'account_name': meta['name'],
+        'currency_id': currencyId,
+        'debit_amount': debit,
+        'credit_amount': credit,
+        'description': l['description'],
+        'notes': l['notes'],
+      }, conflictAlgorithm: ConflictAlgorithm.abort);
 
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
@@ -632,8 +695,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     if (invoiceType != 4) return; // sales return only
 
     final invoiceNumber = (invoiceData['number'] as String?) ?? '';
-    final rawDate = (invoiceData['date'] as int?) ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-    final entryDate = rawDate > 1000000000000 ? (rawDate ~/ 1000) : rawDate; // normalize to seconds
+    final rawDate =
+        (invoiceData['date'] as int?) ??
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    final entryDate = rawDate > 1000000000000
+        ? (rawDate ~/ 1000)
+        : rawDate; // normalize to seconds
     final statement = (invoiceData['statement'] as String?) ?? 'مرتجع مبيعات';
     final currencyId = await _resolveCurrencyId(
       txn,
@@ -643,13 +710,20 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final netAmount = (invoiceData['amount'] as num?)?.toDouble() ?? 0.0;
     final discount = (invoiceData['discount_amt'] as num?)?.toDouble() ?? 0.0;
     final tax = (invoiceData['tax_amt'] as num?)?.toDouble() ?? 0.0;
-    final total = (invoiceData['final_amt'] as num?)?.toDouble() ?? (netAmount + tax - discount);
-    final cogsReversal = (invoiceData['cogs_reversal'] as num?)?.toDouble() ?? 0.0;
+    final total =
+        (invoiceData['final_amt'] as num?)?.toDouble() ??
+        (netAmount + tax - discount);
+    final cogsReversal =
+        (invoiceData['cogs_reversal'] as num?)?.toDouble() ?? 0.0;
 
     final isCredit = ((invoiceData['invoice_trans_type'] as int?) ?? 0) == 1;
 
     // Connected accounts
-    final customersParentId = await _resolveConnectedAccountId(txn, 2, label: 'العملاء');
+    final customersParentId = await _resolveConnectedAccountId(
+      txn,
+      2,
+      label: 'العملاء',
+    );
     final customerId = (invoiceData['customer_id'] as int?) ?? 1;
     final customerAccountId = await _resolveCustomerAccountId(
       txn,
@@ -657,18 +731,37 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       fallbackCustomersAccountId: customersParentId,
     );
 
-    final cashAccountId = await _resolveConnectedAccountId(txn, 1, label: 'الصناديق');
-    final salesReturnsAccountId = await _resolveConnectedAccountId(txn, 11, label: 'مردودات المبيعات');
-    final taxAccountId = tax > 0 ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب') : 0;
-    final discountAllowedId =
-        discount > 0 ? await _resolveConnectedAccountId(txn, 8, label: 'الخصم المسموح به') : 0;
-    
+    final cashAccountId = await _resolveConnectedAccountId(
+      txn,
+      1,
+      label: 'الصناديق',
+    );
+    final salesReturnsAccountId = await _resolveConnectedAccountId(
+      txn,
+      11,
+      label: 'مردودات المبيعات',
+    );
+    final taxAccountId = tax > 0
+        ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب')
+        : 0;
+    final discountAllowedId = discount > 0
+        ? await _resolveConnectedAccountId(txn, 8, label: 'الخصم المسموح به')
+        : 0;
+
     // COGS and Inventory accounts for reversal
     int cogsAccountId = 0;
     int inventoryAccountId = 0;
     if (cogsReversal > 0) {
-      cogsAccountId = await _resolveConnectedAccountId(txn, 12, label: 'تكلفة البضاعة المباعة');
-      inventoryAccountId = await _resolveConnectedAccountId(txn, 6, label: 'المخزون');
+      cogsAccountId = await _resolveConnectedAccountId(
+        txn,
+        12,
+        label: 'تكلفة البضاعة المباعة',
+      );
+      inventoryAccountId = await _resolveConnectedAccountId(
+        txn,
+        6,
+        label: 'المخزون',
+      );
     }
 
     final rawLines = <Map<String, dynamic>>[];
@@ -699,7 +792,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       'debit_amount': 0.0,
       'credit_amount': total,
       'notes': statement,
-      'description': isCredit ? 'تخفيض ذمة العميل - $invoiceNumber' : 'إرجاع نقدي - $invoiceNumber',
+      'description': isCredit
+          ? 'تخفيض ذمة العميل - $invoiceNumber'
+          : 'إرجاع نقدي - $invoiceNumber',
     });
 
     // Credit: reverse discount allowed
@@ -746,7 +841,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     );
     final diff = (totalDebit - totalCredit);
     if (diff.abs() > 0.01) {
-      throw LocalStorageException('قيد غير متوازن لمرتجع $invoiceNumber (فرق: ${diff.toStringAsFixed(2)})');
+      throw LocalStorageException(
+        'قيد غير متوازن لمرتجع $invoiceNumber (فرق: ${diff.toStringAsFixed(2)})',
+      );
     }
 
     if (currencyId != null) {
@@ -758,26 +855,22 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     }
 
     final journalNumber = await _nextJournalNumber(txn, 'SR');
-    final journalEntryId = await txn.insert(
-      _journalEntriesTable,
-      {
-        'number': journalNumber,
-        'entry_date': entryDate,
-        'description': 'قيد مرتجع مبيعات $invoiceNumber',
-        'reference_type': 'sales_return',
-        'reference_id': returnInvoiceId,
-        'reference_number': invoiceNumber,
-        'notes': statement,
-        'status': 1,
-        'is_posted': 1,
-        'total_debit': totalDebit,
-        'total_credit': totalCredit,
-        'difference': 0.0,
-        'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      },
-      conflictAlgorithm: ConflictAlgorithm.abort,
-    );
+    final journalEntryId = await txn.insert(_journalEntriesTable, {
+      'number': journalNumber,
+      'entry_date': entryDate,
+      'description': 'قيد مرتجع مبيعات $invoiceNumber',
+      'reference_type': 'sales_return',
+      'reference_id': returnInvoiceId,
+      'reference_number': invoiceNumber,
+      'notes': statement,
+      'status': 1,
+      'is_posted': 1,
+      'total_debit': totalDebit,
+      'total_credit': totalCredit,
+      'difference': 0.0,
+      'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    }, conflictAlgorithm: ConflictAlgorithm.abort);
 
     for (int i = 0; i < rawLines.length; i++) {
       final l = rawLines[i];
@@ -786,22 +879,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       final debit = (l['debit_amount'] as num?)?.toDouble() ?? 0.0;
       final credit = (l['credit_amount'] as num?)?.toDouble() ?? 0.0;
 
-      await txn.insert(
-        _journalLinesTable,
-        {
-          'journal_entry_id': journalEntryId,
-          'line_number': i + 1,
-          'account_id': accountId,
-          'account_code': meta['code'],
-          'account_name': meta['name'],
-          'currency_id': currencyId,
-          'debit_amount': debit,
-          'credit_amount': credit,
-          'description': l['description'],
-          'notes': l['notes'],
-        },
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
+      await txn.insert(_journalLinesTable, {
+        'journal_entry_id': journalEntryId,
+        'line_number': i + 1,
+        'account_id': accountId,
+        'account_code': meta['code'],
+        'account_name': meta['name'],
+        'currency_id': currencyId,
+        'debit_amount': debit,
+        'credit_amount': credit,
+        'description': l['description'],
+        'notes': l['notes'],
+      }, conflictAlgorithm: ConflictAlgorithm.abort);
 
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
@@ -820,22 +909,28 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     if (invoiceType != 2) return; // purchase invoice only
 
     final invoiceNumber = (invoiceData['number'] as String?) ?? '';
-    final rawDate = (invoiceData['date'] as int?) ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-    final entryDate = rawDate > 1000000000000 ? (rawDate ~/ 1000) : rawDate; // normalize to seconds
+    final rawDate =
+        (invoiceData['date'] as int?) ??
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    final entryDate = rawDate > 1000000000000
+        ? (rawDate ~/ 1000)
+        : rawDate; // normalize to seconds
     final statement = (invoiceData['statement'] as String?) ?? 'فاتورة مشتريات';
     final currencyId = await _resolveCurrencyId(
       txn,
       invoiceData['currency_id'] as int?,
     );
 
-    final subtotal = (invoiceData['amount'] as num?)?.toDouble() ?? 0.0; // قبل الخصم
+    final subtotal =
+        (invoiceData['amount'] as num?)?.toDouble() ?? 0.0; // قبل الخصم
     final discount = (invoiceData['discount_amt'] as num?)?.toDouble() ?? 0.0;
     final tax = (invoiceData['tax_amt'] as num?)?.toDouble() ?? 0.0;
     final otherFee = (invoiceData['other_fee_amt'] as num?)?.toDouble() ?? 0.0;
     final otherFeeAccountId = invoiceData['other_fee_account_id'] as int?;
 
     // total (after discount + tax + fees)
-    final total = (invoiceData['final_amt'] as num?)?.toDouble() ??
+    final total =
+        (invoiceData['final_amt'] as num?)?.toDouble() ??
         ((subtotal - discount) + otherFee + tax);
 
     final isCredit = ((invoiceData['invoice_trans_type'] as int?) ?? 0) == 1;
@@ -853,15 +948,31 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       fallbackCustomersAccountId: suppliersParentId,
     );
 
-    final cashAccountId = await _resolveConnectedAccountId(txn, 1, label: 'الصناديق');
-    final bankAccountId = await _resolveConnectedAccountId(txn, 0, label: 'البنوك');
-    final purchasesAccountId = await _resolveConnectedAccountId(txn, 10, label: 'المشتريات');
-    final taxAccountId = tax > 0 ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب') : 0;
-    final discountEarnedId =
-        discount > 0 ? await _resolveConnectedAccountId(txn, 9, label: 'الخصم المكتسب') : 0;
+    final cashAccountId = await _resolveConnectedAccountId(
+      txn,
+      1,
+      label: 'الصناديق',
+    );
+    final bankAccountId = await _resolveConnectedAccountId(
+      txn,
+      0,
+      label: 'البنوك',
+    );
+    final purchasesAccountId = await _resolveConnectedAccountId(
+      txn,
+      10,
+      label: 'المشتريات',
+    );
+    final taxAccountId = tax > 0
+        ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب')
+        : 0;
+    final discountEarnedId = discount > 0
+        ? await _resolveConnectedAccountId(txn, 9, label: 'الخصم المكتسب')
+        : 0;
 
     // Pick cash/bank account: default to cash unless statement hints bank
-    final paymentAccountId = (invoiceData['statement'] as String?)?.contains('بنك') == true
+    final paymentAccountId =
+        (invoiceData['statement'] as String?)?.contains('بنك') == true
         ? bankAccountId
         : cashAccountId;
 
@@ -929,12 +1040,14 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       'debit_amount': 0.0,
       'credit_amount': total,
       'notes': statement,
-      'description': isCredit ? 'ذمم الموردين - $invoiceNumber' : 'دفع مشتريات - $invoiceNumber',
+      'description': isCredit
+          ? 'ذمم الموردين - $invoiceNumber'
+          : 'دفع مشتريات - $invoiceNumber',
     });
 
     // Validate balanced
     // Total Debit = subtotal + otherFee + tax
-    // Total Credit = discount + total = discount + (subtotal - discount + otherFee + tax) 
+    // Total Credit = discount + total = discount + (subtotal - discount + otherFee + tax)
     //              = subtotal + otherFee + tax
     // Should be balanced!
     final totalDebit = rawLines.fold<double>(
@@ -948,12 +1061,13 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final diff = (totalDebit - totalCredit);
     if (diff.abs() > 0.01) {
       // Add debugging info to the error message
-      final debugInfo = 'المدين: ${totalDebit.toStringAsFixed(2)}, الدائن: ${totalCredit.toStringAsFixed(2)}, '
+      final debugInfo =
+          'المدين: ${totalDebit.toStringAsFixed(2)}, الدائن: ${totalCredit.toStringAsFixed(2)}, '
           'المجموع الفرعي: ${subtotal.toStringAsFixed(2)}, الخصم: ${discount.toStringAsFixed(2)}, '
           'الضريبة: ${tax.toStringAsFixed(2)}, رسوم: ${otherFee.toStringAsFixed(2)}, '
           'الإجمالي: ${total.toStringAsFixed(2)}';
       throw LocalStorageException(
-        'قيد غير متوازن لمشتريات $invoiceNumber (فرق: ${diff.toStringAsFixed(2)}). $debugInfo'
+        'قيد غير متوازن لمشتريات $invoiceNumber (فرق: ${diff.toStringAsFixed(2)}). $debugInfo',
       );
     }
 
@@ -966,26 +1080,22 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     }
 
     final journalNumber = await _nextJournalNumber(txn, 'PI');
-    final journalEntryId = await txn.insert(
-      _journalEntriesTable,
-      {
-        'number': journalNumber,
-        'entry_date': entryDate,
-        'description': 'قيد مشتريات $invoiceNumber',
-        'reference_type': 'purchase_invoice',
-        'reference_id': invoiceId,
-        'reference_number': invoiceNumber,
-        'notes': statement,
-        'status': 1,
-        'is_posted': 1,
-        'total_debit': totalDebit,
-        'total_credit': totalCredit,
-        'difference': 0.0,
-        'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      },
-      conflictAlgorithm: ConflictAlgorithm.abort,
-    );
+    final journalEntryId = await txn.insert(_journalEntriesTable, {
+      'number': journalNumber,
+      'entry_date': entryDate,
+      'description': 'قيد مشتريات $invoiceNumber',
+      'reference_type': 'purchase_invoice',
+      'reference_id': invoiceId,
+      'reference_number': invoiceNumber,
+      'notes': statement,
+      'status': 1,
+      'is_posted': 1,
+      'total_debit': totalDebit,
+      'total_credit': totalCredit,
+      'difference': 0.0,
+      'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    }, conflictAlgorithm: ConflictAlgorithm.abort);
 
     for (int i = 0; i < rawLines.length; i++) {
       final l = rawLines[i];
@@ -994,22 +1104,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       final debit = (l['debit_amount'] as num?)?.toDouble() ?? 0.0;
       final credit = (l['credit_amount'] as num?)?.toDouble() ?? 0.0;
 
-      await txn.insert(
-        _journalLinesTable,
-        {
-          'journal_entry_id': journalEntryId,
-          'line_number': i + 1,
-          'account_id': accountId,
-          'account_code': meta['code'],
-          'account_name': meta['name'],
-          'currency_id': currencyId,
-          'debit_amount': debit,
-          'credit_amount': credit,
-          'description': l['description'],
-          'notes': l['notes'],
-        },
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
+      await txn.insert(_journalLinesTable, {
+        'journal_entry_id': journalEntryId,
+        'line_number': i + 1,
+        'account_id': accountId,
+        'account_code': meta['code'],
+        'account_name': meta['name'],
+        'currency_id': currencyId,
+        'debit_amount': debit,
+        'credit_amount': credit,
+        'description': l['description'],
+        'notes': l['notes'],
+      }, conflictAlgorithm: ConflictAlgorithm.abort);
 
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
@@ -1028,8 +1134,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     if (invoiceType != 5) return; // purchase return only
 
     final invoiceNumber = (invoiceData['number'] as String?) ?? '';
-    final rawDate = (invoiceData['date'] as int?) ?? (DateTime.now().millisecondsSinceEpoch ~/ 1000);
-    final entryDate = rawDate > 1000000000000 ? (rawDate ~/ 1000) : rawDate; // normalize to seconds
+    final rawDate =
+        (invoiceData['date'] as int?) ??
+        (DateTime.now().millisecondsSinceEpoch ~/ 1000);
+    final entryDate = rawDate > 1000000000000
+        ? (rawDate ~/ 1000)
+        : rawDate; // normalize to seconds
     final statement = (invoiceData['statement'] as String?) ?? 'مردود مشتريات';
     final currencyId = await _resolveCurrencyId(
       txn,
@@ -1042,12 +1152,17 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final otherFee = (invoiceData['other_fee_amt'] as num?)?.toDouble() ?? 0.0;
     final otherFeeAccountId = invoiceData['other_fee_account_id'] as int?;
 
-    final total = (invoiceData['final_amt'] as num?)?.toDouble() ??
+    final total =
+        (invoiceData['final_amt'] as num?)?.toDouble() ??
         ((subtotal - discount) + otherFee + tax);
 
     final isCredit = ((invoiceData['invoice_trans_type'] as int?) ?? 0) == 1;
 
-    final suppliersParentId = await _resolveConnectedAccountId(txn, 3, label: 'الموردون');
+    final suppliersParentId = await _resolveConnectedAccountId(
+      txn,
+      3,
+      label: 'الموردون',
+    );
     final supplierId = (invoiceData['customer_id'] as int?) ?? 1;
     final supplierAccountId = await _resolveCustomerAccountId(
       txn,
@@ -1055,14 +1170,30 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       fallbackCustomersAccountId: suppliersParentId,
     );
 
-    final cashAccountId = await _resolveConnectedAccountId(txn, 1, label: 'الصناديق');
-    final bankAccountId = await _resolveConnectedAccountId(txn, 0, label: 'البنوك');
-    final purchaseReturnsAccountId = await _resolveConnectedAccountId(txn, 12, label: 'مردودات المشتريات');
-    final taxAccountId = tax > 0 ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب') : 0;
-    final discountEarnedId =
-        discount > 0 ? await _resolveConnectedAccountId(txn, 9, label: 'الخصم المكتسب') : 0;
+    final cashAccountId = await _resolveConnectedAccountId(
+      txn,
+      1,
+      label: 'الصناديق',
+    );
+    final bankAccountId = await _resolveConnectedAccountId(
+      txn,
+      0,
+      label: 'البنوك',
+    );
+    final purchaseReturnsAccountId = await _resolveConnectedAccountId(
+      txn,
+      12,
+      label: 'مردودات المشتريات',
+    );
+    final taxAccountId = tax > 0
+        ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب')
+        : 0;
+    final discountEarnedId = discount > 0
+        ? await _resolveConnectedAccountId(txn, 9, label: 'الخصم المكتسب')
+        : 0;
 
-    final paymentAccountId = (invoiceData['statement'] as String?)?.contains('بنك') == true
+    final paymentAccountId =
+        (invoiceData['statement'] as String?)?.contains('بنك') == true
         ? bankAccountId
         : cashAccountId;
 
@@ -1074,7 +1205,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       'debit_amount': total,
       'credit_amount': 0.0,
       'notes': statement,
-      'description': isCredit ? 'تخفيض ذمة المورد - $invoiceNumber' : 'استلام مردود مشتريات - $invoiceNumber',
+      'description': isCredit
+          ? 'تخفيض ذمة المورد - $invoiceNumber'
+          : 'استلام مردود مشتريات - $invoiceNumber',
     });
 
     // Debit: reverse discount earned
@@ -1139,7 +1272,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     );
     final diff = (totalDebit - totalCredit);
     if (diff.abs() > 0.01) {
-      throw LocalStorageException('قيد غير متوازن لمردود مشتريات $invoiceNumber (فرق: ${diff.toStringAsFixed(2)})');
+      throw LocalStorageException(
+        'قيد غير متوازن لمردود مشتريات $invoiceNumber (فرق: ${diff.toStringAsFixed(2)})',
+      );
     }
 
     if (currencyId != null) {
@@ -1151,26 +1286,22 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     }
 
     final journalNumber = await _nextJournalNumber(txn, 'PR');
-    final journalEntryId = await txn.insert(
-      _journalEntriesTable,
-      {
-        'number': journalNumber,
-        'entry_date': entryDate,
-        'description': 'قيد مردود مشتريات $invoiceNumber',
-        'reference_type': 'purchase_return',
-        'reference_id': returnInvoiceId,
-        'reference_number': invoiceNumber,
-        'notes': statement,
-        'status': 1,
-        'is_posted': 1,
-        'total_debit': totalDebit,
-        'total_credit': totalCredit,
-        'difference': 0.0,
-        'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      },
-      conflictAlgorithm: ConflictAlgorithm.abort,
-    );
+    final journalEntryId = await txn.insert(_journalEntriesTable, {
+      'number': journalNumber,
+      'entry_date': entryDate,
+      'description': 'قيد مردود مشتريات $invoiceNumber',
+      'reference_type': 'purchase_return',
+      'reference_id': returnInvoiceId,
+      'reference_number': invoiceNumber,
+      'notes': statement,
+      'status': 1,
+      'is_posted': 1,
+      'total_debit': totalDebit,
+      'total_credit': totalCredit,
+      'difference': 0.0,
+      'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+    }, conflictAlgorithm: ConflictAlgorithm.abort);
 
     for (int i = 0; i < rawLines.length; i++) {
       final l = rawLines[i];
@@ -1179,22 +1310,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       final debit = (l['debit_amount'] as num?)?.toDouble() ?? 0.0;
       final credit = (l['credit_amount'] as num?)?.toDouble() ?? 0.0;
 
-      await txn.insert(
-        _journalLinesTable,
-        {
-          'journal_entry_id': journalEntryId,
-          'line_number': i + 1,
-          'account_id': accountId,
-          'account_code': meta['code'],
-          'account_name': meta['name'],
-          'currency_id': currencyId,
-          'debit_amount': debit,
-          'credit_amount': credit,
-          'description': l['description'],
-          'notes': l['notes'],
-        },
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
+      await txn.insert(_journalLinesTable, {
+        'journal_entry_id': journalEntryId,
+        'line_number': i + 1,
+        'account_id': accountId,
+        'account_code': meta['code'],
+        'account_name': meta['name'],
+        'currency_id': currencyId,
+        'debit_amount': debit,
+        'credit_amount': credit,
+        'description': l['description'],
+        'notes': l['notes'],
+      }, conflictAlgorithm: ConflictAlgorithm.abort);
 
       await _applyAccountBalanceDelta(txn, accountId, debit - credit);
     }
@@ -1267,13 +1394,16 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         // Prepare invoice data with creation_time if not set
         final invoiceData = invoice.toJson();
         invoiceData['creation_time'] ??= DateTime.now().millisecondsSinceEpoch;
-        invoiceData['last_modification_time'] ??= DateTime.now().millisecondsSinceEpoch;
-        
+        invoiceData['last_modification_time'] ??=
+            DateTime.now().millisecondsSinceEpoch;
+
         // ========== Ensure FK targets exist (defensive seeding) ==========
         // 1) Classifications (needed for customers)
-        final classificationsCount = Sqflite.firstIntValue(
-          await txn.rawQuery('SELECT COUNT(1) FROM classifications'),
-        ) ?? 0;
+        final classificationsCount =
+            Sqflite.firstIntValue(
+              await txn.rawQuery('SELECT COUNT(1) FROM classifications'),
+            ) ??
+            0;
         if (classificationsCount == 0) {
           final now = DateTime.now().millisecondsSinceEpoch;
           await txn.insert('classifications', {
@@ -1289,9 +1419,16 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
         // 2) Customers (seed id 1 cash, id 2 credit if missing)
         Future<void> ensureCustomer(int id, String name, int type) async {
-          final rows = await txn.query('customers', where: 'id = ?', whereArgs: [id], limit: 1);
+          final rows = await txn.query(
+            'customers',
+            where: 'id = ?',
+            whereArgs: [id],
+            limit: 1,
+          );
           if (rows.isEmpty) {
-            final now = DateTime.now().millisecondsSinceEpoch ~/ 1000; // seconds to match CHECK
+            final now =
+                DateTime.now().millisecondsSinceEpoch ~/
+                1000; // seconds to match CHECK
             await txn.insert('customers', {
               'id': id,
               'name': name,
@@ -1306,6 +1443,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             });
           }
         }
+
         await ensureCustomer(1, 'عميل نقدي', 1);
         await ensureCustomer(2, 'عميل آجل', 2);
 
@@ -1313,7 +1451,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         final stockId = invoiceData['stock_id'] as int?;
         Future<int> ensureStock(int? desiredId) async {
           if (desiredId != null) {
-            final rows = await txn.query('stocks', where: 'id = ?', whereArgs: [desiredId], limit: 1);
+            final rows = await txn.query(
+              'stocks',
+              where: 'id = ?',
+              whereArgs: [desiredId],
+              limit: 1,
+            );
             if (rows.isNotEmpty) return desiredId;
           }
           // Try any existing stock
@@ -1332,19 +1475,25 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           });
           return 1;
         }
+
         invoiceData['stock_id'] = await ensureStock(stockId);
 
         // Ensure customer id points to an existing row (fallback to 1)
         int desiredCustomerId = (invoiceData['customer_id'] as int?) ?? 1;
-        final cust = await txn.query('customers', where: 'id = ?', whereArgs: [desiredCustomerId], limit: 1);
+        final cust = await txn.query(
+          'customers',
+          where: 'id = ?',
+          whereArgs: [desiredCustomerId],
+          limit: 1,
+        );
         if (cust.isEmpty) {
           desiredCustomerId = 1;
         }
         invoiceData['customer_id'] = desiredCustomerId;
-        
+
         // Remove ID if present to allow auto-generation (important for copied/converted invoices)
         invoiceData.remove('id');
-        
+
         final invoiceId = await txn.insert(
           _invoicesTable,
           invoiceData,
@@ -1354,17 +1503,23 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           final lineModel = line is InvoiceLineModel
               ? line
               : InvoiceLineModel.fromEntity(line);
-          
-          // Prepare line data with creation_time if not set  
+
+          // Prepare line data with creation_time if not set
           final lineData = lineModel.toJson(invoiceId: invoiceId);
           lineData['creation_time'] ??= DateTime.now().millisecondsSinceEpoch;
-          lineData['last_modification_time'] ??= DateTime.now().millisecondsSinceEpoch;
+          lineData['last_modification_time'] ??=
+              DateTime.now().millisecondsSinceEpoch;
 
           // ========= Enforce/derive valid foreign keys for invoice_lines =========
           // currency_id -> nullable: if provided but not found, set to null
           final int? currencyId = lineData['currency_id'] as int?;
           if (currencyId != null) {
-            final cur = await txn.query('currencies', where: 'id = ?', whereArgs: [currencyId], limit: 1);
+            final cur = await txn.query(
+              'currencies',
+              where: 'id = ?',
+              whereArgs: [currencyId],
+              limit: 1,
+            );
             if (cur.isEmpty) {
               lineData['currency_id'] = null;
             }
@@ -1378,23 +1533,43 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
           // Validate provided group/unit ids
           if (groupId != null) {
-            final g = await txn.query('categories_groups', where: 'id = ?', whereArgs: [groupId], limit: 1);
+            final g = await txn.query(
+              'categories_groups',
+              where: 'id = ?',
+              whereArgs: [groupId],
+              limit: 1,
+            );
             if (g.isEmpty) groupId = null;
           }
           if (unitId != null) {
-            final u = await txn.query('categories_units', where: 'id = ?', whereArgs: [unitId], limit: 1);
+            final u = await txn.query(
+              'categories_units',
+              where: 'id = ?',
+              whereArgs: [unitId],
+              limit: 1,
+            );
             if (u.isEmpty) unitId = null;
           }
 
           // Try derive group/unit from category if missing
           int? validCategoryId = categoryId;
           if (categoryId != null) {
-            final cat = await txn.query('categories', where: 'id = ?', whereArgs: [categoryId], limit: 1);
+            final cat = await txn.query(
+              'categories',
+              where: 'id = ?',
+              whereArgs: [categoryId],
+              limit: 1,
+            );
             if (cat.isNotEmpty) {
               if (groupId == null) {
                 final cg = cat.first['group_id'] as int?;
                 if (cg != null) {
-                  final g2 = await txn.query('categories_groups', where: 'id = ?', whereArgs: [cg], limit: 1);
+                  final g2 = await txn.query(
+                    'categories_groups',
+                    where: 'id = ?',
+                    whereArgs: [cg],
+                    limit: 1,
+                  );
                   if (g2.isNotEmpty) {
                     groupId = cg;
                   }
@@ -1403,7 +1578,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               if (unitId == null) {
                 final cu = cat.first['unit_id'] as int?;
                 if (cu != null) {
-                  final u2 = await txn.query('categories_units', where: 'id = ?', whereArgs: [cu], limit: 1);
+                  final u2 = await txn.query(
+                    'categories_units',
+                    where: 'id = ?',
+                    whereArgs: [cu],
+                    limit: 1,
+                  );
                   if (u2.isNotEmpty) {
                     unitId = cu;
                   }
@@ -1437,11 +1617,21 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           if (unitId == null) {
             // Try derive from category if exists
             if (categoryId != null) {
-              final cat = await txn.query('categories', where: 'id = ?', whereArgs: [categoryId], limit: 1);
+              final cat = await txn.query(
+                'categories',
+                where: 'id = ?',
+                whereArgs: [categoryId],
+                limit: 1,
+              );
               if (cat.isNotEmpty) {
                 final cu = cat.first['unit_id'] as int?;
                 if (cu != null) {
-                  final u2 = await txn.query('categories_units', where: 'id = ?', whereArgs: [cu], limit: 1);
+                  final u2 = await txn.query(
+                    'categories_units',
+                    where: 'id = ?',
+                    whereArgs: [cu],
+                    limit: 1,
+                  );
                   if (u2.isNotEmpty) {
                     unitId = cu;
                   }
@@ -1469,17 +1659,31 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
           // Ensure category_sub_unit exists for this category (or create a default even without category)
           if (subUnitId != null) {
-            final s = await txn.query('category_sub_units', where: 'id = ?', whereArgs: [subUnitId], limit: 1);
+            final s = await txn.query(
+              'category_sub_units',
+              where: 'id = ?',
+              whereArgs: [subUnitId],
+              limit: 1,
+            );
             if (s.isEmpty) subUnitId = null;
           }
           if (subUnitId == null) {
             if (validCategoryId != null) {
-              final main = await txn.query('category_sub_units',
-                  where: 'category_id = ? AND is_main_unit = 1', whereArgs: [validCategoryId], limit: 1);
+              final main = await txn.query(
+                'category_sub_units',
+                where: 'category_id = ? AND is_main_unit = 1',
+                whereArgs: [validCategoryId],
+                limit: 1,
+              );
               if (main.isNotEmpty) {
                 subUnitId = main.first['id'] as int;
               } else {
-                final any = await txn.query('category_sub_units', where: 'category_id = ?', whereArgs: [validCategoryId], limit: 1);
+                final any = await txn.query(
+                  'category_sub_units',
+                  where: 'category_id = ?',
+                  whereArgs: [validCategoryId],
+                  limit: 1,
+                );
                 if (any.isNotEmpty) {
                   subUnitId = any.first['id'] as int;
                 }
@@ -1505,7 +1709,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           // Ensure valid stock_id for the line (fallback to header's stock_id)
           int? lineStockId = lineData['stock_id'] as int?;
           if (lineStockId != null) {
-            final st = await txn.query('stocks', where: 'id = ?', whereArgs: [lineStockId], limit: 1);
+            final st = await txn.query(
+              'stocks',
+              where: 'id = ?',
+              whereArgs: [lineStockId],
+              limit: 1,
+            );
             if (st.isEmpty) lineStockId = null;
           }
           lineStockId ??= invoiceData['stock_id'] as int?;
@@ -1514,7 +1723,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           // Ensure valid customer_id for the line (fallback to header's customer_id)
           int? lineCustomerId = lineData['customer_id'] as int?;
           if (lineCustomerId != null) {
-            final c = await txn.query('customers', where: 'id = ?', whereArgs: [lineCustomerId], limit: 1);
+            final c = await txn.query(
+              'customers',
+              where: 'id = ?',
+              whereArgs: [lineCustomerId],
+              limit: 1,
+            );
             if (c.isEmpty) lineCustomerId = null;
           }
           lineCustomerId ??= invoiceData['customer_id'] as int?;
@@ -1542,28 +1756,19 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         await _postSalesInvoiceToJournal(
           txn: txn,
           invoiceId: invoiceId,
-          invoiceData: {
-            ...invoiceData,
-            'id': invoiceId,
-          },
+          invoiceData: {...invoiceData, 'id': invoiceId},
         );
 
         // Auto-post accounting entries for purchases and purchase returns
         await _postPurchaseInvoiceToJournal(
           txn: txn,
           invoiceId: invoiceId,
-          invoiceData: {
-            ...invoiceData,
-            'id': invoiceId,
-          },
+          invoiceData: {...invoiceData, 'id': invoiceId},
         );
         await _postPurchaseReturnToJournal(
           txn: txn,
           returnInvoiceId: invoiceId,
-          invoiceData: {
-            ...invoiceData,
-            'id': invoiceId,
-          },
+          invoiceData: {...invoiceData, 'id': invoiceId},
         );
 
         // ========== UPDATE INVENTORY FOR SALES - Reduce stock ==========
@@ -1573,13 +1778,15 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
           final headerStockId = invoiceData['stock_id'] as int?;
           final invoiceNumber = (invoiceData['number'] as String?) ?? '';
-          
+
           for (final line in invoice.lines) {
-            final lineModel = line is InvoiceLineModel ? line : InvoiceLineModel.fromEntity(line);
+            final lineModel = line is InvoiceLineModel
+                ? line
+                : InvoiceLineModel.fromEntity(line);
             final productId = lineModel.categoryId;
             final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
             final qty = lineModel.quantity;
-            
+
             if (productId != null && qty > 0) {
               // Get current stock
               final stockResult = await txn.query(
@@ -1588,45 +1795,40 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                 whereArgs: [productId, warehouseId],
                 limit: 1,
               );
-              
+
               double currentQty = 0.0;
               double avgCost = 0.0;
-              
+
               if (stockResult.isNotEmpty) {
-                currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-                avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+                currentQty =
+                    (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+                avgCost =
+                    (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
               }
-              
+
               final newQty = currentQty - qty;
-              
+
               // Update or insert warehouse stock
               if (stockResult.isNotEmpty) {
                 await txn.update(
                   'warehouse_stocks',
-                  {
-                    'quantity': newQty,
-                    'last_modification_time': now,
-                  },
+                  {'quantity': newQty, 'last_modification_time': now},
                   where: 'product_id = ? AND warehouse_id = ?',
                   whereArgs: [productId, warehouseId],
                 );
               } else {
                 // Create new record with negative quantity (oversold)
-                await txn.insert(
-                  'warehouse_stocks',
-                  {
-                    'product_id': productId,
-                    'warehouse_id': warehouseId,
-                    'quantity': newQty,
-                    'avg_cost': 0.0,
-                    'last_cost': 0.0,
-                    'creation_time': now,
-                    'last_modification_time': now,
-                  },
-                  conflictAlgorithm: ConflictAlgorithm.replace,
-                );
+                await txn.insert('warehouse_stocks', {
+                  'product_id': productId,
+                  'warehouse_id': warehouseId,
+                  'quantity': newQty,
+                  'avg_cost': 0.0,
+                  'last_cost': 0.0,
+                  'creation_time': now,
+                  'last_modification_time': now,
+                }, conflictAlgorithm: ConflictAlgorithm.replace);
               }
-              
+
               // Record stock movement
               try {
                 await txn.insert('stock_movements', {
@@ -1671,38 +1873,46 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         // ========== Quotation Protection Check ==========
         final existing = await txn.query(
           _invoicesTable,
-          columns: ['invoice_type', 'is_locked', 'next_invoice_id', 'approval_status'],
+          columns: [
+            'invoice_type',
+            'is_locked',
+            'next_invoice_id',
+            'approval_status',
+          ],
           where: 'id = ?',
           whereArgs: [invoice.id],
           limit: 1,
         );
-        
+
         if (existing.isNotEmpty) {
           final data = existing.first;
           final invoiceType = data['invoice_type'] as int?;
-          
+
           // Check if it's a quotation (type = 3)
           if (invoiceType == 3) {
             // Check if locked
             if ((data['is_locked'] as int?) == 1) {
               throw LocalStorageException('عرض السعر مقفل ولا يمكن تعديله');
             }
-            
+
             // Check if already converted
             final nextInvoiceId = data['next_invoice_id'] as int?;
             if (nextInvoiceId != null && nextInvoiceId > 0) {
-              throw LocalStorageException('عرض السعر محول لفاتورة ولا يمكن تعديله');
+              throw LocalStorageException(
+                'عرض السعر محول لفاتورة ولا يمكن تعديله',
+              );
             }
-            
+
             // Check if approved
             final approvalStatus = (data['approval_status'] as int?) ?? 0;
-            if (approvalStatus == 2) { // 2 = approved
+            if (approvalStatus == 2) {
+              // 2 = approved
               throw LocalStorageException('عرض السعر معتمد ولا يمكن تعديله');
             }
           }
         }
         // ========== End Protection Check ==========
-        
+
         final count = await txn.update(
           _invoicesTable,
           invoice.toJson(),
@@ -1726,7 +1936,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               : InvoiceLineModel.fromEntity(line);
           final lineData = lineModel.toJson(invoiceId: invoice.id!);
           lineData.remove('id'); // Remove ID to get new auto-generated ID
-          
+
           await txn.insert(
             _linesTable,
             lineData,
@@ -1748,43 +1958,48 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       // ========== Quotation Protection Check ==========
       final existing = await database.query(
         _invoicesTable,
-        columns: ['invoice_type', 'is_locked', 'next_invoice_id', 'approval_status', 'number'],
+        columns: [
+          'invoice_type',
+          'is_locked',
+          'next_invoice_id',
+          'approval_status',
+          'number',
+        ],
         where: 'id = ?',
         whereArgs: [id],
         limit: 1,
       );
-      
+
       if (existing.isNotEmpty) {
         final data = existing.first;
         final invoiceType = data['invoice_type'] as int?;
         final number = data['number'] as String? ?? '';
-        
+
         // Check if it's a quotation (type = 3)
         if (invoiceType == 3) {
           // Check if already converted - CANNOT delete
           final nextInvoiceId = data['next_invoice_id'] as int?;
           if (nextInvoiceId != null && nextInvoiceId > 0) {
             throw LocalStorageException(
-              'لا يمكن حذف عرض السعر $number لأنه محول لفاتورة'
+              'لا يمكن حذف عرض السعر $number لأنه محول لفاتورة',
             );
           }
-          
+
           // Check if approved - CANNOT delete
           final approvalStatus = (data['approval_status'] as int?) ?? 0;
-          if (approvalStatus == 2) { // 2 = approved
+          if (approvalStatus == 2) {
+            // 2 = approved
             throw LocalStorageException(
-              'لا يمكن حذف عرض السعر $number لأنه معتمد'
+              'لا يمكن حذف عرض السعر $number لأنه معتمد',
             );
           }
-          
+
           // Check if locked
           if ((data['is_locked'] as int?) == 1) {
-            throw LocalStorageException(
-              'عرض السعر $number مقفل ولا يمكن حذفه'
-            );
+            throw LocalStorageException('عرض السعر $number مقفل ولا يمكن حذفه');
           }
         }
-        
+
         // For sales invoices (type = 1), check if it has journal entries
         if (invoiceType == 1) {
           final journalCheck = await database.rawQuery(
@@ -1794,13 +2009,13 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           final hasJournal = ((journalCheck.first['count'] as int?) ?? 0) > 0;
           if (hasJournal) {
             throw LocalStorageException(
-              'لا يمكن حذف الفاتورة $number لأنها مسجلة محاسبياً. يجب إلغاؤها بدلاً من حذفها.'
+              'لا يمكن حذف الفاتورة $number لأنها مسجلة محاسبياً. يجب إلغاؤها بدلاً من حذفها.',
             );
           }
         }
       }
       // ========== End Protection Check ==========
-      
+
       final deleted = await database.delete(
         _invoicesTable,
         where: 'id = ?',
@@ -1854,7 +2069,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         whereArgs: [invoiceType],
         orderBy: 'date DESC, id DESC',
       );
-      
+
       final List<InvoiceModel> results = [];
       for (final h in heads) {
         final lines = await database.query(
@@ -1885,7 +2100,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         whereArgs: [customerId],
         orderBy: 'date DESC, id DESC',
       );
-      
+
       final List<InvoiceModel> results = [];
       for (final h in heads) {
         final lines = await database.query(
@@ -1917,11 +2132,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     try {
       final heads = await database.query(
         _invoicesTable,
-        where: 'invoice_type = ? AND (next_invoice_id IS NULL OR next_invoice_id = 0)',
+        where:
+            'invoice_type = ? AND (next_invoice_id IS NULL OR next_invoice_id = 0)',
         whereArgs: [3], // Quotations that haven't been converted
         orderBy: 'date DESC, id DESC',
       );
-      
+
       final List<InvoiceModel> results = [];
       for (final h in heads) {
         final lines = await database.query(
@@ -1951,35 +2167,41 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     try {
       return await database.transaction((txn) async {
         final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        
+
         // ========== Protection Check Before Conversion ==========
         final existing = await txn.query(
           _invoicesTable,
-          columns: ['invoice_type', 'next_invoice_id', 'is_locked', 'number', 'valid_until'],
+          columns: [
+            'invoice_type',
+            'next_invoice_id',
+            'is_locked',
+            'number',
+            'valid_until',
+          ],
           where: 'id = ?',
           whereArgs: [quotationId],
           limit: 1,
         );
-        
+
         if (existing.isEmpty) {
           throw LocalStorageException('عرض السعر غير موجود');
         }
-        
+
         final quotationData = existing.first;
-        
+
         // Check if it's a quotation
         if ((quotationData['invoice_type'] as int?) != 3) {
           throw LocalStorageException('هذا المستند ليس عرض سعر');
         }
-        
+
         // Check if already converted
         final existingNextId = quotationData['next_invoice_id'] as int?;
         if (existingNextId != null && existingNextId > 0) {
           throw LocalStorageException(
-            'عرض السعر ${quotationData['number']} محول مسبقاً'
+            'عرض السعر ${quotationData['number']} محول مسبقاً',
           );
         }
-        
+
         // Check expiry (warning only - allow conversion but log it)
         final validUntil = quotationData['valid_until'] as int?;
         String? expiryWarning;
@@ -1987,17 +2209,17 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           expiryWarning = 'تحذير: عرض السعر منتهي الصلاحية';
         }
         // ========== End Protection Check ==========
-        
+
         // 1. Insert the new sales invoice (remove ID to get new auto-generated ID)
         final invoiceData = salesInvoice.toJson();
         invoiceData.remove('id'); // Remove ID to avoid UNIQUE constraint error
-        
+
         final invoiceId = await txn.insert(
           _invoicesTable,
           invoiceData,
           conflictAlgorithm: ConflictAlgorithm.abort,
         );
-        
+
         // 2. Insert invoice lines (remove IDs to get new auto-generated IDs)
         for (final line in salesInvoice.lines) {
           final lineModel = line is InvoiceLineModel
@@ -2005,14 +2227,14 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               : InvoiceLineModel.fromEntity(line);
           final lineData = lineModel.toJson(invoiceId: invoiceId);
           lineData.remove('id'); // Remove ID to avoid UNIQUE constraint error
-          
+
           await txn.insert(
             _linesTable,
             lineData,
             conflictAlgorithm: ConflictAlgorithm.abort,
           );
         }
-        
+
         // 3. Update the quotation to mark it as converted AND lock it
         await txn.update(
           _invoicesTable,
@@ -2024,7 +2246,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             'approval_status': 5, // 5 = converted
             'is_locked': 1, // Lock the quotation to prevent modifications
             'locked_at': now,
-            'locked_reason': 'تم التحويل لفاتورة مبيعات رقم ${salesInvoice.number}${expiryWarning != null ? ' ($expiryWarning)' : ''}',
+            'locked_reason':
+                'تم التحويل لفاتورة مبيعات رقم ${salesInvoice.number}${expiryWarning != null ? ' ($expiryWarning)' : ''}',
             'last_modification_time': now,
           },
           where: 'id = ?',
@@ -2038,7 +2261,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             'entity_id': quotationId,
             'action': 'CONVERT',
             'user_id': 1, // TODO: Get actual user ID
-            'description': 'تم تحويل عرض السعر ${quotationData['number']} إلى فاتورة ${salesInvoice.number}',
+            'description':
+                'تم تحويل عرض السعر ${quotationData['number']} إلى فاتورة ${salesInvoice.number}',
             'created_at': now,
           });
         } catch (_) {
@@ -2049,12 +2273,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         await _postSalesInvoiceToJournal(
           txn: txn,
           invoiceId: invoiceId,
-          invoiceData: {
-            ...invoiceData,
-            'id': invoiceId,
-          },
+          invoiceData: {...invoiceData, 'id': invoiceId},
         );
-        
+
         return invoiceId;
       });
     } catch (e) {
@@ -2083,7 +2304,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         whereArgs: [parentInvoiceId, 4],
         orderBy: 'date DESC, id DESC',
       );
-      
+
       final List<InvoiceModel> results = [];
       for (final h in heads) {
         final lines = await database.query(
@@ -2116,51 +2337,49 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         final stocks = await txn.query('stocks', limit: 1);
         if (stocks.isEmpty) {
           // Create default stock if none exists
-          await txn.insert(
-            'stocks',
-            {
-              'name': 'المخزن الرئيسي',
-              'address': 'العنوان الافتراضي',
-              'is_main_stock': 1,
-              'is_active': 1,
-            },
-            conflictAlgorithm: ConflictAlgorithm.ignore,
-          );
+          await txn.insert('stocks', {
+            'name': 'المخزن الرئيسي',
+            'address': 'العنوان الافتراضي',
+            'is_main_stock': 1,
+            'is_active': 1,
+          }, conflictAlgorithm: ConflictAlgorithm.ignore);
         }
-        
+
         // 1. Insert the return invoice (remove ID to get new auto-generated ID)
         final returnData = returnInvoice.toJson();
         returnData.remove('id'); // Remove ID to avoid UNIQUE constraint error
-        
+
         final returnId = await txn.insert(
           _invoicesTable,
           returnData,
           conflictAlgorithm: ConflictAlgorithm.abort,
         );
-        
+
         // 2. Insert return invoice lines and update inventory
         final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         double totalCOGSReversal = 0.0;
-        
+
         for (final line in returnInvoice.lines) {
           final lineModel = line is InvoiceLineModel
               ? line
               : InvoiceLineModel.fromEntity(line);
           final lineData = lineModel.toJson(invoiceId: returnId);
           lineData.remove('id'); // Remove ID to avoid UNIQUE constraint error
-          
+
           await txn.insert(
             _linesTable,
             lineData,
             conflictAlgorithm: ConflictAlgorithm.abort,
           );
-          
+
           // 3. Update inventory - increase stock quantity for returns
           final productId = lineData['category_id'] as int?;
-          final warehouseId = lineData['stock_id'] as int? ?? 
-                              (returnData['stock_id'] as int?) ?? 1;
+          final warehouseId =
+              lineData['stock_id'] as int? ??
+              (returnData['stock_id'] as int?) ??
+              1;
           final returnQty = (lineData['quantity'] as num?)?.toDouble() ?? 0.0;
-          
+
           if (productId != null && returnQty > 0) {
             // Get current stock and average cost
             final stockResult = await txn.query(
@@ -2169,74 +2388,68 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               whereArgs: [productId, warehouseId],
               limit: 1,
             );
-            
+
             double currentQty = 0.0;
-            double avgCost = (lineData['cost_price'] as num?)?.toDouble() ?? 0.0;
-            
+            double avgCost =
+                (lineData['cost_price'] as num?)?.toDouble() ?? 0.0;
+
             if (stockResult.isNotEmpty) {
-              currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-              avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? avgCost;
+              currentQty =
+                  (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+              avgCost =
+                  (stockResult.first['avg_cost'] as num?)?.toDouble() ??
+                  avgCost;
             }
-            
+
             final newQty = currentQty + returnQty;
-            
+
             // Calculate COGS reversal for this line
             totalCOGSReversal += returnQty * avgCost;
-            
+
             // Update or insert warehouse stock
             if (stockResult.isNotEmpty) {
               await txn.update(
                 'warehouse_stocks',
-                {
-                  'quantity': newQty,
-                  'last_modification_time': now,
-                },
+                {'quantity': newQty, 'last_modification_time': now},
                 where: 'product_id = ? AND warehouse_id = ?',
                 whereArgs: [productId, warehouseId],
               );
             } else {
-              await txn.insert(
-                'warehouse_stocks',
-                {
-                  'product_id': productId,
-                  'warehouse_id': warehouseId,
-                  'quantity': newQty,
-                  'avg_cost': avgCost,
-                  'last_cost': avgCost,
-                  'creation_time': now,
-                  'last_modification_time': now,
-                },
-                conflictAlgorithm: ConflictAlgorithm.replace,
-              );
+              await txn.insert('warehouse_stocks', {
+                'product_id': productId,
+                'warehouse_id': warehouseId,
+                'quantity': newQty,
+                'avg_cost': avgCost,
+                'last_cost': avgCost,
+                'creation_time': now,
+                'last_modification_time': now,
+              }, conflictAlgorithm: ConflictAlgorithm.replace);
             }
-            
+
             // Record stock movement for audit trail
             try {
-              await txn.insert(
-                'stock_movements',
-                {
-                  'product_id': productId,
-                  'warehouse_id': warehouseId,
-                  'movement_type': 'return_sale',
-                  'quantity': returnQty, // Positive for return (add to stock)
-                  'unit_cost': avgCost,
-                  'total_cost': returnQty * avgCost,
-                  'balance_after': newQty,
-                  'reference_type': 'sales_return',
-                  'reference_id': returnId,
-                  'reference_number': returnInvoice.number,
-                  'creation_time': now,
-                },
-              );
+              await txn.insert('stock_movements', {
+                'product_id': productId,
+                'warehouse_id': warehouseId,
+                'movement_type': 'return_sale',
+                'quantity': returnQty, // Positive for return (add to stock)
+                'unit_cost': avgCost,
+                'total_cost': returnQty * avgCost,
+                'balance_after': newQty,
+                'reference_type': 'sales_return',
+                'reference_id': returnId,
+                'reference_number': returnInvoice.number,
+                'creation_time': now,
+              });
             } catch (_) {
               // Ignore if stock_movements table doesn't exist
             }
           }
         }
-        
+
         // Store COGS reversal amount for journal entry
         returnData['cogs_reversal'] = totalCOGSReversal;
-        
+
         // 4. Update parent invoice to reference this return
         await txn.update(
           _invoicesTable,
@@ -2248,17 +2461,14 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           where: 'id = ?',
           whereArgs: [parentInvoiceId],
         );
-        
+
         // Auto-post accounting entries for sales returns
         await _postSalesReturnToJournal(
           txn: txn,
           returnInvoiceId: returnId,
-          invoiceData: {
-            ...returnData,
-            'id': returnId,
-          },
+          invoiceData: {...returnData, 'id': returnId},
         );
-        
+
         return returnId;
       });
     } catch (e) {

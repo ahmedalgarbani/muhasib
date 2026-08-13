@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/models/bill_models.dart';
@@ -21,7 +23,7 @@ class _SalePageBodyState extends State<SalePageBody> {
   @override
   void initState() {
     super.initState();
-    
+
     context.read<SalesCubit>().loadInvoices();
     context.read<AccountsCubit>().loadAllAccounts();
   }
@@ -160,9 +162,7 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
 
   List<InvoiceEntity> _filterInvoices(List<InvoiceEntity> invoices) {
     // This page is "Sales List" -> only show sales invoices
-    var filtered = invoices
-        .where((inv) => inv.invoiceType == 1)
-        .toList();
+    var filtered = invoices.where((inv) => inv.invoiceType == 1).toList();
     if (_searchQuery.isNotEmpty) {
       filtered = filtered
           .where(
@@ -221,7 +221,7 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   void _showDeleteDialog(BuildContext context, InvoiceEntity invoice) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: const Text('تأكيد الحذف'),
         content: const Text('هل أنت متأكد من حذف هذه الفاتورة؟'),
         actions: [
@@ -298,7 +298,7 @@ class BillsHeader extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: TextField(
+                  child: TextInputField(
                     onChanged: onSearchChanged,
                     decoration: InputDecoration(
                       hintText: 'ابحث برقم الفاتورة...',
@@ -461,9 +461,9 @@ class BillCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Invoices store date as seconds since epoch
-    final dateStr = DateFormat('yyyy-MM-dd').format(
-      DateTime.fromMillisecondsSinceEpoch(invoice.date * 1000),
-    );
+    final dateStr = DateFormat(
+      'yyyy-MM-dd',
+    ).format(DateTime.fromMillisecondsSinceEpoch(invoice.date * 1000));
     // Try to find customer name from AccountsCubit
     final accountsState = context.read<AccountsCubit>().state;
     String customerName = 'Customer #${invoice.customerId}';

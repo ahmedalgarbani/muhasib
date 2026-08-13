@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -34,9 +36,8 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
         child: Builder(
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
-            backgroundColor:  AppColors.gray50,
-            appBar: CustomAppBar(
-            ),
+            backgroundColor: AppColors.gray50,
+            appBar: CustomAppBar(),
             body: Column(
               children: [
                 _buildHeader(innerContext),
@@ -68,7 +69,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
             ),
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () => _showGroupDialog(innerContext),
-                backgroundColor:  AppColors.primary,
+              backgroundColor: AppColors.primary,
               icon: const Icon(Icons.add),
               label: const Text('مجموعة جديدة'),
             ),
@@ -97,7 +98,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
             ),
           ),
           const SizedBox(height: 16),
-          TextField(
+          TextInputField(
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'ابحث في المجموعات...',
@@ -126,7 +127,10 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
     );
   }
 
-  Widget _buildGroupsList(BuildContext innerContext, List<ProductGroupEntity> groups) {
+  Widget _buildGroupsList(
+    BuildContext innerContext,
+    List<ProductGroupEntity> groups,
+  ) {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: groups.length,
@@ -143,13 +147,10 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color:  AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
-              child: const Icon(
-                Icons.category,
-                color: AppColors.primary,
-              ),
+              child: const Icon(Icons.category, color: AppColors.primary),
             ),
             title: Text(
               group.name,
@@ -166,7 +167,10 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
               children: [
                 if (group.parentGroupId != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade50,
                       borderRadius: BorderRadius.circular(AppRadius.xs),
@@ -221,11 +225,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.category_outlined,
-            size: 80,
-            color: Colors.grey.shade300,
-          ),
+          Icon(Icons.category_outlined, size: 80, color: Colors.grey.shade300),
           const SizedBox(height: 16),
           Text(
             'لا توجد مجموعات',
@@ -238,10 +238,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
           const SizedBox(height: 8),
           Text(
             'ابدأ بإضافة مجموعة جديدة',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -251,33 +248,27 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
   void _showGroupDialog(BuildContext context, {ProductGroupEntity? group}) {
     final nameController = TextEditingController(text: group?.name);
     final descController = TextEditingController(text: group?.statement);
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
-        child: AlertDialog(
+        child: CustomDialog(
           title: Text(group == null ? 'مجموعة جديدة' : 'تعديل المجموعة'),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                TextInputField(
                   controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم المجموعة',
-                    hintText: 'مثال: إلكترونيات',
-                    border: OutlineInputBorder(),
-                  ),
+                  hint: 'مثال: إلكترونيات',
+                  label: 'اسم المجموعة',
                 ),
                 const SizedBox(height: 16),
-                TextField(
+                TextInputField(
                   controller: descController,
-                  decoration: const InputDecoration(
-                    labelText: 'الوصف (اختياري)',
-                    hintText: 'وصف المجموعة',
-                    border: OutlineInputBorder(),
-                  ),
+                  hint: 'وصف المجموعة',
+                  label: 'الوصف (اختياري)',
                   maxLines: 3,
                 ),
               ],
@@ -294,24 +285,26 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
                   AppToast.showError(context, 'الرجاء إدخال اسم المجموعة');
                   return;
                 }
-                
+
                 final entity = ProductGroupEntity(
                   id: group?.id,
                   name: nameController.text.trim(),
-                  statement: descController.text.trim().isEmpty ? null : descController.text.trim(),
+                  statement: descController.text.trim().isEmpty
+                      ? null
+                      : descController.text.trim(),
                   isActive: group?.isActive ?? true,
                 );
-                
+
                 if (group == null) {
                   context.read<ProductGroupsCubit>().createGroup(entity);
                 } else {
                   context.read<ProductGroupsCubit>().updateGroup(entity);
                 }
-                
+
                 Navigator.pop(dialogContext);
               },
               style: ElevatedButton.styleFrom(
-              backgroundColor:  AppColors.primary,
+                backgroundColor: AppColors.primary,
               ),
               child: Text(group == null ? 'إضافة' : 'حفظ'),
             ),
@@ -326,7 +319,7 @@ class _ProductGroupsPageState extends State<ProductGroupsPage> {
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
-        child: AlertDialog(
+        child: CustomDialog(
           title: const Text('تأكيد الحذف'),
           content: Text('هل أنت متأكد من حذف مجموعة "${group.name}"؟'),
           actions: [

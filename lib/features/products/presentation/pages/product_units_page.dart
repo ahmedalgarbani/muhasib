@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/product_unit_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_units_cubit.dart';
 
@@ -33,9 +35,8 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
         textDirection: TextDirection.rtl,
         child: Scaffold(
           key: _scaffoldKey,
-          backgroundColor:  AppColors.gray50,
-          appBar: CustomAppBar(
-          ),
+          backgroundColor: AppColors.gray50,
+          appBar: CustomAppBar(),
           body: Column(
             children: [
               _buildHeader(),
@@ -67,7 +68,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () => _showUnitDialog(context),
-            backgroundColor:  AppColors.primary,
+            backgroundColor: AppColors.primary,
             icon: const Icon(Icons.add),
             label: const Text('وحدة جديدة'),
           ),
@@ -95,10 +96,10 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
             ),
           ),
           const SizedBox(height: 16),
-          TextField(
+          TextInputField(
             controller: _searchController,
+            hint: 'ابحث في الوحدات...',
             decoration: InputDecoration(
-              hintText: 'ابحث في الوحدات...',
               prefixIcon: const Icon(Icons.search, color: Colors.grey),
               filled: true,
               fillColor: Colors.white,
@@ -141,13 +142,10 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color:  AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
-              child: const Icon(
-                Icons.square_foot,
-                color: AppColors.success,
-              ),
+              child: const Icon(Icons.square_foot, color: AppColors.success),
             ),
             title: Row(
               children: [
@@ -157,7 +155,10 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade100,
                     borderRadius: BorderRadius.circular(AppRadius.xs),
@@ -182,7 +183,10 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
               children: [
                 if (!unit.isActive)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.red.shade50,
                       borderRadius: BorderRadius.circular(AppRadius.xs),
@@ -254,10 +258,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
           const SizedBox(height: 8),
           Text(
             'ابدأ بإضافة وحدة قياس جديدة',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -271,44 +272,37 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
       text: unit?.conversionFactor.toString() ?? '1.0',
     );
     bool isActive = unit?.isActive ?? true;
-    
+
     showDialog(
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
         child: StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
+          builder: (context, setState) => CustomDialog(
             title: Text(unit == null ? 'وحدة جديدة' : 'تعديل الوحدة'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TextField(
+                  TextInputField(
                     controller: nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'اسم الوحدة',
-                      hintText: 'مثال: كيلوجرام',
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'اسم الوحدة',
+                    hint: 'مثال: كيلوجرام',
                   ),
                   const SizedBox(height: 16),
-                  TextField(
+                  TextInputField(
                     controller: shortController,
-                    decoration: const InputDecoration(
-                      labelText: 'الاختصار',
-                      hintText: 'مثال: كجم',
-                      border: OutlineInputBorder(),
-                    ),
+                    label: 'الاختصار',
+                    hint: 'مثال: كجم',
                   ),
                   const SizedBox(height: 16),
-                  TextField(
+                  TextInputField(
                     controller: factorController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    decoration: const InputDecoration(
-                      labelText: 'معامل التحويل',
-                      hintText: 'مثال: 1.0',
-                      border: OutlineInputBorder(),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
                     ),
+                    label: 'معامل التحويل',
+                    hint: 'مثال: 1.0',
                   ),
                   const SizedBox(height: 16),
                   SwitchListTile(
@@ -330,12 +324,15 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                 onPressed: () {
                   if (nameController.text.trim().isEmpty ||
                       shortController.text.trim().isEmpty) {
-                    AppToast.showError(context, 'الرجاء إدخال اسم الوحدة والاختصار');
+                    AppToast.showError(
+                      context,
+                      'الرجاء إدخال اسم الوحدة والاختصار',
+                    );
                     return;
                   }
-                  
+
                   final factor = double.tryParse(factorController.text) ?? 1.0;
-                  
+
                   final entity = ProductUnitEntity(
                     id: unit?.id,
                     name: nameController.text.trim(),
@@ -343,17 +340,17 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
                     conversionFactor: factor,
                     isActive: isActive,
                   );
-                  
+
                   if (unit == null) {
                     context.read<ProductUnitsCubit>().createUnit(entity);
                   } else {
                     context.read<ProductUnitsCubit>().updateUnit(entity);
                   }
-                  
+
                   Navigator.pop(dialogContext);
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor:  AppColors.primary,
+                  backgroundColor: AppColors.primary,
                 ),
                 child: Text(unit == null ? 'إضافة' : 'حفظ'),
               ),
@@ -369,7 +366,7 @@ class _ProductUnitsPageState extends State<ProductUnitsPage> {
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
-        child: AlertDialog(
+        child: CustomDialog(
           title: const Text('تأكيد الحذف'),
           content: Text('هل أنت متأكد من حذف وحدة "${unit.name}"؟'),
           actions: [

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/widgets/warehouse_card_widget.dart';
 
@@ -32,10 +33,10 @@ class WarehousesListWidget extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: TextField(
+          child: TextInputField(
             controller: searchController,
+            hint: 'بحث في المخازن...',
             decoration: InputDecoration(
-              hintText: 'بحث في المخازن...',
               prefixIcon: const Icon(Icons.search),
               suffixIcon: searchController.text.isNotEmpty
                   ? IconButton(

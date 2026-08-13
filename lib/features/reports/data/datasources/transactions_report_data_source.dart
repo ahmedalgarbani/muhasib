@@ -281,7 +281,7 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
   }) async {
     final db = await _databaseService.database;
 
-    String whereClause = '';
+    String whereClause = 'is_posted = 1';
     List<dynamic> whereArgs = [];
 
     // Date filter

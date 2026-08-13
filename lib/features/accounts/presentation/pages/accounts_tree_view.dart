@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
@@ -12,6 +13,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class AccountsTreeScreen extends StatelessWidget {
   const AccountsTreeScreen({super.key});
@@ -82,7 +84,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
   void _confirmDeleteAccount(int accountId) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => CustomDialog(
         title: const Text('حذف الحساب'),
         content: const Text('هل أنت متأكد من حذف هذا الحساب؟'),
         actions: [
@@ -161,9 +163,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
 
   Widget _buildHeader(AccountsState state, int count) {
     return Container(
-      decoration: const BoxDecoration(
-        color: AppColors.primary,
-      ),
+      decoration: const BoxDecoration(color: AppColors.primary),
       child: SafeArea(
         bottom: false,
         child: Padding(
@@ -212,7 +212,7 @@ class _AccountsTreeViewState extends State<AccountsTreeView> {
               if (showSearch)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
-                  child: TextField(
+                  child: TextInputField(
                     autofocus: true,
                     onChanged: (value) {
                       setState(() {
@@ -492,7 +492,7 @@ class _SubAccountsPageState extends State<SubAccountsPage> {
   void _confirmDeleteAccount(int accountId) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => CustomDialog(
         title: const Text('حذف الحساب'),
         content: const Text('هل أنت متأكد من حذف هذا الحساب؟'),
         actions: [

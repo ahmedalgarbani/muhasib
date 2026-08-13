@@ -4,6 +4,7 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -77,27 +78,86 @@ class _BalanceSheetReportPageState extends State<BalanceSheetReportPage> {
   }
 }
 
-class _BalanceSheetContent extends StatelessWidget {
+class _BalanceSheetContent extends StatefulWidget {
   final ReportFilter filter;
   final Function(_BalanceSheetResult) onLoad;
+
+  const _BalanceSheetContent({required this.filter, required this.onLoad});
+
+  @override
+  State<_BalanceSheetContent> createState() => _BalanceSheetContentState();
+}
+
+class _BalanceSheetContentState extends State<_BalanceSheetContent> {
   final _numberFormat = NumberFormat('#,##0.00', 'ar');
-  _BalanceSheetContent({required this.filter, required this.onLoad});
+  late Future<_BalanceSheetResult> _future;
+  _BalanceSheetResult? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _BalanceSheetContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load(getIt<DatabaseService>(), widget.filter);
+  }
 
   String _format(double v) => '${_numberFormat.format(v)} ر.س';
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_BalanceSheetResult>(
-      future: _load(getIt<DatabaseService>(), filter),
+      future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting)
           return const Center(child: CircularProgressIndicator());
         if (snapshot.hasError)
           return Center(child: Text('خطأ: ${snapshot.error}'));
         final data = snapshot.data;
-        if (data != null)
-          WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(data));
+        if (data != null && data != _notifiedResult) {
+          _notifiedResult = data;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => widget.onLoad(data),
+          );
+        }
         if (data == null) return const Center(child: Text('لا توجد بيانات'));
+
+        final workingCapital = data.totalAssets - data.totalLiabilities;
+
+        var assets = data.currentAssets;
+        var liabilitiesAndEquity = [
+          ...data.currentLiabilities,
+          ...data.equityRows,
+        ];
+
+        if (widget.filter.searchQuery != null &&
+            widget.filter.searchQuery!.isNotEmpty) {
+          final query = widget.filter.searchQuery!.toLowerCase();
+          assets = assets
+              .where(
+                (r) =>
+                    r.code.toLowerCase().contains(query) ||
+                    r.name.toLowerCase().contains(query),
+              )
+              .toList();
+          liabilitiesAndEquity = liabilitiesAndEquity
+              .where(
+                (r) =>
+                    r.code.toLowerCase().contains(query) ||
+                    r.name.toLowerCase().contains(query),
+              )
+              .toList();
+        }
 
         return SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -105,20 +165,57 @@ class _BalanceSheetContent extends StatelessWidget {
             children: [
               _buildEquationSummary(data),
               const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: ReportKpiCard(
+                      title: 'إجمالي الأصول',
+                      value: _format(data.totalAssets),
+                      icon: Icons.trending_up,
+                      color: Colors.green[700]!,
+                      subtitle: 'الأصول المتداولة والثابتة',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ReportKpiCard(
+                      title: 'الخصوم وحقوق الملكية',
+                      value: _format(data.totalLiabilities + data.totalEquity),
+                      icon: Icons.account_balance_wallet,
+                      color: Colors.blue[700]!,
+                      subtitle: 'التزامات + الملكية',
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ReportKpiCard(
+                      title: 'رأس المال العامل',
+                      value: _format(workingCapital),
+                      icon: Icons.account_balance,
+                      color: workingCapital >= 0
+                          ? Colors.teal[700]!
+                          : Colors.red[700]!,
+                      subtitle: 'الأصول - الخصوم',
+                      isPositiveTrend: workingCapital >= 0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
               _buildSectionTile(
                 'الأصول',
                 data.totalAssets,
-                Colors.green,
+                Colors.green[800]!,
                 Icons.trending_up,
-                data.currentAssets,
+                assets,
               ),
               const SizedBox(height: 16),
               _buildSectionTile(
                 'الخصوم وحقوق الملكية',
                 data.totalLiabilities + data.totalEquity,
-                Colors.blue,
+                Colors.blue[800]!,
                 Icons.account_balance_wallet,
-                [...data.currentLiabilities, ...data.equityRows],
+                liabilitiesAndEquity,
               ),
             ],
           ),
@@ -146,7 +243,7 @@ class _BalanceSheetContent extends StatelessWidget {
           const SizedBox(width: 12),
           Text(
             ok
-                ? 'الميزانية متوازنة تماماً ✓'
+                ? 'الميزانية العمومية متوازنة تماماً ( الأصول = الخصوم + حقوق الملكية ) ✓'
                 : 'فرق الميزانية: ${d.difference.abs().toStringAsFixed(2)} ⚠',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -169,7 +266,7 @@ class _BalanceSheetContent extends StatelessWidget {
     return Card(
       elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppRadius.lg20),
+        borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(color: Colors.grey[200]!),
       ),
       child: Column(
@@ -179,7 +276,7 @@ class _BalanceSheetContent extends StatelessWidget {
             decoration: BoxDecoration(
               color: c.withOpacity(0.05),
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(AppRadius.lg20),
+                top: Radius.circular(AppRadius.lg),
               ),
             ),
             child: Row(
@@ -207,21 +304,36 @@ class _BalanceSheetContent extends StatelessWidget {
               ],
             ),
           ),
-          ...rows
-              .take(5)
-              .map(
-                (r) => ListTile(
-                  dense: true,
-                  title: Text(r.name, style: const TextStyle(fontSize: 12)),
-                  trailing: Text(_format(r.displayAmount)),
-                ),
-              ),
-          if (rows.length > 5)
+          if (rows.isEmpty)
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
               child: Text(
-                'وحسابات أخرى...',
-                style: TextStyle(color: Colors.grey[400], fontSize: 10),
+                'لا توجد حسابات مسجلة في هذا البند',
+                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              ),
+            )
+          else
+            ...rows.map(
+              (r) => ListTile(
+                dense: true,
+                title: Text(
+                  r.name,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                subtitle: Text(
+                  r.code,
+                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                ),
+                trailing: Text(
+                  _format(r.displayAmount),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
         ],

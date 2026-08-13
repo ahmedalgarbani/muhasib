@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 
 /// Standardized Confirmation Dialog (e.g. for delete confirmations, save alerts).
 class CustomConfirmDialog extends StatelessWidget {
@@ -30,13 +31,7 @@ class CustomConfirmDialog extends StatelessWidget {
 
     return Directionality(
       textDirection: TextDirection.rtl,
-      child: AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg20),
-        ),
-        titlePadding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        actionsPadding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+      child: CustomDialog(
         title: Row(
           children: [
             Container(
@@ -61,7 +56,11 @@ class CustomConfirmDialog extends StatelessWidget {
         ),
         content: Text(
           message,
-          style: const TextStyle(fontSize: 14, color: AppColors.textSecondary, height: 1.5),
+          style: const TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
         ),
         actions: [
           Row(

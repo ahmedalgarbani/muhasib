@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_prices_cubit.dart';
@@ -39,20 +41,17 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
         child: Builder(
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
-            backgroundColor:  AppColors.gray50,
-            appBar: CustomAppBar(
-            ),
+            backgroundColor: AppColors.gray50,
+            appBar: CustomAppBar(),
             body: Column(
               children: [
                 _buildHeader(innerContext),
-                Expanded(
-                  child: _buildPricingContent(innerContext),
-                ),
+                Expanded(child: _buildPricingContent(innerContext)),
               ],
             ),
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () => _showPricingDialog(innerContext),
-              backgroundColor:  AppColors.primary,
+              backgroundColor: AppColors.primary,
               icon: const Icon(Icons.add),
               label: const Text('سعر جديد'),
             ),
@@ -93,18 +92,23 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                       value: null,
                       child: Text('كل المنتجات'),
                     ),
-                    ...productsState.products.map((product) =>
-                        DropdownMenuItem(
-                          value: product.id,
-                          child: Text(product.name),
-                        )),
+                    ...productsState.products.map(
+                      (product) => DropdownMenuItem(
+                        value: product.id,
+                        child: Text(product.name),
+                      ),
+                    ),
                   ],
                   onChanged: (value) {
                     setState(() => _selectedProductFilter = value);
                     if (value != null) {
-                      innerContext.read<ProductSubUnitsCubit>().loadSubUnitsByProduct(value);
+                      innerContext
+                          .read<ProductSubUnitsCubit>()
+                          .loadSubUnitsByProduct(value);
                     } else {
-                      innerContext.read<ProductSubUnitsCubit>().loadAllSubUnits();
+                      innerContext
+                          .read<ProductSubUnitsCubit>()
+                          .loadAllSubUnits();
                     }
                   },
                 );
@@ -144,25 +148,29 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
               }
               return _buildPricingList(innerContext, state, pricesState);
             }
-            return const Center(
-              child: Text('ابدأ بإضافة أسعار للمنتجات'),
-            );
+            return const Center(child: Text('ابدأ بإضافة أسعار للمنتجات'));
           },
         );
       },
     );
   }
 
-  Widget _buildPricingList(BuildContext innerContext, ProductSubUnitsLoaded subUnitsState, ProductPricesState pricesState) {
+  Widget _buildPricingList(
+    BuildContext innerContext,
+    ProductSubUnitsLoaded subUnitsState,
+    ProductPricesState pricesState,
+  ) {
     final prices = pricesState is ProductPricesLoaded ? pricesState.prices : [];
-    
+
     return ListView.builder(
       padding: const EdgeInsets.all(16),
       itemCount: subUnitsState.subUnits.length,
       itemBuilder: (context, index) {
         final subUnit = subUnitsState.subUnits[index];
-        final subUnitPrices = prices.where((p) => p.categorySubUnitId == subUnit.id).toList();
-        
+        final subUnitPrices = prices
+            .where((p) => p.categorySubUnitId == subUnit.id)
+            .toList();
+
         return Card(
           margin: const EdgeInsets.only(bottom: 12),
           shape: RoundedRectangleBorder(
@@ -173,7 +181,8 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
             title: BlocBuilder<ProductsCubit, ProductsState>(
               builder: (context, productsState) {
                 String productName = 'منتج ${subUnit.categoryId}';
-                if (productsState is ProductsLoaded && subUnit.categoryId != null) {
+                if (productsState is ProductsLoaded &&
+                    subUnit.categoryId != null) {
                   try {
                     final product = productsState.products.firstWhere(
                       (p) => p.id == subUnit.categoryId,
@@ -190,18 +199,43 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
               },
             ),
             children: [
-              _buildPriceLevelItem('سعر التجزئة', 1, subUnit.id, subUnitPrices, innerContext),
-              _buildPriceLevelItem('سعر الجملة', 2, subUnit.id, subUnitPrices, innerContext),
-              _buildPriceLevelItem('سعر خاص', 3, subUnit.id, subUnitPrices, innerContext),
-              _buildPriceLevelItem('سعر الموزع', 4, subUnit.id, subUnitPrices, innerContext),
+              _buildPriceLevelItem(
+                'سعر التجزئة',
+                1,
+                subUnit.id,
+                subUnitPrices,
+                innerContext,
+              ),
+              _buildPriceLevelItem(
+                'سعر الجملة',
+                2,
+                subUnit.id,
+                subUnitPrices,
+                innerContext,
+              ),
+              _buildPriceLevelItem(
+                'سعر خاص',
+                3,
+                subUnit.id,
+                subUnitPrices,
+                innerContext,
+              ),
+              _buildPriceLevelItem(
+                'سعر الموزع',
+                4,
+                subUnit.id,
+                subUnitPrices,
+                innerContext,
+              ),
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton.icon(
-                  onPressed: () => _showPricingDialog(innerContext, subUnitId: subUnit.id),
+                  onPressed: () =>
+                      _showPricingDialog(innerContext, subUnitId: subUnit.id),
                   icon: const Icon(Icons.add),
                   label: const Text('إضافة مستوى سعر'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:  AppColors.primary,
+                    backgroundColor: AppColors.primary,
                   ),
                 ),
               ),
@@ -212,10 +246,17 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
     );
   }
 
-  Widget _buildPriceLevelItem(String levelName, int priceLevel, int? subUnitId, List prices, BuildContext innerContext) {
+  Widget _buildPriceLevelItem(
+    String levelName,
+    int priceLevel,
+    int? subUnitId,
+    List prices,
+    BuildContext innerContext,
+  ) {
     final price = prices.where((p) => p.priceLevel == priceLevel).firstOrNull;
-    final hasPrice = price != null && price.bidAmount != null && price.bidAmount > 0;
-    
+    final hasPrice =
+        price != null && price.bidAmount != null && price.bidAmount > 0;
+
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -229,7 +270,9 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
         ),
       ),
       title: Text(levelName),
-      subtitle: Text(hasPrice ? 'الحد الأدنى: ${price.minQuantity ?? 1} وحدة' : 'غير محدد'),
+      subtitle: Text(
+        hasPrice ? 'الحد الأدنى: ${price.minQuantity ?? 1} وحدة' : 'غير محدد',
+      ),
       trailing: SizedBox(
         width: 140,
         child: Row(
@@ -238,10 +281,14 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
           children: [
             Flexible(
               child: Text(
-                hasPrice ? '${price.bidAmount?.toStringAsFixed(2)} ر.س' : '0.00 ر.س',
+                hasPrice
+                    ? '${price.bidAmount?.toStringAsFixed(2)} ر.س'
+                    : '0.00 ر.س',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: hasPrice ? Colors.green.shade700 : Colors.grey.shade500,
+                  color: hasPrice
+                      ? Colors.green.shade700
+                      : Colors.grey.shade500,
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -291,10 +338,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
           const SizedBox(height: 8),
           Text(
             'يجب إضافة وحدات فرعية للمنتجات أولاً',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),
@@ -306,7 +350,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
-        child: AlertDialog(
+        child: CustomDialog(
           title: const Text('تأكيد الحذف'),
           content: const Text('هل أنت متأكد من حذف هذا السعر؟'),
           actions: [
@@ -328,9 +372,19 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
     );
   }
 
-  void _showPricingDialog(BuildContext context, {int? subUnitId, int? priceLevel, double? existingPrice, double? existingMinQty}) {
-    final priceController = TextEditingController(text: existingPrice?.toString() ?? '');
-    final minQuantityController = TextEditingController(text: (existingMinQty ?? 1.0).toString());
+  void _showPricingDialog(
+    BuildContext context, {
+    int? subUnitId,
+    int? priceLevel,
+    double? existingPrice,
+    double? existingMinQty,
+  }) {
+    final priceController = TextEditingController(
+      text: existingPrice?.toString() ?? '',
+    );
+    final minQuantityController = TextEditingController(
+      text: (existingMinQty ?? 1.0).toString(),
+    );
     int selectedPriceLevel = priceLevel ?? 1;
     int? selectedSubUnitId = subUnitId;
     final pricesCubit = context.read<ProductPricesCubit>();
@@ -346,7 +400,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
             BlocProvider.value(value: subUnitsCubit),
           ],
           child: StatefulBuilder(
-            builder: (context, setState) => AlertDialog(
+            builder: (context, setState) => CustomDialog(
               title: Text(existingPrice != null ? 'تعديل السعر' : 'إضافة سعر'),
               content: SingleChildScrollView(
                 child: Column(
@@ -360,13 +414,15 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                               initialValue: selectedSubUnitId,
                               decoration: const InputDecoration(
                                 labelText: 'الوحدة الفرعية',
-                                border: OutlineInputBorder(),
                               ),
-                              items: state.subUnits.map((subUnit) =>
-                                  DropdownMenuItem(
-                                    value: subUnit.id,
-                                    child: Text('وحدة ${subUnit.packaging}'),
-                                  )).toList(),
+                              items: state.subUnits
+                                  .map(
+                                    (subUnit) => DropdownMenuItem(
+                                      value: subUnit.id,
+                                      child: Text('وحدة ${subUnit.packaging}'),
+                                    ),
+                                  )
+                                  .toList(),
                               onChanged: (value) {
                                 setState(() => selectedSubUnitId = value);
                               },
@@ -380,7 +436,6 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                       initialValue: selectedPriceLevel,
                       decoration: const InputDecoration(
                         labelText: 'مستوى السعر',
-                        border: OutlineInputBorder(),
                       ),
                       items: const [
                         DropdownMenuItem(value: 1, child: Text('سعر التجزئة')),
@@ -393,24 +448,24 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextField(
+                    TextInputField(
                       controller: priceController,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      label: 'السعر',
+                      hint: '0.00',
                       decoration: const InputDecoration(
-                        labelText: 'السعر',
-                        hintText: '0.00',
-                        border: OutlineInputBorder(),
                         suffixText: 'ر.س',
                       ),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
+                    TextInputField(
                       controller: minQuantityController,
                       keyboardType: TextInputType.number,
+                      label: 'الكمية الدنيا',
+                      hint: '1',
                       decoration: const InputDecoration(
-                        labelText: 'الكمية الدنيا',
-                        hintText: '1',
-                        border: OutlineInputBorder(),
                         helperText: 'الحد الأدنى للكمية لتطبيق هذا السعر',
                       ),
                     ),
@@ -424,19 +479,21 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    final priceValue = double.tryParse(priceController.text) ?? 0;
-                    final minQty = double.tryParse(minQuantityController.text) ?? 1;
-                    
+                    final priceValue =
+                        double.tryParse(priceController.text) ?? 0;
+                    final minQty =
+                        double.tryParse(minQuantityController.text) ?? 1;
+
                     if (selectedSubUnitId == null) {
                       AppToast.showError(context, 'يرجى اختيار الوحدة الفرعية');
                       return;
                     }
-                    
+
                     if (priceValue <= 0) {
                       AppToast.showError(context, 'يرجى إدخال سعر صحيح');
                       return;
                     }
-                    
+
                     pricesCubit.savePrice(
                       subUnitId: selectedSubUnitId!,
                       priceLevel: selectedPriceLevel,
@@ -446,7 +503,7 @@ class _ProductPricingPageState extends State<ProductPricingPage> {
                     Navigator.pop(dialogContext);
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:  AppColors.primary,
+                    backgroundColor: AppColors.primary,
                   ),
                   child: const Text('حفظ'),
                 ),

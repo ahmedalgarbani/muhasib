@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class OpeningBalancesPage extends StatefulWidget {
   const OpeningBalancesPage({super.key});
@@ -18,10 +19,11 @@ class OpeningBalancesPage extends StatefulWidget {
 
 class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
   final Map<int, TextEditingController> _balanceControllers = {};
-  final Map<int, bool> _debitCreditSelection = {}; // true = debit, false = credit
+  final Map<int, bool> _debitCreditSelection =
+      {}; // true = debit, false = credit
   List<AccountEntity> _accounts = [];
   DateTime _selectedDate = DateTime.now();
-  
+
   @override
   void initState() {
     super.initState();
@@ -58,20 +60,18 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
           if (state is AccountsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (state is AccountsLoaded) {
             _accounts = state.accounts.where((a) => !a.isMaster).toList();
             return Column(
               children: [
                 _buildHeader(),
-                Expanded(
-                  child: _buildAccountsList(),
-                ),
+                Expanded(child: _buildAccountsList()),
                 _buildFooter(),
               ],
             );
           }
-          
+
           if (state is AccountsError) {
             return Center(
               child: Column(
@@ -86,7 +86,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
               ),
             );
           }
-          
+
           return const Center(child: Text('لا توجد حسابات'));
         },
       ),
@@ -216,7 +216,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
                 ),
                 SizedBox(
                   width: 100,
-                  child: TextField(
+                  child: TextInputField(
                     controller: _balanceControllers[account.id],
                     keyboardType: const TextInputType.numberWithOptions(
                       decimal: true,
@@ -248,11 +248,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).primaryColor.withOpacity(0.05),
-        border: Border(
-          top: BorderSide(
-            color: Theme.of(context).dividerColor,
-          ),
-        ),
+        border: Border(top: BorderSide(color: Theme.of(context).dividerColor)),
       ),
       child: Column(
         children: [
@@ -289,9 +285,9 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
                 children: [
                   const Text('الفرق'),
                   Text(
-                    NumberFormat('#,##0.00').format(
-                      (totals['debit']! - totals['credit']!).abs(),
-                    ),
+                    NumberFormat(
+                      '#,##0.00',
+                    ).format((totals['debit']! - totals['credit']!).abs()),
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
@@ -331,17 +327,13 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
                 onPressed: _clearAll,
                 icon: const Icon(Icons.clear),
                 label: const Text('مسح الكل'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.grey,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.grey),
               ),
               ElevatedButton.icon(
                 onPressed: isBalanced ? _saveBalances : null,
                 icon: const Icon(Icons.save),
                 label: const Text('حفظ الأرصدة'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.green,
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
               ),
             ],
           ),
@@ -355,10 +347,9 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
     double totalCredit = 0;
 
     for (var account in _accounts) {
-      final amount = double.tryParse(
-        _balanceControllers[account.id]?.text ?? '0',
-      ) ?? 0;
-      
+      final amount =
+          double.tryParse(_balanceControllers[account.id]?.text ?? '0') ?? 0;
+
       if (_debitCreditSelection[account.id] == true) {
         totalDebit += amount;
       } else {
@@ -366,10 +357,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
       }
     }
 
-    return {
-      'debit': totalDebit,
-      'credit': totalCredit,
-    };
+    return {'debit': totalDebit, 'credit': totalCredit};
   }
 
   void _clearAll() {
@@ -390,7 +378,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
       firstDate: DateTime(2000),
       lastDate: DateTime.now(),
     );
-    
+
     if (picked != null && picked != _selectedDate) {
       setState(() {
         _selectedDate = picked;
@@ -400,12 +388,11 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
 
   Future<void> _saveBalances() async {
     final balances = <OpeningBalanceEntity>[];
-    
+
     for (var account in _accounts) {
-      final amount = double.tryParse(
-        _balanceControllers[account.id]?.text ?? '0',
-      ) ?? 0;
-      
+      final amount =
+          double.tryParse(_balanceControllers[account.id]?.text ?? '0') ?? 0;
+
       if (amount > 0) {
         final isDebit = _debitCreditSelection[account.id] == true;
         balances.add(
@@ -424,19 +411,19 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
         );
       }
     }
-    
+
     if (balances.isEmpty) {
       AppToast.showWarning(context, 'لا توجد أرصدة لحفظها');
       return;
     }
-    
+
     try {
       await context.read<InitialCubit>().saveOpeningBalances(balances);
-      
+
       if (!mounted) return;
-      
+
       AppToast.showSuccess(context, 'تم حفظ الأرصدة الافتتاحية بنجاح');
-      
+
       Navigator.pop(context);
     } catch (e) {
       AppToast.showError(context, 'خطأ في حفظ الأرصدة: $e');

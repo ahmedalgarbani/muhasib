@@ -103,7 +103,7 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 16),
-                  TextField(
+                  TextInputField(
                     controller: _searchController,
                     onChanged: (v) => setState(() => _searchQuery = v),
                     decoration: InputDecoration(

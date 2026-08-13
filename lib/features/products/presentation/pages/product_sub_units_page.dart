@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -6,6 +7,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/product_sub_unit_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_sub_units_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
@@ -41,9 +43,8 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
         child: Builder(
           builder: (innerContext) => Scaffold(
             key: _scaffoldKey,
-            backgroundColor:  AppColors.gray50,
-            appBar: CustomAppBar(
-            ),
+            backgroundColor: AppColors.gray50,
+            appBar: CustomAppBar(),
             body: Column(
               children: [
                 _buildHeader(innerContext),
@@ -81,7 +82,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
             ),
             floatingActionButton: FloatingActionButton.extended(
               onPressed: () => _showSubUnitDialog(innerContext),
-                  backgroundColor:  AppColors.primary,
+              backgroundColor: AppColors.primary,
               icon: const Icon(Icons.add),
               label: const Text('وحدة فرعية جديدة'),
             ),
@@ -209,10 +210,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      productName,
-                      style:  AppTextStyles.titleMedium,
-                    ),
+                    Text(productName, style: AppTextStyles.titleMedium),
                     const SizedBox(height: 12),
                     ...productSubUnits.map(
                       (subUnit) => _buildSubUnitItem(innerContext, subUnit),
@@ -419,7 +417,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
             BlocProvider.value(value: subUnitsCubit),
           ],
           child: StatefulBuilder(
-            builder: (context, setState) => AlertDialog(
+            builder: (context, setState) => CustomDialog(
               title: Text(
                 subUnit == null ? 'وحدة فرعية جديدة' : 'تعديل الوحدة الفرعية',
               ),
@@ -434,7 +432,6 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                             initialValue: selectedProductId,
                             decoration: const InputDecoration(
                               labelText: 'المنتج',
-                              border: OutlineInputBorder(),
                             ),
                             items: productsState.products
                                 .map(
@@ -460,7 +457,6 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                             initialValue: selectedUnitId,
                             decoration: const InputDecoration(
                               labelText: 'الوحدة',
-                              border: OutlineInputBorder(),
                             ),
                             items: unitsState.units
                                 .map(
@@ -479,26 +475,20 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                       },
                     ),
                     const SizedBox(height: 16),
-                    TextField(
+                    TextInputField(
                       controller: packagingController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'العبوة (عدد الوحدات)',
-                        hintText: 'مثال: 12',
-                        border: OutlineInputBorder(),
-                      ),
+                      label: 'العبوة (عدد الوحدات)',
+                      hint: 'مثال: 12',
                     ),
                     const SizedBox(height: 16),
-                    TextField(
+                    TextInputField(
                       controller: conversionController,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
-                      decoration: const InputDecoration(
-                        labelText: 'معامل التحويل',
-                        hintText: 'مثال: 1.0',
-                        border: OutlineInputBorder(),
-                      ),
+                      label: 'معامل التحويل',
+                      hint: 'مثال: 1.0',
                     ),
                     const SizedBox(height: 16),
                     CheckboxListTile(
@@ -526,7 +516,10 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                 ElevatedButton(
                   onPressed: () {
                     if (selectedProductId == null || selectedUnitId == null) {
-                      AppToast.showError(context, 'الرجاء اختيار المنتج والوحدة');
+                      AppToast.showError(
+                        context,
+                        'الرجاء اختيار المنتج والوحدة',
+                      );
                       return;
                     }
 
@@ -554,7 +547,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                     Navigator.pop(dialogContext);
                   },
                   style: ElevatedButton.styleFrom(
-              backgroundColor:  AppColors.primary,
+                    backgroundColor: AppColors.primary,
                   ),
                   child: Text(subUnit == null ? 'إضافة' : 'حفظ'),
                 ),
@@ -575,7 +568,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
       context: context,
       builder: (dialogContext) => Directionality(
         textDirection: TextDirection.rtl,
-        child: AlertDialog(
+        child: CustomDialog(
           title: const Text('تأكيد الحذف'),
           content: const Text('هل أنت متأكد من حذف هذه الوحدة الفرعية؟'),
           actions: [

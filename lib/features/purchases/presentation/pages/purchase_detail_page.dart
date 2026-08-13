@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -31,8 +32,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
       child: Scaffold(
         key: _scaffoldKey,
         backgroundColor: AppColors.neutral100,
-        appBar: CustomAppBar(
-        ),
+        appBar: CustomAppBar(),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -48,7 +48,8 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
               const SizedBox(height: 16),
               _buildTotalsSummary(),
               const SizedBox(height: 16),
-              if (widget.invoice.statement != null && widget.invoice.statement!.isNotEmpty)
+              if (widget.invoice.statement != null &&
+                  widget.invoice.statement!.isNotEmpty)
                 _buildNotes(),
               const SizedBox(height: 24),
               _buildActionButtons(),
@@ -103,10 +104,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                 const SizedBox(height: 4),
                 Text(
                   _formatDate(widget.invoice.date),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -121,7 +119,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     String text;
     Color color;
     IconData icon;
-    
+
     switch (widget.invoice.paymentStatus) {
       case 1:
         text = 'مدفوعة';
@@ -138,7 +136,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
         color = Colors.red;
         icon = Icons.cancel;
     }
-    
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
@@ -187,7 +185,11 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
             const SizedBox(height: 16),
             _buildInfoRow('رقم الفاتورة', widget.invoice.number, Icons.tag),
             const SizedBox(height: 12),
-            _buildInfoRow('التاريخ', _formatDate(widget.invoice.date), Icons.calendar_today),
+            _buildInfoRow(
+              'التاريخ',
+              _formatDate(widget.invoice.date),
+              Icons.calendar_today,
+            ),
             const SizedBox(height: 12),
             _buildInfoRow(
               'نوع الدفع',
@@ -209,17 +211,19 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, IconData icon, {Color? color}) {
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    IconData icon, {
+    Color? color,
+  }) {
     return Row(
       children: [
         Icon(icon, size: 18, color: color ?? Colors.grey[600]),
         const SizedBox(width: 8),
         Text(
           '$label:',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
         ),
         const SizedBox(width: 8),
         Expanded(
@@ -328,7 +332,10 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: AppColors.success.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -351,10 +358,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                   padding: const EdgeInsets.all(24),
                   child: Text(
                     'لا توجد منتجات في هذه الفاتورة',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                   ),
                 ),
               )
@@ -497,13 +501,23 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
             ),
             const SizedBox(height: 16),
             _buildTotalRow('المجموع الفرعي', widget.invoice.amount),
-            if (widget.invoice.discountAmt != null && widget.invoice.discountAmt! > 0) ...[
+            if (widget.invoice.discountAmt != null &&
+                widget.invoice.discountAmt! > 0) ...[
               const SizedBox(height: 8),
-              _buildTotalRow('الخصم', -widget.invoice.discountAmt!, color: Colors.orange),
+              _buildTotalRow(
+                'الخصم',
+                -widget.invoice.discountAmt!,
+                color: Colors.orange,
+              ),
             ],
-            if (widget.invoice.taxAmt != null && widget.invoice.taxAmt! > 0) ...[
+            if (widget.invoice.taxAmt != null &&
+                widget.invoice.taxAmt! > 0) ...[
               const SizedBox(height: 8),
-              _buildTotalRow('الضريبة (${widget.invoice.taxRatio ?? 0}%)', widget.invoice.taxAmt!, color: Colors.blue),
+              _buildTotalRow(
+                'الضريبة (${widget.invoice.taxRatio ?? 0}%)',
+                widget.invoice.taxAmt!,
+                color: Colors.blue,
+              ),
             ],
             const Divider(height: 24),
             _buildTotalRow(
@@ -517,7 +531,12 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
     );
   }
 
-  Widget _buildTotalRow(String label, double amount, {Color? color, bool isTotal = false}) {
+  Widget _buildTotalRow(
+    String label,
+    double amount, {
+    Color? color,
+    bool isTotal = false,
+  }) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -634,7 +653,10 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
           child: OutlinedButton.icon(
             onPressed: () => _showDeleteConfirmation(),
             icon: const Icon(Icons.delete, size: 18, color: Colors.red),
-            label: const Text('حذف', style: TextStyle(fontSize: 13, color: Colors.red)),
+            label: const Text(
+              'حذف',
+              style: TextStyle(fontSize: 13, color: Colors.red),
+            ),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 12),
               shape: RoundedRectangleBorder(
@@ -651,7 +673,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
   void _showDeleteConfirmation() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: const Text('تأكيد الحذف'),
         content: const Text('هل أنت متأكد من حذف هذه الفاتورة؟'),
         actions: [
@@ -662,7 +684,9 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              context.read<PurchasesCubit>().deletePurchaseInvoice(widget.invoice.id!);
+              context.read<PurchasesCubit>().deletePurchaseInvoice(
+                widget.invoice.id!,
+              );
               context.pop();
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),

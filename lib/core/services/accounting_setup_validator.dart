@@ -38,7 +38,7 @@ class AccountingSetupValidator {
     for (final (type, name) in accountTypes) {
       try {
         final accountCId = await accountConfigService.getAccountId(type);
-        
+
         // Check if account exists
         final result = await database.query(
           'accounts',
@@ -49,7 +49,9 @@ class AccountingSetupValidator {
         );
 
         if (result.isEmpty) {
-          errors.add('الحساب الافتراضي لـ "$name" (c_id: $accountCId) غير موجود');
+          errors.add(
+            'الحساب الافتراضي لـ "$name" (c_id: $accountCId) غير موجود',
+          );
         } else {
           final account = result.first;
           final isActive = (account['is_active'] as int?) == 1;
@@ -95,7 +97,9 @@ class AccountingSetupValidator {
 
       if (result.isEmpty || result.first['c_id'] == null) {
         if (isRequired) {
-          warnings.add('لم يتم تهيئة ربط الحساب لـ "$name" (سيتم استخدام القيمة الافتراضية)');
+          warnings.add(
+            'لم يتم تهيئة ربط الحساب لـ "$name" (سيتم استخدام القيمة الافتراضية)',
+          );
         }
       }
     }
@@ -124,19 +128,97 @@ class AccountingSetupValidator {
   /// إنشاء الحسابات الافتراضية المفقودة
   Future<void> createMissingDefaultAccounts() async {
     final defaultAccounts = [
-      {'c_id': DefaultAccountIds.sales, 'code': '4110', 'name': 'إيرادات المبيعات', 'type': 3, 'master_id': null},
-      {'c_id': DefaultAccountIds.cash, 'code': '1110', 'name': 'الصندوق', 'type': 0, 'master_id': null},
-      {'c_id': DefaultAccountIds.bank, 'code': '1120', 'name': 'البنك', 'type': 0, 'master_id': null},
-      {'c_id': DefaultAccountIds.customers, 'code': '1130', 'name': 'العملاء', 'type': 0, 'master_id': null},
-      {'c_id': DefaultAccountIds.suppliers, 'code': '2110', 'name': 'الموردين', 'type': 1, 'master_id': null},
-      {'c_id': DefaultAccountIds.tax, 'code': '2140', 'name': 'ضريبة القيمة المضافة', 'type': 1, 'master_id': null},
-      {'c_id': DefaultAccountIds.inventory, 'code': '1140', 'name': 'المخزون', 'type': 0, 'master_id': null},
-      {'c_id': DefaultAccountIds.purchases, 'code': '5110', 'name': 'المشتريات', 'type': 4, 'master_id': null},
-      {'c_id': DefaultAccountIds.salesReturns, 'code': '4150', 'name': 'مردودات المبيعات', 'type': 3, 'master_id': null},
-      {'c_id': DefaultAccountIds.purchaseReturns, 'code': '5150', 'name': 'مردودات المشتريات', 'type': 4, 'master_id': null},
-      {'c_id': DefaultAccountIds.discountAllowed, 'code': '5120', 'name': 'خصم مسموح به', 'type': 4, 'master_id': null},
-      {'c_id': DefaultAccountIds.discountEarned, 'code': '4140', 'name': 'خصم مكتسب', 'type': 3, 'master_id': null},
-      {'c_id': DefaultAccountIds.costOfGoodsSold, 'code': '5100', 'name': 'تكلفة البضاعة المباعة', 'type': 4, 'master_id': null},
+      {
+        'c_id': DefaultAccountIds.sales,
+        'code': '4110',
+        'name': 'إيرادات المبيعات',
+        'type': 4,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.cash,
+        'code': '1110',
+        'name': 'الصندوق',
+        'type': 0,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.bank,
+        'code': '1120',
+        'name': 'البنك',
+        'type': 0,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.customers,
+        'code': '1130',
+        'name': 'العملاء',
+        'type': 0,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.suppliers,
+        'code': '2110',
+        'name': 'الموردين',
+        'type': 1,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.tax,
+        'code': '2140',
+        'name': 'ضريبة القيمة المضافة',
+        'type': 1,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.inventory,
+        'code': '1140',
+        'name': 'المخزون',
+        'type': 0,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.purchases,
+        'code': '5110',
+        'name': 'المشتريات',
+        'type': 3,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.salesReturns,
+        'code': '4150',
+        'name': 'مردودات المبيعات',
+        'type': 4,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.purchaseReturns,
+        'code': '5150',
+        'name': 'مردودات المشتريات',
+        'type': 3,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.discountAllowed,
+        'code': '5120',
+        'name': 'خصم مسموح به',
+        'type': 3,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.discountEarned,
+        'code': '4140',
+        'name': 'خصم مكتسب',
+        'type': 4,
+        'master_id': null,
+      },
+      {
+        'c_id': DefaultAccountIds.costOfGoodsSold,
+        'code': '5100',
+        'name': 'تكلفة البضاعة المباعة',
+        'type': 3,
+        'master_id': null,
+      },
     ];
 
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;

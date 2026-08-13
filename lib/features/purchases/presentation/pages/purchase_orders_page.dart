@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -9,6 +10,7 @@ import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PurchaseOrdersPage extends StatefulWidget {
   const PurchaseOrdersPage({super.key});
@@ -20,7 +22,7 @@ class PurchaseOrdersPage extends StatefulWidget {
 class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final TextEditingController _searchController = TextEditingController();
-  
+
   @override
   void dispose() {
     _searchController.dispose();
@@ -35,8 +37,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
         builder: (innerContext) => Scaffold(
           key: _scaffoldKey,
           backgroundColor: AppColors.gray50,
-          appBar: CustomAppBar(
-          ),
+          appBar: CustomAppBar(),
           body: Column(
             children: [
               _buildHeader(innerContext),
@@ -50,18 +51,30 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.red[300],
+                            ),
                             const SizedBox(height: 16),
                             Text(
                               state.message,
-                              style: const TextStyle(color: Colors.red, fontSize: 14),
+                              style: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
                               textAlign: TextAlign.center,
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton.icon(
-                              onPressed: () => innerContext.read<PurchasesCubit>().loadPurchaseOrders(),
+                              onPressed: () => innerContext
+                                  .read<PurchasesCubit>()
+                                  .loadPurchaseOrders(),
                               icon: const Icon(Icons.refresh, size: 18),
-                              label: const Text('إعادة المحاولة', style: TextStyle(fontSize: 13)),
+                              label: const Text(
+                                'إعادة المحاولة',
+                                style: TextStyle(fontSize: 13),
+                              ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.success,
                               ),
@@ -149,16 +162,14 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                     SizedBox(height: 2),
                     Text(
                       'إدارة طلبات الشراء والموافقات',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: AppColors.gray500,
-                      ),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                onPressed: () => innerContext.read<PurchasesCubit>().loadPurchaseOrders(),
+                onPressed: () =>
+                    innerContext.read<PurchasesCubit>().loadPurchaseOrders(),
                 icon: const Icon(Icons.refresh),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.grey.shade100,
@@ -170,12 +181,16 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             ],
           ),
           const SizedBox(height: 16),
-          TextField(
+          TextInputField(
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'البحث في طلبات الشراء...',
               hintStyle: const TextStyle(fontSize: 13),
-              prefixIcon: const Icon(Icons.search, color: Colors.grey, size: 20),
+              prefixIcon: const Icon(
+                Icons.search,
+                color: Colors.grey,
+                size: 20,
+              ),
               filled: true,
               fillColor: AppColors.gray50,
               border: OutlineInputBorder(
@@ -190,7 +205,10 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                 borderRadius: BorderRadius.circular(AppRadius.sm),
                 borderSide: const BorderSide(color: AppColors.info, width: 1),
               ),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
             ),
             style: const TextStyle(fontSize: 13),
             onChanged: (value) {
@@ -202,7 +220,10 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
     );
   }
 
-  Widget _buildOrdersList(BuildContext innerContext, List<InvoiceEntity> orders) {
+  Widget _buildOrdersList(
+    BuildContext innerContext,
+    List<InvoiceEntity> orders,
+  ) {
     return RefreshIndicator(
       onRefresh: () async {
         innerContext.read<PurchasesCubit>().loadPurchaseOrders();
@@ -219,7 +240,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
 
   Widget _buildOrderCard(BuildContext innerContext, InvoiceEntity order) {
     final isConverted = order.nextInvoiceId != null;
-    
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -296,20 +317,18 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                   const SizedBox(width: 6),
                   Text(
                     'المورد #${order.customerId}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade700,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                   ),
                   const SizedBox(width: 16),
-                  Icon(Icons.inventory_2, size: 14, color: Colors.grey.shade600),
+                  Icon(
+                    Icons.inventory_2,
+                    size: 14,
+                    color: Colors.grey.shade600,
+                  ),
                   const SizedBox(width: 6),
                   Text(
                     '${order.lines.length} منتج',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade700,
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                   ),
                 ],
               ),
@@ -342,10 +361,16 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                     ElevatedButton.icon(
                       onPressed: () => _showConvertDialog(innerContext, order),
                       icon: const Icon(Icons.transform, size: 16),
-                      label: const Text('تحويل لفاتورة', style: TextStyle(fontSize: 12)),
+                      label: const Text(
+                        'تحويل لفاتورة',
+                        style: TextStyle(fontSize: 12),
+                      ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.success,
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.sm6),
                         ),
@@ -454,8 +479,10 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
   void _showConvertDialog(BuildContext innerContext, InvoiceEntity order) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
+      builder: (context) => CustomDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.md),
+        ),
         title: const Row(
           children: [
             Icon(Icons.transform, color: AppColors.success),
@@ -502,7 +529,8 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             onPressed: () {
               Navigator.of(context).pop();
               // Generate new invoice number
-              final newInvoiceNumber = 'INV-${DateTime.now().millisecondsSinceEpoch}';
+              final newInvoiceNumber =
+                  'INV-${DateTime.now().millisecondsSinceEpoch}';
               final newInvoice = InvoiceEntity(
                 number: newInvoiceNumber,
                 date: DateTime.now().millisecondsSinceEpoch ~/ 1000,
@@ -525,13 +553,14 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                 invoiceTransType: 1,
                 paymentStatus: 0,
               );
-              innerContext.read<PurchasesCubit>().convertOrderToInvoice(order.id!, newInvoice);
+              innerContext.read<PurchasesCubit>().convertOrderToInvoice(
+                order.id!,
+                newInvoice,
+              );
             },
             icon: const Icon(Icons.check, size: 18),
             label: const Text('تحويل'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.success,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.success),
           ),
         ],
       ),
@@ -567,16 +596,16 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
           const SizedBox(height: 8),
           Text(
             'ابدأ بإنشاء طلب شراء جديد',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
           ),
           const SizedBox(height: 24),
           ElevatedButton.icon(
             onPressed: () {
               // Navigate to create purchase order
-              AppToast.showWarning(context, 'سيتم إضافة صفحة إنشاء طلب شراء قريباً');
+              AppToast.showWarning(
+                context,
+                'سيتم إضافة صفحة إنشاء طلب شراء قريباً',
+              );
             },
             icon: const Icon(Icons.add, size: 18),
             label: const Text('إنشاء طلب شراء'),

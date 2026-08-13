@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -7,6 +8,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class SelectPurchaseForReturnPage extends StatefulWidget {
   const SelectPurchaseForReturnPage({super.key});
@@ -38,7 +40,7 @@ class _SelectPurchaseForReturnPageState
   ) async {
     final ok = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => CustomDialog(
         title: const Text('إنشاء مردود مشتريات'),
         content: Text('هل تريد إنشاء مردود كامل للفاتورة ${parent.number}؟'),
         actions: [
@@ -108,12 +110,11 @@ class _SelectPurchaseForReturnPageState
           children: [
             Padding(
               padding: const EdgeInsets.all(12),
-              child: TextField(
+              child: TextInputField(
                 controller: _searchController,
                 decoration: const InputDecoration(
                   prefixIcon: Icon(Icons.search),
                   hintText: 'بحث برقم الفاتورة...',
-                  border: OutlineInputBorder(),
                 ),
                 onChanged: (v) {
                   final q = v.trim();

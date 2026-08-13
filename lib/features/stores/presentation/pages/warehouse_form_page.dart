@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
@@ -337,7 +339,9 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                                   labelText: 'الحساب المرتبط',
                                   prefixIcon: const Icon(Icons.account_balance),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[50],
@@ -363,39 +367,12 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                       Row(
                         children: [
                           Expanded(
-                            child: ElevatedButton(
+                            child: HasibButton(
+                              label: isEditing
+                                  ? 'حفظ التغييرات'
+                                  : 'إضافة المخزن',
+                              loading: _isLoading,
                               onPressed: _isLoading ? null : _saveWarehouse,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.primary,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
-                                ),
-                              ),
-                              child: _isLoading
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor:
-                                            AlwaysStoppedAnimation<Color>(
-                                              Colors.white,
-                                            ),
-                                      ),
-                                    )
-                                  : Text(
-                                      isEditing
-                                          ? 'حفظ التغييرات'
-                                          : 'إضافة المخزن',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                      ),
-                                    ),
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -409,7 +386,9 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                                   vertical: 16,
                                 ),
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(AppRadius.md),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
                                 ),
                                 side: BorderSide(color: colorScheme.primary),
                               ),
@@ -439,7 +418,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
   void _showDeleteDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => CustomDialog(
         title: const Text('حذف المخزن'),
         content: const Text('هل أنت متأكد من حذف هذا المخزن؟'),
         actions: [
@@ -447,15 +426,15 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          HasibButton(
+            label: 'حذف',
+            variant: HasibButtonVariant.danger,
             onPressed: () {
               Navigator.of(dialogContext).pop();
               context.read<WarehousesCubit>().deleteWarehouse(
                 widget.warehouse!.id!,
               );
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('حذف', style: TextStyle(color: Colors.white)),
           ),
         ],
       ),

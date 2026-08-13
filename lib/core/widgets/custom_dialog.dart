@@ -4,13 +4,14 @@ import 'package:muhasib/core/theme/app_radius.dart';
 
 /// Standardized Modal Dialog layout for forms, prompts, and selections.
 class CustomDialog extends StatelessWidget {
-  final String title;
+  final Object title;
   final String? subtitle;
   final IconData? icon;
   final Color headerColor;
   final Widget content;
   final List<Widget>? actions;
   final double maxWidth;
+  final ShapeBorder? shape;
 
   const CustomDialog({
     super.key,
@@ -21,6 +22,7 @@ class CustomDialog extends StatelessWidget {
     required this.content,
     this.actions,
     this.maxWidth = 520,
+    this.shape,
   });
 
   @override
@@ -29,9 +31,11 @@ class CustomDialog extends StatelessWidget {
       textDirection: TextDirection.rtl,
       child: Dialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.lg20),
-        ),
+        shape:
+            shape ??
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.lg20),
+            ),
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: maxWidth),
           child: Column(
@@ -40,7 +44,10 @@ class CustomDialog extends StatelessWidget {
               // Header Banner
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 18,
+                ),
                 decoration: BoxDecoration(
                   color: headerColor,
                   borderRadius: const BorderRadius.vertical(
@@ -64,14 +71,16 @@ class CustomDialog extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            title,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
+                          title is Widget
+                              ? title as Widget
+                              : Text(
+                                  title.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                           if (subtitle != null && subtitle!.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(
@@ -87,7 +96,10 @@ class CustomDialog extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close_rounded, color: Colors.white),
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Colors.white,
+                      ),
                       tooltip: 'إغلاق',
                     ),
                   ],

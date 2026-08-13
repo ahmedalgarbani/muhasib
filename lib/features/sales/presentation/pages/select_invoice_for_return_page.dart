@@ -7,15 +7,18 @@ import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class SelectInvoiceForReturnPage extends StatefulWidget {
   const SelectInvoiceForReturnPage({super.key});
 
   @override
-  State<SelectInvoiceForReturnPage> createState() => _SelectInvoiceForReturnPageState();
+  State<SelectInvoiceForReturnPage> createState() =>
+      _SelectInvoiceForReturnPageState();
 }
 
-class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage> {
+class _SelectInvoiceForReturnPageState
+    extends State<SelectInvoiceForReturnPage> {
   final TextEditingController _searchController = TextEditingController();
   List<InvoiceEntity> _filteredInvoices = [];
   List<InvoiceEntity> _allInvoices = [];
@@ -57,7 +60,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.white,
-            child: TextField(
+            child: TextInputField(
               controller: _searchController,
               onChanged: _filterInvoices,
               decoration: InputDecoration(
@@ -75,12 +78,15 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
-                  borderSide: const BorderSide(color: AppColors.error, width: 2),
+                  borderSide: const BorderSide(
+                    color: AppColors.error,
+                    width: 2,
+                  ),
                 ),
               ),
             ),
           ),
-          
+
           // Invoices List
           Expanded(
             child: BlocBuilder<SalesCubit, SalesState>(
@@ -93,15 +99,16 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                     // Filter only sales invoices (type 1) and quick invoices (type 6)
                     return invoice.invoiceType == 1 || invoice.invoiceType == 6;
                   }).toList();
-                  
-                  if (_filteredInvoices.isEmpty && _searchController.text.isEmpty) {
+
+                  if (_filteredInvoices.isEmpty &&
+                      _searchController.text.isEmpty) {
                     _filteredInvoices = _allInvoices;
                   }
-                  
+
                   if (_filteredInvoices.isEmpty) {
                     return _buildEmptyState();
                   }
-                  
+
                   return ListView.builder(
                     padding: const EdgeInsets.all(16),
                     itemCount: _filteredInvoices.length,
@@ -114,7 +121,11 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                        const Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red,
+                        ),
                         const SizedBox(height: 16),
                         Text(state.message),
                         const SizedBox(height: 16),
@@ -139,8 +150,9 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
   }
 
   Widget _buildInvoiceCard(InvoiceEntity invoice) {
-    final hasReturn = invoice.nextInvoiceId != null && invoice.nextInvoiceType == 4;
-    
+    final hasReturn =
+        invoice.nextInvoiceId != null && invoice.nextInvoiceType == 4;
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 0,
@@ -151,13 +163,15 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
         ),
       ),
       child: InkWell(
-        onTap: hasReturn ? null : () {
-          // Navigate to return form with the selected invoice ID
-          context.pushNamed(
-            'sales-returns-form',
-            queryParameters: {'invoiceId': invoice.id.toString()},
-          );
-        },
+        onTap: hasReturn
+            ? null
+            : () {
+                // Navigate to return form with the selected invoice ID
+                context.pushNamed(
+                  'sales-returns-form',
+                  queryParameters: {'invoiceId': invoice.id.toString()},
+                );
+              },
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -202,7 +216,10 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                   ),
                   if (hasReturn)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.orange.shade100,
                         borderRadius: BorderRadius.circular(AppRadius.lg20),
@@ -210,7 +227,11 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.assignment_return, size: 14, color: Colors.orange),
+                          Icon(
+                            Icons.assignment_return,
+                            size: 14,
+                            color: Colors.orange,
+                          ),
                           SizedBox(width: 4),
                           Text(
                             'له مرتجع',
@@ -226,23 +247,24 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                 ],
               ),
               const SizedBox(height: 12),
-              
+
               // Customer Info
               Row(
                 children: [
-                  Icon(Icons.person_outline, size: 16, color: Colors.grey.shade600),
+                  Icon(
+                    Icons.person_outline,
+                    size: 16,
+                    color: Colors.grey.shade600,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'عميل #${invoice.customerId}',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade700,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
                   ),
                 ],
               ),
               const SizedBox(height: 8),
-              
+
               // Invoice Amount
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -268,10 +290,13 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                       ),
                     ],
                   ),
-                  
+
                   // Items Count
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       color: AppColors.gray100,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -289,7 +314,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                   ),
                 ],
               ),
-              
+
               if (hasReturn) ...[
                 const SizedBox(height: 12),
                 Container(
@@ -301,15 +326,16 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.info_outline, size: 16, color: Colors.orange),
+                      const Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: Colors.orange,
+                      ),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
                           'هذه الفاتورة لديها مرتجع بالفعل',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.orange),
                         ),
                       ),
                     ],
@@ -345,10 +371,7 @@ class _SelectInvoiceForReturnPageState extends State<SelectInvoiceForReturnPage>
           const SizedBox(height: 8),
           Text(
             'قم بإنشاء فاتورة مبيعات أولاً',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),

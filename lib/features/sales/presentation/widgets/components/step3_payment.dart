@@ -7,6 +7,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class Step3Payment extends StatefulWidget {
   final Invoice invoice;
@@ -143,8 +144,10 @@ class _Step3PaymentState extends State<Step3Payment> {
 
       // Show appropriate message
       if (amount > widget.invoice.remaining) {
-      
-        AppToast.showWarning(context, 'تم إضافة دفعة ${NumberFormatter.formatCurrency(amount)} - المبلغ الزائد ${NumberFormatter.formatCurrency(_overpaymentAmount)} سيضاف لرصيد العميل');
+        AppToast.showWarning(
+          context,
+          'تم إضافة دفعة ${NumberFormatter.formatCurrency(amount)} - المبلغ الزائد ${NumberFormatter.formatCurrency(_overpaymentAmount)} سيضاف لرصيد العميل',
+        );
       }
     }
   }
@@ -331,7 +334,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      TextField(
+                      TextInputField(
                         controller: _amountController,
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
@@ -435,7 +438,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                           child: Column(
                             children: [
                               const SizedBox(height: AppSpacing.md),
-                              TextField(
+                              TextInputField(
                                 onChanged: (value) => _transferNumber = value,
                                 decoration: InputDecoration(
                                   labelText: 'رقم الحوالة',
@@ -449,7 +452,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 ),
                               ),
                               const SizedBox(height: AppSpacing.sm),
-                              TextField(
+                              TextInputField(
                                 onChanged: (value) => _senderName = value,
                                 decoration: InputDecoration(
                                   labelText: 'اسم المرسل',

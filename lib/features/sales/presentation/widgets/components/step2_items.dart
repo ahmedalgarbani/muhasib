@@ -9,6 +9,7 @@ import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/add_item_bottom_sheet.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/item_card.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class Step2Items extends StatefulWidget {
   final Invoice invoice;
@@ -102,7 +103,7 @@ class _Step2ItemsState extends State<Step2Items> {
           child: Row(
             children: [
               Expanded(
-                child: TextField(
+                child: TextInputField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'ابحث عن صنف أو امسح البار كود...',
@@ -192,15 +193,23 @@ class _Step2ItemsState extends State<Step2Items> {
                               children: [
                                 const Text(
                                   'المجموع الفرعي:',
-                                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4),
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.gray900,
+                                    height: 1.4,
+                                  ),
                                 ),
                                 Text(
                                   NumberFormatter.formatCurrency(
                                     widget.invoice.subtotal,
                                   ),
-                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.gray900, height: 1.4).copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.gray900,
+                                    height: 1.4,
+                                  ).copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -246,7 +255,7 @@ class _Step2ItemsState extends State<Step2Items> {
                                       const SizedBox(width: AppSpacing.sm),
                                       Expanded(
                                         flex: 2,
-                                        child: TextField(
+                                        child: TextInputField(
                                           keyboardType: TextInputType.number,
                                           decoration: const InputDecoration(
                                             hintText: 'الخصم',
@@ -272,7 +281,7 @@ class _Step2ItemsState extends State<Step2Items> {
                                     ],
                                   ),
                                   const SizedBox(height: AppSpacing.sm),
-                                  TextField(
+                                  TextInputField(
                                     keyboardType: TextInputType.number,
                                     decoration: const InputDecoration(
                                       hintText: 'رسوم أخرى',
@@ -298,15 +307,23 @@ class _Step2ItemsState extends State<Step2Items> {
                                 children: [
                                   const Text(
                                     'الإجمالي النهائي:',
-                                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.gray900, height: 1.3),
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.gray900,
+                                      height: 1.3,
+                                    ),
                                   ),
                                   Text(
                                     NumberFormatter.formatCurrency(
                                       widget.invoice.total,
                                     ),
-                                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.gray900, height: 1.3).copyWith(
-                                      color: AppColors.primary,
-                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                      color: AppColors.gray900,
+                                      height: 1.3,
+                                    ).copyWith(color: AppColors.primary),
                                   ),
                                 ],
                               ),

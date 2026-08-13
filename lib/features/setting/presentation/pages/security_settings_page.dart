@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -16,13 +17,13 @@ class SecuritySettingsPage extends StatefulWidget {
 class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   bool isPasswordEnabled = false;
   TextEditingController passwordController = TextEditingController();
-  
+
   @override
   void initState() {
     super.initState();
     final cubit = context.read<SettingsCubit>();
     final securityInfo = cubit.getSecurityInfo();
-    
+
     isPasswordEnabled = securityInfo['isActive'] ?? false;
     passwordController.text = securityInfo['password'] ?? '';
   }
@@ -39,9 +40,9 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
       'isActive': isPasswordEnabled,
       'password': passwordController.text,
     };
-    
+
     await cubit.updateSetting('security_info', securityInfo);
-    
+
     if (mounted) {
       AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
     }
@@ -72,7 +73,11 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                 ),
                 _buildCard([
                   SwitchListTile(
-                    secondary: const Icon(Icons.key, size: 20, color: Colors.grey),
+                    secondary: const Icon(
+                      Icons.key,
+                      size: 20,
+                      color: Colors.grey,
+                    ),
                     title: const Text(
                       'طلب كلمة المرور عند الدخول',
                       style: TextStyle(fontSize: 13, color: Colors.black87),
@@ -93,12 +98,16 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                   if (isPasswordEnabled) ...[
                     const Divider(),
                     ListTile(
-                      leading: const Icon(Icons.lock_outline, size: 20, color: Colors.grey),
+                      leading: const Icon(
+                        Icons.lock_outline,
+                        size: 20,
+                        color: Colors.grey,
+                      ),
                       title: const Text(
                         'كلمة المرور',
                         style: TextStyle(fontSize: 12, color: Colors.grey),
                       ),
-                      subtitle: TextField(
+                      subtitle: TextInputField(
                         controller: passwordController,
                         obscureText: true,
                         style: const TextStyle(fontSize: 13),

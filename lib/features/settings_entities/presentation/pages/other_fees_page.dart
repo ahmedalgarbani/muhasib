@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -6,6 +7,8 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
+import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/other_fee_entity.dart';
 import 'package:muhasib/features/settings_entities/presentation/cubit/other_fees_cubit.dart';
 import 'package:muhasib/features/settings_entities/presentation/widgets/other_fees_list_widget.dart';
@@ -49,7 +52,9 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
         title: 'أدوات أخرى',
         actions: [
           IconButton(
-            icon: Icon(_showActiveOnly ? Icons.filter_alt : Icons.filter_alt_outlined),
+            icon: Icon(
+              _showActiveOnly ? Icons.filter_alt : Icons.filter_alt_outlined,
+            ),
             onPressed: () {
               setState(() => _showActiveOnly = !_showActiveOnly);
               if (_showActiveOnly) {
@@ -102,9 +107,12 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
                 _searchController.clear();
                 context.read<OtherFeesCubit>().loadOtherFees();
               },
-              onOtherFeeTap: (otherFee) => _showOtherFeeDialog(context, otherFee: otherFee),
-              onOtherFeeEdit: (otherFee) => _showOtherFeeDialog(context, otherFee: otherFee),
-              onOtherFeeDelete: (otherFee) => _showDeleteDialog(context, otherFee),
+              onOtherFeeTap: (otherFee) =>
+                  _showOtherFeeDialog(context, otherFee: otherFee),
+              onOtherFeeEdit: (otherFee) =>
+                  _showOtherFeeDialog(context, otherFee: otherFee),
+              onOtherFeeDelete: (otherFee) =>
+                  _showDeleteDialog(context, otherFee),
             );
           }
 
@@ -139,8 +147,10 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
     showDialog(
       context: context,
       builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
+        builder: (context, setState) => CustomDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg20),
+          ),
           title: Row(
             children: [
               Container(
@@ -149,7 +159,11 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
                   color: AppColors.materialPurple500.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
-                child: const Icon(Icons.build, color: AppColors.materialPurple500, size: 28),
+                child: const Icon(
+                  Icons.build,
+                  color: AppColors.materialPurple500,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 12),
               Text(isEditing ? 'تعديل الأداة' : 'إضافة أداة جديدة'),
@@ -159,20 +173,14 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                TextField(
+                TextInputField(
                   controller: nameController,
-                  decoration: const InputDecoration(
-                    labelText: 'اسم الأداة *',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(labelText: 'اسم الأداة *'),
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<int>(
                   initialValue: toolType,
-                  decoration: const InputDecoration(
-                    labelText: 'نوع الأداة',
-                    border: OutlineInputBorder(),
-                  ),
+                  decoration: const InputDecoration(labelText: 'نوع الأداة'),
                   items: _toolTypes.asMap().entries.map((entry) {
                     return DropdownMenuItem(
                       value: entry.key,
@@ -195,7 +203,8 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
               onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('إلغاء'),
             ),
-            ElevatedButton(
+            HasibButton(
+              label: isEditing ? 'تحديث' : 'إضافة',
               onPressed: () {
                 if (nameController.text.isEmpty) {
                   _showSnackBar(context, 'الرجاء إدخال اسم الأداة', Colors.red);
@@ -211,16 +220,15 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
 
                 Navigator.of(dialogContext).pop();
                 if (isEditing) {
-                  this.context.read<OtherFeesCubit>().updateOtherFee(newOtherFee);
+                  this.context.read<OtherFeesCubit>().updateOtherFee(
+                    newOtherFee,
+                  );
                 } else {
-                  this.context.read<OtherFeesCubit>().createOtherFee(newOtherFee);
+                  this.context.read<OtherFeesCubit>().createOtherFee(
+                    newOtherFee,
+                  );
                 }
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.materialPurple500,
-                foregroundColor: Colors.white,
-              ),
-              child: Text(isEditing ? 'تحديث' : 'إضافة'),
             ),
           ],
         ),
@@ -231,8 +239,10 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
   void _showDeleteDialog(BuildContext context, OtherFeeEntity otherFee) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg20)),
+      builder: (dialogContext) => CustomDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg20),
+        ),
         title: Row(
           children: [
             Container(
@@ -241,7 +251,11 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
                 color: Colors.red.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
-              child: const Icon(Icons.warning_rounded, color: Colors.red, size: 28),
+              child: const Icon(
+                Icons.warning_rounded,
+                color: Colors.red,
+                size: 28,
+              ),
             ),
             const SizedBox(width: 12),
             const Text('حذف الأداة'),
@@ -253,16 +267,13 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
             onPressed: () => Navigator.of(dialogContext).pop(),
             child: const Text('إلغاء'),
           ),
-          ElevatedButton(
+          HasibButton(
+            label: 'حذف',
+            variant: HasibButtonVariant.danger,
             onPressed: () {
               Navigator.of(dialogContext).pop();
               this.context.read<OtherFeesCubit>().deleteOtherFee(otherFee.id!);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('حذف'),
           ),
         ],
       ),

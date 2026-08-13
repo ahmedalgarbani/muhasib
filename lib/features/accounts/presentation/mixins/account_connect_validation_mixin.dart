@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/features/accounts/domain/services/account_connect_validator.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -17,14 +18,11 @@ mixin AccountConnectValidationMixin {
     if (_connectValidator == null) return true;
 
     final result = await _connectValidator!.validateForSalesOperation();
-    
-    return result.fold(
-      (failure) {
-        _showConnectionErrorDialog(context, failure);
-        return false;
-      },
-      (success) => true,
-    );
+
+    return result.fold((failure) {
+      _showConnectionErrorDialog(context, failure);
+      return false;
+    }, (success) => true);
   }
 
   /// Validate connections before purchase operation
@@ -32,14 +30,11 @@ mixin AccountConnectValidationMixin {
     if (_connectValidator == null) return true;
 
     final result = await _connectValidator!.validateForPurchaseOperation();
-    
-    return result.fold(
-      (failure) {
-        _showConnectionErrorDialog(context, failure);
-        return false;
-      },
-      (success) => true,
-    );
+
+    return result.fold((failure) {
+      _showConnectionErrorDialog(context, failure);
+      return false;
+    }, (success) => true);
   }
 
   /// Validate connections before payment operation
@@ -47,14 +42,11 @@ mixin AccountConnectValidationMixin {
     if (_connectValidator == null) return true;
 
     final result = await _connectValidator!.validateForPaymentOperation();
-    
-    return result.fold(
-      (failure) {
-        _showConnectionErrorDialog(context, failure);
-        return false;
-      },
-      (success) => true,
-    );
+
+    return result.fold((failure) {
+      _showConnectionErrorDialog(context, failure);
+      return false;
+    }, (success) => true);
   }
 
   /// Validate connections before inventory operation
@@ -62,14 +54,11 @@ mixin AccountConnectValidationMixin {
     if (_connectValidator == null) return true;
 
     final result = await _connectValidator!.validateForInventoryOperation();
-    
-    return result.fold(
-      (failure) {
-        _showConnectionErrorDialog(context, failure);
-        return false;
-      },
-      (success) => true,
-    );
+
+    return result.fold((failure) {
+      _showConnectionErrorDialog(context, failure);
+      return false;
+    }, (success) => true);
   }
 
   /// Get connected account ID for a specific type
@@ -77,11 +66,8 @@ mixin AccountConnectValidationMixin {
     if (_connectValidator == null) return null;
 
     final result = await _connectValidator!.getConnectedAccountId(accountType);
-    
-    return result.fold(
-      (failure) => null,
-      (accountId) => accountId,
-    );
+
+    return result.fold((failure) => null, (accountId) => accountId);
   }
 
   /// Check all connections and show status
@@ -89,17 +75,16 @@ mixin AccountConnectValidationMixin {
     if (_connectValidator == null) return;
 
     final result = await _connectValidator!.validateAllConnections();
-    
-    result.fold(
-      (failure) => _showConnectionErrorDialog(context, failure),
-      (validation) {
-        if (!validation.isValid) {
-          _showMissingConnectionsDialog(context, validation);
-        } else {
-          _showSuccessMessage(context, 'جميع الحسابات مرتبطة بشكل صحيح');
-        }
-      },
-    );
+
+    result.fold((failure) => _showConnectionErrorDialog(context, failure), (
+      validation,
+    ) {
+      if (!validation.isValid) {
+        _showMissingConnectionsDialog(context, validation);
+      } else {
+        _showSuccessMessage(context, 'جميع الحسابات مرتبطة بشكل صحيح');
+      }
+    });
   }
 
   void _showConnectionErrorDialog(BuildContext context, Failure failure) {
@@ -113,16 +98,13 @@ mixin AccountConnectValidationMixin {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: Row(
           children: [
             Icon(Icons.link_off, color: Colors.red[600], size: 28),
             const SizedBox(width: 12),
             const Expanded(
-              child: Text(
-                'حسابات غير مرتبطة',
-                style: TextStyle(fontSize: 18),
-              ),
+              child: Text('حسابات غير مرتبطة', style: TextStyle(fontSize: 18)),
             ),
           ],
         ),
@@ -133,31 +115,37 @@ mixin AccountConnectValidationMixin {
             children: [
               Text(
                 message,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               if (violations.isNotEmpty) ...[
                 const SizedBox(height: 16),
                 const Divider(),
                 const SizedBox(height: 8),
-                ...violations.map((violation) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(Icons.error_outline, 
-                            color: Colors.orange, 
-                            size: 16
+                ...violations.map(
+                  (violation) => Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.orange,
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            violation,
+                            style: const TextStyle(fontSize: 14),
                           ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              violation,
-                              style: const TextStyle(fontSize: 14),
-                            ),
-                          ),
-                        ],
-                      ),
-                    )),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ],
               const SizedBox(height: 16),
               Container(
@@ -196,9 +184,7 @@ mixin AccountConnectValidationMixin {
             },
             icon: const Icon(Icons.link),
             label: const Text('ربط الحسابات'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue[600],
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[600]),
           ),
         ],
       ),
@@ -206,17 +192,18 @@ mixin AccountConnectValidationMixin {
   }
 
   void _showMissingConnectionsDialog(
-    BuildContext context, 
+    BuildContext context,
     ValidationResult validation,
   ) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, 
-              color: Colors.orange[700], 
-              size: 28
+            Icon(
+              Icons.warning_amber_rounded,
+              color: Colors.orange[700],
+              size: 28,
             ),
             const SizedBox(width: 12),
             const Text('حسابات تحتاج إلى ربط'),
@@ -253,8 +240,8 @@ mixin AccountConnectValidationMixin {
                         validation.completionPercentage >= 80
                             ? Colors.green
                             : validation.completionPercentage >= 50
-                                ? Colors.orange
-                                : Colors.red,
+                            ? Colors.orange
+                            : Colors.red,
                       ),
                     ),
                     const SizedBox(height: 8),
@@ -275,31 +262,31 @@ mixin AccountConnectValidationMixin {
                   ),
                 ),
                 const SizedBox(height: 8),
-                ...validation.missingConnections.map((name) => Container(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
-                        border: Border.all(color: Colors.orange[200]!),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.link_off, 
-                            color: Colors.orange[700], 
-                            size: 16
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            name,
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      ),
-                    )),
+                ...validation.missingConnections.map(
+                  (name) => Container(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange[50],
+                      borderRadius: BorderRadius.circular(AppRadius.sm),
+                      border: Border.all(color: Colors.orange[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.link_off,
+                          color: Colors.orange[700],
+                          size: 16,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(name, style: const TextStyle(fontSize: 14)),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ],
           ),

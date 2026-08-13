@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
@@ -24,13 +25,13 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   final _formKey = GlobalKey<FormState>();
   final _documentNumberController = TextEditingController();
   final _statementController = TextEditingController();
-  
+
   DateTime _selectedDate = DateTime.now();
   String _adjustmentType = 'decrease'; // 'increase' or 'decrease'
   String _adjustmentReason = 'damage';
   WarehouseEntity? _selectedWarehouse;
   final List<StockAdjustmentLineEntity> _adjustmentLines = [];
-  
+
   final List<Map<String, String>> _adjustmentReasons = [
     {'value': 'damage', 'label': 'تلف'},
     {'value': 'expiry', 'label': 'انتهاء صلاحية'},
@@ -48,10 +49,11 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
     super.initState();
     _generateDocumentNumber();
   }
-  
+
   void _generateDocumentNumber() {
     final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    _documentNumberController.text = 'ADJ-${timestamp.substring(timestamp.length - 8)}';
+    _documentNumberController.text =
+        'ADJ-${timestamp.substring(timestamp.length - 8)}';
   }
 
   @override
@@ -64,7 +66,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return MultiBlocProvider(
       providers: [
         BlocProvider(
@@ -74,9 +76,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
           create: (context) => getIt<ProductsCubit>()..loadProducts(),
         ),
         if (getIt.isRegistered<StockAdjustmentsCubit>())
-          BlocProvider(
-            create: (context) => getIt<StockAdjustmentsCubit>(),
-          ),
+          BlocProvider(create: (context) => getIt<StockAdjustmentsCubit>()),
       ],
       child: Scaffold(
         backgroundColor: AppColors.neutral100,
@@ -117,9 +117,8 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                             const SizedBox(width: 8),
                             Text(
                               'بيانات المستند',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -142,9 +141,13 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                 child: InputDecorator(
                                   decoration: InputDecoration(
                                     labelText: 'التاريخ',
-                                    prefixIcon: const Icon(Icons.calendar_today),
+                                    prefixIcon: const Icon(
+                                      Icons.calendar_today,
+                                    ),
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(AppRadius.md),
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.md,
+                                      ),
                                     ),
                                     filled: true,
                                     fillColor: Colors.grey[50],
@@ -176,16 +179,12 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.tune,
-                              color: colorScheme.primary,
-                            ),
+                            Icon(Icons.tune, color: colorScheme.primary),
                             const SizedBox(width: 8),
                             Text(
                               'نوع التسوية',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -224,42 +223,51 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                         Row(
                           children: [
                             Expanded(
-                              child: BlocBuilder<WarehousesCubit, WarehousesState>(
-                                builder: (context, state) {
-                                  List<WarehouseEntity> warehouses = [];
-                                  if (state is WarehousesLoaded) {
-                                    warehouses = state.warehouses;
-                                  }
-                                  
-                                  return DropdownButtonFormField<WarehouseEntity>(
-                                    initialValue: _selectedWarehouse,
-                                    decoration: InputDecoration(
-                                      labelText: 'المخزن',
-                                      prefixIcon: const Icon(Icons.warehouse),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(AppRadius.md),
-                                      ),
-                                      filled: true,
-                                      fillColor: Colors.grey[50],
-                                    ),
-                                    items: warehouses.map((warehouse) {
-                                      return DropdownMenuItem(
-                                        value: warehouse,
-                                        child: Text(warehouse.name),
-                                      );
-                                    }).toList(),
-                                    onChanged: (value) {
-                                      setState(() => _selectedWarehouse = value);
-                                    },
-                                    validator: (value) {
-                                      if (value == null) {
-                                        return 'يرجى اختيار المخزن';
+                              child:
+                                  BlocBuilder<WarehousesCubit, WarehousesState>(
+                                    builder: (context, state) {
+                                      List<WarehouseEntity> warehouses = [];
+                                      if (state is WarehousesLoaded) {
+                                        warehouses = state.warehouses;
                                       }
-                                      return null;
+
+                                      return DropdownButtonFormField<
+                                        WarehouseEntity
+                                      >(
+                                        initialValue: _selectedWarehouse,
+                                        decoration: InputDecoration(
+                                          labelText: 'المخزن',
+                                          prefixIcon: const Icon(
+                                            Icons.warehouse,
+                                          ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              AppRadius.md,
+                                            ),
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.grey[50],
+                                        ),
+                                        items: warehouses.map((warehouse) {
+                                          return DropdownMenuItem(
+                                            value: warehouse,
+                                            child: Text(warehouse.name),
+                                          );
+                                        }).toList(),
+                                        onChanged: (value) {
+                                          setState(
+                                            () => _selectedWarehouse = value,
+                                          );
+                                        },
+                                        validator: (value) {
+                                          if (value == null) {
+                                            return 'يرجى اختيار المخزن';
+                                          }
+                                          return null;
+                                        },
+                                      );
                                     },
-                                  );
-                                },
-                              ),
+                                  ),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -269,7 +277,9 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   labelText: 'السبب',
                                   prefixIcon: const Icon(Icons.help_outline),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
                                   ),
                                   filled: true,
                                   fillColor: Colors.grey[50],
@@ -316,9 +326,8 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                 const SizedBox(width: 8),
                                 Text(
                                   'الأصناف',
-                                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.bold),
                                 ),
                               ],
                             ),
@@ -348,9 +357,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                 const SizedBox(height: 8),
                                 Text(
                                   'لا توجد أصناف',
-                                  style: TextStyle(
-                                    color: Colors.grey[600],
-                                  ),
+                                  style: TextStyle(color: Colors.grey[600]),
                                 ),
                               ],
                             ),
@@ -360,7 +367,8 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: _adjustmentLines.length,
-                            separatorBuilder: (context, index) => const Divider(),
+                            separatorBuilder: (context, index) =>
+                                const Divider(),
                             itemBuilder: (context, index) {
                               final line = _adjustmentLines[index];
                               return ListTile(
@@ -377,12 +385,18 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                         : Colors.red,
                                   ),
                                 ),
-                                title: Text(line.categoryId.toString() ?? 'صنف ${index + 1}'),
+                                title: Text(
+                                  line.categoryId.toString() ??
+                                      'صنف ${index + 1}',
+                                ),
                                 subtitle: Text(
                                   'الكمية: ${line.quantity} | القيمة: ${line.amount.toStringAsFixed(2)}',
                                 ),
                                 trailing: IconButton(
-                                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                  ),
                                   onPressed: () {
                                     setState(() {
                                       _adjustmentLines.removeAt(index);
@@ -411,16 +425,12 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(
-                              Icons.note,
-                              color: colorScheme.primary,
-                            ),
+                            Icon(Icons.note, color: colorScheme.primary),
                             const SizedBox(width: 8),
                             Text(
                               'ملاحظات',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
                             ),
                           ],
                         ),
@@ -443,7 +453,9 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: _adjustmentLines.isEmpty ? null : () => _saveAdjustment('draft'),
+                        onPressed: _adjustmentLines.isEmpty
+                            ? null
+                            : () => _saveAdjustment('draft'),
                         icon: const Icon(Icons.save),
                         label: const Text('حفظ كمسودة'),
                         style: ElevatedButton.styleFrom(
@@ -459,7 +471,9 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: _adjustmentLines.isEmpty ? null : () => _postAdjustment(),
+                        onPressed: _adjustmentLines.isEmpty
+                            ? null
+                            : () => _postAdjustment(),
                         icon: const Icon(Icons.check),
                         label: const Text('ترحيل'),
                         style: ElevatedButton.styleFrom(
@@ -503,20 +517,20 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
 
   void _saveAdjustment(String status) {
     if (!_formKey.currentState!.validate()) return;
-    
+
     AppToast.showSuccess(context, 'تم حفظ التسوية كمسودة');
   }
 
   void _postAdjustment() {
     if (!_formKey.currentState!.validate()) return;
-    
+
     _showAccountingPreview();
   }
 
   void _showAccountingPreview() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: const Text('معاينة القيود المحاسبية'),
         content: SingleChildScrollView(
           child: Column(
@@ -524,9 +538,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                _adjustmentType == 'increase' 
-                    ? 'قيد الزيادة:'
-                    : 'قيد النقص:',
+                _adjustmentType == 'increase' ? 'قيد الزيادة:' : 'قيد النقص:',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
@@ -573,7 +585,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   void _showHistoryDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: const Text('سجل التسويات'),
         content: const SizedBox(
           width: double.maxFinite,

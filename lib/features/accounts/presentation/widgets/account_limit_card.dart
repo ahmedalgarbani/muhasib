@@ -193,9 +193,9 @@
 //     showDialog(
 //       context: context,
 //       builder: (dialogContext) {
-//         return AlertDialog(
+//         return CustomDialog(
 //           title: Text('تعديل حد ${account.name}'),
-//           content: TextField(
+//           content:TextInputField(
 //             controller: controller,
 //             keyboardType: const TextInputType.numberWithOptions(decimal: true),
 //             decoration: InputDecoration(

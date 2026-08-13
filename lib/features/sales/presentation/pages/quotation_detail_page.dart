@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -477,7 +478,7 @@ class QuotationDetailPage extends StatelessWidget {
   void _showConvertDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => CustomDialog(
         title: const Row(
           children: [
             Icon(Icons.transform, color: AppColors.success),

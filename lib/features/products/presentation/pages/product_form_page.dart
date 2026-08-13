@@ -189,7 +189,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
                               decoration: const InputDecoration(
                                 labelText: 'المجموعة',
                                 prefixIcon: Icon(Icons.folder),
-                                border: OutlineInputBorder(),
                               ),
                               items: [
                                 const DropdownMenuItem(
@@ -220,7 +219,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
                               decoration: const InputDecoration(
                                 labelText: 'الوحدة',
                                 prefixIcon: Icon(Icons.straighten),
-                                border: OutlineInputBorder(),
                               ),
                               items: [
                                 const DropdownMenuItem(
@@ -265,7 +263,6 @@ class _ProductFormPageState extends State<ProductFormPage> {
                               decoration: const InputDecoration(
                                 labelText: 'المخزن *',
                                 prefixIcon: Icon(Icons.store),
-                                border: OutlineInputBorder(),
                               ),
                               validator: (value) {
                                 if (value == null) {

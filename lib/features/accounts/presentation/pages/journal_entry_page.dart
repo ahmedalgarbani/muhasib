@@ -271,9 +271,7 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
         },
         child: Scaffold(
           backgroundColor: Colors.grey.shade100,
-          appBar: CustomAppBar(
-            title: 'القيود اليومية',
-          ),
+          appBar: CustomAppBar(title: 'القيود اليومية'),
           floatingActionButton: FloatingActionButton(
             onPressed: () => _showEntryDialog(),
             backgroundColor: AppTheme.primaryColor,
@@ -299,17 +297,16 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
 
   Widget _buildHeaderCard() {
     return Card(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.lg)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
       elevation: 3,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'بيانات القيد',
-              style: AppTextStyles.titleMedium,
-            ),
+            const Text('بيانات القيد', style: AppTextStyles.titleMedium),
             const SizedBox(height: 16),
             Row(
               children: [
@@ -340,7 +337,6 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                     child: InputDecorator(
                       decoration: const InputDecoration(
                         labelText: 'تاريخ القيد',
-                        border: OutlineInputBorder(),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -421,7 +417,11 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
                 ),
               ],
             ),
-            const Divider(height: 24, color: AppColors.slate100, thickness: 1.5),
+            const Divider(
+              height: 24,
+              color: AppColors.slate100,
+              thickness: 1.5,
+            ),
             if (_entries.isEmpty)
               Container(
                 width: double.infinity,

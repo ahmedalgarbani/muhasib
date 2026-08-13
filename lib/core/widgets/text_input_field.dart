@@ -167,7 +167,7 @@ class TextInputField extends StatelessWidget {
           readOnly: readOnly,
           style: style ?? defaultStyle,
           decoration:
-              decoration ??
+              decoration?.copyWith(hintText: hint ?? decoration!.hintText) ??
               InputDecoration(
                 hintText: hint,
                 hintStyle: defaultHintStyle,

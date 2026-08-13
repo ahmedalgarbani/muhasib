@@ -6,6 +6,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
@@ -29,15 +30,31 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     super.initState();
     final cubit = context.read<SettingsCubit>();
     final personalInfo = cubit.getPersonalInfo();
-    
-    _nameArController = TextEditingController(text: personalInfo['name'] ?? 'حسيب');
-    _nameEnController = TextEditingController(text: personalInfo['nameFrn'] ?? 'Hasib');
-    _addressArController = TextEditingController(text: personalInfo['address'] ?? 'صنعاء');
-    _addressEnController = TextEditingController(text: personalInfo['AddressFrn'] ?? "Sana'a");
-    _phoneController = TextEditingController(text: personalInfo['phone'] ?? '967782767927');
-    _phoneFrnController = TextEditingController(text: personalInfo['phoneFrn'] ?? '967782767927');
-    _taxNumberController = TextEditingController(text: personalInfo['taxNo'] ?? '');
-    _commercialRegisterController = TextEditingController(text: personalInfo['company_commercial_register'] ?? '');
+
+    _nameArController = TextEditingController(
+      text: personalInfo['name'] ?? 'حسيب',
+    );
+    _nameEnController = TextEditingController(
+      text: personalInfo['nameFrn'] ?? 'Hasib',
+    );
+    _addressArController = TextEditingController(
+      text: personalInfo['address'] ?? 'صنعاء',
+    );
+    _addressEnController = TextEditingController(
+      text: personalInfo['AddressFrn'] ?? "Sana'a",
+    );
+    _phoneController = TextEditingController(
+      text: personalInfo['phone'] ?? '967782767927',
+    );
+    _phoneFrnController = TextEditingController(
+      text: personalInfo['phoneFrn'] ?? '967782767927',
+    );
+    _taxNumberController = TextEditingController(
+      text: personalInfo['taxNo'] ?? '',
+    );
+    _commercialRegisterController = TextEditingController(
+      text: personalInfo['company_commercial_register'] ?? '',
+    );
   }
 
   @override
@@ -67,9 +84,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       'taxNo': _taxNumberController.text,
       'company_commercial_register': _commercialRegisterController.text,
     };
-    
+
     await cubit.updateSetting('personal_info', updatedInfo);
-    
+
     if (mounted) {
       AppToast.showSuccess(context, 'تم حفظ البيانات بنجاح');
     }
@@ -85,7 +102,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           if (state is SettingsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           return SingleChildScrollView(
             padding: const EdgeInsets.all(12),
             child: Column(
@@ -93,7 +110,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               children: [
                 // Section: الاسم - العنوان
                 const Padding(
-                  padding: EdgeInsetsDirectional.only(start: 16, end: 16, top: 8, bottom: 4),
+                  padding: EdgeInsetsDirectional.only(
+                    start: 16,
+                    end: 16,
+                    top: 8,
+                    bottom: 4,
+                  ),
                   child: Text(
                     'الاسم - العنوان',
                     style: TextStyle(
@@ -137,7 +159,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
                 // Section: بيانات التواصل
                 const Padding(
-                  padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 4),
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 4,
+                  ),
                   child: Text(
                     'بيانات التواصل',
                     style: TextStyle(
@@ -167,7 +194,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
                 // Section: الهوية التعريفية
                 const Padding(
-                  padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 4),
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 4,
+                  ),
                   child: Text(
                     'الهوية التعريفية',
                     style: TextStyle(
@@ -212,7 +244,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
                 // Section: بيانات الضرائب
                 const Padding(
-                  padding: EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 4),
+                  padding: EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 4,
+                  ),
                   child: Text(
                     'بيانات الضرائب',
                     style: TextStyle(
@@ -252,10 +289,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                     ),
-                    child: const Text(
-                      'حفظ',
-                      style: TextStyle(fontSize: 16),
-                    ),
+                    child: const Text('حفظ', style: TextStyle(fontSize: 16)),
                   ),
                 ),
               ],
@@ -274,7 +308,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   }) {
     return ListTile(
       leading: Icon(icon, color: Colors.grey[600]),
-      title: TextField(
+      title: TextInputField(
         controller: controller,
         keyboardType: keyboardType,
         decoration: InputDecoration(
@@ -296,10 +330,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   }) {
     return ListTile(
       leading: Icon(icon, color: Colors.grey[600]),
-      title: Text(
-        label,
-        style: const TextStyle(fontSize: 14),
-      ),
+      title: Text(label, style: const TextStyle(fontSize: 14)),
       trailing: TextButton(
         onPressed: onTap,
         child: const Text('اختر', style: TextStyle(fontSize: 13)),

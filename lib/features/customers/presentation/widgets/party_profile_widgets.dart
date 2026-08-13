@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/detail_row.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PartyProfileSearchField extends StatelessWidget {
   final TextEditingController controller;
@@ -34,7 +35,7 @@ class PartyProfileSearchField extends StatelessWidget {
           ),
         ],
       ),
-      child: TextField(
+      child: TextInputField(
         controller: controller,
         onChanged: onChanged,
         decoration: InputDecoration(

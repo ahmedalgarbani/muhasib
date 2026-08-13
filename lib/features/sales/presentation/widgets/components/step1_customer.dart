@@ -9,6 +9,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class Step1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -181,10 +182,7 @@ class _Step1CustomerState extends State<Step1Customer> {
                 children: [
                   const Text(
                     'تفاصيل الفاتورة',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   Row(
@@ -248,13 +246,10 @@ class _Step1CustomerState extends State<Step1Customer> {
                 children: [
                   const Text(
                     'ملاحظات',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  TextField(
+                  TextInputField(
                     controller: _notesController,
                     maxLines: 3,
                     decoration: InputDecoration(

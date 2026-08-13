@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -14,6 +15,7 @@ import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart
 import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class QuotationsPage extends StatefulWidget {
   const QuotationsPage({super.key});
@@ -121,7 +123,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
+            child: TextInputField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'ابحث برقم العرض أو اسم العميل...',
@@ -413,7 +415,7 @@ class _QuotationsPageState extends State<QuotationsPage> {
   void _showConvertDialog(InvoiceEntity quotation) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
+      builder: (dialogContext) => CustomDialog(
         title: const Row(
           children: [
             Icon(Icons.transform, color: AppColors.success),

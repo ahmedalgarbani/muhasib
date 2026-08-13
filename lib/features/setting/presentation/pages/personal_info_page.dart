@@ -6,6 +6,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
@@ -292,7 +293,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         label,
         style: const TextStyle(fontSize: 12, color: Colors.grey),
       ),
-      subtitle: TextField(
+      subtitle: TextInputField(
         controller: controller,
         keyboardType: keyboardType,
         style: const TextStyle(fontSize: 13),

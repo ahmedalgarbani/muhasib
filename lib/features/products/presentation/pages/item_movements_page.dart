@@ -4,6 +4,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/item_movement_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/item_movements_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
@@ -42,10 +43,8 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
       ],
       child: Scaffold(
         key: _scaffoldKey,
-        backgroundColor: 
-AppColors.gray50,
-        appBar: CustomAppBar(
-        ),
+        backgroundColor: AppColors.gray50,
+        appBar: CustomAppBar(),
         body: Column(
           children: [
             _buildHeader(),
@@ -99,7 +98,7 @@ AppColors.gray50,
           Row(
             children: [
               Expanded(
-                child: TextField(
+                child: TextInputField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'ابحث في الحركات...',

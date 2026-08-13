@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
@@ -398,7 +399,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
   void _showPreviewDialog() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: const Text('معاينة الإقفال'),
         content: const Column(
           mainAxisSize: MainAxisSize.min,
@@ -430,7 +431,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
   void _startClosingProcess() {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (context) => CustomDialog(
         title: const Text('تأكيد الإقفال'),
         content: Text(
           'هل أنت متأكد من إقفال السنة المالية $selectedYear؟\n\nهذه العملية لا يمكن التراجع عنها.',

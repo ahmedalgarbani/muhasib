@@ -10,6 +10,7 @@ import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class ReturnsPage extends StatefulWidget {
   const ReturnsPage({super.key});
@@ -92,7 +93,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
       child: Row(
         children: [
           Expanded(
-            child: TextField(
+            child: TextInputField(
               controller: _searchController,
               decoration: InputDecoration(
                 hintText: 'ابحث برقم المرتجع أو الفاتورة الأصلية...',

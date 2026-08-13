@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/region_entity.dart';
 import 'package:muhasib/features/settings_entities/presentation/widgets/region_card_widget.dart';
 
@@ -30,7 +31,7 @@ class RegionsListWidget extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.all(16.0),
-          child: TextField(
+          child: TextInputField(
             controller: searchController,
             decoration: InputDecoration(
               hintText: 'بحث في المناطق...',

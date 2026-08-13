@@ -194,8 +194,8 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
                   child: TextInputField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
+                    label: 'المبلغ',
                     decoration: InputDecoration(
-                      labelText: 'المبلغ',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
@@ -277,8 +277,8 @@ class _CurrencyExchangePageState extends State<CurrencyExchangePage> {
                   child: TextInputField(
                     controller: _resultController,
                     readOnly: true,
+                    label: 'الناتج',
                     decoration: InputDecoration(
-                      labelText: 'الناتج',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),

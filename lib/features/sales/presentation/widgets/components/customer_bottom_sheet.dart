@@ -4,6 +4,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
 
 class CustomerBottomSheet extends StatefulWidget {
   final List<Customer> customers;
@@ -87,7 +88,7 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
                   ],
                 ),
                 const SizedBox(height: AppSpacing.md),
-                TextField(
+                TextInputField(
                   controller: _searchController,
                   onChanged: (value) => setState(() => _searchQuery = value),
                   decoration: const InputDecoration(
@@ -140,16 +141,17 @@ class _CustomerBottomSheetState extends State<CustomerBottomSheet> {
                                 children: [
                                   Text(
                                     'الرصيد: ${NumberFormatter.formatCurrency(customer.balance)}',
-                                    style: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.normal,
-                                      color: AppColors.gray600,
-                                      height: 1.4,
-                                    ).copyWith(
-                                      color: customer.hasDebt
-                                          ? AppColors.error
-                                          : AppColors.success,
-                                    ),
+                                    style:
+                                        const TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.normal,
+                                          color: AppColors.gray600,
+                                          height: 1.4,
+                                        ).copyWith(
+                                          color: customer.hasDebt
+                                              ? AppColors.error
+                                              : AppColors.success,
+                                        ),
                                   ),
                                   Text(
                                     'حد الائتمان: ${NumberFormatter.formatCurrency(customer.creditLimit)}',

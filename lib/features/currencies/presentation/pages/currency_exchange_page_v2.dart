@@ -255,8 +255,8 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
                   child: TextInputField(
                     controller: _amountController,
                     keyboardType: TextInputType.number,
+                    label: 'المبلغ',
                     decoration: InputDecoration(
-                      labelText: 'المبلغ',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
@@ -351,8 +351,8 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
                   child: TextInputField(
                     controller: _resultController,
                     readOnly: true,
+                    label: 'الناتج',
                     decoration: InputDecoration(
-                      labelText: 'الناتج',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
@@ -407,8 +407,8 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
               TextInputField(
                 controller: _customRateController,
                 keyboardType: TextInputType.number,
+                label: 'سعر الصرف المخصص',
                 decoration: InputDecoration(
-                  labelText: 'سعر الصرف المخصص',
                   prefixIcon: const Icon(Icons.edit, color: AppColors.info),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.md),
@@ -661,8 +661,8 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
             TextInputField(
               controller: _notesController,
               maxLines: 2,
+              label: 'ملاحظات',
               decoration: InputDecoration(
-                labelText: 'ملاحظات',
                 prefixIcon: const Icon(Icons.note, color: AppColors.info),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppRadius.md),
