@@ -8,8 +8,11 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/features/stores/domain/entities/inventory_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
+import 'package:muhasib/features/stores/domain/enums/stock_enums.dart';
+import 'package:muhasib/features/stores/presentation/cubit/inventory_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/stores/presentation/widgets/inventory_action_buttons.dart';
 import 'package:muhasib/features/stores/presentation/widgets/inventory_document_header_card.dart';
@@ -19,6 +22,7 @@ import 'package:muhasib/features/stores/presentation/widgets/inventory_product_c
 import 'package:muhasib/features/stores/presentation/widgets/inventory_summary_card.dart';
 import 'package:muhasib/features/stores/presentation/widgets/inventory_type_selector.dart';
 import 'package:muhasib/features/stores/presentation/widgets/inventory_warehouse_selector_card.dart';
+import 'package:muhasib/features/stores/presentation/widgets/product_picker_sheet.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
 
 class WarehousesInventoryPage extends StatefulWidget {
@@ -40,6 +44,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   WarehouseEntity? _selectedWarehouse;
   final List<InventoryLineEntity> _inventoryLines = [];
   bool _isCountMode = false;
+  bool _pendingPost = false;
 
   final List<Map<String, dynamic>> _inventoryTypes = const [
     {
@@ -98,8 +103,25 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
         BlocProvider(
           create: (context) => getIt<ProductsCubit>()..loadProducts(),
         ),
+        BlocProvider(create: (context) => getIt<InventoryCubit>()),
       ],
-      child: Scaffold(
+      child: BlocListener<InventoryCubit, InventoryState>(
+        listener: (context, state) {
+          if (state is InventoryCreated) {
+            if (_pendingPost) {
+              context.read<InventoryCubit>().postInventory(state.id);
+            } else {
+              AppToast.showSuccess(context, 'تم حفظ الجرد كمسودة');
+              context.pop();
+            }
+          } else if (state is InventoryPosted) {
+            AppToast.showSuccess(context, 'تم ترحيل الجرد بنجاح');
+            context.pop();
+          } else if (state is InventoryError) {
+            AppToast.showError(context, state.message);
+          }
+        },
+        child: Scaffold(
         backgroundColor: AppColors.neutral100,
         appBar: CustomAppBar(
           title: 'جرد المخزون',
@@ -193,6 +215,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
             ),
           ),
         ),
+        ),
       ),
     );
   }
@@ -215,29 +238,26 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     AppToast.showInfo(context, 'سيتم إضافة ماسح الباركود قريباً');
   }
 
-  void _addProductToInventory() {
+  Future<void> _addProductToInventory() async {
     if (_selectedWarehouse == null) {
       AppToast.showWarning(context, 'يرجى اختيار المخزن أولاً');
       return;
     }
 
-    final productName = _searchController.text.trim();
-    if (productName.isEmpty) {
-      AppToast.showWarning(context, 'يرجى أدخال اسم المنتج أو الباركود');
-      return;
-    }
+    final product = await showProductPicker(context);
+    if (product == null || !mounted) return;
 
     setState(() {
       _inventoryLines.add(
         InventoryLineEntity(
-          statement: productName,
-          quantity: 0,
+          statement: product.name,
+          quantity: product.quantity,
           actualQuantity: 0,
-          difference: 0,
-          costAmount: 0,
-          categoryId: 0,
-          groupId: 1,
-          unitId: 1,
+          difference: -product.quantity,
+          costAmount: product.costAmount ?? 0,
+          categoryId: product.id,
+          groupId: product.groupId ?? 1,
+          unitId: product.unitId ?? 1,
           categorySubUnitId: 1,
           inventoryId: 0,
         ),
@@ -246,14 +266,52 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     _searchController.clear();
   }
 
+  bool _validateInventory() {
+    if (_selectedWarehouse == null) {
+      AppToast.showError(context, 'يرجى اختيار المخزن');
+      return false;
+    }
+    if (_inventoryLines.isEmpty) {
+      AppToast.showError(context, 'يرجى إضافة صنف واحد على الأقل');
+      return false;
+    }
+    return true;
+  }
+
+  InventoryEntity _buildInventoryEntity() {
+    final totalDifference = _inventoryLines.fold<double>(
+      0,
+      (sum, line) => sum + (line.actualQuantity - line.quantity),
+    );
+    return InventoryEntity(
+      number: _inventoryNumberController.text,
+      date: _selectedDate.millisecondsSinceEpoch ~/ 1000,
+      statement: _statementController.text.trim(),
+      inventoryType: _inventoryType == 'periodic'
+          ? InventoryType.periodic
+          : _inventoryType == 'cycle'
+              ? InventoryType.cycle
+              : _inventoryType == 'annual'
+                  ? InventoryType.annual
+                  : InventoryType.spot,
+      status: TransferStatus.draft,
+      stockId: _selectedWarehouse?.id,
+      totalDifference: totalDifference,
+      lines: _inventoryLines,
+    );
+  }
+
   void _saveInventory() {
     if (!_formKey.currentState!.validate()) return;
+    if (!_validateInventory()) return;
 
-    AppToast.showSuccess(context, 'تم حفظ الجرد كمسودة');
+    _pendingPost = false;
+    context.read<InventoryCubit>().createInventory(_buildInventoryEntity());
   }
 
   void _postInventory() {
     if (!_formKey.currentState!.validate()) return;
+    if (!_validateInventory()) return;
 
     _showPostConfirmation();
   }
@@ -310,8 +368,8 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
             label: 'ترحيل',
             onPressed: () {
               Navigator.pop(context);
-              AppToast.showSuccess(context, 'تم ترحيل الجرد بنجاح');
-              context.pop();
+              _pendingPost = true;
+              context.read<InventoryCubit>().createInventory(_buildInventoryEntity());
             },
             variant: HasibButtonVariant.success,
           ),

@@ -59,7 +59,9 @@ class ProductModel extends ProductEntity {
       sellAmount: (json['sell_amount'] as num?)?.toDouble(),
       sellLocalAmount: (json['sell_local_amount'] as num?)?.toDouble(),
       sellExchangeRate: (json['sell_exchange_rate'] as num?)?.toDouble(),
-      quantity: (json['quantity'] as num?)?.toDouble() ?? 0,
+      quantity: (json['stock_quantity'] as num?)?.toDouble() ??
+          (json['quantity'] as num?)?.toDouble() ??
+          0,
       groupId: json['group_id'] as int?,
       unitId: json['unit_id'] as int?,
       stockId: json['stock_id'] as int,

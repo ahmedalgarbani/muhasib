@@ -191,7 +191,8 @@ void main() {
       );
 
       expect(supplier.name, 'شركة النور للمواد الغذائية');
-      expect(supplier.currentBalance, 3000.0);
+      // العرف المحاسبي (مدين - دائن): مستحق للمورد = دائن = سالب
+      expect(supplier.currentBalance, -3000.0);
 
       final journalEntries = await db.query(
         'journal_entries',
@@ -232,7 +233,8 @@ void main() {
       );
 
       expect(supplier.name, 'مؤسسة التقنية للمعدات');
-      expect(supplier.currentBalance, -1200.0);
+      // دفعة مقدمة للمورد = مدين = موجب بالعرف المحاسبي
+      expect(supplier.currentBalance, 1200.0);
 
       final journalEntries = await db.query(
         'journal_entries',
@@ -281,13 +283,13 @@ void main() {
       expect(customerZero.formattedAmount, '0.00 ر.س');
       expect(customerZero.isZero, true);
 
-      // Supplier checks
-      final supplierCredit = PartyBalanceInfo.fromBalance(balance: 2000, isSupplier: true);
+      // Supplier checks (debit-normal convention)
+      final supplierCredit = PartyBalanceInfo.fromBalance(balance: -2000, isSupplier: true);
       expect(supplierCredit.label, 'له (دائن)');
       expect(supplierCredit.formattedAmount, '2000.00 ر.س');
       expect(supplierCredit.isZero, false);
 
-      final supplierDebit = PartyBalanceInfo.fromBalance(balance: -300, isSupplier: true);
+      final supplierDebit = PartyBalanceInfo.fromBalance(balance: 300, isSupplier: true);
       expect(supplierDebit.label, 'عليه (مدين)');
       expect(supplierDebit.formattedAmount, '300.00 ر.س');
       expect(supplierDebit.isZero, false);

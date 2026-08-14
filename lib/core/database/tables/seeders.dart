@@ -749,11 +749,49 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
+  // إيرادات تسوية المخزون (Inventory Adjustment Gains)
+  await db.insert('accounts', {
+    'c_id': 4200,
+    'code': '4200',
+    'name': 'إيرادات تسوية المخزون',
+    'is_master': 0,
+    'master_id': 4,
+    'master_c_id': 4000,
+    'type': 4,
+    'national': 1,
+    'statement': 'قائمة الدخل',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
   // تكلفة البضاعة المباعة (Cost of Goods Sold)
   await db.insert('accounts', {
     'c_id': 3160,
     'code': '3009',
     'name': 'تكلفة البضاعة المباعة',
+    'is_master': 0,
+    'master_id': 3,
+    'master_c_id': 3000,
+    'type': 3,
+    'national': 1,
+    'statement': 'قائمة الدخل',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // خسائر تسوية المخزون (Inventory Adjustment Losses)
+  await db.insert('accounts', {
+    'c_id': 5200,
+    'code': '5200',
+    'name': 'خسائر تسوية المخزون',
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,

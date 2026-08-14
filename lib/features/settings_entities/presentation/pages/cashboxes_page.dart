@@ -69,19 +69,15 @@ class _CashboxesViewState extends State<_CashboxesView> {
       body: BlocConsumer<CashboxesCubit, CashboxesState>(
         listener: (context, state) {
           if (state is CashboxCreated) {
-            _showSnackBar(context, 'تم إضافة الصندوق بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم إضافة الصندوق بنجاح');
           } else if (state is CashboxUpdated) {
-            _showSnackBar(context, 'تم تحديث الصندوق بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم تحديث الصندوق بنجاح');
           } else if (state is CashboxDeleted) {
-            _showSnackBar(context, 'تم حذف الصندوق بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم حذف الصندوق بنجاح');
           } else if (state is MainCashboxSet) {
-            _showSnackBar(
-              context,
-              'تم تعيين الصندوق الرئيسي بنجاح',
-              Colors.green,
-            );
+            AppToast.showSuccess(context, 'تم تعيين الصندوق الرئيسي بنجاح');
           } else if (state is CashboxesError) {
-            _showSnackBar(context, state.message, Colors.red);
+            AppToast.showError(context, state.message);
           }
         },
         builder: (context, state) {
@@ -133,87 +129,18 @@ class _CashboxesViewState extends State<_CashboxesView> {
     );
   }
 
-  void _showSnackBar(BuildContext context, String message, Color color) {
-    if (color == Colors.green) {
-      AppToast.showSuccess(context, message);
-    } else if (color == Colors.orange) {
-      AppToast.showWarning(context, message);
-    } else {
-      AppToast.showError(context, message);
-    }
-  }
-
   void _showCashboxDialog(BuildContext context, {CashboxEntity? cashbox}) {
-    final isEditing = cashbox != null;
-    final nameController = TextEditingController(text: cashbox?.name ?? '');
-    bool isActive = cashbox?.isActive ?? true;
-    bool isMainFund = cashbox?.isMainFund ?? false;
-
     showDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => CustomDialog(
-          title: isEditing ? 'تعديل الصندوق' : 'إضافة صندوق جديد',
-          icon: Icons.point_of_sale,
-          headerColor: AppColors.materialTeal600,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextInputField(
-                label: 'اسم الصندوق',
-                isRequired: true,
-                textEditingController: nameController,
-              ),
-              const SizedBox(height: 16),
-              CustomSwitchTile(
-                title: 'نشط',
-                value: isActive,
-                onChanged: (value) => setState(() => isActive = value),
-              ),
-              CustomSwitchTile(
-                title: 'صندوق رئيسي',
-                value: isMainFund,
-                onChanged: (value) => setState(() => isMainFund = value),
-              ),
-            ],
-          ),
-          actions: [
-            HasibButton(
-              label: 'إلغاء',
-              variant: HasibButtonVariant.secondary,
-              onPressed: () => Navigator.of(dialogContext).pop(),
-            ),
-            const SizedBox(width: 12),
-            HasibButton(
-              label: isEditing ? 'تحديث' : 'إضافة',
-              onPressed: () {
-                if (nameController.text.isEmpty) {
-                  _showSnackBar(
-                    context,
-                    'الرجاء إدخال اسم الصندوق',
-                    Colors.red,
-                  );
-                  return;
-                }
-
-                final newCashbox = CashboxEntity(
-                  id: cashbox?.id,
-                  name: nameController.text,
-                  isActive: isActive,
-                  isMainFund: isMainFund,
-                  currentBalance: cashbox?.currentBalance,
-                );
-
-                Navigator.of(dialogContext).pop();
-                if (isEditing) {
-                  this.context.read<CashboxesCubit>().updateCashbox(newCashbox);
-                } else {
-                  this.context.read<CashboxesCubit>().createCashbox(newCashbox);
-                }
-              },
-            ),
-          ],
-        ),
+      builder: (dialogContext) => _CashboxFormDialog(
+        cashbox: cashbox,
+        onSave: (savedCashbox) {
+          if (cashbox != null) {
+            context.read<CashboxesCubit>().updateCashbox(savedCashbox);
+          } else {
+            context.read<CashboxesCubit>().createCashbox(savedCashbox);
+          }
+        },
       ),
     );
   }
@@ -227,7 +154,7 @@ class _CashboxesViewState extends State<_CashboxesView> {
         confirmLabel: 'تعيين كرئيسي',
         icon: Icons.star_rounded,
         onConfirm: () {
-          this.context.read<CashboxesCubit>().setMainCashbox(cashbox.id!);
+          context.read<CashboxesCubit>().setMainCashbox(cashbox.id!);
         },
       ),
     );
@@ -242,9 +169,100 @@ class _CashboxesViewState extends State<_CashboxesView> {
         confirmLabel: 'حذف',
         isDanger: true,
         onConfirm: () {
-          this.context.read<CashboxesCubit>().deleteCashbox(cashbox.id!);
+          context.read<CashboxesCubit>().deleteCashbox(cashbox.id!);
         },
       ),
+    );
+  }
+}
+
+class _CashboxFormDialog extends StatefulWidget {
+  final CashboxEntity? cashbox;
+  final ValueChanged<CashboxEntity> onSave;
+
+  const _CashboxFormDialog({this.cashbox, required this.onSave});
+
+  @override
+  State<_CashboxFormDialog> createState() => _CashboxFormDialogState();
+}
+
+class _CashboxFormDialogState extends State<_CashboxFormDialog> {
+  late final TextEditingController _nameController;
+  late bool _isActive;
+  late bool _isMainFund;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.cashbox?.name ?? '');
+    _isActive = widget.cashbox?.isActive ?? true;
+    _isMainFund = widget.cashbox?.isMainFund ?? false;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEditing = widget.cashbox != null;
+    return CustomDialog(
+      title: isEditing ? 'تعديل الصندوق' : 'إضافة صندوق جديد',
+      icon: Icons.point_of_sale,
+      headerColor: AppColors.materialTeal600,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextInputField(
+            label: 'اسم الصندوق',
+            isRequired: true,
+            textEditingController: _nameController,
+          ),
+          const SizedBox(height: 16),
+          CustomSwitchTile(
+            title: 'نشط',
+            value: _isActive,
+            onChanged: (value) => setState(() => _isActive = value),
+          ),
+          CustomSwitchTile(
+            title: 'صندوق رئيسي',
+            value: _isMainFund,
+            onChanged: (value) => setState(() => _isMainFund = value),
+          ),
+        ],
+      ),
+      actions: [
+        HasibButton(
+          label: 'إلغاء',
+          variant: HasibButtonVariant.secondary,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        const SizedBox(width: 12),
+        HasibButton(
+          label: isEditing ? 'تحديث' : 'إضافة',
+          onPressed: () {
+            if (_nameController.text.trim().isEmpty) {
+              AppToast.showError(context, 'الرجاء إدخال اسم الصندوق');
+              return;
+            }
+
+            final newCashbox = CashboxEntity(
+              id: widget.cashbox?.id,
+              name: _nameController.text.trim(),
+              isActive: _isActive,
+              isMainFund: _isMainFund,
+              currentBalance: widget.cashbox?.currentBalance,
+              currencyId: widget.cashbox?.currencyId,
+              accountId: widget.cashbox?.accountId,
+            );
+
+            Navigator.of(context).pop();
+            widget.onSave(newCashbox);
+          },
+        ),
+      ],
     );
   }
 }

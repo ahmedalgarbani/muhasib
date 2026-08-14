@@ -460,11 +460,11 @@ final router = GoRouter(
     ),
 
     // ======= التهيئات =======
-    GoRoute(
-      path: AppRoutes.settingsCategories,
-      name: AppRoutes.settingsCategories,
-      builder: (context, state) => const ProductGroupsPage(),
-    ),
+    // GoRoute(
+    //   path: AppRoutes.settingsCategories,
+    //   name: AppRoutes.settingsCategories,
+    //   builder: (context, state) => const ProductGroupsPage(),
+    // ),
     GoRoute(
       path: AppRoutes.settingsBanks,
       name: AppRoutes.settingsBanks,

@@ -71,13 +71,13 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
       body: BlocConsumer<OtherFeesCubit, OtherFeesState>(
         listener: (context, state) {
           if (state is OtherFeeCreated) {
-            _showSnackBar(context, 'تم إضافة الأداة بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم إضافة الأداة بنجاح');
           } else if (state is OtherFeeUpdated) {
-            _showSnackBar(context, 'تم تحديث الأداة بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم تحديث الأداة بنجاح');
           } else if (state is OtherFeeDeleted) {
-            _showSnackBar(context, 'تم حذف الأداة بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم حذف الأداة بنجاح');
           } else if (state is OtherFeesError) {
-            _showSnackBar(context, state.message, Colors.red);
+            AppToast.showError(context, state.message);
           }
         },
         builder: (context, state) {
@@ -129,110 +129,19 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
     );
   }
 
-  void _showSnackBar(BuildContext context, String message, Color color) {
-    if (color == Colors.green) {
-      AppToast.showSuccess(context, message);
-    } else if (color == Colors.orange) {
-      AppToast.showWarning(context, message);
-    } else {
-      AppToast.showError(context, message);
-    }
-  }
-
   void _showOtherFeeDialog(BuildContext context, {OtherFeeEntity? otherFee}) {
-    final isEditing = otherFee != null;
-    final nameController = TextEditingController(text: otherFee?.name ?? '');
-    bool isActive = otherFee?.isActive ?? true;
-    int toolType = otherFee?.toolType ?? 0;
-
     showDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => CustomDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.materialPurple500.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: const Icon(
-                  Icons.build,
-                  color: AppColors.materialPurple500,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(isEditing ? 'تعديل الأداة' : 'إضافة أداة جديدة'),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextInputField(
-                  controller: nameController,
-                  label: 'اسم الأداة *',
-                ),
-                const SizedBox(height: 16),
-                CustomDropdownField<int>(
-                  value: toolType,
-                  label: 'نوع الأداة',
-                  items: _toolTypes.asMap().entries.map((entry) {
-                    return DropdownMenuItem(
-                      value: entry.key,
-                      child: Text(entry.value),
-                    );
-                  }).toList(),
-                  onChanged: (value) => setState(() => toolType = value ?? 0),
-                ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text('نشط'),
-                  value: isActive,
-                  onChanged: (value) => setState(() => isActive = value),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('إلغاء'),
-            ),
-            HasibButton(
-              label: isEditing ? 'تحديث' : 'إضافة',
-              onPressed: () {
-                if (nameController.text.isEmpty) {
-                  _showSnackBar(context, 'الرجاء إدخال اسم الأداة', Colors.red);
-                  return;
-                }
-
-                final newOtherFee = OtherFeeEntity(
-                  id: otherFee?.id,
-                  name: nameController.text,
-                  isActive: isActive,
-                  toolType: toolType,
-                );
-
-                Navigator.of(dialogContext).pop();
-                if (isEditing) {
-                  this.context.read<OtherFeesCubit>().updateOtherFee(
-                    newOtherFee,
-                  );
-                } else {
-                  this.context.read<OtherFeesCubit>().createOtherFee(
-                    newOtherFee,
-                  );
-                }
-              },
-            ),
-          ],
-        ),
+      builder: (dialogContext) => _OtherFeeFormDialog(
+        otherFee: otherFee,
+        toolTypes: _toolTypes,
+        onSave: (savedOtherFee) {
+          if (otherFee != null) {
+            context.read<OtherFeesCubit>().updateOtherFee(savedOtherFee);
+          } else {
+            context.read<OtherFeesCubit>().createOtherFee(savedOtherFee);
+          }
+        },
       ),
     );
   }
@@ -273,11 +182,126 @@ class _OtherFeesViewState extends State<_OtherFeesView> {
             variant: HasibButtonVariant.danger,
             onPressed: () {
               Navigator.of(dialogContext).pop();
-              this.context.read<OtherFeesCubit>().deleteOtherFee(otherFee.id!);
+              context.read<OtherFeesCubit>().deleteOtherFee(otherFee.id!);
             },
           ),
         ],
       ),
+    );
+  }
+}
+
+class _OtherFeeFormDialog extends StatefulWidget {
+  final OtherFeeEntity? otherFee;
+  final List<String> toolTypes;
+  final ValueChanged<OtherFeeEntity> onSave;
+
+  const _OtherFeeFormDialog({
+    this.otherFee,
+    required this.toolTypes,
+    required this.onSave,
+  });
+
+  @override
+  State<_OtherFeeFormDialog> createState() => _OtherFeeFormDialogState();
+}
+
+class _OtherFeeFormDialogState extends State<_OtherFeeFormDialog> {
+  late final TextEditingController _nameController;
+  late bool _isActive;
+  late int _toolType;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.otherFee?.name ?? '');
+    _isActive = widget.otherFee?.isActive ?? true;
+    _toolType = widget.otherFee?.toolType ?? 0;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEditing = widget.otherFee != null;
+    return CustomDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
+      ),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.materialPurple500.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: const Icon(
+              Icons.build,
+              color: AppColors.materialPurple500,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(isEditing ? 'تعديل الأداة' : 'إضافة أداة جديدة'),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextInputField(controller: _nameController, label: 'اسم الأداة *'),
+            const SizedBox(height: 16),
+            CustomDropdownField<int>(
+              value: _toolType,
+              label: 'نوع الأداة',
+              items: widget.toolTypes.asMap().entries.map((entry) {
+                return DropdownMenuItem(
+                  value: entry.key,
+                  child: Text(entry.value),
+                );
+              }).toList(),
+              onChanged: (value) => setState(() => _toolType = value ?? 0),
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('نشط'),
+              value: _isActive,
+              onChanged: (value) => setState(() => _isActive = value),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('إلغاء'),
+        ),
+        HasibButton(
+          label: isEditing ? 'تحديث' : 'إضافة',
+          onPressed: () {
+            if (_nameController.text.trim().isEmpty) {
+              AppToast.showError(context, 'الرجاء إدخال اسم الأداة');
+              return;
+            }
+
+            final newOtherFee = OtherFeeEntity(
+              id: widget.otherFee?.id,
+              name: _nameController.text.trim(),
+              isActive: _isActive,
+              toolType: _toolType,
+              accountId: widget.otherFee?.accountId,
+            );
+
+            Navigator.of(context).pop();
+            widget.onSave(newOtherFee);
+          },
+        ),
+      ],
     );
   }
 }

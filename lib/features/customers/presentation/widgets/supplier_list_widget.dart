@@ -72,10 +72,11 @@ class SupplierListWidget extends StatelessWidget {
     double totalAdvance = 0; // دفعات مقدمة عليهم
 
     for (final s in suppliers) {
-      if (s.balance > 0.001) {
-        totalDue += s.balance;
-      } else if (s.balance < -0.001) {
-        totalAdvance += s.balance.abs();
+      // Debit-normal: negative = business owes supplier (مستحقات لهم)
+      if (s.balance < -0.001) {
+        totalDue += s.balance.abs();
+      } else if (s.balance > 0.001) {
+        totalAdvance += s.balance;
       }
     }
 

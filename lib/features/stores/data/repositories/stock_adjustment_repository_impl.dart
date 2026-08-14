@@ -66,8 +66,7 @@ class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
   Future<Either<Failure, void>> updateAdjustment(StockAdjustmentEntity adjustment) async {
     try {
       final model = StockAdjustmentModel.fromEntity(adjustment);
-      // Note: datasource doesn't have updateAdjustment, using createAdjustment for now
-      await localDataSource.createAdjustment(model);
+      await localDataSource.updateAdjustment(model);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(LocalStorageFailure(e.message));
@@ -79,8 +78,7 @@ class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
   @override
   Future<Either<Failure, void>> updateAdjustmentStatus(int id, TransferStatus status) async {
     try {
-      // This would update only the status
-      // For now, just return success as datasource doesn't have this method
+      await localDataSource.updateAdjustmentStatus(id, status);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(LocalStorageFailure(e.message));
@@ -104,8 +102,7 @@ class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
   @override
   Future<Either<Failure, void>> rejectAdjustment(int id, String reason) async {
     try {
-      // This would set status to rejected
-      // For now, just return success
+      await localDataSource.updateAdjustmentStatus(id, TransferStatus.rejected);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(LocalStorageFailure(e.message));

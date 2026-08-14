@@ -134,8 +134,8 @@ class RegionLocalDataSourceImpl implements RegionLocalDataSource {
     try {
       final result = await database.query(
         _tableName,
-        where: 'name LIKE ? OR country LIKE ?',
-        whereArgs: ['%$query%', '%$query%'],
+        where: 'name LIKE ? OR code LIKE ? OR country LIKE ?',
+        whereArgs: ['%$query%', '%$query%', '%$query%'],
         orderBy: 'name ASC',
       );
       return result.map((json) => RegionModel.fromMap(json)).toList();

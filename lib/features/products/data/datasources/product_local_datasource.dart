@@ -19,13 +19,48 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
 
   ProductLocalDataSourceImpl({required this.database});
 
+  Future<bool> _hasTable(String table) async {
+    final result = await database.rawQuery(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name=?",
+      [table],
+    );
+    return result.isNotEmpty;
+  }
+
+  /// Reads products joined with the REAL stock quantity from warehouse_stocks
+  /// (the single source of truth; categories.quantity is only a legacy fallback).
+  Future<List<Map<String, dynamic>>> _queryProductsWithStock({
+    String? whereClause,
+    List<Object?>? whereArgs,
+    String orderBy = 'c.name ASC',
+  }) async {
+    if (!await _hasTable('warehouse_stocks')) {
+      return database.query(
+        _tableName,
+        where: whereClause?.replaceAll('c.', ''),
+        whereArgs: whereArgs,
+        orderBy: orderBy.replaceAll('c.', ''),
+      );
+    }
+    final where = whereClause != null ? 'WHERE $whereClause' : '';
+    return database.rawQuery(
+      '''
+      SELECT c.*, COALESCE(SUM(ws.quantity), 0) AS stock_quantity
+      FROM $_tableName c
+      LEFT JOIN warehouse_stocks ws ON ws.product_id = c.id
+      $where
+      GROUP BY c.id
+      ORDER BY $orderBy
+      ''',
+      whereArgs,
+    );
+  }
+
   @override
   Future<List<ProductModel>> getProducts() async {
     try {
-      final result = await database.query(
-        _tableName,
-        where: 'is_deleted = 0',
-        orderBy: 'name ASC',
+      final result = await _queryProductsWithStock(
+        whereClause: 'c.is_deleted = 0',
       );
       return result.map((json) => ProductModel.fromJson(json)).toList();
     } catch (e) {
@@ -36,11 +71,9 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<ProductModel> getProductById(int id) async {
     try {
-      final result = await database.query(
-        _tableName,
-        where: 'id = ?',
+      final result = await _queryProductsWithStock(
+        whereClause: 'c.id = ?',
         whereArgs: [id],
-        limit: 1,
       );
       
       if (result.isEmpty) {
@@ -57,19 +90,199 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<int> insertProduct(ProductModel product) async {
     try {
-      final data = product.toJson();
-      // Ensure timestamps are set
-      data['creation_time'] ??= DateTime.now().millisecondsSinceEpoch;
-      data['last_modification_time'] ??= DateTime.now().millisecondsSinceEpoch;
-      
-      return await database.insert(
-        _tableName,
-        data,
-        conflictAlgorithm: ConflictAlgorithm.abort,
-      );
+      return await database.transaction((txn) async {
+        final data = product.toJson();
+        // Ensure timestamps are set
+        data['creation_time'] ??= DateTime.now().millisecondsSinceEpoch;
+        data['last_modification_time'] ??= DateTime.now().millisecondsSinceEpoch;
+        
+        final id = await txn.insert(
+          _tableName,
+          data,
+          conflictAlgorithm: ConflictAlgorithm.abort,
+        );
+
+        // Initial stock: create warehouse row + movement + opening journal
+        final initialQty = product.quantity;
+        if (initialQty > 0 && await _hasTable('warehouse_stocks')) {
+          await _postInitialStock(txn, product, id, initialQty);
+        }
+
+        return id;
+      });
     } catch (e) {
       throw LocalStorageException('Failed to insert product: ${e.toString()}');
     }
+  }
+
+  /// Posts the initial stock of a new product:
+  /// - warehouse_stocks row (avg_cost = cost price)
+  /// - stock movement (initial_stock)
+  /// - opening journal entry: Dr inventory (1003) / Cr opening balance (3100)
+  Future<void> _postInitialStock(
+    Transaction txn,
+    ProductModel product,
+    int productId,
+    double quantity,
+  ) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final unitCost = product.costAmount ?? 0.0;
+
+    await txn.insert('warehouse_stocks', {
+      'product_id': productId,
+      'warehouse_id': product.stockId,
+      'quantity': quantity,
+      'avg_cost': unitCost,
+      'last_cost': unitCost,
+      'creation_time': now,
+      'last_modification_time': now,
+    }, conflictAlgorithm: ConflictAlgorithm.replace);
+
+    try {
+      await txn.insert('stock_movements', {
+        'product_id': productId,
+        'warehouse_id': product.stockId,
+        'movement_type': 'initial_stock',
+        'quantity': quantity,
+        'unit_cost': unitCost,
+        'total_cost': quantity * unitCost,
+        'balance_after': quantity,
+        'reference_type': 'product_creation',
+        'reference_id': productId,
+        'reference_number': product.barcodeNo,
+        'creation_time': now,
+      });
+    } catch (_) {
+      // Ignore if stock_movements table doesn't exist
+    }
+
+    // Accounting: opening balance entry (only when a cost exists)
+    if (unitCost > 0) {
+      final value = quantity * unitCost;
+      final inventoryId = await _getOrCreateAccount(
+        txn,
+        code: '1003',
+        cId: 1130,
+        name: 'المخزون',
+        type: 1,
+      );
+      final obId = await _getOrCreateAccount(
+        txn,
+        code: '3100',
+        cId: 3100,
+        name: 'أرصدة افتتاحية',
+        type: 3,
+      );
+
+      final entryId = await txn.insert('journal_entries', {
+        'number': 'OBP-${DateTime.now().millisecondsSinceEpoch}',
+        'entry_date': now,
+        'description': 'رصيد افتتاحي - منتج: ${product.name}',
+        'reference_type': 'opening_balance',
+        'reference_number': product.barcodeNo,
+        'reference_id': productId,
+        'total_debit': value,
+        'total_credit': value,
+        'difference': 0.0,
+        'status': 2,
+        'is_posted': 1,
+        'creation_time': now,
+        'last_modification_time': now,
+      });
+
+      await txn.insert('journal_entry_lines', {
+        'journal_entry_id': entryId,
+        'line_number': 1,
+        'account_id': inventoryId,
+        'account_code': '1003',
+        'account_name': 'المخزون',
+        'debit_amount': value,
+        'credit_amount': 0.0,
+        'description': 'رصيد افتتاحي مخزون - ${product.name}',
+      });
+      await txn.insert('journal_entry_lines', {
+        'journal_entry_id': entryId,
+        'line_number': 2,
+        'account_id': obId,
+        'account_code': '3100',
+        'account_name': 'أرصدة افتتاحية',
+        'debit_amount': 0.0,
+        'credit_amount': value,
+        'description': 'رصيد افتتاحي مخزون - ${product.name}',
+      });
+
+      await _applyBalanceDelta(txn, inventoryId, value);
+      await _applyBalanceDelta(txn, obId, -value);
+    }
+  }
+
+  Future<int> _getOrCreateAccount(
+    Transaction txn, {
+    required String code,
+    required int cId,
+    required String name,
+    required int type,
+  }) async {
+    final existing = await txn.query(
+      'accounts',
+      columns: ['id'],
+      where: 'code = ?',
+      whereArgs: [code],
+      limit: 1,
+    );
+    if (existing.isNotEmpty) return existing.first['id'] as int;
+
+    final byName = await txn.query(
+      'accounts',
+      columns: ['id'],
+      where: 'name = ?',
+      whereArgs: [name],
+      limit: 1,
+    );
+    if (byName.isNotEmpty) return byName.first['id'] as int;
+
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    return await txn.insert('accounts', {
+      'c_id': cId,
+      'code': code,
+      'name': name,
+      'is_master': 0,
+      'type': type,
+      'national': 1,
+      'is_active': 1,
+      'allow_update_delete': 0,
+      'balance': 0.0,
+      'local_balance': 0.0,
+      'creation_time': now,
+      'last_modification_time': now,
+    });
+  }
+
+  Future<void> _applyBalanceDelta(
+    Transaction txn,
+    int accountId,
+    double delta,
+  ) async {
+    final rows = await txn.query(
+      'accounts',
+      columns: ['balance'],
+      where: 'id = ?',
+      whereArgs: [accountId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return;
+    final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
+    final newBalance = current + delta;
+    await txn.update(
+      'accounts',
+      {
+        'balance': newBalance,
+        'local_balance': newBalance,
+        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      },
+      where: 'id = ?',
+      whereArgs: [accountId],
+    );
   }
 
   @override
@@ -79,9 +292,14 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
     }
     
     try {
+      final data = product.toJson();
+      // Stock is managed exclusively through operations (sales/purchases/
+      // transfers/adjustments). Never overwrite it from the product form.
+      data.remove('quantity');
+
       final count = await database.update(
         _tableName,
-        product.toJson(),
+        data,
         where: 'id = ?',
         whereArgs: [product.id],
       );
@@ -179,11 +397,9 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<List<ProductModel>> searchProducts(String query) async {
     try {
-      final result = await database.query(
-        _tableName,
-        where: 'name LIKE ? OR barcode_no LIKE ? OR statement LIKE ?',
+      final result = await _queryProductsWithStock(
+        whereClause: 'c.name LIKE ? OR c.barcode_no LIKE ? OR c.statement LIKE ?',
         whereArgs: ['%$query%', '%$query%', '%$query%'],
-        orderBy: 'name ASC',
       );
       return result.map((json) => ProductModel.fromJson(json)).toList();
     } catch (e) {
@@ -194,11 +410,9 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<List<ProductModel>> getProductsByGroup(int groupId) async {
     try {
-      final result = await database.query(
-        _tableName,
-        where: 'group_id = ?',
+      final result = await _queryProductsWithStock(
+        whereClause: 'c.group_id = ?',
         whereArgs: [groupId],
-        orderBy: 'name ASC',
       );
       return result.map((json) => ProductModel.fromJson(json)).toList();
     } catch (e) {
@@ -209,11 +423,9 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<List<ProductModel>> getProductsByStock(int stockId) async {
     try {
-      final result = await database.query(
-        _tableName,
-        where: 'stock_id = ?',
+      final result = await _queryProductsWithStock(
+        whereClause: 'c.stock_id = ?',
         whereArgs: [stockId],
-        orderBy: 'name ASC',
       );
       return result.map((json) => ProductModel.fromJson(json)).toList();
     } catch (e) {

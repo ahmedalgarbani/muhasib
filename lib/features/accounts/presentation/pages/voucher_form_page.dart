@@ -177,24 +177,29 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
   }
 
   void _pickAccount({required bool isLine, int? lineIndex}) {
+    final accountsCubit = context.read<AccountsCubit>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
       ),
-      builder: (context) => _AccountSelectorSheet(
-        onSelected: (account) {
-          setState(() {
-            if (isLine) {
-              _lines[lineIndex!].accountId = account.id;
-              _lines[lineIndex].accountName = account.name;
-            } else {
-              _accountId = account.id;
-              _accountName = account.name;
-            }
-          });
-        },
+      builder: (modalContext) => BlocProvider.value(
+        value: accountsCubit,
+        child: _AccountSelectorSheet(
+          onSelected: (account) {
+            setState(() {
+              if (isLine) {
+                _lines[lineIndex!].accountId = account.id;
+                _lines[lineIndex].accountName = account.name;
+              } else {
+                _accountId = account.id;
+                _accountName = account.name;
+              }
+            });
+          },
+        ),
       ),
     );
   }

@@ -10,9 +10,12 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
 import 'package:muhasib/features/stores/domain/entities/stock_adjustment_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
+import 'package:muhasib/features/stores/domain/enums/stock_enums.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/stock_adjustments_cubit.dart';
+import 'package:muhasib/features/stores/presentation/widgets/product_picker_sheet.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
@@ -35,6 +38,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   String _adjustmentReason = 'damage';
   WarehouseEntity? _selectedWarehouse;
   final List<StockAdjustmentLineEntity> _adjustmentLines = [];
+  bool _pendingPost = false;
 
   final List<Map<String, String>> _adjustmentReasons = [
     {'value': 'damage', 'label': 'تلف'},
@@ -79,10 +83,25 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
         BlocProvider(
           create: (context) => getIt<ProductsCubit>()..loadProducts(),
         ),
-        if (getIt.isRegistered<StockAdjustmentsCubit>())
-          BlocProvider(create: (context) => getIt<StockAdjustmentsCubit>()),
+        BlocProvider(create: (context) => getIt<StockAdjustmentsCubit>()),
       ],
-      child: Scaffold(
+      child: BlocListener<StockAdjustmentsCubit, StockAdjustmentsState>(
+        listener: (context, state) {
+          if (state is AdjustmentCreated) {
+            if (_pendingPost) {
+              context.read<StockAdjustmentsCubit>().postAdjustment(state.id);
+            } else {
+              AppToast.showSuccess(context, 'تم حفظ التسوية كمسودة');
+              context.pop();
+            }
+          } else if (state is AdjustmentPosted) {
+            AppToast.showSuccess(context, 'تم ترحيل التسوية بنجاح');
+            context.pop();
+          } else if (state is StockAdjustmentsError) {
+            AppToast.showError(context, state.message);
+          }
+        },
+        child: Scaffold(
         backgroundColor: AppColors.neutral100,
         appBar: CustomAppBar(
           title: 'تسوية مخزنية',
@@ -367,8 +386,9 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   ),
                                 ),
                                 title: Text(
-                                  line.categoryId.toString() ??
-                                      'صنف ${index + 1}',
+                                  line.statement.isEmpty
+                                      ? 'صنف ${index + 1}'
+                                      : line.statement,
                                 ),
                                 subtitle: Text(
                                   'الكمية: ${line.quantity} | القيمة: ${line.amount.toStringAsFixed(2)}',
@@ -462,6 +482,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
             ),
           ),
         ),
+        ),
       ),
     );
   }
@@ -480,23 +501,142 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
     }
   }
 
-  void _addProductLine(BuildContext context) {
-    AppToast.showInfo(context, 'سيتم إضافة واجهة اختيار المنتج قريباً');
+  Future<void> _addProductLine(BuildContext context) async {
+    if (_selectedWarehouse == null) {
+      AppToast.showWarning(context, 'يرجى اختيار المخزن أولاً');
+      return;
+    }
+
+    final product = await showProductPicker(context);
+    if (product == null) return;
+
+    final input = await _showLineInputDialog(product);
+    if (input == null || !mounted) return;
+
+    setState(() {
+      _adjustmentLines.add(
+        StockAdjustmentLineEntity(
+          categoryId: product.id!,
+          groupId: product.groupId ?? 1,
+          unitId: product.unitId ?? 1,
+          categorySubUnitId: 1,
+          quantity: input.quantity,
+          statement: product.name,
+          amount: input.unitCost,
+          totalAmount: input.quantity * input.unitCost,
+          currencyId: 1,
+          stockId: _selectedWarehouse!.id ?? 0,
+        ),
+      );
+    });
+  }
+
+  /// Dialog for quantity + unit cost of the adjustment line
+  Future<({double quantity, double unitCost})?> _showLineInputDialog(
+    ProductEntity product,
+  ) async {
+    final qtyController = TextEditingController(text: '1');
+    final costController = TextEditingController(
+      text: (product.costAmount ?? 0).toStringAsFixed(2),
+    );
+
+    final result = await showDialog<({double quantity, double unitCost})>(
+      context: context,
+      builder: (dialogContext) => CustomDialog(
+        title: Text('إضافة الصنف: ${product.name}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomTextField(
+              controller: qtyController,
+              label: 'الكمية',
+              prefixIcon: Icons.inventory,
+              keyboardType: TextInputType.number,
+            ),
+            const SizedBox(height: 16),
+            CustomTextField(
+              controller: costController,
+              label: 'تكلفة الوحدة',
+              prefixIcon: Icons.money,
+              keyboardType: TextInputType.number,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('إلغاء'),
+          ),
+          HasibButton(
+            label: 'إضافة',
+            onPressed: () {
+              final qty = double.tryParse(qtyController.text.trim()) ?? 0;
+              final cost = double.tryParse(costController.text.trim()) ?? 0;
+              if (qty <= 0 || cost < 0) return;
+              Navigator.pop(dialogContext, (quantity: qty, unitCost: cost));
+            },
+            variant: HasibButtonVariant.primary,
+          ),
+        ],
+      ),
+    );
+
+    qtyController.dispose();
+    costController.dispose();
+    return result;
+  }
+
+  bool _validateAdjustment() {
+    if (_selectedWarehouse == null) {
+      AppToast.showError(context, 'يرجى اختيار المخزن');
+      return false;
+    }
+    if (_adjustmentLines.isEmpty) {
+      AppToast.showError(context, 'يرجى إضافة صنف واحد على الأقل');
+      return false;
+    }
+    return true;
+  }
+
+  StockAdjustmentEntity _buildAdjustmentEntity() {
+    return StockAdjustmentEntity(
+      number: _documentNumberController.text,
+      date: _selectedDate.millisecondsSinceEpoch ~/ 1000,
+      type: _adjustmentType == 'increase'
+          ? AdjustmentType.increase
+          : AdjustmentType.decrease,
+      currencyId: 1,
+      statement: _statementController.text.trim(),
+      status: TransferStatus.draft,
+      stockId: _selectedWarehouse?.id,
+      settlementReason: _adjustmentReason,
+      lines: _adjustmentLines,
+    );
   }
 
   void _saveAdjustment(String status) {
     if (!_formKey.currentState!.validate()) return;
+    if (!_validateAdjustment()) return;
 
-    AppToast.showSuccess(context, 'تم حفظ التسوية كمسودة');
+    _pendingPost = false;
+    context
+        .read<StockAdjustmentsCubit>()
+        .createAdjustment(_buildAdjustmentEntity());
   }
 
   void _postAdjustment() {
     if (!_formKey.currentState!.validate()) return;
+    if (!_validateAdjustment()) return;
 
     _showAccountingPreview();
   }
 
   void _showAccountingPreview() {
+    final totalValue = _adjustmentLines.fold<double>(
+      0,
+      (sum, line) => sum + (line.quantity * line.amount),
+    );
+
     showDialog(
       context: context,
       builder: (context) => CustomDialog(
@@ -512,20 +652,20 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
               ),
               const SizedBox(height: 8),
               if (_adjustmentType == 'increase')
-                const Text(
-                  'من ح/ المخزون\n'
-                  '  إلى ح/ إيرادات التسوية',
-                  style: TextStyle(fontFamily: 'monospace'),
+                Text(
+                  'من ح/ المخزون ${totalValue.toStringAsFixed(2)}\n'
+                  '  إلى ح/ إيرادات تسوية المخزون ${totalValue.toStringAsFixed(2)}',
+                  style: const TextStyle(fontFamily: 'monospace'),
                 )
               else
-                const Text(
-                  'من ح/ مصروفات التسوية\n'
-                  '  إلى ح/ المخزون',
-                  style: TextStyle(fontFamily: 'monospace'),
+                Text(
+                  'من ح/ خسائر تسوية المخزون ${totalValue.toStringAsFixed(2)}\n'
+                  '  إلى ح/ المخزون ${totalValue.toStringAsFixed(2)}',
+                  style: const TextStyle(fontFamily: 'monospace'),
                 ),
               const SizedBox(height: 16),
               const Text(
-                'هل تريد ترحيل التسوية؟',
+                'سيتم ترحيل التسوية وتحديث المخزون والقيود المحاسبية. هل تريد المتابعة؟',
                 style: TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
@@ -540,9 +680,10 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
             label: 'ترحيل',
             onPressed: () {
               Navigator.pop(context);
-              // Post adjustment logic here
-              AppToast.showSuccess(context, 'تم ترحيل التسوية بنجاح');
-              context.pop();
+              _pendingPost = true;
+              context
+                  .read<StockAdjustmentsCubit>()
+                  .createAdjustment(_buildAdjustmentEntity());
             },
             variant: HasibButtonVariant.success,
           ),

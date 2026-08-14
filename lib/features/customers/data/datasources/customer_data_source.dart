@@ -215,7 +215,14 @@ class CustomerDataSourceImpl implements CustomerDataSource {
         }
       }
 
-      // Create account for the customer/supplier
+      // Opening balance in debit-normal convention (the single source of truth):
+      // Customer: + = owes business (debit/عليه), - = credit balance (له)
+      // Supplier: + = advance paid to supplier (debit/عليه), - = business owes supplier (credit/له)
+      final debitNormalBalance = type == 1 ? openingBalance : -openingBalance;
+
+      // Create account for the customer/supplier.
+      // The account starts at zero; the opening-balance journal entry below
+      // posts the balance (journal is the only source of account balances).
       final accountId = await txn.insert('accounts', {
         'c_id': nextCode,
         'code': nextCode.toString(),
@@ -228,8 +235,8 @@ class CustomerDataSourceImpl implements CustomerDataSource {
         'statement': type == 1 ? 'حساب العميل: $name' : 'حساب المورد: $name',
         'is_active': 1,
         'allow_update_delete': 1,
-        'balance': openingBalance,
-        'local_balance': openingBalance,
+        'balance': 0.0,
+        'local_balance': 0.0,
         'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       });
@@ -260,19 +267,19 @@ class CustomerDataSourceImpl implements CustomerDataSource {
           contact: contact,
           address: address,
           creditLimit: creditLimit,
-          currentBalance: openingBalance,
+          currentBalance: debitNormalBalance,
           accountId: accountId,
           classificationId: type,
         ),
       );
 
-      // Create opening balance journal entry if needed
-      if (openingBalance != 0) {
+      // Post the opening balance journal entry (updates account balances)
+      if (debitNormalBalance.abs() > 0.0001) {
         await _createOpeningBalanceEntry(
           txn: txn,
           accountId: accountId,
           accountName: name,
-          amount: openingBalance,
+          partyDebitDelta: debitNormalBalance,
           type: type,
         );
       }
@@ -495,130 +502,159 @@ class CustomerDataSourceImpl implements CustomerDataSource {
     };
   }
 
-  /// Create opening balance journal entry for customer/supplier
+  /// Create and POST the opening balance journal entry for customer/supplier.
+  ///
+  /// [partyDebitDelta] is debit-normal (debit - credit) for the party account:
+  /// - Customer owes money         => positive (Dr customer)
+  /// - Customer has credit balance => negative (Cr customer)
+  /// - Supplier advance paid       => positive (Dr supplier)
+  /// - Business owes supplier      => negative (Cr supplier)
+  ///
+  /// The journal entry is the single source of truth: it updates the
+  /// account balances of both the party account and the opening-balance
+  /// account (code 3100).
   Future<void> _createOpeningBalanceEntry({
     required dynamic txn,
     required int accountId,
     required String accountName,
-    required double amount,
-    required int type,  // 1=customer, 2=supplier
+    required double partyDebitDelta,
+    required int type,
   }) async {
-    try {
-      if (amount.abs() < 0.0001) return;
+    final absAmount = partyDebitDelta.abs();
+    if (absAmount < 0.0001) return;
 
-      // 1. Get or create Opening Balance account (code 3100)
-      final obResults = await txn.query(
-        'accounts',
-        where: 'code = ?',
-        whereArgs: ['3100'],
-        limit: 1,
-      );
-      
-      int obAccountId;
-      if (obResults.isEmpty) {
-        // Create Opening Balance account
-        obAccountId = await txn.insert('accounts', {
-          'c_id': 3100,
-          'code': '3100',
-          'name': 'أرصدة افتتاحية',
-          'is_master': 0,
-          'type': 3,  // Equity
-          'national': 1,
-          'is_active': 1,
-          'allow_update_delete': 0,
-          'balance': 0.0,
-          'local_balance': 0.0,
-          'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-          'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        });
-      } else {
-        obAccountId = obResults.first['id'] as int;
-      }
-      
-      // 2. Create journal entry
-      final journalNumber = 'OB-${DateTime.now().millisecondsSinceEpoch}';
-      final absAmount = amount.abs();
-      
-      // Determine if customer/supplier is debit or credit based on type and sign:
-      // For Customer (type == 1):
-      // amount > 0 means Debit Customer (عليه), Credit OB
-      // amount < 0 means Credit Customer (له), Debit OB
-      // For Supplier (type == 2):
-      // amount > 0 means Credit Supplier (له), Debit OB
-      // amount < 0 means Debit Supplier (عليه), Credit OB
-      final bool isPartyDebit = (type == 1 && amount > 0) || (type == 2 && amount < 0);
-      final String partyLabel = type == 1 ? 'عميل' : 'مورد';
-      final String directionLabel = isPartyDebit ? 'مدين (عليه)' : 'دائن (له)';
+    // 1. Get or create Opening Balance account (code 3100)
+    final obResults = await txn.query(
+      'accounts',
+      where: 'code = ?',
+      whereArgs: ['3100'],
+      limit: 1,
+    );
 
-      final entryId = await txn.insert('journal_entries', {
-        'number': journalNumber,
-        'entry_date': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'description': 'رصيد افتتاحي $directionLabel - $partyLabel: $accountName',
-        'reference_type': 'opening_balance',
-        'reference_number': accountName,
-        'reference_id': accountId,
-        'total_debit': absAmount,
-        'total_credit': absAmount,
-        'difference': 0.0,
-        'status': 0,
-        'is_posted': 1,
+    int obAccountId;
+    if (obResults.isEmpty) {
+      // Create Opening Balance account
+      obAccountId = await txn.insert('accounts', {
+        'c_id': 3100,
+        'code': '3100',
+        'name': 'أرصدة افتتاحية',
+        'is_master': 0,
+        'type': 3,  // Equity
+        'national': 1,
+        'is_active': 1,
+        'allow_update_delete': 0,
+        'balance': 0.0,
+        'local_balance': 0.0,
         'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       });
-      
-      // 3. Insert journal entry lines
-      if (isPartyDebit) {
-        // Line 1: Debit Party Account
-        await txn.insert('journal_entry_lines', {
-          'journal_entry_id': entryId,
-          'line_number': 1,
-          'account_id': accountId,
-          'account_name': accountName,
-          'currency_code': 'YER',
-          'debit_amount': absAmount,
-          'credit_amount': 0.0,
-        });
-        
-        // Line 2: Credit Opening Balance
-        await txn.insert('journal_entry_lines', {
-          'journal_entry_id': entryId,
-          'line_number': 2,
-          'account_id': obAccountId,
-          'account_code': '3100',
-          'account_name': 'أرصدة افتتاحية',
-          'currency_code': 'YER',
-          'debit_amount': 0.0,
-          'credit_amount': absAmount,
-        });
-      } else {
-        // Line 1: Debit Opening Balance
-        await txn.insert('journal_entry_lines', {
-          'journal_entry_id': entryId,
-          'line_number': 1,
-          'account_id': obAccountId,
-          'account_code': '3100',
-          'account_name': 'أرصدة افتتاحية',
-          'currency_code': 'YER',
-          'debit_amount': absAmount,
-          'credit_amount': 0.0,
-        });
-        
-        // Line 2: Credit Party Account
-        await txn.insert('journal_entry_lines', {
-          'journal_entry_id': entryId,
-          'line_number': 2,
-          'account_id': accountId,
-          'account_name': accountName,
-          'currency_code': 'YER',
-          'debit_amount': 0.0,
-          'credit_amount': absAmount,
-        });
-      }
-      
-      print('✅ Created opening balance entry for $accountName: $amount ($directionLabel)');
-    } catch (e) {
-      print('⚠️ Failed to create opening balance entry: $e');
-      // Don't throw - allow customer creation to succeed even if OB entry fails
+    } else {
+      obAccountId = obResults.first['id'] as int;
     }
+
+    final isPartyDebit = partyDebitDelta > 0;
+    final partyLabel = type == 1 ? 'عميل' : 'مورد';
+    final directionLabel = isPartyDebit ? 'مدين (عليه)' : 'دائن (له)';
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+    // 2. Create journal entry (posted)
+    final entryId = await txn.insert('journal_entries', {
+      'number': 'OB-${DateTime.now().millisecondsSinceEpoch}',
+      'entry_date': now,
+      'description': 'رصيد افتتاحي $directionLabel - $partyLabel: $accountName',
+      'reference_type': 'opening_balance',
+      'reference_number': accountName,
+      'reference_id': accountId,
+      'total_debit': absAmount,
+      'total_credit': absAmount,
+      'difference': 0.0,
+      'status': 2,
+      'is_posted': 1,
+      'creation_time': now,
+      'last_modification_time': now,
+    });
+
+    // 3. Insert journal entry lines
+    if (isPartyDebit) {
+      // Line 1: Debit Party Account
+      await txn.insert('journal_entry_lines', {
+        'journal_entry_id': entryId,
+        'line_number': 1,
+        'account_id': accountId,
+        'account_name': accountName,
+        'currency_code': 'YER',
+        'debit_amount': absAmount,
+        'credit_amount': 0.0,
+      });
+
+      // Line 2: Credit Opening Balance
+      await txn.insert('journal_entry_lines', {
+        'journal_entry_id': entryId,
+        'line_number': 2,
+        'account_id': obAccountId,
+        'account_code': '3100',
+        'account_name': 'أرصدة افتتاحية',
+        'currency_code': 'YER',
+        'debit_amount': 0.0,
+        'credit_amount': absAmount,
+      });
+    } else {
+      // Line 1: Debit Opening Balance
+      await txn.insert('journal_entry_lines', {
+        'journal_entry_id': entryId,
+        'line_number': 1,
+        'account_id': obAccountId,
+        'account_code': '3100',
+        'account_name': 'أرصدة افتتاحية',
+        'currency_code': 'YER',
+        'debit_amount': absAmount,
+        'credit_amount': 0.0,
+      });
+
+      // Line 2: Credit Party Account
+      await txn.insert('journal_entry_lines', {
+        'journal_entry_id': entryId,
+        'line_number': 2,
+        'account_id': accountId,
+        'account_name': accountName,
+        'currency_code': 'YER',
+        'debit_amount': 0.0,
+        'credit_amount': absAmount,
+      });
+    }
+
+    // 4. Update account balances (debit-normal) — journal is the source
+    await _applyAccountBalanceDelta(txn, accountId, partyDebitDelta);
+    await _applyAccountBalanceDelta(txn, obAccountId, -partyDebitDelta);
+
+    print('✅ Created opening balance entry for $accountName: $partyDebitDelta ($directionLabel)');
+  }
+
+  /// Applies a debit-normal delta to an account balance
+  Future<void> _applyAccountBalanceDelta(
+    dynamic txn,
+    int accountId,
+    double delta,
+  ) async {
+    final rows = await txn.query(
+      'accounts',
+      columns: ['balance'],
+      where: 'id = ?',
+      whereArgs: [accountId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return;
+    final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
+    final newBalance = current + delta;
+    await txn.update(
+      'accounts',
+      {
+        'balance': newBalance,
+        'local_balance': newBalance,
+        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      },
+      where: 'id = ?',
+      whereArgs: [accountId],
+    );
   }
 }

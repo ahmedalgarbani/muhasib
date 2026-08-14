@@ -95,6 +95,22 @@ class CashboxLocalDataSourceImpl implements CashboxLocalDataSource {
       data['creation_time'] ??= nowInSeconds;
       data['last_modification_time'] ??= nowInSeconds;
 
+      if (cashbox.isMainFund) {
+        return await database.transaction((txn) async {
+          await txn.update(
+            _tableName,
+            {'is_main_fund': 0},
+            where: 'is_main_fund = ?',
+            whereArgs: [1],
+          );
+          return await txn.insert(
+            _tableName,
+            data,
+            conflictAlgorithm: ConflictAlgorithm.abort,
+          );
+        });
+      }
+
       return await database.insert(
         _tableName,
         data,
@@ -115,15 +131,35 @@ class CashboxLocalDataSourceImpl implements CashboxLocalDataSource {
       final data = cashbox.toMap();
       data['last_modification_time'] = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
-      final count = await database.update(
-        _tableName,
-        data,
-        where: 'id = ?',
-        whereArgs: [cashbox.id],
-      );
+      if (cashbox.isMainFund) {
+        await database.transaction((txn) async {
+          await txn.update(
+            _tableName,
+            {'is_main_fund': 0},
+            where: 'is_main_fund = ? AND id != ?',
+            whereArgs: [1, cashbox.id],
+          );
+          final count = await txn.update(
+            _tableName,
+            data,
+            where: 'id = ?',
+            whereArgs: [cashbox.id],
+          );
+          if (count == 0) {
+            throw LocalStorageException('Cashbox with id ${cashbox.id} not found');
+          }
+        });
+      } else {
+        final count = await database.update(
+          _tableName,
+          data,
+          where: 'id = ?',
+          whereArgs: [cashbox.id],
+        );
 
-      if (count == 0) {
-        throw LocalStorageException('Cashbox with id ${cashbox.id} not found');
+        if (count == 0) {
+          throw LocalStorageException('Cashbox with id ${cashbox.id} not found');
+        }
       }
     } catch (e) {
       if (e is LocalStorageException) rethrow;

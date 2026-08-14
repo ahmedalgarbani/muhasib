@@ -322,10 +322,13 @@ class _ProductFormPageState extends State<ProductFormPage> {
                           Expanded(
                             child: TextInputField(
                               controller: _quantityController,
-                              label: 'الكمية',
+                              label: widget.product == null
+                                  ? 'الكمية الافتتاحية'
+                                  : 'الكمية الحالية',
                               hint: '0',
                               prefixIcon: const Icon(Icons.inventory_2),
                               keyboardType: TextInputType.number,
+                              readOnly: widget.product != null,
                             ),
                           ),
                           const SizedBox(width: 16),
@@ -416,7 +419,9 @@ class _ProductFormPageState extends State<ProductFormPage> {
       sellAmount: _sellPriceController.text.isNotEmpty
           ? double.tryParse(_sellPriceController.text)
           : null,
-      quantity: double.tryParse(_quantityController.text) ?? 0,
+      quantity: widget.product == null
+          ? (double.tryParse(_quantityController.text) ?? 0)
+          : (widget.product?.quantity ?? 0),
       minStockLevel: double.tryParse(_minStockController.text) ?? 0,
       maxStockLevel: _maxStockController.text.isNotEmpty
           ? double.tryParse(_maxStockController.text)

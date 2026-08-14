@@ -71,11 +71,14 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
     return await database.transaction((txn) async {
       final id = await txn.insert('stock_transfers', transfer.toMap());
       
-      // Insert transfer lines
+      // Insert transfer lines linked to the transfer id
       if (transfer.lines.isNotEmpty) {
         for (var line in transfer.lines) {
           final lineModel = line is StockTransferLineModel ? line : StockTransferLineModel.fromEntity(line);
-          await txn.insert('stock_transfer_lines', lineModel.toMap());
+          await txn.insert(
+            'stock_transfer_lines',
+            {...lineModel.toMap(), 'stock_transfer_id': id},
+          );
         }
       }
       
@@ -89,6 +92,13 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
       (e) => e.name == status,
       orElse: () => TransferStatus.draft,
     );
+
+    // Double-completion guard: never process stock twice
+    final current = await getTransfer(id);
+    if (current.status == TransferStatus.completed &&
+        parsedStatus == TransferStatus.completed) {
+      throw Exception('تم اكتمال هذا التحويل مسبقاً');
+    }
 
     await database.update(
       'stock_transfers',
@@ -154,6 +164,8 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
         final quantity = line.quantity;
         final costAmount = line.costAmount ?? 0;
         
+        if (productId == null) continue;
+        
         // 1. Validate quantity availability in source warehouse
         final sourceStock = await txn.query(
           'warehouse_stocks',
@@ -182,16 +194,51 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
         ''', [quantity, now, productId, transfer.fromStockId]);
         
         // 3. Increase in destination warehouse (warehouse_stocks)
-        await txn.rawInsert('''
-          INSERT INTO warehouse_stocks (product_id, warehouse_id, quantity, avg_cost, creation_time, last_modification_time)
-          VALUES (?, ?, ?, ?, ?, ?)
-          ON CONFLICT(product_id, warehouse_id) DO UPDATE SET
-          quantity = quantity + ?,
-          last_modification_time = ?
-        ''', [
-          productId, transfer.toStockId, quantity, costAmount, now, now,
-          quantity, now
-        ]);
+        // Blend average cost so destination valuation stays correct.
+        final destStock = await txn.query(
+          'warehouse_stocks',
+          columns: ['quantity', 'avg_cost'],
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [productId, transfer.toStockId],
+          limit: 1,
+        );
+        final destQtyBefore = destStock.isNotEmpty
+            ? (destStock.first['quantity'] as num?)?.toDouble() ?? 0.0
+            : 0.0;
+        final destAvgBefore = destStock.isNotEmpty
+            ? (destStock.first['avg_cost'] as num?)?.toDouble() ?? 0.0
+            : 0.0;
+        final newDestQty = destQtyBefore + quantity;
+
+        double newAvgCost = costAmount;
+        if (destStock.isNotEmpty && newDestQty > 0) {
+          newAvgCost =
+              ((destQtyBefore * destAvgBefore) + (quantity * costAmount)) /
+                  newDestQty;
+        }
+
+        if (destStock.isNotEmpty) {
+          await txn.update(
+            'warehouse_stocks',
+            {
+              'quantity': newDestQty,
+              'avg_cost': newAvgCost,
+              'last_modification_time': now,
+            },
+            where: 'product_id = ? AND warehouse_id = ?',
+            whereArgs: [productId, transfer.toStockId],
+          );
+        } else {
+          await txn.insert('warehouse_stocks', {
+            'product_id': productId,
+            'warehouse_id': transfer.toStockId,
+            'quantity': quantity,
+            'avg_cost': costAmount,
+            'last_cost': costAmount,
+            'creation_time': now,
+            'last_modification_time': now,
+          });
+        }
         
         // 4. Record stock movement for source (outgoing)
         await txn.insert('stock_movements', {
@@ -210,17 +257,6 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
         });
         
         // 5. Record stock movement for destination (incoming)
-        final destStock = await txn.query(
-          'warehouse_stocks',
-          columns: ['quantity'],
-          where: 'product_id = ? AND warehouse_id = ?',
-          whereArgs: [productId, transfer.toStockId],
-          limit: 1,
-        );
-        final destQty = destStock.isNotEmpty 
-            ? (destStock.first['quantity'] as num?)?.toDouble() ?? 0.0
-            : quantity;
-        
         await txn.insert('stock_movements', {
           'product_id': productId,
           'warehouse_id': transfer.toStockId,
@@ -228,7 +264,7 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
           'quantity': quantity, // Positive for incoming
           'unit_cost': costAmount,
           'total_cost': costAmount * quantity,
-          'balance_after': destQty,
+          'balance_after': newDestQty,
           'reference_type': 'stock_transfer',
           'reference_id': transferId,
           'reference_number': transfer.number,

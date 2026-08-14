@@ -9,6 +9,8 @@ abstract class StockAdjustmentLocalDataSource {
   Future<List<StockAdjustmentModel>> getAdjustmentsByWarehouse(int warehouseId);
   Future<StockAdjustmentModel> getAdjustment(int id);
   Future<int> createAdjustment(StockAdjustmentModel adjustment);
+  Future<void> updateAdjustment(StockAdjustmentModel adjustment);
+  Future<void> updateAdjustmentStatus(int id, TransferStatus status);
   Future<void> postAdjustment(int id);
   Future<void> deleteAdjustment(int id);
 }
@@ -76,11 +78,14 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
     return await db.transaction((txn) async {
       final id = await txn.insert('stock_settlements', adjustment.toMap());
       
-      // Insert adjustment lines
+      // Insert adjustment lines linked to the settlement id
       if (adjustment.lines.isNotEmpty) {
         for (var line in adjustment.lines) {
           final lineModel = line is StockAdjustmentLineModel ? line : StockAdjustmentLineModel.fromEntity(line);
-          await txn.insert('stock_settlement_lines', lineModel.toMap());
+          await txn.insert(
+            'stock_settlement_lines',
+            {...lineModel.toMap(), 'stock_settlement_id': id},
+          );
         }
       }
       
@@ -89,11 +94,69 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
   }
 
   @override
+  Future<void> updateAdjustment(StockAdjustmentModel adjustment) async {
+    if (adjustment.id == null) {
+      throw Exception('Adjustment id is required for update');
+    }
+
+    final existing = await getAdjustment(adjustment.id!);
+    if (existing.status == TransferStatus.completed) {
+      throw Exception('لا يمكن تعديل تسوية مرحّلة');
+    }
+
+    final db = await databaseService.database;
+    await db.transaction((txn) async {
+      await txn.update(
+        'stock_settlements',
+        adjustment.toMap(),
+        where: 'id = ?',
+        whereArgs: [adjustment.id],
+      );
+
+      // Replace lines
+      await txn.delete(
+        'stock_settlement_lines',
+        where: 'stock_settlement_id = ?',
+        whereArgs: [adjustment.id],
+      );
+      for (var line in adjustment.lines) {
+        final lineModel = line is StockAdjustmentLineModel ? line : StockAdjustmentLineModel.fromEntity(line);
+        await txn.insert(
+          'stock_settlement_lines',
+          {...lineModel.toMap(), 'stock_settlement_id': adjustment.id},
+        );
+      }
+    });
+  }
+
+  @override
+  Future<void> updateAdjustmentStatus(int id, TransferStatus status) async {
+    final db = await databaseService.database;
+    await db.update(
+      'stock_settlements',
+      {
+        'status': status.value,
+        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      },
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  @override
   Future<void> postAdjustment(int id) async {
     final adjustment = await getAdjustment(id);
     final db = await databaseService.database;
     
     await db.transaction((txn) async {
+      // Double-posting guard
+      if (adjustment.status == TransferStatus.completed) {
+        throw Exception('تم ترحيل هذه التسوية مسبقاً');
+      }
+      if (adjustment.lines.isEmpty) {
+        throw Exception('لا توجد أصناف في التسوية للترحيل');
+      }
+
       // 1. Update adjustment status to posted
       await txn.update(
         'stock_settlements',
@@ -107,65 +170,122 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
 
       double totalValue = 0.0;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final isIncrease = adjustment.type == AdjustmentType.increase;
 
       // 2. Process stock movements
-      if (adjustment.lines.isNotEmpty) {
-        for (var line in adjustment.lines) {
-          final isIncrease = adjustment.type == AdjustmentType.increase;
-          final quantity = isIncrease ? line.quantity : -line.quantity;
-          final unitCost = line.amount / (line.quantity > 0 ? line.quantity : 1);
-          final lineTotal = line.amount;
-          
-          totalValue += lineTotal;
+      for (var line in adjustment.lines) {
+        final quantity = isIncrease ? line.quantity : -line.quantity;
+        final unitCost = line.amount; // unit cost
 
-          // Update inventory stock (warehouse_stocks)
-          // We need to fetch current stock to update avg_cost if needed, 
-          // but for simple adjustment we might just update quantity.
-          // For strict accounting, we should recalculate avg cost on increase.
-          
-          // Simple stock update for now
-          await txn.rawUpdate('''
-            INSERT INTO warehouse_stocks (product_id, warehouse_id, quantity, avg_cost, creation_time, last_modification_time)
-            VALUES (?, ?, ?, ?, ?, ?)
-            ON CONFLICT(product_id, warehouse_id) DO UPDATE SET
-            quantity = quantity + ?,
-            last_modification_time = ?
-          ''', [
-            line.categoryId, adjustment.stockId, quantity, unitCost, now, now,
-            quantity, now
-          ]);
+        // Current stock row (for avg cost blending + balance_after)
+        final stockResult = await txn.query(
+          'warehouse_stocks',
+          columns: ['quantity', 'avg_cost'],
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [line.categoryId, adjustment.stockId],
+          limit: 1,
+        );
 
-          // Insert into CORRECT stock_movements table
-          await txn.insert('stock_movements', {
+        final currentQty = stockResult.isNotEmpty
+            ? (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0
+            : 0.0;
+        final currentAvg = stockResult.isNotEmpty
+            ? (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0
+            : 0.0;
+        final newQty = currentQty + quantity;
+
+        // Movement cost and line value:
+        // - Increase: at the user-entered unit cost; blend avg cost.
+        // - Decrease: at the current weighted average cost (correct COGS basis).
+        double movementCost;
+        double lineTotal;
+        double newAvgCost = currentAvg;
+
+        if (isIncrease) {
+          movementCost = unitCost;
+          lineTotal = line.quantity * unitCost;
+          if (newQty > 0) {
+            newAvgCost =
+                ((currentQty * currentAvg) + (line.quantity * unitCost)) /
+                    newQty;
+          }
+        } else {
+          movementCost = currentAvg > 0 ? currentAvg : unitCost;
+          lineTotal = line.quantity * movementCost;
+        }
+        totalValue += lineTotal;
+
+        if (stockResult.isNotEmpty) {
+          await txn.update(
+            'warehouse_stocks',
+            {
+              'quantity': newQty,
+              'avg_cost': newAvgCost,
+              'last_modification_time': now,
+            },
+            where: 'product_id = ? AND warehouse_id = ?',
+            whereArgs: [line.categoryId, adjustment.stockId],
+          );
+        } else {
+          await txn.insert('warehouse_stocks', {
             'product_id': line.categoryId,
             'warehouse_id': adjustment.stockId,
-            'movement_type': 'adjustment',
-            'quantity': quantity,
-            'unit_cost': unitCost,
-            'total_cost': lineTotal,
-            'balance_after': 0, // Ideally we fetch this, but 0 is placeholder if we don't want extra query
-            'reference_type': 'stock_adjustment',
-            'reference_id': id,
-            'reference_number': adjustment.number,
+            'quantity': newQty,
+            'avg_cost': isIncrease ? unitCost : 0.0,
+            'last_cost': isIncrease ? unitCost : 0.0,
             'creation_time': now,
-            'notes': line.statement,
+            'last_modification_time': now,
           });
         }
+
+        // Stock movement with real balance_after
+        await txn.insert('stock_movements', {
+          'product_id': line.categoryId,
+          'warehouse_id': adjustment.stockId,
+          'movement_type': 'adjustment',
+          'quantity': quantity,
+          'unit_cost': movementCost,
+          'total_cost': lineTotal,
+          'balance_after': newQty,
+          'reference_type': 'stock_adjustment',
+          'reference_id': id,
+          'reference_number': adjustment.number,
+          'creation_time': now,
+          'notes': line.statement,
+        });
       }
 
-      // 3. Create Journal Entry
-      // Increase (Gain): Dr Inventory (1180) / Cr Adjustment Income (4200)
-      // Decrease (Loss): Dr Adjustment Expense (5200) / Cr Inventory (1180)
-      
-      if (totalValue > 0) {
-        final isIncrease = adjustment.type == AdjustmentType.increase;
-        final inventoryAccountId = await _resolveAccountId(txn, 'المخزون', 1180);
+      // 3. Create Journal Entry (balanced)
+      // Increase (Gain): Dr Inventory / Cr Settlement Income (4200)
+      // Decrease (Loss):  Dr Settlement Loss (5200) / Cr Inventory
+      if (totalValue > 0.001) {
+        final inventoryAccountId = await _getOrCreateAccount(
+          txn,
+          code: '1003',
+          cId: 1130,
+          name: 'المخزون',
+          type: 1,
+        );
         final adjustmentAccountId = isIncrease
-            ? await _resolveAccountId(txn, 'إيرادات تسوية مخزون', 4200)
-            : await _resolveAccountId(txn, 'خسائر تسوية مخزون', 5200);
+            ? await _getOrCreateAccount(
+                txn,
+                code: '4200',
+                cId: 4200,
+                name: 'إيرادات تسوية المخزون',
+                type: 4,
+              )
+            : await _getOrCreateAccount(
+                txn,
+                code: '5200',
+                cId: 5200,
+                name: 'خسائر تسوية المخزون',
+                type: 5,
+              );
 
         final journalNumber = await _nextJournalNumber(txn, 'ADJ');
-        
+
+        final currencyId = await _resolveCurrencyId(txn);
+
         final journalEntryId = await txn.insert('journal_entries', {
           'number': journalNumber,
           'entry_date': now,
@@ -173,7 +293,7 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
           'reference_type': 'stock_adjustment',
           'reference_id': id,
           'reference_number': adjustment.number,
-          'status': 1,
+          'status': 2,
           'is_posted': 1,
           'total_debit': totalValue,
           'total_credit': totalValue,
@@ -191,16 +311,14 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
           'account_id': debitAccount,
           'account_code': debitMeta['code'],
           'account_name': debitMeta['name'],
+          'currency_id': currencyId,
           'debit_amount': totalValue,
           'credit_amount': 0.0,
           'description': isIncrease ? 'زيادة مخزون' : 'عجز مخزون',
         });
         
         // Update Debit Account Balance
-        await txn.rawUpdate(
-          'UPDATE accounts SET balance = COALESCE(balance, 0) + ? WHERE id = ?',
-          [totalValue, debitAccount],
-        );
+        await _applyAccountBalanceDelta(txn, debitAccount, totalValue);
 
         // Credit Line
         final creditAccount = isIncrease ? adjustmentAccountId : inventoryAccountId;
@@ -211,16 +329,14 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
           'account_id': creditAccount,
           'account_code': creditMeta['code'],
           'account_name': creditMeta['name'],
+          'currency_id': currencyId,
           'debit_amount': 0.0,
           'credit_amount': totalValue,
           'description': isIncrease ? 'إيراد تسوية' : 'تخفيض مخزون',
         });
 
         // Update Credit Account Balance
-        await txn.rawUpdate(
-          'UPDATE accounts SET balance = COALESCE(balance, 0) - ? WHERE id = ?',
-          [totalValue, creditAccount],
-        );
+        await _applyAccountBalanceDelta(txn, creditAccount, -totalValue);
       }
     });
   }
@@ -263,18 +379,91 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
     return maps.map((map) => StockAdjustmentLineModel.fromMap(map)).toList();
   }
   // Helpers for Accounting
-  Future<int> _resolveAccountId(Transaction txn, String label, int defaultId) async {
-    final result = await txn.query(
+  /// Resolves an account by code, creating it if missing (works for
+  /// existing databases where the settlement accounts were never seeded).
+  Future<int> _getOrCreateAccount(
+    Transaction txn, {
+    required String code,
+    required int cId,
+    required String name,
+    required int type,
+  }) async {
+    final existing = await txn.query(
       'accounts',
       columns: ['id'],
-      where: 'name LIKE ? OR id = ?',
-      whereArgs: ['%$label%', defaultId],
+      where: 'code = ?',
+      whereArgs: [code],
       limit: 1,
     );
-    if (result.isNotEmpty) {
-      return result.first['id'] as int;
+    if (existing.isNotEmpty) {
+      return existing.first['id'] as int;
     }
-    return defaultId;
+
+    final byName = await txn.query(
+      'accounts',
+      columns: ['id'],
+      where: 'name = ?',
+      whereArgs: [name],
+      limit: 1,
+    );
+    if (byName.isNotEmpty) {
+      return byName.first['id'] as int;
+    }
+
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    return await txn.insert('accounts', {
+      'c_id': cId,
+      'code': code,
+      'name': name,
+      'is_master': 0,
+      'type': type,
+      'national': 1,
+      'is_active': 1,
+      'allow_update_delete': 0,
+      'balance': 0.0,
+      'local_balance': 0.0,
+      'creation_time': now,
+      'last_modification_time': now,
+    });
+  }
+
+  Future<int?> _resolveCurrencyId(Transaction txn) async {
+    final any = await txn.query(
+      'currencies',
+      columns: ['id'],
+      orderBy: 'id ASC',
+      limit: 1,
+    );
+    if (any.isEmpty) return null;
+    return any.first['id'] as int;
+  }
+
+  /// Applies a debit-normal delta to an account balance (+local_balance)
+  Future<void> _applyAccountBalanceDelta(
+    Transaction txn,
+    int accountId,
+    double delta,
+  ) async {
+    final rows = await txn.query(
+      'accounts',
+      columns: ['balance'],
+      where: 'id = ?',
+      whereArgs: [accountId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return;
+    final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
+    final newBalance = current + delta;
+    await txn.update(
+      'accounts',
+      {
+        'balance': newBalance,
+        'local_balance': newBalance,
+        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      },
+      where: 'id = ?',
+      whereArgs: [accountId],
+    );
   }
 
   Future<Map<String, dynamic>> _getAccountMeta(Transaction txn, int accountId) async {

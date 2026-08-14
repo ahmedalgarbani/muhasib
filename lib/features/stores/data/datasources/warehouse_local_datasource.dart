@@ -136,6 +136,37 @@ class WarehouseLocalDataSourceImpl implements WarehouseLocalDataSource {
   @override
   Future<void> deleteWarehouse(int id) async {
     try {
+      // Protection: block deletion when related data exists
+      final stockCount = await database.rawQuery(
+        'SELECT COUNT(*) as count FROM warehouse_stocks WHERE warehouse_id = ?',
+        [id],
+      );
+      if (((stockCount.first['count'] as int?) ?? 0) > 0) {
+        throw LocalStorageException(
+          'لا يمكن حذف المخزن لوجود أرصدة أصناف فيه',
+        );
+      }
+
+      final transferCount = await database.rawQuery(
+        'SELECT COUNT(*) as count FROM stock_transfers WHERE from_stock_id = ? OR to_stock_id = ?',
+        [id, id],
+      );
+      if (((transferCount.first['count'] as int?) ?? 0) > 0) {
+        throw LocalStorageException(
+          'لا يمكن حذف المخزن لوجود تحويلات مرتبطة به',
+        );
+      }
+
+      final invoiceCount = await database.rawQuery(
+        'SELECT COUNT(*) as count FROM invoices WHERE stock_id = ?',
+        [id],
+      );
+      if (((invoiceCount.first['count'] as int?) ?? 0) > 0) {
+        throw LocalStorageException(
+          'لا يمكن حذف المخزن لوجود فواتير مرتبطة به',
+        );
+      }
+
       final count = await database.delete(
         _tableName,
         where: 'id = ?',

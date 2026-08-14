@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/models/nav_item.dart';
 import 'package:muhasib/core/route/app_navigator.dart';
+import 'package:muhasib/core/route/app_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -97,12 +98,18 @@ class _MainDrawerHeader extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          const Text(
-            'محاسب',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
+          GestureDetector(
+            onTap: () {
+              closeAppDrawer();
+              router.go(AppRoutes.home);
+            },
+            child: const Text(
+              'محاسب',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
           const SizedBox(height: 4),

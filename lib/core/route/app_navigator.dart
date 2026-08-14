@@ -5,12 +5,12 @@ import 'package:muhasib/core/route/route_names.dart';
 class AppNavigator {
   static const List<NavItem> items = [
     // ======= Header Section =======
-    // NavItem(
-    //   title: 'المستخدمين والمزامنة',
-    //   icon: Icons.people_outline,
-    //   route: AppRoutes.usersSync,
-    //   position: DrawerSection.header,
-    // ),
+    NavItem(
+      title: 'الصفحه الرئيسية',
+      icon: Icons.home,
+      route: AppRoutes.home,
+      position: DrawerSection.header,
+    ),
 
     // ======= الحسابات =======
     NavItem(
@@ -207,11 +207,11 @@ class AppNavigator {
       icon: Icons.settings_outlined,
       route: AppRoutes.settings,
       children: [
-        NavItem(
-          title: 'التصنيفات',
-          icon: Icons.account_tree,
-          route: AppRoutes.settingsCategories,
-        ),
+        // NavItem(
+        //   title: 'التصنيفات',
+        //   icon: Icons.account_tree,
+        //   route: AppRoutes.settingsCategories,
+        // ),
         NavItem(
           title: 'البنوك',
           icon: Icons.account_balance_wallet,

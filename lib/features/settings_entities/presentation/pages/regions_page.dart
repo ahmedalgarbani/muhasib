@@ -69,13 +69,13 @@ class _RegionsViewState extends State<_RegionsView> {
       body: BlocConsumer<RegionsCubit, RegionsState>(
         listener: (context, state) {
           if (state is RegionCreated) {
-            _showSnackBar(context, 'تم إضافة المنطقة بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم إضافة المنطقة بنجاح');
           } else if (state is RegionUpdated) {
-            _showSnackBar(context, 'تم تحديث المنطقة بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم تحديث المنطقة بنجاح');
           } else if (state is RegionDeleted) {
-            _showSnackBar(context, 'تم حذف المنطقة بنجاح', Colors.green);
+            AppToast.showSuccess(context, 'تم حذف المنطقة بنجاح');
           } else if (state is RegionsError) {
-            _showSnackBar(context, state.message, Colors.red);
+            AppToast.showError(context, state.message);
           }
         },
         builder: (context, state) {
@@ -125,112 +125,18 @@ class _RegionsViewState extends State<_RegionsView> {
     );
   }
 
-  void _showSnackBar(BuildContext context, String message, Color color) {
-    if (color == Colors.green) {
-      AppToast.showSuccess(context, message);
-    } else if (color == Colors.orange) {
-      AppToast.showWarning(context, message);
-    } else {
-      AppToast.showError(context, message);
-    }
-  }
-
   void _showRegionDialog(BuildContext context, {RegionEntity? region}) {
-    final isEditing = region != null;
-    final nameController = TextEditingController(text: region?.name ?? '');
-    final codeController = TextEditingController(text: region?.code ?? '');
-    final countryController = TextEditingController(
-      text: region?.country ?? '',
-    );
-    final descriptionController = TextEditingController(
-      text: region?.description ?? '',
-    );
-    bool isActive = region?.isActive ?? true;
-
     showDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => CustomDialog(
-          title: isEditing ? 'تعديل المنطقة' : 'إضافة منطقة جديدة',
-          icon: Icons.location_city,
-          headerColor: AppColors.materialDeepOrange500,
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextInputField(
-                label: 'اسم المنطقة',
-                isRequired: true,
-                textEditingController: nameController,
-              ),
-              const SizedBox(height: 16),
-              TextInputField(
-                label: 'الرمز (Code)',
-                textEditingController: codeController,
-              ),
-              const SizedBox(height: 16),
-              TextInputField(
-                label: 'الدولة',
-                textEditingController: countryController,
-              ),
-              const SizedBox(height: 16),
-              TextInputField(
-                label: 'الوصف',
-                textEditingController: descriptionController,
-                maxLines: 2,
-              ),
-              const SizedBox(height: 16),
-              CustomSwitchTile(
-                title: 'الحالة',
-                subtitle: 'تفعيل أو تعطيل المنطقة',
-                value: isActive,
-                onChanged: (value) => setState(() => isActive = value),
-              ),
-            ],
-          ),
-          actions: [
-            HasibButton(
-              label: 'إلغاء',
-              variant: HasibButtonVariant.secondary,
-              onPressed: () => Navigator.of(dialogContext).pop(),
-            ),
-            const SizedBox(width: 12),
-            HasibButton(
-              label: isEditing ? 'تحديث' : 'إضافة',
-              onPressed: () {
-                if (nameController.text.isEmpty) {
-                  _showSnackBar(
-                    context,
-                    'الرجاء إدخال اسم المنطقة',
-                    Colors.red,
-                  );
-                  return;
-                }
-
-                final newRegion = RegionEntity(
-                  id: region?.id,
-                  name: nameController.text,
-                  code: codeController.text.isNotEmpty
-                      ? codeController.text
-                      : null,
-                  country: countryController.text.isNotEmpty
-                      ? countryController.text
-                      : null,
-                  description: descriptionController.text.isNotEmpty
-                      ? descriptionController.text
-                      : null,
-                  isActive: isActive,
-                );
-
-                Navigator.of(dialogContext).pop();
-                if (isEditing) {
-                  this.context.read<RegionsCubit>().updateRegion(newRegion);
-                } else {
-                  this.context.read<RegionsCubit>().createRegion(newRegion);
-                }
-              },
-            ),
-          ],
-        ),
+      builder: (dialogContext) => _RegionFormDialog(
+        region: region,
+        onSave: (savedRegion) {
+          if (region != null) {
+            context.read<RegionsCubit>().updateRegion(savedRegion);
+          } else {
+            context.read<RegionsCubit>().createRegion(savedRegion);
+          }
+        },
       ),
     );
   }
@@ -244,9 +150,125 @@ class _RegionsViewState extends State<_RegionsView> {
         confirmLabel: 'حذف',
         isDanger: true,
         onConfirm: () {
-          this.context.read<RegionsCubit>().deleteRegion(region.id!);
+          context.read<RegionsCubit>().deleteRegion(region.id!);
         },
       ),
+    );
+  }
+}
+
+class _RegionFormDialog extends StatefulWidget {
+  final RegionEntity? region;
+  final ValueChanged<RegionEntity> onSave;
+
+  const _RegionFormDialog({this.region, required this.onSave});
+
+  @override
+  State<_RegionFormDialog> createState() => _RegionFormDialogState();
+}
+
+class _RegionFormDialogState extends State<_RegionFormDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _codeController;
+  late final TextEditingController _countryController;
+  late final TextEditingController _descriptionController;
+  late bool _isActive;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.region?.name ?? '');
+    _codeController = TextEditingController(text: widget.region?.code ?? '');
+    _countryController = TextEditingController(text: widget.region?.country ?? '');
+    _descriptionController = TextEditingController(text: widget.region?.description ?? '');
+    _isActive = widget.region?.isActive ?? true;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _codeController.dispose();
+    _countryController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEditing = widget.region != null;
+    return CustomDialog(
+      title: isEditing ? 'تعديل المنطقة' : 'إضافة منطقة جديدة',
+      icon: Icons.location_city,
+      headerColor: AppColors.materialDeepOrange500,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TextInputField(
+            label: 'اسم المنطقة',
+            isRequired: true,
+            textEditingController: _nameController,
+          ),
+          const SizedBox(height: 16),
+          TextInputField(
+            label: 'الرمز (Code)',
+            textEditingController: _codeController,
+          ),
+          const SizedBox(height: 16),
+          TextInputField(
+            label: 'الدولة',
+            textEditingController: _countryController,
+          ),
+          const SizedBox(height: 16),
+          TextInputField(
+            label: 'الوصف',
+            textEditingController: _descriptionController,
+            maxLines: 2,
+          ),
+          const SizedBox(height: 16),
+          CustomSwitchTile(
+            title: 'الحالة',
+            subtitle: 'تفعيل أو تعطيل المنطقة',
+            value: _isActive,
+            onChanged: (value) => setState(() => _isActive = value),
+          ),
+        ],
+      ),
+      actions: [
+        HasibButton(
+          label: 'إلغاء',
+          variant: HasibButtonVariant.secondary,
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        const SizedBox(width: 12),
+        HasibButton(
+          label: isEditing ? 'تحديث' : 'إضافة',
+          onPressed: () {
+            if (_nameController.text.trim().isEmpty) {
+              AppToast.showError(context, 'الرجاء إدخال اسم المنطقة');
+              return;
+            }
+
+            final newRegion = RegionEntity(
+              id: widget.region?.id,
+              name: _nameController.text.trim(),
+              code: _codeController.text.trim().isNotEmpty
+                  ? _codeController.text.trim()
+                  : null,
+              country: _countryController.text.trim().isNotEmpty
+                  ? _countryController.text.trim()
+                  : null,
+              description: _descriptionController.text.trim().isNotEmpty
+                  ? _descriptionController.text.trim()
+                  : null,
+              isActive: _isActive,
+              parentRegionId: widget.region?.parentRegionId,
+            );
+
+            Navigator.of(context).pop();
+            widget.onSave(newRegion);
+          },
+        ),
+      ],
     );
   }
 }

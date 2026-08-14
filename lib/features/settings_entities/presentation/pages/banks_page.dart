@@ -122,134 +122,18 @@ class _BanksViewState extends State<_BanksView> {
     );
   }
 
-  void _showSnackBar(BuildContext context, String message, Color color) {
-    if (color == Colors.green) {
-      AppToast.showSuccess(context, message);
-    } else if (color == Colors.orange) {
-      AppToast.showWarning(context, message);
-    } else {
-      AppToast.showError(context, message);
-    }
-  }
-
   void _showBankDialog(BuildContext context, {BankEntity? bank}) {
-    final isEditing = bank != null;
-    final nameController = TextEditingController(text: bank?.name ?? '');
-    final contactController = TextEditingController(text: bank?.contact ?? '');
-    final branchController = TextEditingController(
-      text: bank?.branchName ?? '',
-    );
-    final accountNumberController = TextEditingController(
-      text: bank?.accountNumber ?? '',
-    );
-    final bankCodeController = TextEditingController(
-      text: bank?.bankCode ?? '',
-    );
-    bool isActive = bank?.isActive ?? true;
-
     showDialog(
       context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (context, setState) => CustomDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg20),
-          ),
-          title: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.materialBlue700.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppRadius.md),
-                ),
-                child: const Icon(
-                  Icons.account_balance,
-                  color: AppColors.materialBlue700,
-                  size: 28,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text(isEditing ? 'تعديل البنك' : 'إضافة بنك جديد'),
-            ],
-          ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextInputField(
-                  controller: nameController,
-                  label: 'اسم البنك *',
-                ),
-                const SizedBox(height: 16),
-                TextInputField(
-                  controller: contactController,
-                  label: 'رقم التواصل',
-                ),
-                const SizedBox(height: 16),
-                TextInputField(
-                  controller: branchController,
-                  label: 'اسم الفرع',
-                ),
-                const SizedBox(height: 16),
-                TextInputField(
-                  controller: accountNumberController,
-                  label: 'رقم الحساب',
-                ),
-                const SizedBox(height: 16),
-                TextInputField(
-                  controller: bankCodeController,
-                  label: 'كود البنك',
-                ),
-                const SizedBox(height: 16),
-                SwitchListTile(
-                  title: const Text('نشط'),
-                  value: isActive,
-                  onChanged: (value) => setState(() => isActive = value),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: const Text('إلغاء'),
-            ),
-            HasibButton(
-              label: isEditing ? 'تحديث' : 'إضافة',
-              onPressed: () {
-                if (nameController.text.isEmpty) {
-                  AppToast.showError(context, 'الرجاء إدخال اسم البنك');
-
-                  return;
-                }
-
-                final newBank = BankEntity(
-                  id: bank?.id,
-                  name: nameController.text,
-                  contact: contactController.text,
-                  contactType: 0,
-                  branchName: branchController.text.isNotEmpty
-                      ? branchController.text
-                      : null,
-                  accountNumber: accountNumberController.text.isNotEmpty
-                      ? accountNumberController.text
-                      : null,
-                  bankCode: bankCodeController.text.isNotEmpty
-                      ? bankCodeController.text
-                      : null,
-                  isActive: isActive,
-                );
-
-                Navigator.of(dialogContext).pop();
-                if (isEditing) {
-                  this.context.read<BanksCubit>().updateBank(newBank);
-                } else {
-                  this.context.read<BanksCubit>().createBank(newBank);
-                }
-              },
-            ),
-          ],
-        ),
+      builder: (dialogContext) => _BankFormDialog(
+        bank: bank,
+        onSave: (savedBank) {
+          if (bank != null) {
+            context.read<BanksCubit>().updateBank(savedBank);
+          } else {
+            context.read<BanksCubit>().createBank(savedBank);
+          }
+        },
       ),
     );
   }
@@ -295,6 +179,147 @@ class _BanksViewState extends State<_BanksView> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BankFormDialog extends StatefulWidget {
+  final BankEntity? bank;
+  final ValueChanged<BankEntity> onSave;
+
+  const _BankFormDialog({this.bank, required this.onSave});
+
+  @override
+  State<_BankFormDialog> createState() => _BankFormDialogState();
+}
+
+class _BankFormDialogState extends State<_BankFormDialog> {
+  late final TextEditingController _nameController;
+  late final TextEditingController _contactController;
+  late final TextEditingController _branchController;
+  late final TextEditingController _accountNumberController;
+  late final TextEditingController _bankCodeController;
+  late bool _isActive;
+
+  @override
+  void initState() {
+    super.initState();
+    _nameController = TextEditingController(text: widget.bank?.name ?? '');
+    _contactController = TextEditingController(text: widget.bank?.contact ?? '');
+    _branchController = TextEditingController(text: widget.bank?.branchName ?? '');
+    _accountNumberController = TextEditingController(text: widget.bank?.accountNumber ?? '');
+    _bankCodeController = TextEditingController(text: widget.bank?.bankCode ?? '');
+    _isActive = widget.bank?.isActive ?? true;
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _contactController.dispose();
+    _branchController.dispose();
+    _accountNumberController.dispose();
+    _bankCodeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isEditing = widget.bank != null;
+    return CustomDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
+      ),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.materialBlue700.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: const Icon(
+              Icons.account_balance,
+              color: AppColors.materialBlue700,
+              size: 28,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(isEditing ? 'تعديل البنك' : 'إضافة بنك جديد'),
+        ],
+      ),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextInputField(
+              controller: _nameController,
+              label: 'اسم البنك *',
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              controller: _contactController,
+              label: 'رقم التواصل',
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              controller: _branchController,
+              label: 'اسم الفرع',
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              controller: _accountNumberController,
+              label: 'رقم الحساب',
+            ),
+            const SizedBox(height: 16),
+            TextInputField(
+              controller: _bankCodeController,
+              label: 'كود البنك',
+            ),
+            const SizedBox(height: 16),
+            SwitchListTile(
+              title: const Text('نشط'),
+              value: _isActive,
+              onChanged: (value) => setState(() => _isActive = value),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('إلغاء'),
+        ),
+        HasibButton(
+          label: isEditing ? 'تحديث' : 'إضافة',
+          onPressed: () {
+            if (_nameController.text.trim().isEmpty) {
+              AppToast.showError(context, 'الرجاء إدخال اسم البنك');
+              return;
+            }
+
+            final newBank = BankEntity(
+              id: widget.bank?.id,
+              name: _nameController.text.trim(),
+              contact: _contactController.text.trim(),
+              contactType: 0,
+              branchName: _branchController.text.trim().isNotEmpty
+                  ? _branchController.text.trim()
+                  : null,
+              accountNumber: _accountNumberController.text.trim().isNotEmpty
+                  ? _accountNumberController.text.trim()
+                  : null,
+              bankCode: _bankCodeController.text.trim().isNotEmpty
+                  ? _bankCodeController.text.trim()
+                  : null,
+              isActive: _isActive,
+              accountId: widget.bank?.accountId,
+            );
+
+            Navigator.of(context).pop();
+            widget.onSave(newBank);
+          },
+        ),
+      ],
     );
   }
 }

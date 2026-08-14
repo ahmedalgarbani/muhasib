@@ -48,7 +48,10 @@ class CustomerModel extends CustomerEntity {
       address: (extra['address'] as String?) ?? (extra['addr'] as String?),
       isActive: (map['is_active'] as int? ?? 1) == 1,
       creditLimit: (map['credit_limit'] as num?)?.toDouble() ?? 0.0,
-      currentBalance: (map['current_balance'] as num?)?.toDouble() ?? 0.0,
+      // The linked account balance is the single source of truth (debit-normal)
+      currentBalance: (map['account_balance'] as num?)?.toDouble() ??
+          (map['current_balance'] as num?)?.toDouble() ??
+          0.0,
       accountId: map['account_id'] as int?,
       classificationId: map['classification_id'] as int?,
       creationTime: map['creation_time'] != null

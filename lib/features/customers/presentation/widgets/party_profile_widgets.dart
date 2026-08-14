@@ -184,10 +184,10 @@ class PartyBalanceInfo {
         );
       }
     } else {
-      // Supplier:
-      // balance > 0: Business owes supplier (له / دائن / عنبري)
-      // balance < 0: Supplier owes business / advance payment (عليه / مدين / أخضر)
-      if (balance > 0) {
+      // Supplier (debit-normal convention):
+      // balance < 0: business owes supplier (له / دائن / عنبري)
+      // balance > 0: advance paid / supplier owes business (عليه / مدين / أخضر)
+      if (balance < 0) {
         return PartyBalanceInfo(
           label: 'له (دائن)',
           color: Colors.orange.shade900,

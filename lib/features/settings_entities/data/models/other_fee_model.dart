@@ -52,7 +52,7 @@ class OtherFeeModel extends OtherFeeEntity {
       if (id != null) 'id': id,
       'name': name,
       'is_active': isActive ? 1 : 0,
-      if (accountId != null) 'account_id': accountId,
+      'account_id': accountId,
       'tool_type': toolType,
       if (creatorId != null) 'creator_id': creatorId,
       if (lastModifierId != null) 'last_modifier_id': lastModifierId,

@@ -478,18 +478,85 @@ class _SimpleAccountSelector extends StatefulWidget {
 class _SimpleAccountSelectorState extends State<_SimpleAccountSelector>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
   String _query = '';
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    _tabController = TabController(length: 6, vsync: this);
+    context.read<AccountsCubit>().loadAllAccounts();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  static bool _matchesCategory(AccountEntity a, int categoryIndex) {
+    final name = a.name.toLowerCase();
+    final statement = (a.statement ?? '').toLowerCase();
+
+    final isBank =
+        (a.masterCId == 1110 &&
+            (name.contains('بنك') ||
+                name.contains('مصرف') ||
+                statement.contains('بنك') ||
+                statement.contains('مصرف'))) ||
+        name.contains('بنك') ||
+        name.contains('مصرف') ||
+        name.contains('bank') ||
+        statement.contains('بنك');
+
+    final isCash =
+        (a.masterCId == 1110 && !isBank) ||
+        name.contains('صندوق') ||
+        name.contains('خزينة') ||
+        name.contains('كاش') ||
+        name.contains('نقد') ||
+        name.contains('درج') ||
+        statement.contains('صندوق') ||
+        statement.contains('خزينة');
+
+    final isCustomer =
+        a.masterCId == 1120 ||
+        a.cId == 1120 ||
+        a.code.startsWith('112') ||
+        a.code.startsWith('1002') ||
+        statement.contains('عميل') ||
+        statement.contains('العملاء') ||
+        name.contains('عميل') ||
+        (a.type == 1 && a.cId >= 112000 && a.cId < 113000);
+
+    final isSupplier =
+        a.masterCId == 2110 ||
+        a.cId == 2110 ||
+        a.code.startsWith('211') ||
+        a.code.startsWith('2001') ||
+        statement.contains('مورد') ||
+        statement.contains('الموردون') ||
+        statement.contains('الموردين') ||
+        name.contains('مورد') ||
+        (a.type == 2 && a.cId >= 211000 && a.cId < 212000);
+
+    switch (categoryIndex) {
+      case 0: // الكل
+        return true;
+      case 1: // الصناديق
+        return isCash;
+      case 2: // البنوك
+        return isBank;
+      case 3: // العملاء
+        return isCustomer;
+      case 4: // الموردين
+        return isSupplier;
+      case 5: // أخرى
+        return !isCash && !isBank && !isCustomer && !isSupplier;
+      default:
+        return true;
+    }
   }
 
   @override
@@ -499,7 +566,7 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector>
     return Directionality(
       textDirection: ui.TextDirection.rtl,
       child: Container(
-        height: MediaQuery.of(context).size.height * 0.8,
+        height: MediaQuery.of(context).size.height * 0.85,
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.vertical(
@@ -510,29 +577,54 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector>
           children: [
             const SizedBox(height: 12),
             Container(
-              width: 40,
-              height: 4,
+              width: 44,
+              height: 5,
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(AppRadius.xxs),
+                borderRadius: BorderRadius.circular(AppRadius.lg),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: Column(
                 children: [
-                  const Text(
-                    'اختيار الحساب',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'اختيار الحساب المحاسبي',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.refresh, size: 20),
+                        tooltip: 'تحديث الحسابات',
+                        onPressed: () {
+                          context.read<AccountsCubit>().loadAllAccounts();
+                        },
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   TextInputField(
-                    hint: 'ابحث عن حساب...',
+                    controller: _searchController,
+                    hint: 'ابحث بالاسم أو الرمز أو البيان...',
                     onChanged: (v) => setState(() => _query = v),
                     decoration: InputDecoration(
                       prefixIcon: const Icon(Icons.search),
+                      suffixIcon: _query.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _query = '');
+                              },
+                            )
+                          : null,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                     ),
                   ),
@@ -542,24 +634,97 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector>
             TabBar(
               controller: _tabController,
               isScrollable: true,
-              labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-              tabs: const [
-                Tab(text: 'الكل'),
-                Tab(text: 'الصناديق'),
-                Tab(text: 'البنوك'),
-                Tab(text: 'العملاء'),
-                Tab(text: 'الموردين'),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+              tabs: [
+                Tab(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.list_alt, size: 16),
+                      const SizedBox(width: 6),
+                      Text('الكل (${accounts.length})'),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.point_of_sale,
+                        size: 16,
+                        color: Colors.teal,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'الصناديق (${accounts.where((a) => _matchesCategory(a, 1)).length})',
+                      ),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.account_balance,
+                        size: 16,
+                        color: Colors.blue,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'البنوك (${accounts.where((a) => _matchesCategory(a, 2)).length})',
+                      ),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.people, size: 16, color: Colors.indigo),
+                      const SizedBox(width: 6),
+                      Text(
+                        'العملاء (${accounts.where((a) => _matchesCategory(a, 3)).length})',
+                      ),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.local_shipping,
+                        size: 16,
+                        color: Colors.deepPurple,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'الموردين (${accounts.where((a) => _matchesCategory(a, 4)).length})',
+                      ),
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    children: [
+                      const Icon(Icons.category, size: 16, color: Colors.amber),
+                      const SizedBox(width: 6),
+                      Text(
+                        'أخرى (${accounts.where((a) => _matchesCategory(a, 5)).length})',
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
+            const Divider(height: 1),
             Expanded(
               child: TabBarView(
                 controller: _tabController,
                 children: [
-                  _buildList(accounts, null),
-                  _buildList(accounts, 'صندوق'),
-                  _buildList(accounts, 'بنك'),
-                  _buildList(accounts, 'عميل'),
-                  _buildList(accounts, 'مورد'),
+                  _buildList(accounts, 0),
+                  _buildList(accounts, 1),
+                  _buildList(accounts, 2),
+                  _buildList(accounts, 3),
+                  _buildList(accounts, 4),
+                  _buildList(accounts, 5),
                 ],
               ),
             ),
@@ -569,27 +734,151 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector>
     );
   }
 
-  Widget _buildList(List<AccountEntity> accounts, String? filter) {
+  Widget _buildList(List<AccountEntity> accounts, int categoryIndex) {
+    final query = _query.trim().toLowerCase();
     final filtered = accounts.where((a) {
-      final matchSearch = a.name.contains(_query) || a.code.contains(_query);
-      if (filter == null) return matchSearch;
-      return matchSearch && a.name.contains(filter);
+      final matchCat = _matchesCategory(a, categoryIndex);
+      if (!matchCat) return false;
+      if (query.isEmpty) return true;
+      return a.name.toLowerCase().contains(query) ||
+          a.code.toLowerCase().contains(query) ||
+          (a.statement?.toLowerCase().contains(query) ?? false);
     }).toList();
 
-    return ListView.builder(
-      padding: AppConstant.defaultPadding,
-      itemCount: filtered.length,
-      itemBuilder: (context, i) => ListTile(
-        title: Text(
-          filtered[i].name,
-          style: const TextStyle(fontWeight: FontWeight.bold),
+    if (filtered.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.folder_open_outlined,
+                size: 48,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                query.isNotEmpty
+                    ? 'لا توجد حسابات مطابقة للبحث "$_query"'
+                    : 'لا توجد حسابات مضافة في هذا القسم',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
         ),
-        subtitle: Text(filtered[i].code),
-        onTap: () {
-          widget.onSelected(filtered[i]);
-          Navigator.pop(context);
-        },
-      ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: filtered.length,
+      separatorBuilder: (_, __) => const Divider(height: 1, indent: 64),
+      itemBuilder: (context, i) {
+        final a = filtered[i];
+        final isBank = _matchesCategory(a, 2);
+        final isCash = _matchesCategory(a, 1);
+        final isCustomer = _matchesCategory(a, 3);
+        final isSupplier = _matchesCategory(a, 4);
+
+        Color avatarColor;
+        IconData avatarIcon;
+
+        if (isBank) {
+          avatarColor = Colors.blue;
+          avatarIcon = Icons.account_balance;
+        } else if (isCash) {
+          avatarColor = Colors.teal;
+          avatarIcon = Icons.point_of_sale;
+        } else if (isCustomer) {
+          avatarColor = Colors.indigo;
+          avatarIcon = Icons.person;
+        } else if (isSupplier) {
+          avatarColor = Colors.deepPurple;
+          avatarIcon = Icons.local_shipping;
+        } else {
+          avatarColor = Colors.amber.shade800;
+          avatarIcon = Icons.receipt_long;
+        }
+
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 4,
+          ),
+          leading: CircleAvatar(
+            backgroundColor: avatarColor.withOpacity(0.12),
+            foregroundColor: avatarColor,
+            child: Icon(avatarIcon, size: 20),
+          ),
+          title: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  a.name,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+              ),
+              if (a.balance != 0.0)
+                Text(
+                  a.balance.toStringAsFixed(2),
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: a.balance > 0
+                        ? Colors.green.shade700
+                        : Colors.red.shade700,
+                  ),
+                ),
+            ],
+          ),
+          subtitle: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  a.code,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
+              if (a.statement != null && a.statement!.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    a.statement!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+          onTap: () {
+            widget.onSelected(a);
+            Navigator.pop(context);
+          },
+        );
+      },
     );
   }
 }

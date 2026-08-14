@@ -233,6 +233,42 @@ class DatabaseService implements IDatabaseService {
         // Column might already exist, ignore
       }
     }
+
+    if (oldVersion < 8) {
+      // Fix supplier opening-balance sign (debit-normal convention).
+      // Legacy code stored the opening balance with the opposite sign for
+      // suppliers; flip only the opening component for accounts that have
+      // a posted opening-balance journal entry.
+      try {
+        await db.rawUpdate('''
+          UPDATE accounts
+          SET balance = balance - 2 * COALESCE((
+                SELECT current_balance FROM customers
+                WHERE customers.account_id = accounts.id AND customers.type = 2
+              ), 0),
+              local_balance = local_balance - 2 * COALESCE((
+                SELECT current_balance FROM customers
+                WHERE customers.account_id = accounts.id AND customers.type = 2
+              ), 0)
+          WHERE id IN (SELECT account_id FROM customers WHERE type = 2)
+            AND EXISTS (
+              SELECT 1 FROM journal_entries
+              WHERE reference_type = 'opening_balance' AND reference_id = accounts.id
+            )
+        ''');
+        await db.rawUpdate('''
+          UPDATE customers
+          SET current_balance = -current_balance
+          WHERE type = 2 AND account_id IS NOT NULL
+            AND EXISTS (
+              SELECT 1 FROM journal_entries
+              WHERE reference_type = 'opening_balance' AND reference_id = customers.account_id
+            )
+        ''');
+      } catch (e) {
+        // Ignore migration errors (e.g. fresh databases)
+      }
+    }
   }
 
   final List<TableSchema> _tables = [
