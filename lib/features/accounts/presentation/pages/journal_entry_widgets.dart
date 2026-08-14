@@ -123,7 +123,6 @@ class JournalEntriesCardWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   'تفاصيل القيد',
@@ -133,15 +132,16 @@ class JournalEntriesCardWidget extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(AppRadius.sm10),
                   ),
                   child: Text(
@@ -150,6 +150,20 @@ class JournalEntriesCardWidget extends StatelessWidget {
                       color: AppColors.darkSecondary,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                FilledButton.icon(
+                  onPressed: () => onShowEntryDialog(null),
+                  icon: const Icon(Icons.add_rounded, size: 18),
+                  label: const Text('إضافة سطر'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppTheme.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                   ),
                 ),
@@ -198,12 +212,26 @@ class JournalEntriesCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     const Text(
-                      'اضغط على زر الإضافة الدائري بالأسفل لإضافة سطر جديد للقيد.',
+                      'أضف بنود القيد (المدين والدائن) لبدء إعداد القيد المحاسبي.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: AppColors.textSecondary,
                         height: 1.4,
                         fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => onShowEntryDialog(null),
+                      icon: const Icon(Icons.add_rounded),
+                      label: const Text('إضافة سطر للقيد'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryColor,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                        ),
                       ),
                     ),
                   ],
@@ -279,11 +307,15 @@ class JournalSummaryCardWidget extends StatelessWidget {
                 const SizedBox(width: 12),
                 const Text(
                   'ملخص القيد والتحقق',
-                  style: AppTextStyles.titleMedium,
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            Divider(
+              height: 24,
+              color: Theme.of(context).dividerColor,
+              thickness: 1.5,
+            ),
             Row(
               children: [
                 Expanded(
@@ -326,20 +358,15 @@ class JournalSummaryCardWidget extends StatelessWidget {
                         ? null
                         : onSaveJournal,
                     variant: HasibButtonVariant.primary,
+                    leading: const Icon(Icons.check_circle_outline, size: 20),
                   ),
                 ),
-                const SizedBox(width: 12),
-                IconButton(
+                const SizedBox(width: 10),
+                HasibButton(
+                  label: 'مسح الكل',
                   onPressed: isSaving ? null : onClearAll,
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.red.shade50,
-                    foregroundColor: Colors.red,
-                    padding: AppConstant.defaultPadding,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.md),
-                    ),
-                  ),
-                  icon: const Icon(Icons.delete_outline),
+                  variant: HasibButtonVariant.danger,
+                  leading: const Icon(Icons.delete_outline, size: 18),
                 ),
               ],
             ),
@@ -444,9 +471,7 @@ class StatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardBg = balanced ? AppColors.emerald50 : AppColors.amber50;
-    final borderCol = balanced
-        ? AppColors.emerald200
-        : AppColors.amber200;
+    final borderCol = balanced ? AppColors.emerald200 : AppColors.amber200;
     final color = balanced ? AppColors.emerald700 : AppColors.amber700;
     final icon = balanced
         ? Icons.check_circle_rounded
@@ -597,7 +622,9 @@ class _AddEntryModalState extends State<AddEntryModal> {
   @override
   Widget build(BuildContext context) {
     return CustomDialog(
-      title: widget.initialEntry == null ? 'إضافة تفصيل جديد' : 'تعديل تفصيل القيد',
+      title: widget.initialEntry == null
+          ? 'إضافة تفصيل جديد'
+          : 'تعديل تفصيل القيد',
       subtitle: 'قم بتعبئة البيانات التالية لإضافة سطر جديد إلى القيد.',
       icon: Icons.post_add_rounded,
       headerColor: AppTheme.primaryColor,
@@ -645,10 +672,8 @@ class _AddEntryModalState extends State<AddEntryModal> {
                     hint: 'العملة',
                     items: widget.currencies
                         .map(
-                          (e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e.name),
-                          ),
+                          (e) =>
+                              DropdownMenuItem(value: e, child: Text(e.name)),
                         )
                         .toList(),
                     value: _selectedCurrency,
@@ -742,7 +767,9 @@ class _DirectionChip extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
-              selected ? Icons.check_circle_rounded : Icons.radio_button_off_rounded,
+              selected
+                  ? Icons.check_circle_rounded
+                  : Icons.radio_button_off_rounded,
               color: selected ? color : AppColors.textSecondaryDark,
               size: 20,
             ),
@@ -778,9 +805,7 @@ class _EntryTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDebitDominant = entry.debit > entry.credit;
-    final accentColor = isDebitDominant
-        ? AppColors.success
-        : AppColors.error;
+    final accentColor = isDebitDominant ? AppColors.success : AppColors.error;
     final softAccentColor = isDebitDominant
         ? AppColors.emerald100
         : AppColors.red100;
@@ -822,35 +847,42 @@ class _EntryTile extends StatelessWidget {
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       entry.account,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        fontSize: 15,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 6),
-                    Row(
+                    const SizedBox(height: 4),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 4,
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+                            horizontal: 6,
+                            vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(AppRadius.sm6),
                           ),
                           child: Text(
                             entry.currency,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: AppColors.darkSecondary,
                               fontSize: 11,
@@ -858,28 +890,25 @@ class _EntryTile extends StatelessWidget {
                             ),
                           ),
                         ),
-                        if (entry.notes.isNotEmpty) ...[
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              entry.notes,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 12,
-                              ),
+                        if (entry.notes.isNotEmpty)
+                          Text(
+                            entry.notes,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textSecondary,
+                              fontSize: 12,
                             ),
                           ),
-                        ],
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   if (entry.debit > 0)
                     Text(
@@ -887,7 +916,7 @@ class _EntryTile extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.success,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                   if (entry.credit > 0)
@@ -896,7 +925,7 @@ class _EntryTile extends StatelessWidget {
                       style: const TextStyle(
                         color: AppColors.error,
                         fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                 ],

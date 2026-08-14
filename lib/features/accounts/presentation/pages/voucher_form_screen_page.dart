@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
@@ -221,6 +222,16 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
     }
 
     final amount = double.tryParse(_amountController.text) ?? 0.0;
+
+    if (_voucherType == VoucherType.payment &&
+        SettingsCache.checkFundAndBankBalanceInVoucher &&
+        amount > _selectedBoxBank!.balance) {
+      AppToast.showError(
+        context,
+        'المبلغ أكبر من الرصيد المتاح للصندوق أو البنك (الرصيد الحالي: ${NumberFormatter.formatNumber(_selectedBoxBank!.balance)})',
+      );
+      return;
+    }
 
     final voucher = VoucherEntity(
       number: int.tryParse(_numberController.text) ?? 0,
@@ -566,7 +577,10 @@ class VoucherCashPaymentSectionWidget extends StatelessWidget {
     return CustomCardContainer(
       child: Column(
         children: [
-          VoucherAmountFieldWidget(amountController: amountController),
+          VoucherAmountFieldWidget(
+            amountController: amountController,
+            account: selectedBoxBank,
+          ),
           const SizedBox(height: 16),
           CustomDropdownField<AccountEntity>(
             hint: 'الصندوق',
@@ -631,7 +645,10 @@ class VoucherBankTransferSectionWidget extends StatelessWidget {
     return CustomCardContainer(
       child: Column(
         children: [
-          VoucherAmountFieldWidget(amountController: amountController),
+          VoucherAmountFieldWidget(
+            amountController: amountController,
+            account: selectedBoxBank,
+          ),
           if (SettingsCache.allowMultiCurrencyInVoucher) ...[
             const SizedBox(height: 16),
             CustomDropdownField<CurrencyEntity>(
@@ -709,26 +726,50 @@ class VoucherBankTransferSectionWidget extends StatelessWidget {
 
 class VoucherAmountFieldWidget extends StatelessWidget {
   final TextEditingController amountController;
+  final AccountEntity? account;
 
-  const VoucherAmountFieldWidget({super.key, required this.amountController});
+  const VoucherAmountFieldWidget({
+    super.key,
+    required this.amountController,
+    this.account,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return TextInputField(
-      label: 'المبلغ',
-      isRequired: true,
-      hint: '0.00',
-      textEditingController: amountController,
-      inputType: TextInputType.number,
-      suffixIcon: Container(
-        margin: const EdgeInsets.all(6),
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: AppColors.blue600,
-          borderRadius: BorderRadius.circular(AppRadius.sm),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextInputField(
+          label: 'المبلغ',
+          isRequired: true,
+          hint: '0.00',
+          textEditingController: amountController,
+          inputType: TextInputType.number,
+          suffixIcon: Container(
+            margin: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.blue600,
+              borderRadius: BorderRadius.circular(AppRadius.sm),
+            ),
+            child: const Icon(
+              Icons.attach_money,
+              color: AppColors.white,
+              size: 20,
+            ),
+          ),
         ),
-        child: const Icon(Icons.attach_money, color: AppColors.white, size: 20),
-      ),
+        if (SettingsCache.showAccountBalanceInVoucher && account != null) ...[
+          const SizedBox(height: 8),
+          Text(
+            'الرصيد الحالي: ${NumberFormatter.formatNumber(account!.balance)}',
+            style: AppTextStyles.body.copyWith(
+              color: account!.balance >= 0 ? Colors.green : Colors.red,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }

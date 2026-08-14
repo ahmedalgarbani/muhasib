@@ -28,43 +28,55 @@ class QuotationProtectionService {
   Future<Either<Failure, bool>> canEditQuotation(int quotationId) async {
     try {
       final db = await _databaseService.database;
-      
+
       final result = await db.query(
         _invoicesTable,
-        columns: ['invoice_type', 'is_locked', 'next_invoice_id', 'approval_status', 'valid_until'],
+        columns: [
+          'invoice_type',
+          'is_locked',
+          'next_invoice_id',
+          'approval_status',
+          'valid_until',
+        ],
         where: 'id = ?',
         whereArgs: [quotationId],
         limit: 1,
       );
-      
+
       if (result.isEmpty) {
         return Left(NotFoundFailure('عرض السعر غير موجود'));
       }
-      
+
       final quotation = result.first;
-      
+
       // Check if it's a quotation
       if ((quotation['invoice_type'] as int?) != 3) {
         return Left(ValidationFailure(message: 'هذا ليس عرض سعر'));
       }
-      
+
       // Check if locked
       if ((quotation['is_locked'] as int?) == 1) {
-        return Left(ValidationFailure(message: 'عرض السعر مقفل ولا يمكن تعديله'));
+        return Left(
+          ValidationFailure(message: 'عرض السعر مقفل ولا يمكن تعديله'),
+        );
       }
-      
+
       // Check if already converted
       final nextInvoiceId = quotation['next_invoice_id'] as int?;
       if (nextInvoiceId != null && nextInvoiceId > 0) {
-        return Left(ValidationFailure(message: 'عرض السعر محول لفاتورة ولا يمكن تعديله'));
+        return Left(
+          ValidationFailure(message: 'عرض السعر محول لفاتورة ولا يمكن تعديله'),
+        );
       }
-      
+
       // Check approval status
       final approvalStatus = (quotation['approval_status'] as int?) ?? 0;
       if (approvalStatus == statusApproved) {
-        return Left(ValidationFailure(message: 'عرض السعر معتمد ولا يمكن تعديله'));
+        return Left(
+          ValidationFailure(message: 'عرض السعر معتمد ولا يمكن تعديله'),
+        );
       }
-      
+
       // Check expiry
       final validUntil = quotation['valid_until'] as int?;
       if (validUntil != null) {
@@ -73,7 +85,7 @@ class QuotationProtectionService {
           return Left(ValidationFailure(message: 'عرض السعر منتهي الصلاحية'));
         }
       }
-      
+
       return const Right(true);
     } catch (e) {
       return Left(UnknownFailure('فشل في التحقق: ${e.toString()}'));
@@ -84,43 +96,50 @@ class QuotationProtectionService {
   Future<Either<Failure, bool>> canDeleteQuotation(int quotationId) async {
     try {
       final db = await _databaseService.database;
-      
+
       final result = await db.query(
         _invoicesTable,
-        columns: ['invoice_type', 'is_locked', 'next_invoice_id', 'approval_status'],
+        columns: [
+          'invoice_type',
+          'is_locked',
+          'next_invoice_id',
+          'approval_status',
+        ],
         where: 'id = ?',
         whereArgs: [quotationId],
         limit: 1,
       );
-      
+
       if (result.isEmpty) {
         return Left(NotFoundFailure('عرض السعر غير موجود'));
       }
-      
+
       final quotation = result.first;
-      
+
       // Check if it's a quotation
       if ((quotation['invoice_type'] as int?) != 3) {
         return Left(ValidationFailure(message: 'هذا ليس عرض سعر'));
       }
-      
+
       // Check if already converted - CANNOT delete
       final nextInvoiceId = quotation['next_invoice_id'] as int?;
       if (nextInvoiceId != null && nextInvoiceId > 0) {
-        return Left(ValidationFailure(message: 'لا يمكن حذف عرض سعر محول لفاتورة'));
+        return Left(
+          ValidationFailure(message: 'لا يمكن حذف عرض سعر محول لفاتورة'),
+        );
       }
-      
+
       // Check if approved - CANNOT delete
       final approvalStatus = (quotation['approval_status'] as int?) ?? 0;
       if (approvalStatus == statusApproved) {
         return Left(ValidationFailure(message: 'لا يمكن حذف عرض سعر معتمد'));
       }
-      
+
       // Check if locked
       if ((quotation['is_locked'] as int?) == 1) {
         return Left(ValidationFailure(message: 'عرض السعر مقفل ولا يمكن حذفه'));
       }
-      
+
       return const Right(true);
     } catch (e) {
       return Left(UnknownFailure('فشل في التحقق: ${e.toString()}'));
@@ -128,35 +147,37 @@ class QuotationProtectionService {
   }
 
   /// Check if a quotation can be converted to invoice
-  Future<Either<Failure, QuotationConversionCheck>> canConvertQuotation(int quotationId) async {
+  Future<Either<Failure, QuotationConversionCheck>> canConvertQuotation(
+    int quotationId,
+  ) async {
     try {
       final db = await _databaseService.database;
-      
+
       final result = await db.query(
         _invoicesTable,
         where: 'id = ?',
         whereArgs: [quotationId],
         limit: 1,
       );
-      
+
       if (result.isEmpty) {
         return Left(NotFoundFailure('عرض السعر غير موجود'));
       }
-      
+
       final quotation = result.first;
       final warnings = <String>[];
-      
+
       // Check if it's a quotation
       if ((quotation['invoice_type'] as int?) != 3) {
         return Left(ValidationFailure(message: 'هذا ليس عرض سعر'));
       }
-      
+
       // Check if already converted
       final nextInvoiceId = quotation['next_invoice_id'] as int?;
       if (nextInvoiceId != null && nextInvoiceId > 0) {
         return Left(ValidationFailure(message: 'عرض السعر محول مسبقاً'));
       }
-      
+
       // Check expiry - warning but allow
       final validUntil = quotation['valid_until'] as int?;
       if (validUntil != null) {
@@ -165,13 +186,13 @@ class QuotationProtectionService {
           warnings.add('عرض السعر منتهي الصلاحية');
         }
       }
-      
+
       // Check approval status
       final approvalStatus = (quotation['approval_status'] as int?) ?? 0;
       if (approvalStatus == statusRejected) {
         warnings.add('عرض السعر مرفوض');
       }
-      
+
       // Verify data integrity using hash
       final originalHash = quotation['original_hash'] as String?;
       if (originalHash != null) {
@@ -180,12 +201,14 @@ class QuotationProtectionService {
           warnings.add('⚠️ تم اكتشاف تغييرات على البيانات الأصلية');
         }
       }
-      
-      return Right(QuotationConversionCheck(
-        canConvert: true,
-        warnings: warnings,
-        quotationData: quotation,
-      ));
+
+      return Right(
+        QuotationConversionCheck(
+          canConvert: true,
+          warnings: warnings,
+          quotationData: quotation,
+        ),
+      );
     } catch (e) {
       return Left(UnknownFailure('فشل في التحقق: ${e.toString()}'));
     }
@@ -200,10 +223,10 @@ class QuotationProtectionService {
     try {
       final db = await _databaseService.database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
+
       // Calculate and store hash
       final hash = await _calculateQuotationHash(quotationId);
-      
+
       await db.update(
         _invoicesTable,
         {
@@ -217,10 +240,10 @@ class QuotationProtectionService {
         where: 'id = ?',
         whereArgs: [quotationId],
       );
-      
+
       // Log the action
       await _logAction(db, quotationId, 'LOCK', lockedBy, reason);
-      
+
       return const Right(null);
     } catch (e) {
       return Left(UnknownFailure('فشل في قفل العرض: ${e.toString()}'));
@@ -236,7 +259,7 @@ class QuotationProtectionService {
     try {
       final db = await _databaseService.database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
+
       // First check if already converted
       final result = await db.query(
         _invoicesTable,
@@ -245,14 +268,16 @@ class QuotationProtectionService {
         whereArgs: [quotationId],
         limit: 1,
       );
-      
+
       if (result.isNotEmpty) {
         final nextInvoiceId = result.first['next_invoice_id'] as int?;
         if (nextInvoiceId != null && nextInvoiceId > 0) {
-          return Left(ValidationFailure(message: 'لا يمكن فتح قفل عرض سعر محول'));
+          return Left(
+            ValidationFailure(message: 'لا يمكن فتح قفل عرض سعر محول'),
+          );
         }
       }
-      
+
       await db.update(
         _invoicesTable,
         {
@@ -260,19 +285,20 @@ class QuotationProtectionService {
           'locked_at': null,
           'locked_by': null,
           'locked_reason': null,
-          'version': db.rawQuery(
-            'SELECT version FROM $_invoicesTable WHERE id = ?',
-            [quotationId],
-          ).then((r) => ((r.first['version'] as int?) ?? 0) + 1),
+          'version': db
+              .rawQuery('SELECT version FROM $_invoicesTable WHERE id = ?', [
+                quotationId,
+              ])
+              .then((r) => ((r.first['version'] as int?) ?? 0) + 1),
           'last_modification_time': now,
         },
         where: 'id = ?',
         whereArgs: [quotationId],
       );
-      
+
       // Log the action
       await _logAction(db, quotationId, 'UNLOCK', unlockedBy, reason);
-      
+
       return const Right(null);
     } catch (e) {
       return Left(UnknownFailure('فشل في فتح قفل العرض: ${e.toString()}'));
@@ -287,7 +313,7 @@ class QuotationProtectionService {
     try {
       final db = await _databaseService.database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
+
       await db.update(
         _invoicesTable,
         {
@@ -297,7 +323,7 @@ class QuotationProtectionService {
         where: 'id = ?',
         whereArgs: [quotationId],
       );
-      
+
       return const Right(null);
     } catch (e) {
       return Left(UnknownFailure('فشل في تحديث الصلاحية: ${e.toString()}'));
@@ -314,10 +340,10 @@ class QuotationProtectionService {
     try {
       final db = await _databaseService.database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
+
       // Calculate hash before approval
       final hash = await _calculateQuotationHash(quotationId);
-      
+
       await db.update(
         _invoicesTable,
         {
@@ -335,10 +361,10 @@ class QuotationProtectionService {
         where: 'id = ?',
         whereArgs: [quotationId],
       );
-      
+
       // Log the action
       await _logAction(db, quotationId, 'APPROVE', approvedBy, notes);
-      
+
       return const Right(null);
     } catch (e) {
       return Left(UnknownFailure('فشل في اعتماد العرض: ${e.toString()}'));
@@ -354,7 +380,7 @@ class QuotationProtectionService {
     try {
       final db = await _databaseService.database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
+
       await db.update(
         _invoicesTable,
         {
@@ -371,10 +397,10 @@ class QuotationProtectionService {
         where: 'id = ?',
         whereArgs: [quotationId],
       );
-      
+
       // Log the action
       await _logAction(db, quotationId, 'REJECT', rejectedBy, reason);
-      
+
       return const Right(null);
     } catch (e) {
       return Left(UnknownFailure('فشل في رفض العرض: ${e.toString()}'));
@@ -382,21 +408,25 @@ class QuotationProtectionService {
   }
 
   /// Get expired quotations
-  Future<Either<Failure, List<Map<String, dynamic>>>> getExpiredQuotations() async {
+  Future<Either<Failure, List<Map<String, dynamic>>>>
+  getExpiredQuotations() async {
     try {
       final db = await _databaseService.database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
+
       final result = await db.query(
         _invoicesTable,
-        where: 'invoice_type = 3 AND valid_until IS NOT NULL AND valid_until < ? AND next_invoice_id IS NULL',
+        where:
+            'invoice_type = 3 AND valid_until IS NOT NULL AND valid_until < ? AND next_invoice_id IS NULL',
         whereArgs: [now],
         orderBy: 'valid_until DESC',
       );
-      
+
       return Right(result);
     } catch (e) {
-      return Left(UnknownFailure('فشل في جلب العروض المنتهية: ${e.toString()}'));
+      return Left(
+        UnknownFailure('فشل في جلب العروض المنتهية: ${e.toString()}'),
+      );
     }
   }
 
@@ -405,8 +435,9 @@ class QuotationProtectionService {
     try {
       final db = await _databaseService.database;
       final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-      
-      final count = await db.rawUpdate('''
+
+      final count = await db.rawUpdate(
+        '''
         UPDATE $_invoicesTable 
         SET approval_status = ?, 
             is_locked = 1, 
@@ -417,18 +448,22 @@ class QuotationProtectionService {
           AND valid_until < ? 
           AND next_invoice_id IS NULL
           AND approval_status != ?
-      ''', [statusExpired, now, now, statusExpired]);
-      
+      ''',
+        [statusExpired, now, now, statusExpired],
+      );
+
       return Right(count);
     } catch (e) {
-      return Left(UnknownFailure('فشل في تحديث العروض المنتهية: ${e.toString()}'));
+      return Left(
+        UnknownFailure('فشل في تحديث العروض المنتهية: ${e.toString()}'),
+      );
     }
   }
 
   /// Calculate hash of quotation data for integrity check
   Future<String> _calculateQuotationHash(int quotationId) async {
     final db = await _databaseService.database;
-    
+
     // Get quotation data
     final quotation = await db.query(
       _invoicesTable,
@@ -436,9 +471,9 @@ class QuotationProtectionService {
       whereArgs: [quotationId],
       limit: 1,
     );
-    
+
     if (quotation.isEmpty) return '';
-    
+
     // Get lines data
     final lines = await db.query(
       _invoiceLinesTable,
@@ -446,7 +481,7 @@ class QuotationProtectionService {
       whereArgs: [quotationId],
       orderBy: 'id ASC',
     );
-    
+
     // Build data string for hashing
     final q = quotation.first;
     final dataToHash = {
@@ -456,18 +491,22 @@ class QuotationProtectionService {
       'discount_amt': q['discount_amt'],
       'customer_id': q['customer_id'],
       'stock_id': q['stock_id'],
-      'lines': lines.map((l) => {
-        'product_id': l['category_id'],
-        'quantity': l['quantity'],
-        'price': l['price'],
-        'total': l['total_price'],
-      }).toList(),
+      'lines': lines
+          .map(
+            (l) => {
+              'product_id': l['category_id'],
+              'quantity': l['quantity'],
+              'price': l['price'],
+              'total': l['total_price'],
+            },
+          )
+          .toList(),
     };
-    
+
     final jsonStr = json.encode(dataToHash);
     final bytes = utf8.encode(jsonStr);
     final digest = sha256.convert(bytes);
-    
+
     return digest.toString();
   }
 
@@ -480,15 +519,21 @@ class QuotationProtectionService {
     String? notes,
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    
-    await db.insert(_auditLogsTable, {
-      'entity_type': 'quotation',
-      'entity_id': quotationId,
-      'action': action,
-      'user_id': userId,
-      'description': notes,
-      'created_at': now,
-    });
+
+    try {
+      await db.insert(_auditLogsTable, {
+        'table_name': 'invoices',
+        'entity_type': 'quotation',
+        'record_id': quotationId,
+        'entity_id': quotationId,
+        'action_type': action,
+        'action': action,
+        'user_id': userId,
+        'description': notes,
+        'creation_time': now,
+        'created_at': now,
+      });
+    } catch (_) {}
   }
 }
 
@@ -503,7 +548,7 @@ class QuotationConversionCheck {
     required this.warnings,
     required this.quotationData,
   });
-  
+
   bool get hasWarnings => warnings.isNotEmpty;
 }
 
@@ -518,25 +563,39 @@ class QuotationApprovalStatus {
 
   static String getName(int status) {
     switch (status) {
-      case draft: return 'مسودة';
-      case pendingApproval: return 'قيد الاعتماد';
-      case approved: return 'معتمد';
-      case rejected: return 'مرفوض';
-      case expired: return 'منتهي الصلاحية';
-      case converted: return 'محول لفاتورة';
-      default: return 'غير محدد';
+      case draft:
+        return 'مسودة';
+      case pendingApproval:
+        return 'قيد الاعتماد';
+      case approved:
+        return 'معتمد';
+      case rejected:
+        return 'مرفوض';
+      case expired:
+        return 'منتهي الصلاحية';
+      case converted:
+        return 'محول لفاتورة';
+      default:
+        return 'غير محدد';
     }
   }
 
   static String getColor(int status) {
     switch (status) {
-      case draft: return '#6B7280';
-      case pendingApproval: return '#F59E0B';
-      case approved: return '#10B981';
-      case rejected: return '#EF4444';
-      case expired: return '#9CA3AF';
-      case converted: return '#8B5CF6';
-      default: return '#6B7280';
+      case draft:
+        return '#6B7280';
+      case pendingApproval:
+        return '#F59E0B';
+      case approved:
+        return '#10B981';
+      case rejected:
+        return '#EF4444';
+      case expired:
+        return '#9CA3AF';
+      case converted:
+        return '#8B5CF6';
+      default:
+        return '#6B7280';
     }
   }
 }

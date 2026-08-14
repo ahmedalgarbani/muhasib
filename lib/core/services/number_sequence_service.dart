@@ -12,6 +12,8 @@ class NumberSequenceService {
   Future<String> getNextNumber(String sequenceType) async {
     return await _db.transaction((txn) async {
       try {
+        await _ensureTableAndSequence(txn, sequenceType);
+
         // Read current sequence (with row-level lock)
         final result = await txn.query(
           'number_sequences',
@@ -91,6 +93,8 @@ class NumberSequenceService {
 
   /// Get current number without incrementing
   Future<String> getCurrentNumber(String sequenceType) async {
+    await _ensureTableAndSequence(_db, sequenceType);
+
     final result = await _db.query(
       'number_sequences',
       where: 'sequence_type = ?',
@@ -113,6 +117,8 @@ class NumberSequenceService {
 
   /// Get current raw value without incrementing
   Future<int> getCurrentValue(String sequenceType) async {
+    await _ensureTableAndSequence(_db, sequenceType);
+
     final result = await _db.query(
       'number_sequences',
       where: 'sequence_type = ?',
@@ -125,6 +131,77 @@ class NumberSequenceService {
     }
 
     return result.first['current_value'] as int;
+  }
+
+  Future<void> _ensureTableAndSequence(DatabaseExecutor executor, String sequenceType) async {
+    await executor.execute('''
+      CREATE TABLE IF NOT EXISTS number_sequences (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        sequence_type TEXT NOT NULL UNIQUE,
+        prefix TEXT,
+        current_value INTEGER NOT NULL DEFAULT 0,
+        min_value INTEGER DEFAULT 1,
+        max_value INTEGER,
+        increment_by INTEGER DEFAULT 1,
+        padding_length INTEGER DEFAULT 6,
+        fiscal_year INTEGER,
+        reset_on_year_change INTEGER DEFAULT 0,
+        last_reset_date INTEGER,
+        creation_time INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)),
+        last_modification_time INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER))
+      );
+    ''');
+    try {
+      await executor.execute(
+        'CREATE INDEX IF NOT EXISTS idx_number_sequences_type ON number_sequences(sequence_type);',
+      );
+    } catch (_) {}
+
+    final rows = await executor.query(
+      'number_sequences',
+      where: 'sequence_type = ?',
+      whereArgs: [sequenceType],
+      limit: 1,
+    );
+
+    if (rows.isEmpty) {
+      final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      final defaultPrefix = _getDefaultPrefix(sequenceType);
+      await executor.rawInsert('''
+        INSERT OR IGNORE INTO number_sequences 
+          (sequence_type, prefix, current_value, padding_length, reset_on_year_change, creation_time, last_modification_time)
+        VALUES (?, ?, 0, 6, 0, ?, ?)
+      ''', [sequenceType, defaultPrefix, now, now]);
+    }
+  }
+
+  String _getDefaultPrefix(String sequenceType) {
+    switch (sequenceType) {
+      case 'sales_invoice':
+        return 'INV';
+      case 'purchase_invoice':
+        return 'PINV';
+      case 'quotation':
+        return 'QT';
+      case 'journal_entry':
+        return 'JE';
+      case 'receipt_voucher':
+        return 'RV';
+      case 'payment_voucher':
+        return 'PV';
+      case 'sales_return':
+        return 'SRT';
+      case 'purchase_return':
+        return 'PRT';
+      case 'opening_balance':
+        return 'OB';
+      case 'stock_transfer':
+        return 'TR';
+      case 'stock_adjustment':
+        return 'ADJ';
+      default:
+        return sequenceType.toUpperCase();
+    }
   }
 
   /// Get next number formatted with an external prefix (e.g. from settings)

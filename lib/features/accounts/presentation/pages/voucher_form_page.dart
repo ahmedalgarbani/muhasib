@@ -152,11 +152,18 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                   const SizedBox(height: 24),
                   VoucherFormLinesSectionWidget(
                     lines: _lines,
-                    onAddLine: () => setState(() => _lines.add(_VoucherLineInput())),
+                    headerAmount: double.tryParse(_amountController.text) ?? 0,
+                    onAddLine: () =>
+                        setState(() => _lines.add(_VoucherLineInput())),
                     onPickLineAccount: (i) =>
                         _pickAccount(isLine: true, lineIndex: i),
                     onRemoveLine: (i) =>
                         setState(() => _lines.removeAt(i).dispose()),
+                    onSyncHeaderAmount: (total) {
+                      setState(() {
+                        _amountController.text = total.toStringAsFixed(2);
+                      });
+                    },
                   ),
                   const SizedBox(height: 40),
                   VoucherFormSaveButtonWidget(onSave: _onSave),
@@ -205,7 +212,10 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
     if (_accountId == null) {
-      AppToast.showError(context, 'يجب اختيار الحساب الرئيسي');
+      AppToast.showError(
+        context,
+        'يجب اختيار الحساب الرئيسي (الصندوق / البنك)',
+      );
       return;
     }
 
@@ -218,6 +228,15 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
       0,
       (sum, line) => sum + (line.amount ?? 0),
     );
+
+    // Validate that lines total matches the voucher header amount
+    if (filteredLines.isNotEmpty && (headerAmount - totalLines).abs() > 0.01) {
+      AppToast.showError(
+        context,
+        'مجموع بنود السند (${totalLines.toStringAsFixed(2)}) لا يتطابق مع المبلغ الإجمالي (${headerAmount.toStringAsFixed(2)})!\nيرجى موازنة المبالغ أو تعديل الإجمالي.',
+      );
+      return;
+    }
 
     final voucher = VoucherEntity(
       id: widget.voucher?.id,
@@ -317,10 +336,7 @@ class VoucherFormTopSectionWidget extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          VoucherFormTypeToggleWidget(
-            type: type,
-            onTypeChanged: onTypeChanged,
-          ),
+          VoucherFormTypeToggleWidget(type: type, onTypeChanged: onTypeChanged),
         ],
       ),
     );
@@ -508,20 +524,31 @@ class VoucherFormStatementFieldWidget extends StatelessWidget {
 
 class VoucherFormLinesSectionWidget extends StatelessWidget {
   final List<_VoucherLineInput> lines;
+  final double headerAmount;
   final VoidCallback onAddLine;
   final ValueChanged<int> onPickLineAccount;
   final ValueChanged<int> onRemoveLine;
+  final ValueChanged<double> onSyncHeaderAmount;
 
   const VoucherFormLinesSectionWidget({
     super.key,
     required this.lines,
+    required this.headerAmount,
     required this.onAddLine,
     required this.onPickLineAccount,
     required this.onRemoveLine,
+    required this.onSyncHeaderAmount,
   });
 
   @override
   Widget build(BuildContext context) {
+    final totalLines = lines.fold<double>(
+      0,
+      (sum, l) => sum + (double.tryParse(l.amountController.text) ?? 0),
+    );
+    final isMatched =
+        lines.isEmpty || (headerAmount - totalLines).abs() <= 0.01;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -544,7 +571,60 @@ class VoucherFormLinesSectionWidget extends StatelessWidget {
           const Text(
             'في حال عدم إضافة سطور، سيتم توجيه المبلغ بالكامل للحساب الرئيسي المختار أعلاه.',
             style: TextStyle(color: Colors.grey, fontSize: 13),
+          )
+        else ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isMatched ? AppColors.emerald50 : AppColors.amber50,
+              border: Border.all(
+                color: isMatched ? AppColors.emerald200 : AppColors.amber200,
+              ),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  isMatched ? Icons.check_circle : Icons.warning_amber_rounded,
+                  size: 20,
+                  color: isMatched ? AppColors.emerald700 : AppColors.amber700,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    isMatched
+                        ? 'مجموع البنود متطابق: ${totalLines.toStringAsFixed(2)} ريال'
+                        : 'مجموع البنود (${totalLines.toStringAsFixed(2)}) لا يطابق الإجمالي (${headerAmount.toStringAsFixed(2)})',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: isMatched
+                          ? AppColors.emerald700
+                          : AppColors.amber700,
+                    ),
+                  ),
+                ),
+                if (!isMatched && totalLines > 0)
+                  TextButton(
+                    onPressed: () => onSyncHeaderAmount(totalLines),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'مزامنة الإجمالي',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
           ),
+          const SizedBox(height: 12),
+        ],
         ...lines.asMap().entries.map(
           (entry) => VoucherFormLineCardWidget(
             index: entry.key,

@@ -157,24 +157,49 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
   }
 
   Future<void> _saveExchange() async {
-    if (!_formKey.currentState!.validate() ||
-        fromCurrency == null ||
-        toCurrency == null)
+    if (!_formKey.currentState!.validate()) return;
+    if (fromCurrency == null || toCurrency == null) {
+      AppToast.showError(context, 'يرجى اختيار العملة المباعة والعملة المشتراة');
       return;
+    }
+    if (fromCurrency!.id == toCurrency!.id) {
+      AppToast.showError(context, 'لا يمكن صرف نفس العملة، يرجى اختيار عملتين مختلفتين');
+      return;
+    }
+    if (fromAccountId == null || toAccountId == null) {
+      AppToast.showError(context, 'يرجى اختيار حساب الخزينة للعملتين');
+      return;
+    }
+    if (fromAccountId == toAccountId) {
+      AppToast.showError(context, 'لا يمكن التحويل من وإلى نفس حساب الخزينة');
+      return;
+    }
+
+    final fromAmount = double.tryParse(_amountController.text) ?? 0;
+    final toAmount = double.tryParse(_resultController.text) ?? 0;
+    final fromLocal = fromAmount * fromCurrency!.exchangeRate;
+    final toLocal = toAmount * toCurrency!.exchangeRate;
+    final diff = (toLocal - fromLocal).abs();
+
+    if (diff > 0.005 && exchangeDifferenceAccountId == null) {
+      AppToast.showError(context, 'توجد فروق أسعار صرف (${diff.toStringAsFixed(2)})، يرجى تحديد حساب فروق الصرف');
+      return;
+    }
+
     setState(() => isLoading = true);
     final result = await _exchangeService.createExchange(
       creditAccountId: fromAccountId!,
       creditCurrencyId: fromCurrency!.id!,
       creditCurrencyCode: fromCurrency!.code,
-      creditAmount: double.parse(_amountController.text),
+      creditAmount: fromAmount,
       creditExchangeRate: fromCurrency!.exchangeRate,
       debitAccountId: toAccountId!,
       debitCurrencyId: toCurrency!.id!,
       debitCurrencyCode: toCurrency!.code,
-      debitAmount: double.parse(_resultController.text),
+      debitAmount: toAmount,
       debitExchangeRate: toCurrency!.exchangeRate,
       date: selectedDate,
-      notes: _notesController.text,
+      notes: _notesController.text.trim().isEmpty ? null : _notesController.text.trim(),
       customExchangeRate: useCustomRate
           ? double.tryParse(_customRateController.text)
           : null,
@@ -182,7 +207,7 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
     );
     setState(() => isLoading = false);
     result.fold((f) => AppToast.showError(context, f.message), (e) {
-      AppToast.showSuccess(context, 'تم حفظ عملية الصرف رقم ${e.number} بنجاح');
+      AppToast.showSuccess(context, 'تم حفظ وترحيل عملية الصرف رقم EX-${e.number} بنجاح');
       _clearForm();
     });
   }

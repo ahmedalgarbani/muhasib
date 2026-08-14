@@ -141,6 +141,15 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
             ? 2 // fully paid
             : (_invoice.paid > 0 ? 1 : 0)); // 1=partial, 0=unpaid
 
+    // Cash portion actually paid now; bank portion goes to its own account;
+    // remainder (deferred) becomes customer receivable.
+    final paidAmount = _invoice.payments
+        .where((p) => p.method == PaymentMethod.cash)
+        .fold(0.0, (sum, p) => sum + p.amount);
+    final bankPaidAmount = _invoice.payments
+        .where((p) => p.method == PaymentMethod.bank)
+        .fold(0.0, (sum, p) => sum + p.amount);
+
     // Map local Invoice to InvoiceEntity with all required fields
     final invoiceEntity = InvoiceEntity(
       invoiceType: widget.invoiceType.value,
@@ -157,9 +166,11 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
           : 0.0,
       otherFeeAmt: 0.0,
       otherFeeNetRatio: 0.0,
-      netRevenueAmt: finalAmount,
+      netRevenueAmt: totalAfterDiscount,
       totalAmountAfterDiscount: totalAfterDiscount,
       finalAmt: finalAmount,
+      paidAmount: isQuotation ? null : paidAmount,
+      bankPaidAmount: isQuotation ? null : bankPaidAmount,
       currencyId: null, // Avoid FK if currencies are not seeded
       currencyCode: 'SAR', // Default currency code
       exchangeRate: 1.0,

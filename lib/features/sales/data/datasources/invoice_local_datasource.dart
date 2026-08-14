@@ -286,6 +286,197 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
     );
   }
 
+  /// Reverses every journal entry linked to a document:
+  /// - restores account balances
+  /// - restores account limits (current_debit/current_credit)
+  /// - deletes journal lines and entries
+  Future<void> _reverseJournalEntryEffects(
+    Transaction txn,
+    String referenceType,
+    int referenceId,
+  ) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final entries = await txn.query(
+      _journalEntriesTable,
+      where: 'reference_type = ? AND reference_id = ?',
+      whereArgs: [referenceType, referenceId],
+    );
+    for (final entry in entries) {
+      final entryId = entry['id'] as int;
+      final lines = await txn.query(
+        _journalLinesTable,
+        where: 'journal_entry_id = ?',
+        whereArgs: [entryId],
+      );
+      for (final line in lines) {
+        final accountId = line['account_id'] as int;
+        final debit = (line['debit_amount'] as num?)?.toDouble() ?? 0.0;
+        final credit = (line['credit_amount'] as num?)?.toDouble() ?? 0.0;
+        final currencyId = line['currency_id'] as int?;
+
+        await _applyAccountBalanceDelta(txn, accountId, -(debit - credit));
+
+        if (currencyId != null) {
+          await txn.rawUpdate(
+            '''
+UPDATE $_accountLimitsTable
+SET current_debit = MAX(0, current_debit - ?),
+    current_credit = MAX(0, current_credit - ?),
+    last_modification_time = ?
+WHERE account_id = ? AND currency_id = ? AND is_active = 1
+''',
+            [debit, credit, now, accountId, currencyId],
+          );
+        }
+      }
+      await txn.delete(
+        _journalLinesTable,
+        where: 'journal_entry_id = ?',
+        whereArgs: [entryId],
+      );
+      await txn.delete(
+        _journalEntriesTable,
+        where: 'id = ?',
+        whereArgs: [entryId],
+      );
+    }
+  }
+
+  /// Reduces warehouse stock for sales invoice lines (outgoing goods)
+  Future<void> _reduceStockForSalesLines(
+    Transaction txn, {
+    required int invoiceId,
+    required String invoiceNumber,
+    required List<InvoiceLineModel> lines,
+    required int? headerStockId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    for (final lineModel in lines) {
+      final productId = lineModel.categoryId;
+      final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
+      final qty = lineModel.quantity;
+
+      if (productId == null || qty <= 0) continue;
+
+      final stockResult = await txn.query(
+        'warehouse_stocks',
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+        limit: 1,
+      );
+
+      double currentQty = 0.0;
+      double avgCost = 0.0;
+
+      if (stockResult.isNotEmpty) {
+        currentQty =
+            (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+        avgCost =
+            (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      }
+
+      final newQty = currentQty - qty;
+
+      if (stockResult.isNotEmpty) {
+        await txn.update(
+          'warehouse_stocks',
+          {'quantity': newQty, 'last_modification_time': now},
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [productId, warehouseId],
+        );
+      } else {
+        // Create new record with negative quantity (oversold)
+        await txn.insert('warehouse_stocks', {
+          'product_id': productId,
+          'warehouse_id': warehouseId,
+          'quantity': newQty,
+          'avg_cost': 0.0,
+          'last_cost': 0.0,
+          'creation_time': now,
+          'last_modification_time': now,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+
+      try {
+        await txn.insert('stock_movements', {
+          'product_id': productId,
+          'warehouse_id': warehouseId,
+          'movement_type': 'sale',
+          'quantity': -qty, // Negative for outgoing
+          'unit_cost': avgCost,
+          'total_cost': qty * avgCost,
+          'balance_after': newQty,
+          'reference_type': 'sales_invoice',
+          'reference_id': invoiceId,
+          'reference_number': invoiceNumber,
+          'creation_time': now,
+        });
+      } catch (_) {
+        // Ignore if stock_movements table doesn't exist
+      }
+    }
+  }
+
+  /// Restores warehouse stock quantities for a sales invoice (reversal)
+  Future<void> _restoreStockForSalesLines(
+    Transaction txn, {
+    required int invoiceId,
+    required String invoiceNumber,
+    required int? headerStockId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final lines = await txn.query(
+      _linesTable,
+      columns: ['category_id', 'stock_id', 'quantity'],
+      where: 'invoice_id = ?',
+      whereArgs: [invoiceId],
+    );
+    for (final line in lines) {
+      final productId = line['category_id'] as int?;
+      final qty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      if (productId == null || qty <= 0) continue;
+
+      final warehouseId = (line['stock_id'] as int?) ?? headerStockId ?? 1;
+      final stockResult = await txn.query(
+        'warehouse_stocks',
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+        limit: 1,
+      );
+      if (stockResult.isEmpty) continue;
+
+      final currentQty =
+          (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+      final avgCost =
+          (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      final newQty = currentQty + qty;
+      await txn.update(
+        'warehouse_stocks',
+        {'quantity': newQty, 'last_modification_time': now},
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+      );
+
+      try {
+        await txn.insert('stock_movements', {
+          'product_id': productId,
+          'warehouse_id': warehouseId,
+          'movement_type': 'sale_reverse',
+          'quantity': qty, // Positive for reversal
+          'unit_cost': avgCost,
+          'total_cost': qty * avgCost,
+          'balance_after': newQty,
+          'reference_type': 'sales_invoice_reversal',
+          'reference_id': invoiceId,
+          'reference_number': invoiceNumber,
+          'creation_time': now,
+        });
+      } catch (_) {
+        // Ignore if stock_movements table doesn't exist
+      }
+    }
+  }
+
   Future<void> _validateAndUpdateAccountLimits({
     required Transaction txn,
     required int currencyId,
@@ -391,14 +582,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final tax = (invoiceData['tax_amt'] as num?)?.toDouble() ?? 0.0;
     final otherFee = (invoiceData['other_fee_amt'] as num?)?.toDouble() ?? 0.0;
 
-    final totalAfterDiscount =
-        (invoiceData['total_amount_after_discount'] as num?)?.toDouble() ??
-        (subtotal - discount);
-    final netRevenue =
-        (invoiceData['net_revenue_amt'] as num?)?.toDouble() ??
-        (totalAfterDiscount + otherFee);
     final total =
-        (invoiceData['final_amt'] as num?)?.toDouble() ?? (netRevenue + tax);
+        (invoiceData['final_amt'] as num?)?.toDouble() ??
+        (subtotal - discount + otherFee + tax);
 
     final isCredit = ((invoiceData['invoice_trans_type'] as int?) ?? 0) == 1;
 
@@ -434,14 +620,26 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         : 0;
 
     // ========== Split Payment Support ==========
-    // paidAmount = cash portion; remainder = credit portion
-    final paidAmount = (invoiceData['paid_amount'] as num?)?.toDouble() ?? 0.0;
-    final cashPortion = isCredit
-        ? paidAmount
-        : total; // If credit, use paidAmount as cash
-    final creditPortion = isCredit
-        ? (total - paidAmount)
-        : 0.0; // If credit, remainder goes to customer account
+    // paid_amount = cash portion; bank_paid_amount = bank portion;
+    // remainder (for credit invoices) goes to the customer account
+    final rawPaidAmount =
+        (invoiceData['paid_amount'] as num?)?.toDouble() ?? 0.0;
+    final rawBankAmount =
+        (invoiceData['bank_paid_amount'] as num?)?.toDouble() ?? 0.0;
+    final cashPaid = rawPaidAmount.clamp(0.0, total);
+    final bankPaid = rawBankAmount.clamp(0.0, total - cashPaid);
+    final cashPortion = isCredit ? cashPaid : (total - bankPaid);
+    final bankPortion = bankPaid;
+    final creditPortion = isCredit ? (total - cashPaid - bankPaid) : 0.0;
+
+    // Resolve bank account only when a bank portion exists
+    final bankAccountId = bankPortion > 0
+        ? await _resolveConnectedAccountId(
+            txn,
+            AccountConnectTypes.banks,
+            label: 'البنوك',
+          )
+        : 0;
 
     // Build lines (balanced)
     final rawLines = <Map<String, dynamic>>[];
@@ -457,6 +655,17 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       });
     }
 
+    // Debit side - Bank portion (if any)
+    if (bankPortion > 0) {
+      rawLines.add({
+        'account_id': bankAccountId,
+        'debit_amount': bankPortion,
+        'credit_amount': 0.0,
+        'notes': statement,
+        'description': 'مبيعات بنكية - $invoiceNumber',
+      });
+    }
+
     // Debit side - Credit portion (customer receivable)
     if (creditPortion > 0) {
       rawLines.add({
@@ -469,7 +678,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     }
 
     // If no cash and no credit (shouldn't happen, but fallback)
-    if (cashPortion <= 0 && creditPortion <= 0 && total > 0) {
+    if (cashPortion <= 0 && bankPortion <= 0 && creditPortion <= 0 && total > 0) {
       rawLines.add({
         'account_id': isCredit ? customerAccountId : cashAccountId,
         'debit_amount': total,
@@ -481,11 +690,11 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       });
     }
 
-    // Credit: Sales revenue
+    // Credit: Sales revenue (gross; discount is recorded separately as contra revenue)
     rawLines.add({
       'account_id': salesAccountId,
       'debit_amount': 0.0,
-      'credit_amount': netRevenue,
+      'credit_amount': subtotal,
       'notes': statement,
       'description': 'إيراد مبيعات - $invoiceNumber',
     });
@@ -754,12 +963,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     if (cogsReversal > 0) {
       cogsAccountId = await _resolveConnectedAccountId(
         txn,
-        12,
+        AccountConnectTypes.costOfGoodsSold,
         label: 'تكلفة البضاعة المباعة',
       );
       inventoryAccountId = await _resolveConnectedAccountId(
         txn,
-        6,
+        AccountConnectTypes.inventory,
         label: 'المخزون',
       );
     }
@@ -786,16 +995,45 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       });
     }
 
-    // Credit: customer (credit returns) OR cash (cash returns)
-    rawLines.add({
-      'account_id': isCredit ? customerAccountId : cashAccountId,
-      'debit_amount': 0.0,
-      'credit_amount': total,
-      'notes': statement,
-      'description': isCredit
-          ? 'تخفيض ذمة العميل - $invoiceNumber'
-          : 'إرجاع نقدي - $invoiceNumber',
-    });
+    // Credit: customer (credit returns) OR cash/bank refund (cash returns)
+    final rawBankAmount =
+        (invoiceData['bank_paid_amount'] as num?)?.toDouble() ?? 0.0;
+    final bankRefund = rawBankAmount.clamp(0.0, total);
+    final cashRefund = total - bankRefund;
+
+    if (isCredit) {
+      rawLines.add({
+        'account_id': customerAccountId,
+        'debit_amount': 0.0,
+        'credit_amount': total,
+        'notes': statement,
+        'description': 'تخفيض ذمة العميل - $invoiceNumber',
+      });
+    } else {
+      if (cashRefund > 0) {
+        rawLines.add({
+          'account_id': cashAccountId,
+          'debit_amount': 0.0,
+          'credit_amount': cashRefund,
+          'notes': statement,
+          'description': 'إرجاع نقدي - $invoiceNumber',
+        });
+      }
+      if (bankRefund > 0) {
+        final bankAccountId = await _resolveConnectedAccountId(
+          txn,
+          AccountConnectTypes.banks,
+          label: 'البنوك',
+        );
+        rawLines.add({
+          'account_id': bankAccountId,
+          'debit_amount': 0.0,
+          'credit_amount': bankRefund,
+          'notes': statement,
+          'description': 'إرجاع بنكي - $invoiceNumber',
+        });
+      }
+    }
 
     // Credit: reverse discount allowed
     if (discount > 0) {
@@ -1775,80 +2013,19 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         final invoiceType = (invoiceData['invoice_type'] as int?) ?? 0;
         if (invoiceType == 1) {
           // Sales invoice only
-          final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-          final headerStockId = invoiceData['stock_id'] as int?;
-          final invoiceNumber = (invoiceData['number'] as String?) ?? '';
-
-          for (final line in invoice.lines) {
-            final lineModel = line is InvoiceLineModel
-                ? line
-                : InvoiceLineModel.fromEntity(line);
-            final productId = lineModel.categoryId;
-            final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
-            final qty = lineModel.quantity;
-
-            if (productId != null && qty > 0) {
-              // Get current stock
-              final stockResult = await txn.query(
-                'warehouse_stocks',
-                where: 'product_id = ? AND warehouse_id = ?',
-                whereArgs: [productId, warehouseId],
-                limit: 1,
-              );
-
-              double currentQty = 0.0;
-              double avgCost = 0.0;
-
-              if (stockResult.isNotEmpty) {
-                currentQty =
-                    (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-                avgCost =
-                    (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
-              }
-
-              final newQty = currentQty - qty;
-
-              // Update or insert warehouse stock
-              if (stockResult.isNotEmpty) {
-                await txn.update(
-                  'warehouse_stocks',
-                  {'quantity': newQty, 'last_modification_time': now},
-                  where: 'product_id = ? AND warehouse_id = ?',
-                  whereArgs: [productId, warehouseId],
-                );
-              } else {
-                // Create new record with negative quantity (oversold)
-                await txn.insert('warehouse_stocks', {
-                  'product_id': productId,
-                  'warehouse_id': warehouseId,
-                  'quantity': newQty,
-                  'avg_cost': 0.0,
-                  'last_cost': 0.0,
-                  'creation_time': now,
-                  'last_modification_time': now,
-                }, conflictAlgorithm: ConflictAlgorithm.replace);
-              }
-
-              // Record stock movement
-              try {
-                await txn.insert('stock_movements', {
-                  'product_id': productId,
-                  'warehouse_id': warehouseId,
-                  'movement_type': 'sale',
-                  'quantity': -qty, // Negative for outgoing
-                  'unit_cost': avgCost,
-                  'total_cost': qty * avgCost,
-                  'balance_after': newQty,
-                  'reference_type': 'sales_invoice',
-                  'reference_id': invoiceId,
-                  'reference_number': invoiceNumber,
-                  'creation_time': now,
-                });
-              } catch (_) {
-                // Ignore if stock_movements table doesn't exist
-              }
-            }
-          }
+          await _reduceStockForSalesLines(
+            txn,
+            invoiceId: invoiceId,
+            invoiceNumber: (invoiceData['number'] as String?) ?? '',
+            lines: invoice.lines
+                .map(
+                  (l) => l is InvoiceLineModel
+                      ? l
+                      : InvoiceLineModel.fromEntity(l),
+                )
+                .toList(),
+            headerStockId: invoiceData['stock_id'] as int?,
+          );
         }
         // ========== END INVENTORY UPDATE ==========
 
@@ -1910,6 +2087,31 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               throw LocalStorageException('عرض السعر معتمد ولا يمكن تعديله');
             }
           }
+
+          // For sales invoices (type = 1): reverse old journal + restore
+          // old stock before overwriting, then re-post with new values.
+          if (invoiceType == 1) {
+            final oldHeader = await txn.query(
+              _invoicesTable,
+              columns: ['number', 'stock_id'],
+              where: 'id = ?',
+              whereArgs: [invoice.id],
+              limit: 1,
+            );
+            final oldNumber =
+                oldHeader.isNotEmpty ? oldHeader.first['number'] as String? : null;
+            final oldStockId = oldHeader.isNotEmpty
+                ? oldHeader.first['stock_id'] as int?
+                : null;
+
+            await _reverseJournalEntryEffects(txn, 'sales_invoice', invoice.id!);
+            await _restoreStockForSalesLines(
+              txn,
+              invoiceId: invoice.id!,
+              invoiceNumber: oldNumber ?? '',
+              headerStockId: oldStockId,
+            );
+          }
         }
         // ========== End Protection Check ==========
 
@@ -1941,6 +2143,28 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             _linesTable,
             lineData,
             conflictAlgorithm: ConflictAlgorithm.abort,
+          );
+        }
+
+        // Re-post accounting + stock effects for sales invoices
+        if (invoice.invoiceType == 1) {
+          await _postSalesInvoiceToJournal(
+            txn: txn,
+            invoiceId: invoice.id!,
+            invoiceData: {...invoice.toJson(), 'id': invoice.id},
+          );
+          await _reduceStockForSalesLines(
+            txn,
+            invoiceId: invoice.id!,
+            invoiceNumber: invoice.number,
+            lines: invoice.lines
+                .map(
+                  (l) => l is InvoiceLineModel
+                      ? l
+                      : InvoiceLineModel.fromEntity(l),
+                )
+                .toList(),
+            headerStockId: invoice.stockId,
           );
         }
       });
@@ -2000,18 +2224,27 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           }
         }
 
-        // For sales invoices (type = 1), check if it has journal entries
+        // For sales invoices (type = 1): full reversal (journal + stock),
+        // blocked only if returns are linked to it.
         if (invoiceType == 1) {
-          final journalCheck = await database.rawQuery(
-            "SELECT COUNT(*) as count FROM journal_entries WHERE reference_type = 'sales_invoice' AND reference_id = ?",
+          final childReturns = await database.rawQuery(
+            "SELECT COUNT(*) as count FROM invoices WHERE parent_invoice_id = ? AND invoice_type = 4",
             [id],
           );
-          final hasJournal = ((journalCheck.first['count'] as int?) ?? 0) > 0;
-          if (hasJournal) {
+          final returnsCount = ((childReturns.first['count'] as int?) ?? 0);
+          if (returnsCount > 0) {
             throw LocalStorageException(
-              'لا يمكن حذف الفاتورة $number لأنها مسجلة محاسبياً. يجب إلغاؤها بدلاً من حذفها.',
+              'لا يمكن حذف الفاتورة $number لوجود مرتجعات مرتبطة بها. احذف المرتجعات أولاً.',
             );
           }
+          await _deleteSalesInvoice(id, data);
+          return;
+        }
+
+        // For sales returns (type = 4): reverse journal entry and stock
+        if (invoiceType == 4) {
+          await _deleteSalesReturn(id, data);
+          return;
         }
       }
       // ========== End Protection Check ==========
@@ -2030,6 +2263,128 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       }
       throw LocalStorageException('Failed to delete invoice: ${e.toString()}');
     }
+  }
+
+  /// Deletes a sales invoice and reverses its accounting effects:
+  /// - Reverses the posted journal entry (balances + limits)
+  /// - Restores warehouse stock quantities
+  Future<void> _deleteSalesInvoice(
+    int id,
+    Map<String, dynamic> invoiceData,
+  ) async {
+    await database.transaction((txn) async {
+      final header = await txn.query(
+        _invoicesTable,
+        columns: ['stock_id'],
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      final headerStockId =
+          header.isNotEmpty ? header.first['stock_id'] as int? : null;
+
+      await _reverseJournalEntryEffects(txn, 'sales_invoice', id);
+      await _restoreStockForSalesLines(
+        txn,
+        invoiceId: id,
+        invoiceNumber: invoiceData['number'] as String? ?? '',
+        headerStockId: headerStockId,
+      );
+
+      await txn.delete(
+        _linesTable,
+        where: 'invoice_id = ?',
+        whereArgs: [id],
+      );
+      await txn.delete(
+        _invoicesTable,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
+  }
+
+  /// Deletes a sales return and reverses its accounting effects:
+  /// - Reverses the posted journal entry (restores account balances)
+  /// - Decreases stock by the returned quantities
+  /// - Clears the parent invoice link
+  Future<void> _deleteSalesReturn(
+    int id,
+    Map<String, dynamic> invoiceData,
+  ) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+    await database.transaction((txn) async {
+      // 1. Reverse the journal entry for this return (balances + limits)
+      await _reverseJournalEntryEffects(txn, 'sales_return', id);
+
+      // 2. Decrease stock by the returned quantities
+      final returnLines = await txn.query(
+        _linesTable,
+        where: 'invoice_id = ?',
+        whereArgs: [id],
+      );
+      for (final line in returnLines) {
+        final productId = line['category_id'] as int?;
+        final returnQty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+        if (productId == null || returnQty <= 0) continue;
+
+        final warehouseId = (line['stock_id'] as int?) ?? 1;
+        final stockResult = await txn.query(
+          'warehouse_stocks',
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [productId, warehouseId],
+          limit: 1,
+        );
+        if (stockResult.isEmpty) continue;
+
+        final currentQty =
+            (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+        final avgCost =
+            (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+        final newQty = currentQty - returnQty;
+        await txn.update(
+          'warehouse_stocks',
+          {'quantity': newQty, 'last_modification_time': now},
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [productId, warehouseId],
+        );
+
+        try {
+          await txn.insert('stock_movements', {
+            'product_id': productId,
+            'warehouse_id': warehouseId,
+            'movement_type': 'delete_return',
+            'quantity': -returnQty,
+            'unit_cost': avgCost,
+            'total_cost': -(returnQty * avgCost),
+            'balance_after': newQty,
+            'reference_type': 'sales_return_deleted',
+            'reference_id': id,
+            'reference_number': invoiceData['number'] as String? ?? '',
+            'creation_time': now,
+          });
+        } catch (_) {
+          // Ignore if stock_movements table doesn't exist
+        }
+      }
+
+      // 3. Clear parent invoice link to this return
+      await txn.update(
+        _invoicesTable,
+        {
+          'next_invoice_id': null,
+          'next_invoice_type': null,
+          'next_invoice_number': null,
+        },
+        where: 'next_invoice_id = ?',
+        whereArgs: [id],
+      );
+
+      // 4. Delete return lines and the return invoice
+      await txn.delete(_linesTable, where: 'invoice_id = ?', whereArgs: [id]);
+      await txn.delete(_invoicesTable, where: 'id = ?', whereArgs: [id]);
+    });
   }
 
   @override
@@ -2257,12 +2612,16 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         // 4. Log the conversion action
         try {
           await txn.insert('audit_logs', {
+            'table_name': 'invoices',
             'entity_type': 'quotation',
+            'record_id': quotationId,
             'entity_id': quotationId,
+            'action_type': 'CONVERT',
             'action': 'CONVERT',
-            'user_id': 1, // TODO: Get actual user ID
+            'user_id': 1,
             'description':
                 'تم تحويل عرض السعر ${quotationData['number']} إلى فاتورة ${salesInvoice.number}',
+            'creation_time': now,
             'created_at': now,
           });
         } catch (_) {
@@ -2274,6 +2633,21 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           txn: txn,
           invoiceId: invoiceId,
           invoiceData: {...invoiceData, 'id': invoiceId},
+        );
+
+        // 6. Reduce warehouse stock for the converted sales invoice
+        await _reduceStockForSalesLines(
+          txn,
+          invoiceId: invoiceId,
+          invoiceNumber: salesInvoice.number,
+          lines: salesInvoice.lines
+              .map(
+                (l) => l is InvoiceLineModel
+                    ? l
+                    : InvoiceLineModel.fromEntity(l),
+              )
+              .toList(),
+          headerStockId: invoiceData['stock_id'] as int?,
         );
 
         return invoiceId;

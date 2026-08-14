@@ -277,10 +277,11 @@ class _JournalEntryScreenState extends State<JournalEntryScreen> {
           floatingActionButton: FloatingActionButton(
             onPressed: () => _showEntryDialog(),
             backgroundColor: AppTheme.primaryColor,
+            tooltip: 'إضافة سطر للقيد',
             child: const Icon(Icons.add, color: Colors.white),
           ),
           body: SingleChildScrollView(
-            padding: AppConstant.defaultPadding,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [

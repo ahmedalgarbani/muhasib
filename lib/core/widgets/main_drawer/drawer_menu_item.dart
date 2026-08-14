@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/models/nav_item.dart';
 import 'package:muhasib/core/route/app_router.dart';
+import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/app_drawer_controller.dart';
@@ -50,7 +51,17 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
     }
 
     closeAppDrawer();
-    router.push(widget.item.route);
+    const shellRoutes = {
+      AppRoutes.home,
+      AppRoutes.salesList,
+      AppRoutes.reports,
+      AppRoutes.settings,
+    };
+    if (shellRoutes.contains(widget.item.route)) {
+      router.go(widget.item.route);
+    } else {
+      router.push(widget.item.route);
+    }
   }
 
   @override

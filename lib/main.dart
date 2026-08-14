@@ -8,6 +8,7 @@ import 'package:muhasib/core/route/app_router.dart';
 import 'package:muhasib/core/widgets/root_shell.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
+import 'package:muhasib/features/accounts/presentation/cubit/account_limits_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
 import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
@@ -60,6 +61,7 @@ void main() async {
           create: (context) => getIt<AccountsCubit>()..loadAllAccounts(),
         ),
         BlocProvider(create: (context) => getIt<AccountConnectCubit>()),
+        BlocProvider(create: (context) => getIt<AccountLimitsCubit>()),
         BlocProvider(create: (context) => getIt<JournalEntryCubit>()),
         BlocProvider(create: (context) => getIt<CurrenciesCubit>()),
         BlocProvider(create: (context) => getIt<SalesCubit>()),

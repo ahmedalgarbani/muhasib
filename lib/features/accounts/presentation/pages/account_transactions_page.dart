@@ -67,7 +67,9 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
         ORDER BY je.entry_date DESC, je.id DESC
       ''', whereArgs);
 
-      final allTransactions = [...journalEntries];
+      final allTransactions = journalEntries
+          .map((entry) => Map<String, dynamic>.from(entry))
+          .toList();
 
       double runningBalance = widget.account.balance;
       totalDebit = 0.0;

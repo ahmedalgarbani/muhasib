@@ -9,10 +9,12 @@ abstract class JournalLocalDataSource {
   Future<List<JournalEntryModel>> getJournalEntries();
   Future<JournalEntryModel> getJournalEntry(int id);
   Future<int> insertJournalEntry(JournalEntryModel entry);
-  Future<void> updateJournalEntry(JournalEntryModel entry, {bool forceUpdate = false});
+  Future<void> updateJournalEntry(
+    JournalEntryModel entry, {
+    bool forceUpdate = false,
+  });
   Future<void> deleteJournalEntry(int id, {bool forceDelete = false});
 }
-
 
 class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   static const String _entriesTable = 'journal_entries';
@@ -136,34 +138,42 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
     try {
       // Validate fiscal period first
       await _validateFiscalPeriod(entry.entryDate);
-      
+
       // Validate balance before insert
-      final totalDebit = entry.lines.fold<double>(0, (sum, line) => sum + line.debit);
-      final totalCredit = entry.lines.fold<double>(0, (sum, line) => sum + line.credit);
+      final totalDebit = entry.lines.fold<double>(
+        0,
+        (sum, line) => sum + line.debit,
+      );
+      final totalCredit = entry.lines.fold<double>(
+        0,
+        (sum, line) => sum + line.credit,
+      );
       final difference = (totalDebit - totalCredit).abs();
-      
+
       if (difference > 0.01) {
         throw LocalStorageException(
           'القيد غير متوازن: المدين ($totalDebit) لا يساوي الدائن ($totalCredit)',
         );
       }
-      
+
       if (entry.lines.isEmpty) {
-        throw LocalStorageException('القيد يجب أن يحتوي على سطر واحد على الأقل');
+        throw LocalStorageException(
+          'القيد يجب أن يحتوي على سطر واحد على الأقل',
+        );
       }
-      
+
       return await database.transaction((txn) async {
         // Prepare entry data with timestamps
         final entryData = entry.toJson();
         final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         entryData['creation_time'] ??= nowSec;
         entryData['last_modification_time'] ??= nowSec;
-        
+
         // Ensure totals are correct
         entryData['total_debit'] = totalDebit;
         entryData['total_credit'] = totalCredit;
         entryData['difference'] = difference;
-        
+
         final entryId = await txn.insert(
           _entriesTable,
           entryData,
@@ -186,7 +196,8 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
           final accountId = payload['account_id'] as int?;
           if (accountId != null) {
             final debit = (payload['debit_amount'] as num?)?.toDouble() ?? 0.0;
-            final credit = (payload['credit_amount'] as num?)?.toDouble() ?? 0.0;
+            final credit =
+                (payload['credit_amount'] as num?)?.toDouble() ?? 0.0;
             final delta = debit - credit;
             if (delta != 0) {
               await _applyAccountBalanceDelta(txn, accountId, delta);
@@ -205,64 +216,87 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   }
 
   @override
-  Future<void> updateJournalEntry(JournalEntryModel entry, {bool forceUpdate = false}) async {
+  Future<void> updateJournalEntry(
+    JournalEntryModel entry, {
+    bool forceUpdate = false,
+  }) async {
     if (entry.id == null) {
       throw LocalStorageException('Journal entry id is required for update');
     }
 
     try {
       // Validate balance before update
-      final totalDebit = entry.lines.fold<double>(0, (sum, line) => sum + line.debit);
-      final totalCredit = entry.lines.fold<double>(0, (sum, line) => sum + line.credit);
+      final totalDebit = entry.lines.fold<double>(
+        0,
+        (sum, line) => sum + line.debit,
+      );
+      final totalCredit = entry.lines.fold<double>(
+        0,
+        (sum, line) => sum + line.credit,
+      );
       final difference = (totalDebit - totalCredit).abs();
-      
+
       if (difference > 0.01) {
         throw LocalStorageException(
           'القيد غير متوازن: المدين ($totalDebit) لا يساوي الدائن ($totalCredit)',
         );
       }
-      
+
       if (entry.lines.isEmpty) {
-        throw LocalStorageException('القيد يجب أن يحتوي على سطر واحد على الأقل');
+        throw LocalStorageException(
+          'القيد يجب أن يحتوي على سطر واحد على الأقل',
+        );
       }
-      
+
       await database.transaction((txn) async {
         // SECURITY CHECK: Prevent modification of posted entries
         final existingEntry = await txn.query(
           _entriesTable,
-          columns: ['is_posted', 'reference_type'],
+          columns: ['is_posted', 'reference_type', 'entry_date'],
           where: 'id = ?',
           whereArgs: [entry.id],
           limit: 1,
         );
-        
+
         if (existingEntry.isEmpty) {
           throw LocalStorageException('القيد غير موجود: ${entry.id}');
         }
-        
+
         final wasPosted = (existingEntry.first['is_posted'] as int?) == 1;
         final refType = existingEntry.first['reference_type'] as String?;
-        final oldEntryDate = existingEntry.first['entry_date'] as int;
-        
+        final oldEntryDate = existingEntry.first['entry_date'] as int?;
+
         // Validate fiscal periods for both old and new dates
-        final oldDate = DateTime.fromMillisecondsSinceEpoch(oldEntryDate * 1000);
-        await _validateFiscalPeriod(oldDate, throwIfClosed: !forceUpdate);
-        await _validateFiscalPeriod(entry.entryDate, throwIfClosed: !forceUpdate);
-        
+        if (oldEntryDate != null) {
+          final oldDate = DateTime.fromMillisecondsSinceEpoch(
+            oldEntryDate * 1000,
+          );
+          await _validateFiscalPeriod(
+            oldDate,
+            executor: txn,
+            throwIfClosed: !forceUpdate,
+          );
+        }
+        await _validateFiscalPeriod(
+          entry.entryDate,
+          executor: txn,
+          throwIfClosed: !forceUpdate,
+        );
+
         // Block modification of posted entries unless force flag is set
         if (wasPosted && !forceUpdate) {
           throw LocalStorageException(
             'لا يمكن تعديل قيد مُرحَّل. القيود المُرحَّلة محمية للحفاظ على سلامة السجلات المحاسبية.',
           );
         }
-        
+
         // Block modification of system-generated entries (invoices, payments, etc.)
         if (refType != null && refType.isNotEmpty && !forceUpdate) {
           throw LocalStorageException(
             'لا يمكن تعديل قيد مرتبط بمستند ($refType). يرجى تعديل المستند الأصلي.',
           );
         }
-        
+
         // Reverse old balances before replacing lines
         final oldLines = await _getEntryLinesRaw(txn, entry.id!);
         for (final l in oldLines) {
@@ -276,7 +310,8 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
         }
 
         final payload = entry.toJson();
-        payload['last_modification_time'] = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        payload['last_modification_time'] =
+            DateTime.now().millisecondsSinceEpoch ~/ 1000;
         final updatedRows = await txn.update(
           _entriesTable,
           payload,
@@ -317,7 +352,8 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
           final accountId = payload['account_id'] as int?;
           if (accountId != null) {
             final debit = (payload['debit_amount'] as num?)?.toDouble() ?? 0.0;
-            final credit = (payload['credit_amount'] as num?)?.toDouble() ?? 0.0;
+            final credit =
+                (payload['credit_amount'] as num?)?.toDouble() ?? 0.0;
             final delta = debit - credit;
             if (delta != 0) {
               await _applyAccountBalanceDelta(txn, accountId, delta);
@@ -345,28 +381,28 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
           whereArgs: [id],
           limit: 1,
         );
-        
+
         if (existingEntry.isEmpty) {
           throw LocalStorageException('القيد غير موجود: $id');
         }
-        
+
         final isPosted = (existingEntry.first['is_posted'] as int?) == 1;
         final refType = existingEntry.first['reference_type'] as String?;
-        
+
         // Block deletion of posted entries unless force flag is set
         if (isPosted && !forceDelete) {
           throw LocalStorageException(
             'لا يمكن حذف قيد مُرحَّل. القيود المُرحَّلة محمية للحفاظ على سلامة السجلات المحاسبية. يمكنك إنشاء قيد عكسي بدلاً من ذلك.',
           );
         }
-        
+
         // Block deletion of system-generated entries
         if (refType != null && refType.isNotEmpty && !forceDelete) {
           throw LocalStorageException(
             'لا يمكن حذف قيد مرتبط بمستند ($refType). يرجى حذف/إلغاء المستند الأصلي.',
           );
         }
-        
+
         // Reverse balances before delete
         final oldLines = await _getEntryLinesRaw(txn, id);
         for (final l in oldLines) {
@@ -438,22 +474,30 @@ class JournalLocalDataSourceImpl implements JournalLocalDataSource {
   /// Validate that journal entry is not in a closed fiscal period
   Future<void> _validateFiscalPeriod(
     DateTime entryDate, {
+    DatabaseExecutor? executor,
     bool throwIfClosed = true,
   }) async {
     try {
-      final periodDataSource = FiscalPeriodDataSourceImpl(database: database);
-      final period = await periodDataSource.getPeriodForDate(entryDate);
-      
+      final exec = executor ?? database;
+      final timestamp = entryDate.millisecondsSinceEpoch ~/ 1000;
+      final results = await exec.query(
+        'fiscal_periods',
+        where: 'start_date <= ? AND end_date >= ?',
+        whereArgs: [timestamp, timestamp],
+        limit: 1,
+      );
+
       // If no period is defined, allow the operation (backward compatibility)
-      if (period == null) return;
-      
+      if (results.isEmpty) return;
+
+      final isClosed = (results.first['is_closed'] as int? ?? 0) == 1;
       // Check if period is closed
-      if (throwIfClosed && period.isClosed) {
+      if (throwIfClosed && isClosed) {
         throw LocalStorageException(
           'لا يمكن تعديل/إضافة قيود في فترة مالية مغلقة!\n'
-          'الفترة: ${period.year}-${period.period.toString().padLeft(2, '0')}\n'
-          'تاريخ الإقفال: ${period.closedAt?.toString() ?? 'غير محدد'}\n\n'
-          'الحل: استخدم قيود عكسية في الفترة المالية الحالية.'
+          'الفترة: ${results.first['year']}-${results.first['period'].toString().padLeft(2, '0')}\n'
+          'تاريخ الإقفال: ${results.first['closed_at']?.toString() ?? 'غير محدد'}\n\n'
+          'الحل: استخدم قيود عكسية في الفترة المالية الحالية.',
         );
       }
     } catch (e) {

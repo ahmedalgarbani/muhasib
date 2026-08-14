@@ -24,7 +24,6 @@ class AccountCard extends StatelessWidget {
     final colors = AccountColors.getColors(AccountType.assets);
     final size = MediaQuery.of(context).size;
     final isTablet = size.width > 600;
-    final textScale = MediaQuery.of(context).textScaleFactor;
 
     double baseFont = isTablet ? 16 : 12;
     double padding = isTablet ? 24 : 12;
@@ -35,7 +34,7 @@ class AccountCard extends StatelessWidget {
           onTap: account.isMaster ? onTap : null,
           borderRadius: BorderRadius.circular(AppRadius.lg),
           child: Container(
-            margin: EdgeInsets.only(bottom: 8),
+            margin: const EdgeInsets.only(bottom: 8),
             width: double.infinity,
             decoration: BoxDecoration(
               color: colors.background,
@@ -79,7 +78,7 @@ class AccountCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
-                            account.name,
+                            account.code,
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: baseFont,
@@ -102,7 +101,7 @@ class AccountCard extends StatelessWidget {
                       child: Text(
                         account.isMaster
                             ? 'رئيسي'
-                            : account.type == AccountType.assets
+                            : (account.type == 1 || account.type == 0)
                             ? 'مدين'
                             : 'دائن',
                         style: TextStyle(
@@ -163,11 +162,12 @@ class AccountCard extends StatelessWidget {
                     Row(
                       children: [
                         Icon(
-                          account.national == AccountNature.debit
+                          (account.national == 1 || account.national == 0)
                               ? Icons.trending_up
                               : Icons.trending_down,
                           size: isTablet ? 18 : 14,
-                          color: account.national == AccountNature.debit
+                          color:
+                              (account.national == 1 || account.national == 0)
                               ? Colors.green
                               : Colors.red,
                         ),
@@ -224,14 +224,19 @@ class AccountCard extends StatelessWidget {
                         )
                       : SizedBox(
                           width: double.infinity,
-                           child: HasibButton(
-                             label: 'عرض الحركات',
-                             onPressed: onShowMovements,
-                             leading: Icon(Icons.description, size: baseFont + 2),
-                             variant: HasibButtonVariant.secondary,
-                             padding: EdgeInsets.symmetric(vertical: isTablet ? 12 : 8),
-                             fontSize: baseFont * 1.1,
-                           ),
+                          child: HasibButton(
+                            label: 'عرض الحركات',
+                            onPressed: onShowMovements,
+                            leading: Icon(
+                              Icons.description,
+                              size: baseFont + 2,
+                            ),
+                            variant: HasibButtonVariant.secondary,
+                            padding: EdgeInsets.symmetric(
+                              vertical: isTablet ? 12 : 8,
+                            ),
+                            fontSize: baseFont * 1.1,
+                          ),
                         ),
                 ),
               ],

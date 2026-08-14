@@ -286,7 +286,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.sales,
       name: AppRoutes.sales,
-      builder: (context, state) => BlocProvider(create: (context) => getIt<SalesCubit>(), child: const SalePageBody()),
+      builder: (context, state) => BlocProvider(
+        create: (context) => getIt<SalesCubit>(),
+        child: const SalePageBody(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.salesAddInvoice,
@@ -297,9 +300,7 @@ final router = GoRouter(
           BlocProvider(create: (context) => getIt<CustomersCubit>()),
           BlocProvider(create: (context) => getIt<ProductsCubit>()),
         ],
-        child: const SalesInvoiceScreen(
-          invoiceType: InvoiceType.salesInvoice,
-        ),
+        child: const SalesInvoiceScreen(invoiceType: InvoiceType.salesInvoice),
       ),
     ),
     GoRoute(

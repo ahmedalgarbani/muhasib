@@ -47,6 +47,7 @@ class InvoiceEntity extends Equatable {
 
   final int? quotationStatus;
   final double? paidAmount;  // Amount paid in cash for split payments
+  final double? bankPaidAmount;  // Amount paid via bank for split payments
 
   final List<InvoiceLineEntity> lines;
 
@@ -94,6 +95,7 @@ class InvoiceEntity extends Equatable {
     this.dueDate,
     this.quotationStatus,
     this.paidAmount,
+    this.bankPaidAmount,
     this.lines = const [],
   });
 
@@ -141,6 +143,7 @@ class InvoiceEntity extends Equatable {
     int? dueDate,
     int? quotationStatus,
     double? paidAmount,
+    double? bankPaidAmount,
     List<InvoiceLineEntity>? lines,
   }) {
     return InvoiceEntity(
@@ -187,6 +190,7 @@ class InvoiceEntity extends Equatable {
       dueDate: dueDate ?? this.dueDate,
       quotationStatus: quotationStatus ?? this.quotationStatus,
       paidAmount: paidAmount ?? this.paidAmount,
+      bankPaidAmount: bankPaidAmount ?? this.bankPaidAmount,
       lines: lines ?? this.lines,
     );
   }
@@ -236,6 +240,7 @@ class InvoiceEntity extends Equatable {
         dueDate,
         quotationStatus,
         paidAmount,
+        bankPaidAmount,
         lines,
       ];
 }

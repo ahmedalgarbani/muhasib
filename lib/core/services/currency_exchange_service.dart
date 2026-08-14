@@ -44,8 +44,13 @@ class CurrencyExchangeService {
       final creditLocalAmount = creditAmount * creditExchangeRate;
       final debitLocalAmount = debitAmount * debitExchangeRate;
       
-      // Calculate exchange rate difference (profit/loss)
-      final exchangeDifference = creditLocalAmount - debitLocalAmount;
+      // Calculate exchange rate difference:
+      // If debitLocalAmount > creditLocalAmount => Profit (Gain from exchange)
+      // If debitLocalAmount < creditLocalAmount => Loss (Expense from exchange)
+      final exchangeDifference = debitLocalAmount - creditLocalAmount;
+      final isProfit = exchangeDifference > 0.005;
+      final isLoss = exchangeDifference < -0.005;
+      final diffAbs = exchangeDifference.abs();
       
       // Get next exchange number
       final exchangeNumber = await getNextExchangeNumber();
@@ -86,6 +91,7 @@ class CurrencyExchangeService {
         final journalNumber = 'EX-$exchangeNumber';
         final journalDescription = 'قيد صرف عملات رقم $exchangeNumber - تحويل من $creditCurrencyCode إلى $debitCurrencyCode';
         
+        final totalLocal = isLoss ? creditLocalAmount : debitLocalAmount;
         final journalEntryData = {
           'number': journalNumber,
           'entry_date': date.millisecondsSinceEpoch ~/ 1000,
@@ -96,8 +102,8 @@ class CurrencyExchangeService {
           'notes': notes,
           'status': 1,
           'is_posted': 1,
-          'total_debit': debitLocalAmount + (exchangeDifference < 0 ? -exchangeDifference : 0),
-          'total_credit': creditLocalAmount + (exchangeDifference > 0 ? exchangeDifference : 0),
+          'total_debit': totalLocal,
+          'total_credit': totalLocal,
           'difference': 0.0,
           'creator_id': 1,
           'last_modifier_id': 1,
@@ -139,8 +145,8 @@ class CurrencyExchangeService {
         });
         
         // 4. If there's an exchange difference, record it
-        if (exchangeDifference.abs() > 0.01 && exchangeDifferenceAccountId != null) {
-          if (exchangeDifference > 0) {
+        if (diffAbs > 0.005 && exchangeDifferenceAccountId != null) {
+          if (isProfit) {
             // Profit from exchange - Credit to income
             await txn.insert('journal_entry_lines', {
               'journal_entry_id': journalEntryId,
@@ -151,7 +157,7 @@ class CurrencyExchangeService {
               'currency_id': null,
               'currency_code': '',
               'debit_amount': 0.0,
-              'credit_amount': exchangeDifference,
+              'credit_amount': diffAbs,
               'notes': 'أرباح فروق صرف عملات',
             });
           } else {
@@ -164,7 +170,7 @@ class CurrencyExchangeService {
               'account_name': '',
               'currency_id': null,
               'currency_code': '',
-              'debit_amount': -exchangeDifference,
+              'debit_amount': diffAbs,
               'credit_amount': 0.0,
               'notes': 'خسائر فروق صرف عملات',
             });
@@ -178,6 +184,17 @@ class CurrencyExchangeService {
           where: 'id = ?',
           whereArgs: [exchangeId],
         );
+
+        // 6. Apply balance updates to accounts
+        await _applyAccountBalanceDelta(txn, debitAccountId, debitLocalAmount);
+        await _applyAccountBalanceDelta(txn, creditAccountId, -creditLocalAmount);
+        if (diffAbs > 0.005 && exchangeDifferenceAccountId != null) {
+          if (isProfit) {
+            await _applyAccountBalanceDelta(txn, exchangeDifferenceAccountId, -diffAbs);
+          } else {
+            await _applyAccountBalanceDelta(txn, exchangeDifferenceAccountId, diffAbs);
+          }
+        }
         
         // 6. Record exchange rate history
         await _recordExchangeRateHistory(
@@ -500,6 +517,16 @@ class CurrencyExchangeService {
           });
         }
         
+        // Apply balance updates to accounts
+        if (revaluationAmount > 0) {
+          await _applyAccountBalanceDelta(txn, accountId, revaluationAmount);
+          await _applyAccountBalanceDelta(txn, gainLossAccountId, -revaluationAmount);
+        } else {
+          final loss = -revaluationAmount;
+          await _applyAccountBalanceDelta(txn, gainLossAccountId, loss);
+          await _applyAccountBalanceDelta(txn, accountId, -loss);
+        }
+
         // Record the new exchange rate in history
         await _recordExchangeRateHistory(txn, currencyId, newExchangeRate, date);
         
@@ -508,5 +535,34 @@ class CurrencyExchangeService {
     } catch (e) {
       return Left(UnknownFailure('فشل في إنشاء قيد إعادة التقييم: ${e.toString()}'));
     }
+  }
+
+  Future<void> _applyAccountBalanceDelta(
+    Transaction txn,
+    int accountId,
+    double delta,
+  ) async {
+    final rows = await txn.query(
+      'accounts',
+      columns: ['balance', 'local_balance'],
+      where: 'id = ?',
+      whereArgs: [accountId],
+      limit: 1,
+    );
+    if (rows.isEmpty) return;
+    final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
+    final currentLocal = (rows.first['local_balance'] as num?)?.toDouble() ?? current;
+    final newBalance = current + delta;
+    final newLocal = currentLocal + delta;
+    await txn.update(
+      'accounts',
+      {
+        'balance': newBalance,
+        'local_balance': newLocal,
+        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      },
+      where: 'id = ?',
+      whereArgs: [accountId],
+    );
   }
 }

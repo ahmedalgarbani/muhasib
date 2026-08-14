@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 
 class LocaleCubit extends HydratedCubit<Locale> {
-  LocaleCubit() : super(const Locale('ar'));
+  LocaleCubit()
+      : super(
+          SettingsCache.language == 'en'
+              ? const Locale('en')
+              : const Locale('ar'),
+        );
 
   void updateLocale(Locale locale) => emit(locale);
 

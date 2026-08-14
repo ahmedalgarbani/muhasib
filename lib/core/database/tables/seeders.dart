@@ -768,3 +768,49 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 }
+
+Future<void> seedDefaultNumberSequences(Database db) async {
+  final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final sequences = [
+    {'sequence_type': 'sales_invoice', 'prefix': 'INV', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'purchase_invoice', 'prefix': 'PINV', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'quotation', 'prefix': 'QT', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'journal_entry', 'prefix': 'JE', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'receipt_voucher', 'prefix': 'RV', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'payment_voucher', 'prefix': 'PV', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'sales_return', 'prefix': 'SRT', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'purchase_return', 'prefix': 'PRT', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'opening_balance', 'prefix': 'OB', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'stock_transfer', 'prefix': 'TR', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {'sequence_type': 'stock_adjustment', 'prefix': 'ADJ', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+  ];
+
+  for (final seq in sequences) {
+    await db.rawInsert('''
+      INSERT OR IGNORE INTO number_sequences 
+        (sequence_type, prefix, current_value, padding_length, reset_on_year_change, creation_time, last_modification_time)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', [
+      seq['sequence_type'],
+      seq['prefix'],
+      seq['current_value'],
+      seq['padding_length'],
+      seq['reset_on_year_change'],
+      now,
+      now,
+    ]);
+  }
+}
+
+Future<void> seedDefaultFiscalPeriods(Database db) async {
+  final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final currentYear = DateTime.now().year;
+  final startOfYear = DateTime(currentYear, 1, 1).millisecondsSinceEpoch ~/ 1000;
+  final endOfYear = DateTime(currentYear, 12, 31, 23, 59, 59).millisecondsSinceEpoch ~/ 1000;
+
+  await db.rawInsert('''
+    INSERT OR IGNORE INTO fiscal_periods 
+      (year, period, start_date, end_date, status, is_closed, creation_time, last_modification_time)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+  ''', [currentYear, 0, startOfYear, endOfYear, 0, 0, now, now]);
+}

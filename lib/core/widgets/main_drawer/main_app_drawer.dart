@@ -15,14 +15,23 @@ class MainAppDrawer extends StatelessWidget {
     final mainItems = AppNavigator.bySection(DrawerSection.main)
         .where(
           (item) =>
-              SettingsCache.showStockModule || item.route != AppRoutes.warehouses,
+              SettingsCache.showStockModule ||
+              item.route != AppRoutes.warehouses,
         )
+        .where((item) {
+          if (!SettingsCache.useMiniHasib) return true;
+          return item.route == AppRoutes.sales ||
+              item.route == AppRoutes.purchases ||
+              item.route == AppRoutes.profiles ||
+              item.route == AppRoutes.settings;
+        })
         .toList();
     final bottomItems = AppNavigator.bySection(DrawerSection.bottom);
 
     return ColoredBox(
       color: Theme.of(context).scaffoldBackgroundColor,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const _MainDrawerHeader(),
           Expanded(
@@ -51,6 +60,7 @@ class _MainDrawerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
+      width: double.infinity,
       decoration: const BoxDecoration(
         color: AppColors.primary,
         borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
@@ -58,8 +68,10 @@ class _MainDrawerHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 12, 12, 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
                 padding: const EdgeInsets.all(10),
@@ -73,7 +85,6 @@ class _MainDrawerHeader extends StatelessWidget {
                   size: 28,
                 ),
               ),
-              const Spacer(),
               IconButton(
                 icon: const Icon(
                   Icons.close_rounded,
@@ -97,7 +108,10 @@ class _MainDrawerHeader extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'نظام إدارة الحسابات والمخزون',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.8),
+              fontSize: 13,
+            ),
           ),
         ],
       ),

@@ -7,7 +7,7 @@ class CurrencyExchangeRatesTable implements TableSchema {
 
   @override
   String get createTable => '''
-    CREATE TABLE currency_exchange_rates (
+    CREATE TABLE IF NOT EXISTS currency_exchange_rates (
       id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       creator_id INTEGER NULL DEFAULT 1,
       last_modifier_id INTEGER NULL DEFAULT 1,
@@ -24,7 +24,7 @@ class CurrencyExchangeRatesTable implements TableSchema {
 
   @override
   List<String> get indexes => [
-    'CREATE INDEX idx_currency_exchange_rates_currency_id ON currency_exchange_rates (currency_id)',
-    'CREATE INDEX idx_currency_exchange_rates_effective_date ON currency_exchange_rates (effective_date)',
+    'CREATE INDEX IF NOT EXISTS idx_currency_exchange_rates_currency_id ON currency_exchange_rates (currency_id)',
+    'CREATE INDEX IF NOT EXISTS idx_currency_exchange_rates_effective_date ON currency_exchange_rates (effective_date)',
   ];
 }

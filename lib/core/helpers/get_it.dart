@@ -427,12 +427,10 @@ class GetItHelper {
     getIt.registerLazySingleton<InvoiceLocalDataSource>(
       () => InvoiceLocalDataSourceImpl(database: database),
     );
-    // Repository (with accounting services for double-entry)
+    // Repository (accounting is handled inside the local datasource)
     getIt.registerLazySingleton<InvoiceRepository>(
       () => InvoiceRepositoryImpl(
         localDataSource: getIt<InvoiceLocalDataSource>(),
-        journalRepository: getIt<JournalRepository>(),
-        accountConfigService: getIt<AccountConfigService>(),
         numberSequenceService: getIt<NumberSequenceService>(),
       ),
     );

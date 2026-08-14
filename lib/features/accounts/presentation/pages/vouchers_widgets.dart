@@ -5,12 +5,14 @@ class _VoucherListItem extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onPrint;
 
   const _VoucherListItem({
     required this.voucher,
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    required this.onPrint,
   });
 
   @override
@@ -122,6 +124,14 @@ class _VoucherListItem extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
+                  IconButton(
+                    onPressed: onPrint,
+                    icon: const Icon(
+                      Icons.print_outlined,
+                      size: 18,
+                      color: Colors.grey,
+                    ),
+                  ),
                   IconButton(
                     onPressed: onEdit,
                     icon: const Icon(

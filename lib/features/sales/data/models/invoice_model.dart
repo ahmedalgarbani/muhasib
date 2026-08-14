@@ -46,6 +46,7 @@ class InvoiceModel extends InvoiceEntity {
     super.dueDate,
     super.quotationStatus,
     super.paidAmount,
+    super.bankPaidAmount,
     List<InvoiceLineModel> lines = const [],
   }) : super(lines: lines);
 
@@ -98,6 +99,7 @@ class InvoiceModel extends InvoiceEntity {
       dueDate: json['due_date'] as int?,
       quotationStatus: json['quotation_status'] as int?,
       paidAmount: (json['paid_amount'] as num?)?.toDouble(),
+      bankPaidAmount: (json['bank_paid_amount'] as num?)?.toDouble(),
       lines: lines,
     );
   }
@@ -145,6 +147,7 @@ class InvoiceModel extends InvoiceEntity {
       'due_date': dueDate,
       'quotation_status': quotationStatus,
       'paid_amount': paidAmount,
+      'bank_paid_amount': bankPaidAmount,
     };
     if (creationTime != null) {
       map['creation_time'] = creationTime;
@@ -199,6 +202,7 @@ class InvoiceModel extends InvoiceEntity {
     dueDate: dueDate,
     quotationStatus: quotationStatus,
     paidAmount: paidAmount,
+    bankPaidAmount: bankPaidAmount,
     lines: lines,
   );
 
@@ -246,6 +250,7 @@ class InvoiceModel extends InvoiceEntity {
     dueDate: e.dueDate,
     quotationStatus: e.quotationStatus,
     paidAmount: e.paidAmount,
+    bankPaidAmount: e.bankPaidAmount,
     lines: e.lines
         .map((l) => l is InvoiceLineModel ? l : InvoiceLineModel.fromEntity(l))
         .toList(),

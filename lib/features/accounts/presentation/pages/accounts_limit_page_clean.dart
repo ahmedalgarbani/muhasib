@@ -99,15 +99,24 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
   }
 
   void _showAddLimitSheet(BuildContext context, {AccountLimitEntity? limit}) {
+    final limitsCubit = context.read<AccountLimitsCubit>();
+    final accountsCubit = context.read<AccountsCubit>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AddEditLimitSheet(limit: limit),
+      builder: (context) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: limitsCubit),
+          BlocProvider.value(value: accountsCubit),
+        ],
+        child: _AddEditLimitSheet(limit: limit),
+      ),
     );
   }
 
   void _confirmDelete(AccountLimitEntity limit) {
+    final limitsCubit = context.read<AccountLimitsCubit>();
     showDialog(
       context: context,
       builder: (context) => CustomDialog(
@@ -123,7 +132,7 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(context);
-              context.read<AccountLimitsCubit>().deleteLimit(limit.id!);
+              limitsCubit.deleteLimit(limit.id!);
             },
             child: const Text('نعم، احذف', style: TextStyle(color: Colors.red)),
           ),
@@ -288,7 +297,9 @@ class AccountLimitProgressBarWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.xs),
           child: LinearProgressIndicator(
             value: percentage / 100,
-            backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+            backgroundColor: Theme.of(
+              context,
+            ).colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation(color),
             minHeight: 8,
           ),
@@ -434,12 +445,16 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
   }
 
   void _pickAccount() {
+    final accountsCubit = context.read<AccountsCubit>();
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AccountSearchSheet(
-        onSelected: (acc) => setState(() => _selectedAccount = acc),
+      builder: (context) => BlocProvider.value(
+        value: accountsCubit,
+        child: _AccountSearchSheet(
+          onSelected: (acc) => setState(() => _selectedAccount = acc),
+        ),
       ),
     );
   }

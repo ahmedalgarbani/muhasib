@@ -49,9 +49,13 @@ class CurrenciesListWidget extends StatelessWidget {
             ),
             title: Row(
               children: [
-                Text(
-                  currency.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                Flexible(
+                  child: Text(
+                    currency.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
                 ),
                 if (currency.isLocalCurrency) ...[
                   const SizedBox(width: 8),
@@ -78,16 +82,39 @@ class CurrenciesListWidget extends StatelessWidget {
             ),
             subtitle: Text(
               'الكود: ${currency.code} | سعر الصرف: ${currency.exchangeRate}',
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 IconButton(
-                  icon: const Icon(Icons.edit, color: AppColors.primary),
+                  icon: const Icon(
+                    Icons.edit_outlined,
+                    color: AppColors.primary,
+                    size: 20,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                   onPressed: () => onEdit(currency),
                 ),
+                const SizedBox(width: 4),
                 IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
+                  icon: const Icon(
+                    Icons.delete_outline,
+                    color: Colors.red,
+                    size: 20,
+                  ),
+                  visualDensity: VisualDensity.compact,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                   onPressed: () => onDelete(currency),
                 ),
               ],

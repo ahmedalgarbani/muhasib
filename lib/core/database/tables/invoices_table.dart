@@ -56,6 +56,9 @@ class InvoicesTable implements TableSchema {
       paid_amount REAL NULL,
       -- Amount paid in cash (for split payments: cash + credit)
       
+      bank_paid_amount REAL NULL,
+      -- Amount paid via bank (for split payments: cash + bank + credit)
+      
       -- Quotation protection fields
       valid_until INTEGER NULL,
       -- Expiry date for quotations (timestamp)

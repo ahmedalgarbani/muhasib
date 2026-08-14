@@ -5,7 +5,8 @@ class NumberFormatter {
   static NumberFormat get _formatter {
     final decimals = SettingsCache.decimalNoOutput;
     final arabicSeparators = SettingsCache.decimalSeparator == '،';
-    final locale = arabicSeparators ? 'ar' : 'en_US';
+    final locale =
+        (arabicSeparators || SettingsCache.language == 'ar') ? 'ar' : 'en_US';
     if (decimals <= 0) {
       return NumberFormat('#,##0', locale);
     }
@@ -44,12 +45,15 @@ class DateFormatter {
     return SettingsCache.timeFormat == 1 ? 'HH:mm' : 'hh:mm a';
   }
 
+  static String get _locale =>
+      SettingsCache.language == 'en' ? 'en_US' : 'ar';
+
   static String formatDate(DateTime date) {
-    return DateFormat(_datePattern, 'ar').format(date);
+    return DateFormat(_datePattern, _locale).format(date);
   }
 
   static String formatDateTime(DateTime date) {
-    return DateFormat('$_datePattern $_timePattern', 'ar').format(date);
+    return DateFormat('$_datePattern $_timePattern', _locale).format(date);
   }
 
   static String formatRelativeDate(DateTime date) {

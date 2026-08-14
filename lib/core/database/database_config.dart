@@ -1,6 +1,6 @@
 class DatabaseConfig {
   static const String databaseName = 'pos_system.db';
-  static const int databaseVersion = 6;
+  static const int databaseVersion = 7;
 
   // Table names
   static const String tableCurrencies = 'currencies';

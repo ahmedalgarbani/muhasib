@@ -10,6 +10,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/accounts/domain/entities/voucher_entity.dart';
 import '../cubit/vouchers_cubit.dart';
+import '../widgets/voucher_print_service.dart';
 import 'voucher_form_page.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_text_style.dart';
@@ -108,6 +109,7 @@ class _VouchersPageState extends State<VouchersPage>
                       onTap: () => _showVoucherDetails(vouchers[index]),
                       onEdit: () => _onEditVoucher(vouchers[index]),
                       onDelete: () => _onDeleteVoucher(vouchers[index]),
+                      onPrint: () => _printVoucher(vouchers[index]),
                     );
                   },
                 ),
@@ -196,6 +198,16 @@ class _VouchersPageState extends State<VouchersPage>
           ),
         ),
       ),
+    );
+  }
+
+  void _printVoucher(VoucherEntity voucher) {
+    VoucherPrintService.printVoucher(
+      number: voucher.number.toString(),
+      date: voucher.date,
+      amount: voucher.amount,
+      isReceipt: voucher.type == VoucherType.receipt,
+      accountName: voucher.accountName,
     );
   }
 

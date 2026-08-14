@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/cubit/local_cubit.dart';
 import 'package:muhasib/core/helpers/cubit/theme_cubit.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
@@ -35,6 +37,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
   bool useMiniHasib = false;
   bool showBackupNotifyWhenCloseApp = true;
   String homeScreenType = 'الأولى';
+  String language = 'ar';
   double fontScale = 1.0;
   ThemeMode themeMode = ThemeMode.system;
 
@@ -60,6 +63,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     homeScreenType = _getHomeScreenTypeString(
       otherSettings['homeScrrenType'] ?? 1,
     );
+    language = otherSettings['language'] ?? SettingsCache.language;
     fontScale = (otherSettings['fontScale'] ?? 1.0).toDouble();
     themeMode = context.read<ThemeCubit>().state;
   }
@@ -162,6 +166,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
       'homeScrrenType': _getHomeScreenTypeInt(homeScreenType),
       'useMiniHasib': useMiniHasib,
       'showBackupNotifyWhenCloseApp': showBackupNotifyWhenCloseApp,
+      'language': language,
       'fontScale': fontScale,
     };
 
@@ -201,7 +206,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                       title: 'استخدام حسيب بشكل مبسط (دفتر حسابات)',
                       value: useMiniHasib,
                       icon: Icons.account_tree,
-                      enabled: false,
+                      enabled: true,
                       onChanged: (value) {
                         setState(() {
                           useMiniHasib = value;
@@ -217,6 +222,30 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                         setState(() {
                           showStockModule = value;
                         });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      title: 'اللغة',
+                      value: language,
+                      icon: Icons.language,
+                      items: [
+                        const DropdownMenuItem(
+                          value: 'ar',
+                          child: Text('العربية'),
+                        ),
+                        const DropdownMenuItem(
+                          value: 'en',
+                          child: Text('English'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          language = value!;
+                        });
+                        context
+                            .read<LocaleCubit>()
+                            .updateLocale(Locale(value!));
                       },
                     ),
                     const Divider(),

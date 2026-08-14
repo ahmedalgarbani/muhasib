@@ -1,7 +1,11 @@
 import 'package:muhasib/core/database/database_config.dart';
 import 'package:muhasib/core/database/tables/seeders.dart';
 import 'package:muhasib/core/database/seeders/settings_seeder.dart';
+import 'package:muhasib/core/database/seeders/tax_seeder.dart';
 import 'package:muhasib/core/database/seeders/currency_seeder.dart';
+import 'package:muhasib/core/database/tables/number_sequences_table.dart';
+import 'package:muhasib/core/database/tables/fiscal_periods_table.dart';
+import 'package:muhasib/core/database/tables/currency_exchange_rates_table.dart';
 import 'package:muhasib/core/database/tables/accounts_table.dart';
 import 'package:muhasib/core/database/tables/account_connects_table.dart';
 import 'package:muhasib/core/database/tables/journal_entries_table.dart';
@@ -114,8 +118,45 @@ class DatabaseService implements IDatabaseService {
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
+      onOpen: (db) async {
+        await _ensureEssentialTables(db);
+      },
       onUpgrade: _onUpgrade,
     );
+  }
+
+  Future<void> _ensureEssentialTables(Database db) async {
+    final essentialTables = [
+      NumberSequencesTable(),
+      FiscalPeriodsTable(),
+      CurrencyExchangeRatesTable(),
+      AuditLogsTable(),
+    ];
+    for (final table in essentialTables) {
+      try {
+        await db.execute(table.createTable);
+      } catch (_) {}
+      for (final index in table.indexes) {
+        try {
+          await db.execute(index);
+        } catch (_) {}
+      }
+    }
+
+    // Ensure audit_logs columns exist if table was created in older migration
+    final auditCols = ['entity_type TEXT NULL', 'entity_id INTEGER NULL', 'action TEXT NULL', 'created_at INTEGER NULL', 'action_type TEXT NULL', 'table_name TEXT NULL', 'record_id INTEGER NULL'];
+    for (final col in auditCols) {
+      try {
+        await db.execute('ALTER TABLE audit_logs ADD COLUMN $col');
+      } catch (_) {}
+    }
+
+    try {
+      await seedDefaultNumberSequences(db);
+    } catch (_) {}
+    try {
+      await seedDefaultFiscalPeriods(db);
+    } catch (_) {}
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -157,11 +198,11 @@ class DatabaseService implements IDatabaseService {
 
     if (oldVersion < 4) {
       await db.execute(
-          'ALTER TABLE invoices ADD COLUMN quotation_status INTEGER NULL');
+        'ALTER TABLE invoices ADD COLUMN quotation_status INTEGER NULL',
+      );
     }
     if (oldVersion < 5) {
-      await db.execute(
-          'ALTER TABLE invoices ADD COLUMN paid_amount REAL NULL');
+      await db.execute('ALTER TABLE invoices ADD COLUMN paid_amount REAL NULL');
     }
     if (oldVersion < 6) {
       // Create regions table
@@ -175,7 +216,19 @@ class DatabaseService implements IDatabaseService {
       // Check if column exists first to avoid error if re-running
       try {
         await db.execute(
-            'ALTER TABLE cities ADD COLUMN region_id INTEGER NULL REFERENCES regions (id)');
+          'ALTER TABLE cities ADD COLUMN region_id INTEGER NULL REFERENCES regions (id)',
+        );
+      } catch (e) {
+        // Column might already exist, ignore
+      }
+    }
+
+    if (oldVersion < 7) {
+      // Bank payment split for invoices (cash + bank + credit)
+      try {
+        await db.execute(
+          'ALTER TABLE invoices ADD COLUMN bank_paid_amount REAL NULL',
+        );
       } catch (e) {
         // Column might already exist, ignore
       }
@@ -313,6 +366,9 @@ class DatabaseService implements IDatabaseService {
     // Contact & system
     ContactMethodsTable(),
     SystemSequencesTable(),
+    NumberSequencesTable(),
+    FiscalPeriodsTable(),
+    CurrencyExchangeRatesTable(),
     ReportTemplatesTable(),
     SystemLogsTable(),
     BackupHistoryTable(),
@@ -320,11 +376,14 @@ class DatabaseService implements IDatabaseService {
 
   final List<Future<void> Function(Database)> _seeders = [
     SettingsSeeder.seed,
+    TaxSeeder.seed,
     CurrencySeeder.seed,
     PaymentMethodsSeeder.seed,
     seedDefaultStocks,
     seedDefaultCustomers,
     seedDefaultAccounts,
+    seedDefaultNumberSequences,
+    seedDefaultFiscalPeriods,
   ];
 
   @override

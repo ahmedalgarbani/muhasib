@@ -157,35 +157,29 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
     OpeningBalanceLineEntity? line,
     int? index,
   }) {
+    final openingCubit = context.read<OpeningBalanceCubit>();
+    final accountsCubit = context.read<AccountsCubit>();
+    final opening = openingCubit.currentOpeningBalance!;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _AddBalanceLineSheet(
-        onAdd: (newLine) {
-          if (index != null) {
-            context.read<OpeningBalanceCubit>().updateLine(index, newLine);
-          } else {
-            context.read<OpeningBalanceCubit>().addLine(newLine);
-          }
-        },
-        currencyId: context
-            .read<OpeningBalanceCubit>()
-            .currentOpeningBalance!
-            .currencyId,
-        currencyCode: context
-            .read<OpeningBalanceCubit>()
-            .currentOpeningBalance!
-            .currencyCode,
-        nextNumber:
-            line?.lineNumber ??
-            (context
-                    .read<OpeningBalanceCubit>()
-                    .currentOpeningBalance!
-                    .lines
-                    .length +
-                1),
-        existingLine: line,
+      builder: (context) => BlocProvider.value(
+        value: accountsCubit,
+        child: _AddBalanceLineSheet(
+          onAdd: (newLine) {
+            if (index != null) {
+              openingCubit.updateLine(index, newLine);
+            } else {
+              openingCubit.addLine(newLine);
+            }
+          },
+          currencyId: opening.currencyId,
+          currencyCode: opening.currencyCode,
+          nextNumber: line?.lineNumber ?? (opening.lines.length + 1),
+          existingLine: line,
+        ),
       ),
     );
   }

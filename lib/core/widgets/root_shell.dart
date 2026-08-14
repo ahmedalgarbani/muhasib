@@ -56,53 +56,58 @@ class _RootShellState extends State<RootShell>
     return Stack(
       children: [
         widget.child,
-        AnimatedBuilder(
-          animation: _controller,
-          builder: (context, _) {
-            if (_controller.value == 0) {
-              return const SizedBox.shrink();
-            }
-            final drawerWidth = (MediaQuery.sizeOf(context).width * 0.82).clamp(
-              0.0,
-              360.0,
-            );
-            return Stack(
-              children: [
-                Positioned.fill(
-                  child: GestureDetector(
-                    onTap: closeAppDrawer,
-                    child: Container(
-                      color: Colors.black54.withValues(alpha: _fade.value),
+        Positioned.fill(
+          child: AnimatedBuilder(
+            animation: _controller,
+            builder: (context, _) {
+              if (_controller.value == 0) {
+                return const SizedBox.shrink();
+              }
+              final drawerWidth = (MediaQuery.sizeOf(context).width * 0.82)
+                  .clamp(0.0, 360.0);
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Positioned.fill(
+                    child: GestureDetector(
+                      onTap: closeAppDrawer,
+                      child: Container(
+                        color: Colors.black54.withValues(alpha: _fade.value),
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  top: 0,
-                  bottom: 0,
-                  right: 0,
-                  width: drawerWidth,
-                  child: FractionalTranslation(
-                    translation: _slide.value,
-                    child: Overlay(
-                      initialEntries: [
-                        OverlayEntry(
-                          builder: (context) => Material(
-                            color: Theme.of(context).colorScheme.surface,
-                            elevation: 16,
-                            shadowColor: Colors.black38,
-                            child: const SafeArea(
-                              right: false,
-                              child: MainAppDrawer(),
+                  Positioned(
+                    top: 0,
+                    bottom: 0,
+                    right: 0,
+                    width: drawerWidth,
+                    child: FractionalTranslation(
+                      translation: _slide.value,
+                      child: SizedBox(
+                        width: drawerWidth,
+                        height: double.infinity,
+                        child: Overlay(
+                          initialEntries: [
+                            OverlayEntry(
+                              builder: (context) => Material(
+                                color: Theme.of(context).colorScheme.surface,
+                                elevation: 16,
+                                shadowColor: Colors.black38,
+                                child: const SafeArea(
+                                  right: false,
+                                  child: MainAppDrawer(),
+                                ),
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ],
     );

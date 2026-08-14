@@ -19,6 +19,7 @@ import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/payment_method_chip_widget.dart';
 
 class ReturnInvoiceFormPage extends StatefulWidget {
   final int? originalInvoiceId;
@@ -42,6 +43,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
 
   DateTime _selectedDate = DateTime.now();
   double _totalReturnAmount = 0.0;
+  bool _refundByBank = false;
 
   @override
   void initState() {
@@ -376,7 +378,9 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
-                          side: BorderSide(color: Theme.of(context).dividerColor),
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(12),
@@ -495,6 +499,62 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                       ),
                     ),
                   ),
+
+                  // Refund method (only for cash sales)
+                  if (_originalInvoice != null &&
+                      _originalInvoice!.invoiceTransType == 0) ...[
+                    const SizedBox(height: 16),
+                    CustomCardContainer(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        side: BorderSide(color: Theme.of(context).dividerColor),
+                      ),
+                      child: Padding(
+                        padding: AppConstant.defaultPadding,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'طريقة الإرجاع',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                PaymentMethodChipWidget(
+                                  method: PaymentMethod.cash,
+                                  label: 'نقدي',
+                                  icon: Icons.payments,
+                                  isSelected: !_refundByBank,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() => _refundByBank = false);
+                                    }
+                                  },
+                                ),
+                                const SizedBox(width: 8),
+                                PaymentMethodChipWidget(
+                                  method: PaymentMethod.bank,
+                                  label: 'بنكي',
+                                  icon: Icons.account_balance,
+                                  isSelected: _refundByBank,
+                                  onSelected: (selected) {
+                                    if (selected) {
+                                      setState(() => _refundByBank = true);
+                                    }
+                                  },
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -557,9 +617,21 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
         }
       }
 
+      final originalGross = _originalInvoice?.amount ?? 0.0;
+      final proportionalTax = (originalGross > 0 && _totalReturnAmount > 0)
+          ? ((_originalInvoice!.taxAmt ?? 0) *
+                _totalReturnAmount /
+                originalGross)
+          : 0.0;
+      final proportionalDiscount = (originalGross > 0 && _totalReturnAmount > 0)
+          ? ((_originalInvoice!.discountAmt ?? 0) *
+                _totalReturnAmount /
+                originalGross)
+          : 0.0;
+
       final returnInvoice = InvoiceEntity(
         invoiceType: InvoiceType.salesReturn.value,
-        invoiceTransType: 0,
+        invoiceTransType: _originalInvoice?.invoiceTransType ?? 0,
         number: _returnNumberController.text,
         date: _selectedDate.millisecondsSinceEpoch ~/ 1000,
         customerId: _originalInvoice?.customerId ?? 1,
@@ -567,7 +639,12 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
         parentInvoiceId: _originalInvoice?.id,
         parentInvoiceNumber: _originalInvoice?.number,
         amount: _totalReturnAmount,
-        finalAmt: _totalReturnAmount,
+        taxAmt: proportionalTax,
+        discountAmt: proportionalDiscount,
+        finalAmt: _totalReturnAmount + proportionalTax - proportionalDiscount,
+        bankPaidAmount: _refundByBank
+            ? (_totalReturnAmount + proportionalTax - proportionalDiscount)
+            : null,
         statement: _reasonController.text,
         lines: returnLines,
         paymentStatus: 0,

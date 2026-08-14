@@ -34,6 +34,10 @@ class SettingsCache {
 
   static Map<String, dynamic> get personal => _section('personal_info');
 
+  static Map<String, dynamic> get security => _section('security_info');
+
+  static Map<String, dynamic> get backup => _section('backup_settings');
+
   static Map<String, dynamic> get pos => _section('pos_setting');
 
   static dynamic _get(
@@ -67,6 +71,37 @@ class SettingsCache {
 
   static bool get showStockModule =>
       _get(other, 'showStockModule', true) as bool;
+
+  static bool get useMiniHasib =>
+      _get(other, 'useMiniHasib', false) as bool;
+
+  static String get language => _get(other, 'language', 'ar') as String;
+
+  static int get homeScrrenType =>
+      _get(other, 'homeScrrenType', 1) as int;
+
+  static bool get showBackupNotifyWhenCloseApp =>
+      _get(other, 'showBackupNotifyWhenCloseApp', true) as bool;
+
+  // security_info
+  static bool get securityIsActive =>
+      _get(security, 'isActive', false) as bool;
+
+  static String? get securityPassword {
+    final value = _get(security, 'password', null);
+    return value == null ? null : value.toString();
+  }
+
+  // backup_settings
+  static int get backupDeviceSaveMethod =>
+      _get(backup, 'deviceSaveMethod', 1) as int;
+
+  static int get backupDriveSaveMethod =>
+      _get(backup, 'driveSaveMethod', 0) as int;
+
+  static int get backupHours => _get(backup, 'hours', 24) as int;
+
+  static int get backupDriveHours => _get(backup, 'driveHours', 24) as int;
 
   // stock_setting
   static String get invoicePrefix =>
@@ -122,12 +157,58 @@ class SettingsCache {
   static String get invoiceFooter =>
       _get(stock, 'invoice_footer', '') as String;
 
+  static bool get checkFundAndBankBalanceInInvoice =>
+      _get(stock, 'checkFundAndBankBalanceEnabledInInvoice', false) as bool;
+
   // voucher_setting
   static bool get allowMultiCurrencyInVoucher =>
       _get(voucher, 'allowMultiCurrencyInVoucher', false) as bool;
 
   static int get paymentDueDays =>
       _get(voucher, 'payment_due_days', 30) as int;
+
+  static String get paymentVoucherLine1 =>
+      _get(voucher, 'paymentVoucherLine1', 'الاخ') as String;
+
+  static String get paymentVoucherLine2 =>
+      _get(voucher, 'paymentVoucherLine2', 'عليكم مبلغ') as String;
+
+  static String get receiptVoucherLine1 =>
+      _get(voucher, 'receiptVoucherVoucherLine1', 'الاخ') as String;
+
+  static String get receiptVoucherLine2 =>
+      _get(voucher, 'receiptVoucherVoucherLine2', 'لكم مبلغ') as String;
+
+  static bool get paymentVoucherSignature =>
+      _get(voucher, 'paymentVoucherSignature', true) as bool;
+
+  static bool get receiptVoucherSignature =>
+      _get(voucher, 'receiptVoucherSignature', true) as bool;
+
+  static List<String> get paymentVoucherSignatures => [
+        _get(voucher, 'paymentVoucherFirstSignature', 'المستلم') as String,
+        _get(voucher, 'paymentVoucherSecondSignature', 'مدير الحسابات') as String,
+        _get(voucher, 'paymentVoucherThirdSignature', 'الصندوق') as String,
+        _get(voucher, 'paymentVoucherFourthSignature', 'المدير العام') as String,
+      ];
+
+  static List<String> get receiptVoucherSignatures => [
+        _get(voucher, 'receiptVoucherFirstSignature', 'المستلم') as String,
+        _get(voucher, 'receiptVoucherSecondSignature', 'مدير الحسابات') as String,
+        _get(voucher, 'receiptVoucherThirdSignature', 'الصندوق') as String,
+        _get(voucher, 'receiptVoucherFourthSignature', 'المدير العام') as String,
+      ];
+
+  static String? get voucherNotesInBottom {
+    final value = _get(voucher, 'notesInBotton', null);
+    return value == null ? null : value.toString();
+  }
+
+  static bool get showAccountBalanceInVoucher =>
+      _get(voucher, 'showAccountBalanceInVoucher', false) as bool;
+
+  static bool get checkFundAndBankBalanceInVoucher =>
+      _get(voucher, 'checkFundAndBankBalanceEnabledInVoucher', false) as bool;
 
   // printer_info
   static bool get showPrintDate => _get(printer, 'showDate', false) as bool;
@@ -148,6 +229,9 @@ class SettingsCache {
 
   static String get printOrientation =>
       _get(printer, 'print_orientation', 'portrait') as String;
+
+  static bool get tafqeetAmount =>
+      _get(printer, 'tafqeetAmount', false) as bool;
 
   // pos_setting
   static String get defaultPaymentMethod =>
