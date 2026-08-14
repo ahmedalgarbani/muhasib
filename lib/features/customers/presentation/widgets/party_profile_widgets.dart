@@ -1,11 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/detail_row.dart';
+import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
 
 class PartyProfileSearchField extends StatelessWidget {
   final TextEditingController controller;
@@ -121,6 +130,84 @@ class PartyProfileEmptyState extends StatelessWidget {
   }
 }
 
+class PartyBalanceInfo {
+  final String label;
+  final Color color;
+  final Color backgroundColor;
+  final String formattedAmount;
+  final bool isZero;
+
+  const PartyBalanceInfo({
+    required this.label,
+    required this.color,
+    required this.backgroundColor,
+    required this.formattedAmount,
+    required this.isZero,
+  });
+
+  factory PartyBalanceInfo.fromBalance({
+    required double balance,
+    required bool isSupplier,
+  }) {
+    final absAmount = balance.abs();
+    final formattedAmount = '${absAmount.toStringAsFixed(2)} ر.س';
+
+    if (absAmount < 0.001) {
+      return PartyBalanceInfo(
+        label: 'متوازن',
+        color: Colors.grey.shade700,
+        backgroundColor: Colors.grey.shade200,
+        formattedAmount: '0.00 ر.س',
+        isZero: true,
+      );
+    }
+
+    if (!isSupplier) {
+      // Customer:
+      // balance > 0: Customer owes money (عليه / مدين / أحمر)
+      // balance < 0: Customer has credit / is owed (له / دائن / أخضر)
+      if (balance > 0) {
+        return PartyBalanceInfo(
+          label: 'عليه (مدين)',
+          color: Colors.red.shade700,
+          backgroundColor: Colors.red.shade50,
+          formattedAmount: formattedAmount,
+          isZero: false,
+        );
+      } else {
+        return PartyBalanceInfo(
+          label: 'له (دائن)',
+          color: Colors.green.shade700,
+          backgroundColor: Colors.green.shade50,
+          formattedAmount: formattedAmount,
+          isZero: false,
+        );
+      }
+    } else {
+      // Supplier:
+      // balance > 0: Business owes supplier (له / دائن / عنبري)
+      // balance < 0: Supplier owes business / advance payment (عليه / مدين / أخضر)
+      if (balance > 0) {
+        return PartyBalanceInfo(
+          label: 'له (دائن)',
+          color: Colors.orange.shade900,
+          backgroundColor: Colors.orange.shade50,
+          formattedAmount: formattedAmount,
+          isZero: false,
+        );
+      } else {
+        return PartyBalanceInfo(
+          label: 'عليه (مدين)',
+          color: Colors.green.shade700,
+          backgroundColor: Colors.green.shade50,
+          formattedAmount: formattedAmount,
+          isZero: false,
+        );
+      }
+    }
+  }
+}
+
 class PartyProfileCard extends StatelessWidget {
   final Customer party;
   final bool isSupplier;
@@ -136,7 +223,11 @@ class PartyProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final hasBalance = party.balance > 0;
+    final balanceInfo = PartyBalanceInfo.fromBalance(
+      balance: party.balance,
+      isSupplier: isSupplier,
+    );
+
     final isOverLimit =
         !isSupplier &&
         party.creditLimit > 0 &&
@@ -171,14 +262,26 @@ class PartyProfileCard extends StatelessWidget {
                             fontSize: 16,
                           ),
                         ),
-                        if (party.phone?.isNotEmpty ?? false)
-                          Text(
-                            party.phone!,
-                            style: TextStyle(
-                              color: colorScheme.outline,
-                              fontSize: 13,
-                            ),
+                        if (party.phone?.isNotEmpty ?? false) ...[
+                          const SizedBox(height: 2),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.phone_outlined,
+                                size: 13,
+                                color: colorScheme.outline,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                party.phone!,
+                                style: TextStyle(
+                                  color: colorScheme.outline,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
                           ),
+                        ],
                       ],
                     ),
                   ),
@@ -186,24 +289,34 @@ class PartyProfileCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        '${party.balance.toStringAsFixed(2)} ر.س',
+                        balanceInfo.formattedAmount,
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: isSupplier
-                              ? (hasBalance ? Colors.orange : Colors.green)
-                              : (hasBalance ? Colors.red : Colors.green),
+                          color: balanceInfo.color,
                         ),
                       ),
-                      Text(
-                        isSupplier
-                            ? (hasBalance ? 'له' : 'متوازن')
-                            : (hasBalance ? 'عليه' : 'متوازن'),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isSupplier
-                              ? (hasBalance ? Colors.orange : Colors.green)
-                              : (hasBalance ? Colors.red : Colors.green),
+                      const SizedBox(height: 2),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: balanceInfo.backgroundColor,
+                          borderRadius: BorderRadius.circular(AppRadius.xs),
+                          border: Border.all(
+                            color: balanceInfo.color.withValues(alpha: 0.3),
+                            width: 0.8,
+                          ),
+                        ),
+                        child: Text(
+                          balanceInfo.label,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: balanceInfo.color,
+                          ),
                         ),
                       ),
                     ],
@@ -280,6 +393,10 @@ class _CreditLimitSummary extends StatelessWidget {
       );
     }
 
+    final usageRatio = party.balance > 0 && party.creditLimit > 0
+        ? (party.balance / party.creditLimit).clamp(0.0, 1.0)
+        : 0.0;
+
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Column(
@@ -287,7 +404,7 @@ class _CreditLimitSummary extends StatelessWidget {
           ClipRRect(
             borderRadius: BorderRadius.circular(AppRadius.xs),
             child: LinearProgressIndicator(
-              value: (party.balance / party.creditLimit).clamp(0.0, 1.0),
+              value: usageRatio,
               backgroundColor: colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation(
                 isOverLimit ? Colors.red : colorScheme.primary,
@@ -306,7 +423,11 @@ class _CreditLimitSummary extends StatelessWidget {
               if (isOverLimit)
                 const Text(
                   'تجاوز الحد',
-                  style: TextStyle(fontSize: 11, color: Colors.red),
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.red,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
             ],
           ),
@@ -329,16 +450,17 @@ class PartyDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final balanceColor = isSupplier
-        ? (party.balance > 0 ? Colors.orange : Colors.green)
-        : (party.balance > 0 ? Colors.red : Colors.green);
+    final balanceInfo = PartyBalanceInfo.fromBalance(
+      balance: party.balance,
+      isSupplier: isSupplier,
+    );
 
     return DraggableScrollableSheet(
-      initialChildSize: 0.5,
-      minChildSize: 0.3,
-      maxChildSize: 0.9,
+      initialChildSize: 0.58,
+      minChildSize: 0.35,
+      maxChildSize: 0.95,
       expand: false,
-      builder: (context, scrollController) => SingleChildScrollView(
+      builder: (sheetContext, scrollController) => SingleChildScrollView(
         controller: scrollController,
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -348,7 +470,7 @@ class PartyDetailsSheet extends StatelessWidget {
               child: Container(
                 width: 40,
                 height: 4,
-                margin: const EdgeInsets.only(bottom: 24),
+                margin: const EdgeInsets.only(bottom: 20),
                 decoration: BoxDecoration(
                   color: colorScheme.outline.withAlpha(77),
                   borderRadius: BorderRadius.circular(AppRadius.xxs),
@@ -370,35 +492,88 @@ class PartyDetailsSheet extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      if (party.phone != null)
-                        Text(
-                          party.phone!,
-                          style: TextStyle(color: colorScheme.outline),
+                      if (party.phone != null && party.phone!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              party.phone!,
+                              style: TextStyle(color: colorScheme.outline),
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () {
+                                Clipboard.setData(
+                                  ClipboardData(text: party.phone!),
+                                );
+                                AppToast.showSuccess(
+                                  sheetContext,
+                                  'تم نسخ رقم الهاتف',
+                                );
+                              },
+                              child: Icon(
+                                Icons.copy,
+                                size: 16,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
                         ),
+                      ],
                     ],
                   ),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.edit_outlined),
+                  tooltip: 'تعديل البيانات',
+                  onPressed: () => _openEditDialog(sheetContext),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  tooltip: 'حذف',
+                  onPressed: () => _confirmDelete(sheetContext),
+                ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Container(
-              padding: AppConstant.defaultPadding,
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: balanceColor,
+                color: balanceInfo.backgroundColor,
                 borderRadius: BorderRadius.circular(AppRadius.md),
+                border: Border.all(
+                  color: balanceInfo.color.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
-                    'الرصيد الحالي',
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'الرصيد الحالي',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'الحالة: ${balanceInfo.label}',
+                        style: TextStyle(
+                          color: balanceInfo.color,
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   Text(
-                    '${party.balance.toStringAsFixed(2)} ر.س',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
+                    balanceInfo.formattedAmount,
+                    style: TextStyle(
+                      color: balanceInfo.color,
+                      fontSize: 22,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -423,7 +598,13 @@ class PartyDetailsSheet extends StatelessWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: Navigator.of(context).pop,
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      context.push(
+                        AppRoutes.reportsAccountStatement,
+                        extra: party.accountId,
+                      );
+                    },
                     icon: const Icon(Icons.article),
                     label: const Text('كشف حساب'),
                   ),
@@ -432,7 +613,14 @@ class PartyDetailsSheet extends StatelessWidget {
                 Expanded(
                   child: HasibButton(
                     label: isSupplier ? 'فاتورة شراء' : 'فاتورة جديدة',
-                    onPressed: Navigator.of(context).pop,
+                    onPressed: () {
+                      Navigator.of(sheetContext).pop();
+                      if (isSupplier) {
+                        context.push(AppRoutes.purchasesAddInvoice);
+                      } else {
+                        context.push(AppRoutes.salesAddInvoice);
+                      }
+                    },
                     leading: const Icon(Icons.receipt),
                     variant: HasibButtonVariant.primary,
                   ),
@@ -444,6 +632,54 @@ class PartyDetailsSheet extends StatelessWidget {
       ),
     );
   }
+
+  Future<void> _openEditDialog(BuildContext context) async {
+    final cubit = context.read<CustomersCubit>();
+    Navigator.of(context).pop();
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => BlocProvider.value(
+        value: cubit,
+        child: AddCustomerDialog(
+          partyType: isSupplier ? 2 : 1,
+          initialCustomer: party,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmDelete(BuildContext context) async {
+    final cubit = context.read<CustomersCubit>();
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => CustomConfirmDialog(
+        title: isSupplier ? 'حذف المورد' : 'حذف العميل',
+        message: 'هل أنت متأكد من رغبتك في حذف "${party.name}"؟',
+        confirmLabel: 'حذف',
+        cancelLabel: 'إلغاء',
+        isDanger: true,
+        onConfirm: () => Navigator.of(dialogContext).pop(true),
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      Navigator.of(context).pop();
+      final partyId = int.tryParse(party.id);
+      if (partyId != null) {
+        final success = await cubit.deleteCustomer(
+          id: partyId,
+          type: isSupplier ? 2 : 1,
+        );
+        if (success && context.mounted) {
+          AppToast.showSuccess(
+            context,
+            isSupplier ? 'تم حذف المورد بنجاح' : 'تم حذف العميل بنجاح',
+          );
+        }
+      }
+    }
+  }
 }
 
 void showPartyDetailsSheet(
@@ -451,13 +687,17 @@ void showPartyDetailsSheet(
   Customer party,
   bool isSupplier,
 ) {
+  final cubit = context.read<CustomersCubit>();
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.lg20)),
     ),
-    builder: (_) => PartyDetailsSheet(party: party, isSupplier: isSupplier),
+    builder: (_) => BlocProvider.value(
+      value: cubit,
+      child: PartyDetailsSheet(party: party, isSupplier: isSupplier),
+    ),
   );
 }
 

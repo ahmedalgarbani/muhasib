@@ -6,8 +6,9 @@ class Customer {
   final double balance;
   final double creditLimit;
   final String? phone;
-  final int type; // 1=cash, 2=credit
+  final int type; // 1=customer, 2=supplier
   final String? address;
+  final int? accountId;
 
   Customer({
     required this.id,
@@ -17,20 +18,22 @@ class Customer {
     this.phone,
     this.type = 1,
     this.address,
+    this.accountId,
   });
 
-  bool get hasDebt => balance < 0;
+  bool get hasDebt => balance > 0;
   bool get isCredit => type == 2;
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
-      id: json['id'],
-      name: json['name'],
-      balance: json['balance']?.toDouble() ?? 0,
-      creditLimit: json['creditLimit']?.toDouble() ?? 0,
+      id: json['id']?.toString() ?? '',
+      name: json['name'] ?? '',
+      balance: (json['balance'] as num?)?.toDouble() ?? 0,
+      creditLimit: (json['creditLimit'] as num?)?.toDouble() ?? 0,
       phone: json['phone'],
       type: json['type'] ?? 1,
       address: json['address'],
+      accountId: json['accountId'] is int ? json['accountId'] : int.tryParse(json['accountId']?.toString() ?? ''),
     );
   }
 
@@ -43,6 +46,7 @@ class Customer {
       'phone': phone,
       'type': type,
       'address': address,
+      'accountId': accountId,
     };
   }
 
@@ -54,6 +58,7 @@ class Customer {
     String? phone,
     int? type,
     String? address,
+    int? accountId,
   }) {
     return Customer(
       id: id ?? this.id,
@@ -63,6 +68,7 @@ class Customer {
       phone: phone ?? this.phone,
       type: type ?? this.type,
       address: address ?? this.address,
+      accountId: accountId ?? this.accountId,
     );
   }
 }

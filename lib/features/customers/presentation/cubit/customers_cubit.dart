@@ -26,6 +26,8 @@ class CustomersCubit extends Cubit<CustomersState> {
             creditLimit: entity.creditLimit,
             phone: entity.contact,
             type: entity.type,
+            address: entity.address,
+            accountId: entity.accountId,
           );
         }).toList();
         emit(CustomersLoaded(customers));
@@ -70,7 +72,62 @@ class CustomersCubit extends Cubit<CustomersState> {
           phone: customerEntity.contact,
           type: customerEntity.type,
           address: customerEntity.address,
+          accountId: customerEntity.accountId,
         );
+      },
+    );
+  }
+
+  Future<bool> updateCustomer({
+    required int id,
+    required String name,
+    String? phone,
+    String? address,
+    double? creditLimit,
+    int type = 1,
+  }) async {
+    final result = await _customerRepository.updateCustomer(
+      customerId: id,
+      name: name,
+      contact: phone,
+      address: address,
+      creditLimit: creditLimit,
+    );
+
+    return result.fold(
+      (failure) {
+        emit(CustomersError('فشل في تحديث البيانات: ${failure.message}'));
+        return false;
+      },
+      (customerEntity) {
+        if (type == 2) {
+          loadSuppliers();
+        } else {
+          loadCustomers();
+        }
+        return true;
+      },
+    );
+  }
+
+  Future<bool> deleteCustomer({
+    required int id,
+    int type = 1,
+  }) async {
+    final result = await _customerRepository.deleteCustomer(id);
+
+    return result.fold(
+      (failure) {
+        emit(CustomersError('فشل في حذف السجل: ${failure.message}'));
+        return false;
+      },
+      (_) {
+        if (type == 2) {
+          loadSuppliers();
+        } else {
+          loadCustomers();
+        }
+        return true;
       },
     );
   }
@@ -106,6 +163,8 @@ class CustomersCubit extends Cubit<CustomersState> {
             creditLimit: entity.creditLimit,
             phone: entity.contact,
             type: entity.type,
+            address: entity.address,
+            accountId: entity.accountId,
           );
         }).toList();
         emit(SuppliersLoaded(suppliers));
@@ -113,3 +172,4 @@ class CustomersCubit extends Cubit<CustomersState> {
     );
   }
 }
+

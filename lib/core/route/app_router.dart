@@ -555,7 +555,12 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsAccountStatement,
       name: AppRoutes.reportsAccountStatement,
-      builder: (context, state) => const AccountStatementReportPage(),
+      builder: (context, state) {
+        final accountId = state.extra is int
+            ? state.extra as int
+            : int.tryParse(state.uri.queryParameters['accountId'] ?? '');
+        return AccountStatementReportPage(initialAccountId: accountId);
+      },
     ),
     GoRoute(
       path: AppRoutes.reportsMore,

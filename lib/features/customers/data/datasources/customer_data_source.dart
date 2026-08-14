@@ -504,6 +504,8 @@ class CustomerDataSourceImpl implements CustomerDataSource {
     required int type,  // 1=customer, 2=supplier
   }) async {
     try {
+      if (amount.abs() < 0.0001) return;
+
       // 1. Get or create Opening Balance account (code 3100)
       final obResults = await txn.query(
         'accounts',
@@ -535,33 +537,45 @@ class CustomerDataSourceImpl implements CustomerDataSource {
       
       // 2. Create journal entry
       final journalNumber = 'OB-${DateTime.now().millisecondsSinceEpoch}';
+      final absAmount = amount.abs();
       
+      // Determine if customer/supplier is debit or credit based on type and sign:
+      // For Customer (type == 1):
+      // amount > 0 means Debit Customer (عليه), Credit OB
+      // amount < 0 means Credit Customer (له), Debit OB
+      // For Supplier (type == 2):
+      // amount > 0 means Credit Supplier (له), Debit OB
+      // amount < 0 means Debit Supplier (عليه), Credit OB
+      final bool isPartyDebit = (type == 1 && amount > 0) || (type == 2 && amount < 0);
+      final String partyLabel = type == 1 ? 'عميل' : 'مورد';
+      final String directionLabel = isPartyDebit ? 'مدين (عليه)' : 'دائن (له)';
+
       final entryId = await txn.insert('journal_entries', {
         'number': journalNumber,
         'entry_date': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        'description': 'رصيد افتتاحي - ${type == 1 ? "عميل" : "مورد"}: $accountName',
+        'description': 'رصيد افتتاحي $directionLabel - $partyLabel: $accountName',
         'reference_type': 'opening_balance',
         'reference_number': accountName,
         'reference_id': accountId,
-        'total_debit': amount,
-        'total_credit': amount,
+        'total_debit': absAmount,
+        'total_credit': absAmount,
         'difference': 0.0,
         'status': 0,
-        'is_posted': 0,
+        'is_posted': 1,
         'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       });
       
       // 3. Insert journal entry lines
-      if (type == 1) {  // Customer (Asset - Debit)
-        // Line 1: Debit Customer Account
+      if (isPartyDebit) {
+        // Line 1: Debit Party Account
         await txn.insert('journal_entry_lines', {
           'journal_entry_id': entryId,
           'line_number': 1,
           'account_id': accountId,
           'account_name': accountName,
           'currency_code': 'YER',
-          'debit_amount': amount,
+          'debit_amount': absAmount,
           'credit_amount': 0.0,
         });
         
@@ -574,9 +588,9 @@ class CustomerDataSourceImpl implements CustomerDataSource {
           'account_name': 'أرصدة افتتاحية',
           'currency_code': 'YER',
           'debit_amount': 0.0,
-          'credit_amount': amount,
+          'credit_amount': absAmount,
         });
-      } else {  // Supplier (Liability - Credit)
+      } else {
         // Line 1: Debit Opening Balance
         await txn.insert('journal_entry_lines', {
           'journal_entry_id': entryId,
@@ -585,11 +599,11 @@ class CustomerDataSourceImpl implements CustomerDataSource {
           'account_code': '3100',
           'account_name': 'أرصدة افتتاحية',
           'currency_code': 'YER',
-          'debit_amount': amount,
+          'debit_amount': absAmount,
           'credit_amount': 0.0,
         });
         
-        // Line 2: Credit Supplier Account
+        // Line 2: Credit Party Account
         await txn.insert('journal_entry_lines', {
           'journal_entry_id': entryId,
           'line_number': 2,
@@ -597,11 +611,11 @@ class CustomerDataSourceImpl implements CustomerDataSource {
           'account_name': accountName,
           'currency_code': 'YER',
           'debit_amount': 0.0,
-          'credit_amount': amount,
+          'credit_amount': absAmount,
         });
       }
       
-      print('✅ Created opening balance entry for $accountName: $amount');
+      print('✅ Created opening balance entry for $accountName: $amount ($directionLabel)');
     } catch (e) {
       print('⚠️ Failed to create opening balance entry: $e');
       // Don't throw - allow customer creation to succeed even if OB entry fails

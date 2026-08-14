@@ -14,7 +14,9 @@ import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.da
 import 'package:muhasib/core/constant/app_constant.dart';
 
 class AccountStatementReportPage extends StatefulWidget {
-  const AccountStatementReportPage({super.key});
+  final int? initialAccountId;
+
+  const AccountStatementReportPage({super.key, this.initialAccountId});
 
   @override
   State<AccountStatementReportPage> createState() =>
@@ -28,7 +30,7 @@ class _AccountStatementReportPageState
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<AccountStatementCubit>()..loadAccounts(),
+      create: (context) => getIt<AccountStatementCubit>()..loadAccounts(widget.initialAccountId),
       child: BlocConsumer<AccountStatementCubit, AccountStatementState>(
         listener: (context, state) {
           if (state is AccountStatementLoaded) {

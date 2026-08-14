@@ -11,7 +11,7 @@ class AccountStatementCubit extends Cubit<AccountStatementState> {
 
   AccountStatementCubit({required this.repository}) : super(AccountStatementInitial());
 
-  Future<void> loadAccounts() async {
+  Future<void> loadAccounts([int? initialAccountId]) async {
     final result = await repository.getAllAccounts();
     
     result.fold(
@@ -20,8 +20,12 @@ class AccountStatementCubit extends Cubit<AccountStatementState> {
       },
       (accounts) {
         _accounts = accounts;
-        if (accounts.isNotEmpty && _selectedAccountId == null) {
+        if (initialAccountId != null && accounts.any((a) => a['id'] == initialAccountId)) {
+          _selectedAccountId = initialAccountId;
+        } else if (accounts.isNotEmpty && _selectedAccountId == null) {
           _selectedAccountId = accounts.first['id'] as int;
+        }
+        if (_selectedAccountId != null) {
           loadAccountStatement(_selectedAccountId!);
         }
       },
