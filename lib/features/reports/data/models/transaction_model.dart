@@ -1,4 +1,5 @@
 import 'package:muhasib/features/reports/domain/entities/transaction_entity.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 
 class TransactionModel extends TransactionEntity {
   const TransactionModel({
@@ -15,25 +16,33 @@ class TransactionModel extends TransactionEntity {
     required super.createdAt,
   });
 
-  factory TransactionModel.fromDatabase(Map<String, dynamic> json, List<Map<String, dynamic>> lines) {
+  factory TransactionModel.fromDatabase(
+    Map<String, dynamic> json,
+    List<Map<String, dynamic>> lines,
+  ) {
+    final entryTimestamp =
+        (json['entry_date'] ?? json['creation_time'] ?? 0) as num;
+    final creationTimestamp = (json['creation_time'] ?? 0) as num;
     return TransactionModel(
       id: json['id'] as int,
-      date: DateTime.fromMillisecondsSinceEpoch((json['entry_date'] ?? json['creation_time']) * 1000),
+      date: dateTimeFromReportTimestamp(entryTimestamp),
       description: json['description'] ?? '',
       reference: json['number'] ?? json['reference_number'] ?? '',
       transactionType: _mapTransactionType(json['reference_type']),
-      totalAmount: (json['total_debit'] ?? 0.0) as double,
-      details: lines.map<TransactionDetailEntity>((line) => TransactionDetailModel.fromDatabase(line)).toList(),
+      totalAmount: (json['total_debit'] as num?)?.toDouble() ?? 0.0,
+      details: lines
+          .map<TransactionDetailEntity>(TransactionDetailModel.fromDatabase)
+          .toList(),
       invoiceId: json['reference_id'] as int?,
       voucherId: json['voucher_id'] as int?,
       createdBy: json['creator_id'] ?? 1,
-      createdAt: DateTime.fromMillisecondsSinceEpoch((json['creation_time'] ?? 0) * 1000),
+      createdAt: dateTimeFromReportTimestamp(creationTimestamp),
     );
   }
 
   static String _mapTransactionType(String? type) {
     if (type == null) return TransactionType.journal.value;
-    
+
     switch (type.toLowerCase()) {
       case 'invoice':
       case 'sales':
@@ -91,8 +100,8 @@ class TransactionDetailModel extends TransactionDetailEntity {
       accountId: json['account_id'] as int,
       accountName: json['account_name'] ?? '',
       accountCode: json['account_code'] ?? '',
-      debitAmount: (json['debit_amount'] ?? 0.0) as double,
-      creditAmount: (json['credit_amount'] ?? 0.0) as double,
+      debitAmount: (json['debit_amount'] as num?)?.toDouble() ?? 0.0,
+      creditAmount: (json['credit_amount'] as num?)?.toDouble() ?? 0.0,
       notes: json['notes'] as String?,
       costCenterId: json['cost_center_id'] as int?,
       costCenterName: json['cost_center_name'] as String?,

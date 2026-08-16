@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
@@ -87,23 +88,49 @@ class _GeneralLedgerContent extends StatefulWidget {
 
 class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
   int? _selectedAccountId;
+  late Future<_LedgerResult> _future;
+  _LedgerResult? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _GeneralLedgerContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load(widget.filter);
+  }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_LedgerResult>(
-      future: _load(widget.filter),
+      future: _future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(child: Text('خطأ: ${snapshot.error}'));
+        }
         final data = snapshot.data;
-        if (data != null)
-          WidgetsBinding.instance.addPostFrameCallback(
-            (_) => widget.onLoad(data),
-          );
-        if (data == null || data.accounts.isEmpty)
+        if (data != null && data != _notifiedResult) {
+          _notifiedResult = data;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            widget.onLoad(data);
+          });
+        }
+        if (data == null || data.accounts.isEmpty) {
           return const Center(child: Text('لا توجد بيانات للفترة المحددة'));
+        }
 
         var accounts = data.accounts;
         if (widget.filter.searchQuery != null &&
@@ -127,8 +154,10 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                   Expanded(
                     child: ReportKpiCard(
                       title: 'إجمالي الحركات المدينة',
-                      value:
-                          NumberFormatter.formatCurrency(data.totalDebit, symbol: 'ر.س'),
+                      value: NumberFormatter.formatCurrency(
+                        data.totalDebit,
+                        symbol: 'ر.س',
+                      ),
                       icon: Icons.arrow_upward,
                       color: Colors.blue[700]!,
                       subtitle: 'جميع القيود المدينة',
@@ -138,8 +167,10 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                   Expanded(
                     child: ReportKpiCard(
                       title: 'إجمالي الحركات الدائنة',
-                      value:
-                          NumberFormatter.formatCurrency(data.totalCredit, symbol: 'ر.س'),
+                      value: NumberFormatter.formatCurrency(
+                        data.totalCredit,
+                        symbol: 'ر.س',
+                      ),
                       icon: Icons.arrow_downward,
                       color: Colors.green[700]!,
                       subtitle: 'جميع القيود الدائنة',
@@ -149,8 +180,10 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                   Expanded(
                     child: ReportKpiCard(
                       title: 'صافي فرق الأستاذ',
-                      value:
-                          NumberFormatter.formatCurrency((data.totalDebit - data.totalCredit).abs(), symbol: 'ر.س'),
+                      value: NumberFormatter.formatCurrency(
+                        (data.totalDebit - data.totalCredit).abs(),
+                        symbol: 'ر.س',
+                      ),
                       icon: Icons.balance,
                       color: (data.totalDebit - data.totalCredit).abs() < 0.01
                           ? Colors.teal[700]!
@@ -180,8 +213,10 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                     ),
                     margin: const EdgeInsets.only(bottom: 12),
                     child: ExpansionTile(
-                      onExpansionChanged: (v) =>
-                          setState(() => _selectedAccountId = v ? a.id : null),
+                      key: PageStorageKey('acc_${a.id}'),
+                      onExpansionChanged: (v) {
+                        setState(() => _selectedAccountId = v ? a.id : null);
+                      },
                       leading: Container(
                         width: 4,
                         height: 30,
@@ -209,6 +244,8 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                         if (isSel)
                           _AccountTransactionsView(
                             accountId: a.id,
+                            accountType: a.type,
+                            accountCode: a.code,
                             filter: widget.filter,
                           ),
                       ],
@@ -225,16 +262,14 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
 
   Color _getAccountTypeColor(int t) {
     switch (t) {
-      case 0:
-        return Colors.green;
       case 1:
-        return Colors.red;
-      case 2:
         return Colors.blue;
+      case 2:
+        return Colors.deepOrange;
       case 3:
         return Colors.teal;
       case 4:
-        return Colors.orange;
+        return Colors.green;
       default:
         return Colors.grey;
     }
@@ -245,28 +280,45 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
     final args = <Object?>[];
     String df = '';
     if (filter.startDate != null && filter.endDate != null) {
-      df = 'AND je.entry_date >= ? AND je.entry_date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('je.entry_date');
+      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
     final rows = await db.rawQuery('''
-      SELECT a.id, a.code, a.name, a.type, COALESCE(SUM(jel.debit_amount), 0) as td, COALESCE(SUM(jel.credit_amount), 0) as tc
-      FROM accounts a INNER JOIN journal_entry_lines jel ON jel.account_id = a.id INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1 $df GROUP BY a.id ORDER BY a.code
+      SELECT a.id, a.code, a.name, a.type, 
+             COALESCE(SUM(jel.debit_amount), 0) as td, 
+             COALESCE(SUM(jel.credit_amount), 0) as tc
+      FROM accounts a 
+      INNER JOIN journal_entry_lines jel ON jel.account_id = a.id 
+      INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
+      WHERE a.is_active = 1 AND je.is_posted = 1 $df 
+      GROUP BY a.id 
+      ORDER BY a.code
     ''', args);
-    final list = rows
-        .map(
-          (m) => _LedgerAccount(
-            id: m['id'] as int,
-            code: m['code'] as String,
-            name: m['name'] as String,
-            type: m['type'] as int,
-            totalDebit: (m['td'] as num).toDouble(),
-            totalCredit: (m['tc'] as num).toDouble(),
-            balance: (m['td'] as num).toDouble() - (m['tc'] as num).toDouble(),
-          ),
-        )
-        .toList();
+
+    final list = rows.map((m) {
+      final code = (m['code'] as String?) ?? '';
+      final rawType = (m['type'] as int?) ?? 1;
+      final isCreditNormal =
+          rawType == 2 ||
+          rawType == 4 ||
+          code.startsWith('2') ||
+          code.startsWith('4');
+      final td = (m['td'] as num).toDouble();
+      final tc = (m['tc'] as num).toDouble();
+      final bal = isCreditNormal ? (tc - td) : (td - tc);
+
+      return _LedgerAccount(
+        id: m['id'] as int,
+        code: code,
+        name: (m['name'] as String?) ?? '',
+        type: rawType,
+        totalDebit: td,
+        totalCredit: tc,
+        balance: bal,
+      );
+    }).toList();
+
     return _LedgerResult(
       accounts: list,
       totalDebit: list.fold(0, (s, a) => s + a.totalDebit),
@@ -275,33 +327,62 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
   }
 }
 
-class _AccountTransactionsView extends StatelessWidget {
+class _AccountTransactionsView extends StatefulWidget {
   final int accountId;
+  final int accountType;
+  final String accountCode;
   final ReportFilter filter;
   const _AccountTransactionsView({
     required this.accountId,
+    required this.accountType,
+    required this.accountCode,
     required this.filter,
   });
 
   @override
+  State<_AccountTransactionsView> createState() =>
+      _AccountTransactionsViewState();
+}
+
+class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
+  late Future<List<_LedgerTransaction>> _future;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _loadTxns();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AccountTransactionsView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.accountId != widget.accountId ||
+        oldWidget.filter != widget.filter) {
+      _future = _loadTxns();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_LedgerTransaction>>(
-      future: _loadTxns(),
+      future: _future,
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Padding(
             padding: EdgeInsets.all(20),
             child: LinearProgressIndicator(),
           );
+        }
         final txns = snapshot.data!;
-        if (txns.isEmpty)
+        if (txns.isEmpty) {
           return const Padding(
             padding: AppConstant.defaultPadding,
             child: Text(
-              'لا توجد حركات تفصيلية',
+              'لا توجد حركات تفصيلية في هذه الفترة',
               style: TextStyle(fontSize: 11, color: Colors.grey),
             ),
           );
+        }
         return Container(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           child: Column(
@@ -357,21 +438,42 @@ class _AccountTransactionsView extends StatelessWidget {
 
   Future<List<_LedgerTransaction>> _loadTxns() async {
     final db = await getIt<DatabaseService>().database;
-    final rows = await db.rawQuery(
-      '''
-      SELECT je.entry_date, je.description, jel.debit_amount as d, jel.credit_amount as c FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE jel.account_id = ? AND je.is_posted = 1 ORDER BY je.entry_date ASC
-    ''',
-      [accountId],
-    );
+    final isCreditNormal =
+        widget.accountType == 2 ||
+        widget.accountType == 4 ||
+        widget.accountCode.startsWith('2') ||
+        widget.accountCode.startsWith('4');
+
+    String df = '';
+    final args = <Object?>[widget.accountId];
+    if (widget.filter.startDate != null && widget.filter.endDate != null) {
+      df = 'AND je.entry_date >= ? AND je.entry_date <= ?';
+      args.add(widget.filter.startDate!.millisecondsSinceEpoch ~/ 1000);
+      args.add(widget.filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+    }
+
+    final rows = await db.rawQuery('''
+      SELECT je.entry_date, je.description, jel.debit_amount as d, jel.credit_amount as c 
+      FROM journal_entry_lines jel 
+      JOIN journal_entries je ON je.id = jel.journal_entry_id
+      WHERE jel.account_id = ? AND je.is_posted = 1 $df
+      ORDER BY je.entry_date ASC, jel.id ASC
+    ''', args);
+
     double rb = 0;
     return rows.map((m) {
-      rb += (m['d'] as num).toDouble() - (m['c'] as num).toDouble();
+      final d = (m['d'] as num).toDouble();
+      final c = (m['c'] as num).toDouble();
+      if (isCreditNormal) {
+        rb += (c - d);
+      } else {
+        rb += (d - c);
+      }
       return _LedgerTransaction(
         entryDate: m['entry_date'] as int,
         description: m['description'] as String?,
-        debit: (m['d'] as num).toDouble(),
-        credit: (m['c'] as num).toDouble(),
+        debit: d,
+        credit: c,
         runningBalance: rb,
       );
     }).toList();
@@ -415,7 +517,7 @@ class _LedgerTransaction {
     required this.runningBalance,
   });
   String get dateLabel {
-    final d = DateTime.fromMillisecondsSinceEpoch(entryDate * 1000);
+    final d = dateTimeFromReportTimestamp(entryDate);
     return '${d.day}/${d.month}/${d.year}';
   }
 }

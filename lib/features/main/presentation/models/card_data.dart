@@ -1,25 +1,47 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/theme/app_color.dart';
 
 enum CardType { primary, secondary, tertiary, success }
 
 class CardData {
   final String title;
   final String balance;
+  final String currency;
   final CardType type;
+  final String? subtitle;
+  final IconData? icon;
 
-  CardData(this.title, this.balance, this.type);
+  const CardData({
+    required this.title,
+    required this.balance,
+    this.currency = 'RY',
+    this.type = CardType.primary,
+    this.subtitle,
+    this.icon,
+  });
 
-  Color get backgroundColor {
+  List<Color> get gradientColors {
     switch (type) {
       case CardType.primary:
-        return AppColors.materialDeepOrange500;
+        return const [Color(0xFF006D74), Color(0xFF004B50)]; // Shamil Money Deep Teal
       case CardType.secondary:
-        return AppColors.materialPurple500;
+        return const [Color(0xFF1E3A8A), Color(0xFF0F172A)]; // Royal Deep Blue
       case CardType.tertiary:
-        return AppColors.materialBlue700;
+        return const [Color(0xFF047857), Color(0xFF064E3B)]; // Emerald Green
       case CardType.success:
-        return AppColors.materialTeal600;
+        return const [Color(0xFF334155), Color(0xFF1E293B)]; // Dark Slate
+    }
+  }
+
+  Color get accentColor {
+    switch (type) {
+      case CardType.primary:
+        return const Color(0xFF4FD1C5);
+      case CardType.secondary:
+        return const Color(0xFF93C5FD);
+      case CardType.tertiary:
+        return const Color(0xFF6EE7B7);
+      case CardType.success:
+        return const Color(0xFF94A3B8);
     }
   }
 }

@@ -81,8 +81,20 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                           padding: AppConstant.defaultPadding,
                           itemCount: state.invoices.length,
                           itemBuilder: (context, index) {
+                            final invoice = state.invoices[index];
                             return PurchasesListInvoiceCardWidget(
-                              invoice: state.invoices[index],
+                              invoice: invoice,
+                              onTap: () async {
+                                final result = await innerContext.push(
+                                  AppRoutes.purchasesDetail,
+                                  extra: invoice,
+                                );
+                                if (result == true && innerContext.mounted) {
+                                  innerContext
+                                      .read<PurchasesCubit>()
+                                      .loadPurchaseInvoices();
+                                }
+                              },
                             );
                           },
                         ),
@@ -97,8 +109,13 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
             ],
           ),
           floatingActionButton: FloatingActionButton.extended(
-            onPressed: () {
-              innerContext.push(AppRoutes.purchasesAddInvoice);
+            onPressed: () async {
+              final result = await innerContext.push(
+                AppRoutes.purchasesAddInvoice,
+              );
+              if (result == true && innerContext.mounted) {
+                innerContext.read<PurchasesCubit>().loadPurchaseInvoices();
+              }
             },
             backgroundColor: AppColors.success,
             icon: const Icon(Icons.add),

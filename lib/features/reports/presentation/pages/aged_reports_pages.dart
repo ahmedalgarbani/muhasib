@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
@@ -103,7 +104,7 @@ class _AgedPayablesReportPageState extends State<AgedPayablesReportPage> {
   );
 }
 
-class _AgedInvoicesContent extends StatelessWidget {
+class _AgedInvoicesContent extends StatefulWidget {
   final ReportFilter filter;
   final String titleLabel;
   final int customerType;
@@ -118,19 +119,54 @@ class _AgedInvoicesContent extends StatelessWidget {
   });
 
   @override
+  State<_AgedInvoicesContent> createState() => _AgedInvoicesContentState();
+}
+
+class _AgedInvoicesContentState extends State<_AgedInvoicesContent> {
+  late Future<_AgedResult> _future;
+  _AgedResult? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AgedInvoicesContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter ||
+        oldWidget.customerType != widget.customerType) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<_AgedResult>(
-      future: _load(),
+      future: _future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(child: Text('خطأ: ${snapshot.error}'));
+        }
         final data = snapshot.data;
-        if (data != null && data.buckets.isNotEmpty)
-          WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(data));
-        if (data == null || data.buckets.isEmpty)
+        if (data != null && data != _notifiedResult) {
+          _notifiedResult = data;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => widget.onLoad(data),
+          );
+        }
+        if (data == null || data.buckets.isEmpty) {
           return const Center(child: Text('لا توجد ديون متأخرة حالياً'));
+        }
 
         return Column(
           children: [
@@ -149,7 +185,7 @@ class _AgedInvoicesContent extends StatelessWidget {
                   color: Colors.blue,
                 ),
                 ReportSummaryCard(
-                  title: 'عدد $titleLabel',
+                  title: 'عدد ${widget.titleLabel}',
                   value: data.parties.toString(),
                   icon: Icons.people,
                   color: Colors.purple,
@@ -166,7 +202,9 @@ class _AgedInvoicesContent extends StatelessWidget {
                         elevation: 0,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.lg),
-                          side: BorderSide(color: Theme.of(context).dividerColor),
+                          side: BorderSide(
+                            color: Theme.of(context).dividerColor,
+                          ),
                         ),
                         margin: const EdgeInsets.only(bottom: 12),
                         child: ListTile(
@@ -201,17 +239,25 @@ class _AgedInvoicesContent extends StatelessWidget {
   Future<_AgedResult> _load() async {
     final db = await getIt<DatabaseService>().database;
     final now = DateTime.now();
-    final asOf = (filter.endDate ?? now).millisecondsSinceEpoch ~/ 1000;
-    final args = <Object?>[asOf, customerType];
-    final typeClause = invoiceTypes.isEmpty
+    final asOf = (widget.filter.endDate ?? now).millisecondsSinceEpoch ~/ 1000;
+    final args = <Object?>[asOf, widget.customerType];
+    final typeClause = widget.invoiceTypes.isEmpty
         ? ''
-        : 'AND i.invoice_type IN (${invoiceTypes.map((_) => '?').join(',')})';
-    if (invoiceTypes.isNotEmpty) args.addAll(invoiceTypes);
+        : 'AND i.invoice_type IN (${widget.invoiceTypes.map((_) => '?').join(',')})';
+    if (widget.invoiceTypes.isNotEmpty) args.addAll(widget.invoiceTypes);
 
     final rows = await db.rawQuery('''
-      SELECT i.id, i.due_date, COALESCE(i.final_amt, i.total_amount, i.amount, 0) as amount, i.customer_id
+      SELECT i.id, i.date, i.due_date,
+        COALESCE(i.final_amt, i.total_amount, i.amount, 0) as amount,
+        COALESCE(i.paid_amount, 0) as paid_amount,
+        COALESCE(i.bank_paid_amount, 0) as bank_paid_amount,
+        i.customer_id
       FROM invoices i INNER JOIN customers c ON c.id = i.customer_id
-      WHERE i.due_date IS NOT NULL AND i.due_date < ? AND c.type = ? AND i.payment_status != 2 AND COALESCE(i.approval_status, 1) != 3 $typeClause
+      WHERE ${normalizedReportTimestampSql('COALESCE(i.due_date, i.date)')} <= ?
+        AND c.type = ?
+        AND i.payment_status != 2
+        AND COALESCE(i.approval_status, 1) != 3
+        $typeClause
     ''', args);
 
     final buckets = {
@@ -222,13 +268,18 @@ class _AgedInvoicesContent extends StatelessWidget {
     };
     final partyIds = <int>{};
     for (final r in rows) {
-      final amt = (r['amount'] as num).toDouble();
+      final amt =
+          ((r['amount'] as num).toDouble() -
+                  (r['paid_amount'] as num).toDouble() -
+                  (r['bank_paid_amount'] as num).toDouble())
+              .clamp(0, double.infinity)
+              .toDouble();
+      if (amt == 0) continue;
       partyIds.add(r['customer_id'] as int);
-      final days = now
-          .difference(
-            DateTime.fromMillisecondsSinceEpoch((r['due_date'] as int) * 1000),
-          )
-          .inDays;
+      final dueDate = dateTimeFromReportTimestamp(
+        (r['due_date'] ?? r['date']) as num,
+      );
+      final days = (widget.filter.endDate ?? now).difference(dueDate).inDays;
       final key = days <= 30
           ? '0-30'
           : days <= 60
@@ -245,7 +296,7 @@ class _AgedInvoicesContent extends StatelessWidget {
     return _AgedResult(
       buckets: list,
       total: list.fold(0, (s, b) => s + b.amount),
-      count: rows.length,
+      count: list.fold(0, (sum, bucket) => sum + bucket.count),
       parties: partyIds.length,
     );
   }

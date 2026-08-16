@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/features/products/domain/entities/product_entity.dart';
+import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
 
 class PurchaseDetailProductsList extends StatelessWidget {
   final List<InvoiceLineEntity> lines;
@@ -31,7 +34,7 @@ class PurchaseDetailProductsList extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 const Text(
-                  'المنتجات',
+                  'الأصناف المشتراة',
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
@@ -48,7 +51,7 @@ class PurchaseDetailProductsList extends StatelessWidget {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Text(
-                    '${lines.length} منتج',
+                    '${lines.length} صنف',
                     style: const TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -64,21 +67,42 @@ class PurchaseDetailProductsList extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Text(
-                    'لا توجد منتجات في هذه الفاتورة',
+                    'لا توجد أصناف في هذه الفاتورة',
                     style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                   ),
                 ),
               )
             else
-              ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: lines.length,
-                separatorBuilder: (context, index) => const Divider(height: 24),
-                itemBuilder: (context, index) {
-                  return PurchaseProductItemWidget(
-                    line: lines[index],
-                    index: index + 1,
+              BlocBuilder<ProductsCubit, ProductsState>(
+                builder: (context, state) {
+                  final List<ProductEntity> products = switch (state) {
+                    ProductsLoaded(products: final p) => p,
+                    _ => const <ProductEntity>[],
+                  };
+
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: lines.length,
+                    separatorBuilder: (context, index) =>
+                        const Divider(height: 24),
+                    itemBuilder: (context, index) {
+                      final line = lines[index];
+                      final catId = line.categoryId ?? line.groupId;
+                      final foundProduct =
+                          products.where((p) => p.id == catId);
+                      final productName = foundProduct.isNotEmpty
+                          ? (foundProduct.first.barcodeNo.isNotEmpty
+                              ? '${foundProduct.first.name} (${foundProduct.first.barcodeNo})'
+                              : foundProduct.first.name)
+                          : null;
+
+                      return PurchaseProductItemWidget(
+                        line: line,
+                        index: index + 1,
+                        productName: productName,
+                      );
+                    },
                   );
                 },
               ),
@@ -92,11 +116,13 @@ class PurchaseDetailProductsList extends StatelessWidget {
 class PurchaseProductItemWidget extends StatelessWidget {
   final InvoiceLineEntity line;
   final int index;
+  final String? productName;
 
   const PurchaseProductItemWidget({
     super.key,
     required this.line,
     required this.index,
+    this.productName,
   });
 
   String _formatCurrency(double amount) {
@@ -105,7 +131,10 @@ class PurchaseProductItemWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final unitPrice = line.quantity > 0 ? line.amount / line.quantity : 0.0;
+    final unitPrice =
+        line.quantity > 0 ? line.amount / line.quantity : 0.0;
+    final displayName = productName ??
+        'الصنف #${line.categoryId ?? line.groupId ?? index}';
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -142,7 +171,7 @@ class PurchaseProductItemWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'المنتج #${line.groupId}',
+                      displayName,
                       style: const TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -185,7 +214,8 @@ class PurchaseProductItemWidget extends StatelessWidget {
           if (line.discountAmt != null && line.discountAmt! > 0) ...[
             const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: Colors.orange.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.xs),

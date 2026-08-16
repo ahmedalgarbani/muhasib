@@ -1,7 +1,7 @@
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/reports/data/models/transaction_model.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
-import 'package:sqflite/sqflite.dart';
 
 abstract class TransactionsReportDataSource {
   Future<List<TransactionModel>> getTransactions({
@@ -43,12 +43,9 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
 
     // Date filter
     if (filter.startDate != null && filter.endDate != null) {
-      // Support both seconds (correct) and legacy milliseconds timestamps.
-      whereClause =
-          '((entry_date >= ? AND entry_date <= ?) OR (entry_date >= ? AND entry_date <= ?))';
-      final startSec = filter.startDate!.millisecondsSinceEpoch ~/ 1000;
-      final endSec = filter.endDate!.millisecondsSinceEpoch ~/ 1000;
-      whereArgs = [startSec, endSec, startSec * 1000, endSec * 1000];
+      final dateColumn = normalizedReportTimestampSql('entry_date');
+      whereClause += ' AND $dateColumn >= ? AND $dateColumn <= ?';
+      whereArgs.addAll(reportDateRangeArgs(filter));
     }
 
     // Transaction type filter
@@ -118,162 +115,6 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
     return transactions;
   }
 
-  Future<void> _addInvoiceTransactions(
-    Database db,
-    List<TransactionModel> transactions,
-    ReportFilter filter,
-    String? transactionType,
-    String orderBy,
-  ) async {
-    String whereClause = 'is_posted = 1';
-    List<dynamic> whereArgs = [];
-
-    // Date filter
-    if (filter.startDate != null && filter.endDate != null) {
-      whereClause = 'date >= ? AND date <= ?';
-      whereArgs = [
-        filter.startDate!.millisecondsSinceEpoch ~/ 1000,
-        filter.endDate!.millisecondsSinceEpoch ~/ 1000,
-      ];
-    }
-
-    // Type filter for invoices
-    if (transactionType == 'sales') {
-      if (whereClause.isNotEmpty) whereClause += ' AND ';
-      whereClause += 'invoice_type = 1'; // Sales invoice
-    } else if (transactionType == 'purchase') {
-      if (whereClause.isNotEmpty) whereClause += ' AND ';
-      whereClause += 'invoice_type = 2'; // Purchase invoice
-    }
-
-    // Search query
-    if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
-      if (whereClause.isNotEmpty) whereClause += ' AND ';
-      whereClause += '(number LIKE ? OR statement LIKE ?)';
-      final searchPattern = '%${filter.searchQuery}%';
-      whereArgs.addAll([searchPattern, searchPattern]);
-    }
-
-    final invoices = await db.query(
-      'invoices',
-      where: whereClause.isEmpty ? null : whereClause,
-      whereArgs: whereArgs.isEmpty ? null : whereArgs,
-      orderBy: orderBy
-          .replaceAll('entry_date', 'date')
-          .replaceAll('total_debit', 'final_amt'),
-    );
-
-    for (final invoice in invoices) {
-      final invoiceId = invoice['id'] as int;
-      final invoiceDate = (invoice['date'] as int?) ?? 0;
-      final invoiceNumber = (invoice['number'] ?? '') as String;
-      final invoiceType = (invoice['invoice_type'] as int?) ?? 0;
-      final invoiceAmount =
-          (invoice['final_amt'] as num?)?.toDouble() ??
-          (invoice['total_amount'] as num?)?.toDouble() ??
-          (invoice['amount'] as num?)?.toDouble() ??
-          0.0;
-
-      // Convert invoice to transaction format
-      final transactionData = {
-        'id': invoiceId,
-        'entry_date': invoiceDate,
-        'description':
-            invoice['statement'] ??
-            (invoiceType == 1 ? 'فاتورة مبيعات' : 'فاتورة مشتريات'),
-        'number': invoiceNumber,
-        'reference_type': invoice['invoice_type'] == 1 ? 'sales' : 'purchase',
-        'total_debit': invoiceAmount,
-        'total_credit': invoiceAmount,
-        'reference_id': invoiceId,
-        'creator_id': invoice['creator_id'],
-        'creation_time': invoice['creation_time'],
-      };
-
-      // Build accounting-correct two-line entry using account_connects mapping:
-      // - Sales: Dr Customers, Cr Sales
-      // - Purchase: Dr Purchases, Cr Suppliers
-      final debitAccount = await _getConnectedAccount(
-        db,
-        invoiceType == 1 ? 2 : 10,
-      );
-      final creditAccount = await _getConnectedAccount(
-        db,
-        invoiceType == 1 ? 7 : 3,
-      );
-
-      final journalLines = <Map<String, dynamic>>[
-        {
-          'id': invoiceId * 10 + 1,
-          'account_id': debitAccount['id'],
-          'account_code': debitAccount['code'],
-          'account_name': debitAccount['name'],
-          'debit_amount': invoiceAmount,
-          'credit_amount': 0.0,
-          'notes': invoice['statement'],
-        },
-        {
-          'id': invoiceId * 10 + 2,
-          'account_id': creditAccount['id'],
-          'account_code': creditAccount['code'],
-          'account_name': creditAccount['name'],
-          'debit_amount': 0.0,
-          'credit_amount': invoiceAmount,
-          'notes': invoice['statement'],
-        },
-      ];
-
-      transactions.add(
-        TransactionModel.fromDatabase(transactionData, journalLines),
-      );
-    }
-  }
-
-  /// Resolve connected account for a given connect type using:
-  /// account_connects(account_connect_type -> accounts.c_id) -> accounts(id, code, name)
-  Future<Map<String, dynamic>> _getConnectedAccount(
-    Database db,
-    int connectType,
-  ) async {
-    final connect = await db.query(
-      'account_connects',
-      columns: ['c_id'],
-      where: 'account_connect_type = ?',
-      whereArgs: [connectType],
-      limit: 1,
-    );
-
-    final cId = (connect.isNotEmpty ? connect.first['c_id'] : null) as int?;
-    if (cId == null) {
-      // Fallback to a safe default (first active account)
-      final fallback = await db.query(
-        'accounts',
-        columns: ['id', 'code', 'name'],
-        where: 'is_active = 1',
-        orderBy: 'code',
-        limit: 1,
-      );
-      if (fallback.isEmpty) {
-        return {'id': 1, 'code': '', 'name': ''};
-      }
-      return fallback.first;
-    }
-
-    final account = await db.query(
-      'accounts',
-      columns: ['id', 'code', 'name'],
-      where: 'c_id = ?',
-      whereArgs: [cId],
-      limit: 1,
-    );
-
-    if (account.isEmpty) {
-      return {'id': 1, 'code': '', 'name': ''};
-    }
-
-    return account.first;
-  }
-
   @override
   Future<Map<String, dynamic>> getTransactionsSummary({
     required ReportFilter filter,
@@ -286,11 +127,9 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
 
     // Date filter
     if (filter.startDate != null && filter.endDate != null) {
-      whereClause = 'entry_date >= ? AND entry_date <= ?';
-      whereArgs = [
-        filter.startDate!.millisecondsSinceEpoch ~/ 1000,
-        filter.endDate!.millisecondsSinceEpoch ~/ 1000,
-      ];
+      final dateColumn = normalizedReportTimestampSql('entry_date');
+      whereClause += ' AND $dateColumn >= ? AND $dateColumn <= ?';
+      whereArgs.addAll(reportDateRangeArgs(filter));
     }
 
     // Transaction type filter
@@ -298,6 +137,13 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
       if (whereClause.isNotEmpty) whereClause += ' AND ';
       whereClause += 'reference_type = ?';
       whereArgs.add(transactionType);
+    }
+
+    if (filter.searchQuery != null && filter.searchQuery!.isNotEmpty) {
+      whereClause +=
+          ' AND (description LIKE ? OR number LIKE ? OR reference_number LIKE ?)';
+      final searchPattern = '%${filter.searchQuery}%';
+      whereArgs.addAll([searchPattern, searchPattern, searchPattern]);
     }
 
     final result = await db.rawQuery('''
@@ -312,8 +158,9 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
     if (result.isNotEmpty) {
       return {
         'count': result.first['count'] ?? 0,
-        'totalDebit': result.first['total_debit'] ?? 0.0,
-        'totalCredit': result.first['total_credit'] ?? 0.0,
+        'totalDebit': (result.first['total_debit'] as num?)?.toDouble() ?? 0.0,
+        'totalCredit':
+            (result.first['total_credit'] as num?)?.toDouble() ?? 0.0,
       };
     }
 

@@ -80,6 +80,8 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
       AccountConnectTypes.salesReturns => DefaultAccountIds.salesReturns,
       AccountConnectTypes.purchaseReturns => DefaultAccountIds.purchaseReturns,
       AccountConnectTypes.costOfGoodsSold => DefaultAccountIds.costOfGoodsSold,
+      AccountConnectTypes.inputVAT => DefaultAccountIds.inputVAT,
+      AccountConnectTypes.outputVAT => DefaultAccountIds.outputVAT,
       _ => null,
     };
     if (cId == null) {
@@ -287,9 +289,12 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
   }
 
   /// Reverses every journal entry linked to a document:
-  /// - restores account balances
-  /// - restores account limits (current_debit/current_credit)
-  /// - deletes journal lines and entries
+  /// Reverses the accounting effects of a posted journal entry by generating
+  /// a full mirror reversal journal entry (preserving Audit Trail without hard DELETE):
+  /// - Creates a mirror reversal journal entry (reversing debits and credits)
+  /// - Restores account balances
+  /// - Restores account limits (current_debit/current_credit)
+  /// - Marks the original journal entry status as reversed (status = 2)
   Future<void> _reverseJournalEntryEffects(
     Transaction txn,
     String referenceType,
@@ -298,7 +303,7 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final entries = await txn.query(
       _journalEntriesTable,
-      where: 'reference_type = ? AND reference_id = ?',
+      where: 'reference_type = ? AND reference_id = ? AND status = 1',
       whereArgs: [referenceType, referenceId],
     );
     for (final entry in entries) {
@@ -307,14 +312,62 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
         _journalLinesTable,
         where: 'journal_entry_id = ?',
         whereArgs: [entryId],
+        orderBy: 'line_number ASC',
       );
-      for (final line in lines) {
+
+      if (lines.isEmpty) continue;
+
+      // 1. Create a mirror reversal journal entry
+      final origNumber = entry['number'] as String? ?? 'JE-$entryId';
+      final revNumber = '$origNumber-REV';
+      final totalDebit = (entry['total_debit'] as num?)?.toDouble() ?? 0.0;
+      final totalCredit = (entry['total_credit'] as num?)?.toDouble() ?? 0.0;
+
+      final revEntryId = await txn.insert(_journalEntriesTable, {
+        'number': revNumber,
+        'entry_date': now,
+        'description': 'قيد عكسي - ${entry['description'] ?? ''}',
+        'reference_type': '${referenceType}_reversal',
+        'reference_id': referenceId,
+        'reference_number': entry['reference_number'],
+        'notes': 'قيد عكسي للقيد رقم $origNumber',
+        'status': 2, // 2 = reversed/reversal
+        'is_posted': 1,
+        'total_debit': totalCredit, // Mirror: debit becomes credit
+        'total_credit': totalDebit, // Mirror: credit becomes debit
+        'difference': 0.0,
+        'creation_time': now,
+        'last_modification_time': now,
+      });
+
+      // 2. Insert reversed lines (debit becomes credit, credit becomes debit)
+      for (int i = 0; i < lines.length; i++) {
+        final line = lines[i];
         final accountId = line['account_id'] as int;
-        final debit = (line['debit_amount'] as num?)?.toDouble() ?? 0.0;
-        final credit = (line['credit_amount'] as num?)?.toDouble() ?? 0.0;
+        final origDebit = (line['debit_amount'] as num?)?.toDouble() ?? 0.0;
+        final origCredit = (line['credit_amount'] as num?)?.toDouble() ?? 0.0;
         final currencyId = line['currency_id'] as int?;
 
-        await _applyAccountBalanceDelta(txn, accountId, -(debit - credit));
+        // In reverse: debit = origCredit, credit = origDebit
+        final revDebit = origCredit;
+        final revCredit = origDebit;
+
+        await txn.insert(_journalLinesTable, {
+          'journal_entry_id': revEntryId,
+          'line_number': i + 1,
+          'account_id': accountId,
+          'account_code': line['account_code'],
+          'account_name': line['account_name'],
+          'currency_id': currencyId,
+          'currency_code': line['currency_code'],
+          'debit_amount': revDebit,
+          'credit_amount': revCredit,
+          'description': 'عكس: ${line['description'] ?? ''}',
+          'notes': line['notes'],
+        });
+
+        // 3. Update account balances (net change is -(origDebit - origCredit))
+        await _applyAccountBalanceDelta(txn, accountId, -(origDebit - origCredit));
 
         if (currencyId != null) {
           await txn.rawUpdate(
@@ -325,20 +378,280 @@ SET current_debit = MAX(0, current_debit - ?),
     last_modification_time = ?
 WHERE account_id = ? AND currency_id = ? AND is_active = 1
 ''',
-            [debit, credit, now, accountId, currencyId],
+            [origDebit, origCredit, now, accountId, currencyId],
           );
         }
       }
-      await txn.delete(
-        _journalLinesTable,
-        where: 'journal_entry_id = ?',
-        whereArgs: [entryId],
-      );
-      await txn.delete(
+
+      // 4. Mark original entry as reversed (status = 2) with audit note
+      await txn.update(
         _journalEntriesTable,
+        {
+          'status': 2,
+          'notes': '${entry['notes'] ?? ''} (تم عكس القيد بالقيد رقم $revNumber)'.trim(),
+          'last_modification_time': now,
+        },
         where: 'id = ?',
         whereArgs: [entryId],
       );
+    }
+  }
+
+  /// Increases warehouse stock for purchase invoice lines (incoming goods)
+  /// Note: Recoverable Input VAT is EXCLUDED from inventory unit cost as per IAS 2.
+  Future<void> _increaseStockForPurchaseLines(
+    Transaction txn, {
+    required int invoiceId,
+    required String invoiceNumber,
+    required List<InvoiceLineModel> lines,
+    required int? headerStockId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    for (final lineModel in lines) {
+      final productId = lineModel.categoryId;
+      final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
+      final qty = lineModel.quantity;
+
+      if (productId == null || qty <= 0) continue;
+
+      // Net purchase cost per unit = (line amount - discount) / qty
+      final discountAmt = lineModel.discountAmt ?? 0.0;
+      final netLineAmount = lineModel.amount - discountAmt;
+      final unitCost = (qty > 0 && netLineAmount > 0)
+          ? (netLineAmount / qty)
+          : (lineModel.costPrice ?? lineModel.price ?? 0.0);
+
+      final stockResult = await txn.query(
+        'warehouse_stocks',
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+        limit: 1,
+      );
+
+      double currentQty = 0.0;
+      double avgCost = unitCost;
+
+      if (stockResult.isNotEmpty) {
+        currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+        final oldAvg = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+        // Weighted Average Cost (WAC) calculation as per IAS 2
+        if (currentQty + qty > 0) {
+          avgCost = ((currentQty * oldAvg) + (qty * unitCost)) / (currentQty + qty);
+        }
+      }
+
+      final newQty = currentQty + qty;
+
+      if (stockResult.isNotEmpty) {
+        await txn.update(
+          'warehouse_stocks',
+          {
+            'quantity': newQty,
+            'avg_cost': avgCost,
+            'last_cost': unitCost,
+            'last_modification_time': now,
+          },
+          where: 'product_id = ? AND warehouse_id = ?',
+          whereArgs: [productId, warehouseId],
+        );
+      } else {
+        await txn.insert('warehouse_stocks', {
+          'product_id': productId,
+          'warehouse_id': warehouseId,
+          'quantity': newQty,
+          'avg_cost': avgCost,
+          'last_cost': unitCost,
+          'creation_time': now,
+          'last_modification_time': now,
+        }, conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+
+      try {
+        await txn.insert('stock_movements', {
+          'product_id': productId,
+          'warehouse_id': warehouseId,
+          'movement_type': 'purchase',
+          'quantity': qty, // Positive for incoming
+          'unit_cost': unitCost,
+          'total_cost': qty * unitCost,
+          'balance_after': newQty,
+          'reference_type': 'purchase_invoice',
+          'reference_id': invoiceId,
+          'reference_number': invoiceNumber,
+          'creation_time': now,
+        });
+      } catch (_) {}
+    }
+  }
+
+  /// Reverses warehouse stock for purchase invoice lines (on update or delete/cancellation)
+  Future<void> _reverseStockForPurchaseLines(
+    Transaction txn, {
+    required int invoiceId,
+    required String invoiceNumber,
+    required int? headerStockId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final lines = await txn.query(
+      _linesTable,
+      columns: ['category_id', 'stock_id', 'quantity', 'amount', 'discount_amt', 'cost_price'],
+      where: 'invoice_id = ?',
+      whereArgs: [invoiceId],
+    );
+    for (final line in lines) {
+      final productId = line['category_id'] as int?;
+      final qty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      if (productId == null || qty <= 0) continue;
+
+      final warehouseId = (line['stock_id'] as int?) ?? headerStockId ?? 1;
+      final stockResult = await txn.query(
+        'warehouse_stocks',
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+        limit: 1,
+      );
+      if (stockResult.isEmpty) continue;
+
+      final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+      final avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      final newQty = currentQty - qty;
+
+      await txn.update(
+        'warehouse_stocks',
+        {'quantity': newQty, 'last_modification_time': now},
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+      );
+
+      final lineAmt = (line['amount'] as num?)?.toDouble() ?? 0.0;
+      final discountAmt = (line['discount_amt'] as num?)?.toDouble() ?? 0.0;
+      final unitCost = qty > 0 ? ((lineAmt - discountAmt) / qty) : avgCost;
+
+      try {
+        await txn.insert('stock_movements', {
+          'product_id': productId,
+          'warehouse_id': warehouseId,
+          'movement_type': 'purchase_reversal',
+          'quantity': -qty, // Negative for outgoing reversal
+          'unit_cost': unitCost,
+          'total_cost': -qty * unitCost,
+          'balance_after': newQty,
+          'reference_type': 'purchase_invoice_reversal',
+          'reference_id': invoiceId,
+          'reference_number': invoiceNumber,
+          'creation_time': now,
+        });
+      } catch (_) {}
+    }
+  }
+
+  /// Reduces warehouse stock for purchase return lines (outgoing goods returned to supplier)
+  Future<void> _reduceStockForPurchaseReturnLines(
+    Transaction txn, {
+    required int returnInvoiceId,
+    required String returnInvoiceNumber,
+    required List<InvoiceLineModel> lines,
+    required int? headerStockId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    for (final lineModel in lines) {
+      final productId = lineModel.categoryId;
+      final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
+      final returnQty = lineModel.quantity;
+
+      if (productId == null || returnQty <= 0) continue;
+
+      final stockResult = await txn.query(
+        'warehouse_stocks',
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+        limit: 1,
+      );
+      if (stockResult.isEmpty) continue;
+
+      final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+      final avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      final newQty = currentQty - returnQty;
+
+      await txn.update(
+        'warehouse_stocks',
+        {'quantity': newQty, 'last_modification_time': now},
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+      );
+
+      try {
+        await txn.insert('stock_movements', {
+          'product_id': productId,
+          'warehouse_id': warehouseId,
+          'movement_type': 'return_purchase',
+          'quantity': -returnQty, // Negative for returned goods
+          'unit_cost': avgCost,
+          'total_cost': -returnQty * avgCost,
+          'balance_after': newQty,
+          'reference_type': 'purchase_return',
+          'reference_id': returnInvoiceId,
+          'reference_number': returnInvoiceNumber,
+          'creation_time': now,
+        });
+      } catch (_) {}
+    }
+  }
+
+  /// Restores warehouse stock for purchase return lines (when purchase return is updated or deleted)
+  Future<void> _restoreStockForPurchaseReturnLines(
+    Transaction txn, {
+    required int returnInvoiceId,
+    required String returnInvoiceNumber,
+    required int? headerStockId,
+  }) async {
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final lines = await txn.query(
+      _linesTable,
+      columns: ['category_id', 'stock_id', 'quantity'],
+      where: 'invoice_id = ?',
+      whereArgs: [returnInvoiceId],
+    );
+    for (final line in lines) {
+      final productId = line['category_id'] as int?;
+      final returnQty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      if (productId == null || returnQty <= 0) continue;
+
+      final warehouseId = (line['stock_id'] as int?) ?? headerStockId ?? 1;
+      final stockResult = await txn.query(
+        'warehouse_stocks',
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+        limit: 1,
+      );
+      if (stockResult.isEmpty) continue;
+
+      final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+      final avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      final newQty = currentQty + returnQty;
+
+      await txn.update(
+        'warehouse_stocks',
+        {'quantity': newQty, 'last_modification_time': now},
+        where: 'product_id = ? AND warehouse_id = ?',
+        whereArgs: [productId, warehouseId],
+      );
+
+      try {
+        await txn.insert('stock_movements', {
+          'product_id': productId,
+          'warehouse_id': warehouseId,
+          'movement_type': 'purchase_return_reversal',
+          'quantity': returnQty, // Positive for restoration
+          'unit_cost': avgCost,
+          'total_cost': returnQty * avgCost,
+          'balance_after': newQty,
+          'reference_type': 'purchase_return_reversal',
+          'reference_id': returnInvoiceId,
+          'reference_number': returnInvoiceNumber,
+          'creation_time': now,
+        });
+      } catch (_) {}
     }
   }
 
@@ -2009,14 +2322,44 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           invoiceData: {...invoiceData, 'id': invoiceId},
         );
 
-        // ========== UPDATE INVENTORY FOR SALES - Reduce stock ==========
+        // ========== UPDATE INVENTORY ==========
         final invoiceType = (invoiceData['invoice_type'] as int?) ?? 0;
         if (invoiceType == 1) {
-          // Sales invoice only
+          // Sales invoice only: reduce stock
           await _reduceStockForSalesLines(
             txn,
             invoiceId: invoiceId,
             invoiceNumber: (invoiceData['number'] as String?) ?? '',
+            lines: invoice.lines
+                .map(
+                  (l) => l is InvoiceLineModel
+                      ? l
+                      : InvoiceLineModel.fromEntity(l),
+                )
+                .toList(),
+            headerStockId: invoiceData['stock_id'] as int?,
+          );
+        } else if (invoiceType == 2) {
+          // Purchase invoice: increase stock
+          await _increaseStockForPurchaseLines(
+            txn,
+            invoiceId: invoiceId,
+            invoiceNumber: (invoiceData['number'] as String?) ?? '',
+            lines: invoice.lines
+                .map(
+                  (l) => l is InvoiceLineModel
+                      ? l
+                      : InvoiceLineModel.fromEntity(l),
+                )
+                .toList(),
+            headerStockId: invoiceData['stock_id'] as int?,
+          );
+        } else if (invoiceType == 5) {
+          // Purchase return: reduce stock
+          await _reduceStockForPurchaseReturnLines(
+            txn,
+            returnInvoiceId: invoiceId,
+            returnInvoiceNumber: (invoiceData['number'] as String?) ?? '',
             lines: invoice.lines
                 .map(
                   (l) => l is InvoiceLineModel
@@ -2111,6 +2454,60 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               invoiceNumber: oldNumber ?? '',
               headerStockId: oldStockId,
             );
+          } else if (invoiceType == 2) {
+            // Check if return invoices exist linked to this purchase
+            final childReturns = await txn.rawQuery(
+              "SELECT COUNT(*) as count FROM invoices WHERE parent_invoice_id = ? AND invoice_type = 5",
+              [invoice.id],
+            );
+            final returnsCount = ((childReturns.first['count'] as int?) ?? 0);
+            if (returnsCount > 0) {
+              throw LocalStorageException(
+                'لا يمكن تعديل فاتورة المشتريات لوجود مردودات مرتبطة بها.',
+              );
+            }
+
+            final oldHeader = await txn.query(
+              _invoicesTable,
+              columns: ['number', 'stock_id'],
+              where: 'id = ?',
+              whereArgs: [invoice.id],
+              limit: 1,
+            );
+            final oldNumber =
+                oldHeader.isNotEmpty ? oldHeader.first['number'] as String? : null;
+            final oldStockId = oldHeader.isNotEmpty
+                ? oldHeader.first['stock_id'] as int?
+                : null;
+
+            await _reverseJournalEntryEffects(txn, 'purchase_invoice', invoice.id!);
+            await _reverseStockForPurchaseLines(
+              txn,
+              invoiceId: invoice.id!,
+              invoiceNumber: oldNumber ?? '',
+              headerStockId: oldStockId,
+            );
+          } else if (invoiceType == 5) {
+            final oldHeader = await txn.query(
+              _invoicesTable,
+              columns: ['number', 'stock_id'],
+              where: 'id = ?',
+              whereArgs: [invoice.id],
+              limit: 1,
+            );
+            final oldNumber =
+                oldHeader.isNotEmpty ? oldHeader.first['number'] as String? : null;
+            final oldStockId = oldHeader.isNotEmpty
+                ? oldHeader.first['stock_id'] as int?
+                : null;
+
+            await _reverseJournalEntryEffects(txn, 'purchase_return', invoice.id!);
+            await _restoreStockForPurchaseReturnLines(
+              txn,
+              returnInvoiceId: invoice.id!,
+              returnInvoiceNumber: oldNumber ?? '',
+              headerStockId: oldStockId,
+            );
           }
         }
         // ========== End Protection Check ==========
@@ -2146,7 +2543,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           );
         }
 
-        // Re-post accounting + stock effects for sales invoices
+        // Re-post accounting + stock effects
         if (invoice.invoiceType == 1) {
           await _postSalesInvoiceToJournal(
             txn: txn,
@@ -2157,6 +2554,44 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             txn,
             invoiceId: invoice.id!,
             invoiceNumber: invoice.number,
+            lines: invoice.lines
+                .map(
+                  (l) => l is InvoiceLineModel
+                      ? l
+                      : InvoiceLineModel.fromEntity(l),
+                )
+                .toList(),
+            headerStockId: invoice.stockId,
+          );
+        } else if (invoice.invoiceType == 2) {
+          await _postPurchaseInvoiceToJournal(
+            txn: txn,
+            invoiceId: invoice.id!,
+            invoiceData: {...invoice.toJson(), 'id': invoice.id},
+          );
+          await _increaseStockForPurchaseLines(
+            txn,
+            invoiceId: invoice.id!,
+            invoiceNumber: invoice.number,
+            lines: invoice.lines
+                .map(
+                  (l) => l is InvoiceLineModel
+                      ? l
+                      : InvoiceLineModel.fromEntity(l),
+                )
+                .toList(),
+            headerStockId: invoice.stockId,
+          );
+        } else if (invoice.invoiceType == 5) {
+          await _postPurchaseReturnToJournal(
+            txn: txn,
+            returnInvoiceId: invoice.id!,
+            invoiceData: {...invoice.toJson(), 'id': invoice.id},
+          );
+          await _reduceStockForPurchaseReturnLines(
+            txn,
+            returnInvoiceId: invoice.id!,
+            returnInvoiceNumber: invoice.number,
             lines: invoice.lines
                 .map(
                   (l) => l is InvoiceLineModel
@@ -2246,6 +2681,29 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           await _deleteSalesReturn(id, data);
           return;
         }
+
+        // For purchase invoices (type = 2): full reversal (journal + stock),
+        // blocked only if returns are linked to it.
+        if (invoiceType == 2) {
+          final childReturns = await database.rawQuery(
+            "SELECT COUNT(*) as count FROM invoices WHERE parent_invoice_id = ? AND invoice_type = 5",
+            [id],
+          );
+          final returnsCount = ((childReturns.first['count'] as int?) ?? 0);
+          if (returnsCount > 0) {
+            throw LocalStorageException(
+              'لا يمكن حذف فاتورة المشتريات $number لوجود مردودات مرتبطة بها. احذف المردودات أولاً.',
+            );
+          }
+          await _deletePurchaseInvoice(id, data);
+          return;
+        }
+
+        // For purchase returns (type = 5): reverse journal entry and stock
+        if (invoiceType == 5) {
+          await _deletePurchaseReturn(id, data);
+          return;
+        }
       }
       // ========== End Protection Check ==========
 
@@ -2263,6 +2721,84 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       }
       throw LocalStorageException('Failed to delete invoice: ${e.toString()}');
     }
+  }
+
+  /// Deletes a purchase invoice and reverses its accounting effects:
+  /// - Reverses the posted journal entry (with mirror reversal entry)
+  /// - Reverses warehouse stock quantities (outgoing reversal)
+  Future<void> _deletePurchaseInvoice(
+    int id,
+    Map<String, dynamic> invoiceData,
+  ) async {
+    await database.transaction((txn) async {
+      final header = await txn.query(
+        _invoicesTable,
+        columns: ['stock_id'],
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      final headerStockId =
+          header.isNotEmpty ? header.first['stock_id'] as int? : null;
+
+      await _reverseJournalEntryEffects(txn, 'purchase_invoice', id);
+      await _reverseStockForPurchaseLines(
+        txn,
+        invoiceId: id,
+        invoiceNumber: invoiceData['number'] as String? ?? '',
+        headerStockId: headerStockId,
+      );
+
+      await txn.delete(
+        _linesTable,
+        where: 'invoice_id = ?',
+        whereArgs: [id],
+      );
+      await txn.delete(
+        _invoicesTable,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
+  }
+
+  /// Deletes a purchase return and reverses its accounting effects:
+  /// - Reverses the posted journal entry (with mirror reversal entry)
+  /// - Restores warehouse stock quantities
+  Future<void> _deletePurchaseReturn(
+    int id,
+    Map<String, dynamic> invoiceData,
+  ) async {
+    await database.transaction((txn) async {
+      final header = await txn.query(
+        _invoicesTable,
+        columns: ['stock_id'],
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      final headerStockId =
+          header.isNotEmpty ? header.first['stock_id'] as int? : null;
+
+      await _reverseJournalEntryEffects(txn, 'purchase_return', id);
+      await _restoreStockForPurchaseReturnLines(
+        txn,
+        returnInvoiceId: id,
+        returnInvoiceNumber: invoiceData['number'] as String? ?? '',
+        headerStockId: headerStockId,
+      );
+
+      await txn.delete(
+        _linesTable,
+        where: 'invoice_id = ?',
+        whereArgs: [id],
+      );
+      await txn.delete(
+        _invoicesTable,
+        where: 'id = ?',
+        whereArgs: [id],
+      );
+    });
   }
 
   /// Deletes a sales invoice and reverses its accounting effects:

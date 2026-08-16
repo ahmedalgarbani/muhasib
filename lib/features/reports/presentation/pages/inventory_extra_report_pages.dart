@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
@@ -9,7 +10,8 @@ import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class StockMovementReportPage extends StatefulWidget {
   const StockMovementReportPage({super.key});
@@ -160,20 +162,53 @@ class _StockValuationReportPageState extends State<StockValuationReportPage> {
   }
 }
 
-class _StockMovementsContent extends StatelessWidget {
+class _StockMovementsContent extends StatefulWidget {
   final ReportFilter filter;
   final Function(_MovResult) onLoad;
   const _StockMovementsContent({required this.filter, required this.onLoad});
 
   @override
+  State<_StockMovementsContent> createState() => _StockMovementsContentState();
+}
+
+class _StockMovementsContentState extends State<_StockMovementsContent> {
+  late Future<_MovResult> _future;
+  _MovResult? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _StockMovementsContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<_MovResult>(
-      future: _load(),
+      future: _future,
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final data = snapshot.data!;
-        WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(data));
+        if (data != _notifiedResult) {
+          _notifiedResult = data;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => widget.onLoad(data),
+          );
+        }
         return Column(
           children: [
             ReportSummaryRow(
@@ -241,20 +276,54 @@ class _StockMovementsContent extends StatelessWidget {
 
   Future<_MovResult> _load() async {
     final db = await getIt<DatabaseService>().database;
-    final rows = await db.rawQuery(
-      'SELECT cm.trans_date, cm.quantity_in, cm.quantity_out, cm.refrenc_no, c.name FROM category_movs cm JOIN categories c ON c.id = cm.category_id ORDER BY cm.trans_date DESC LIMIT 100',
-    );
-    final list = rows
-        .map(
-          (m) => _MovRow(
+    final List<_MovRow> list = [];
+
+    try {
+      // 1. Query stock_movements table
+      final smRows = await db.rawQuery('''
+        SELECT sm.creation_time as trans_date, 
+               CASE WHEN sm.quantity > 0 THEN sm.quantity ELSE 0 END as quantity_in,
+               CASE WHEN sm.quantity < 0 THEN -sm.quantity ELSE 0 END as quantity_out,
+               COALESCE(sm.reference_number, sm.reference_type, '') as refrenc_no,
+               c.name 
+        FROM stock_movements sm 
+        JOIN categories c ON c.id = sm.product_id 
+        ORDER BY sm.creation_time DESC LIMIT 100
+      ''');
+
+      for (final m in smRows) {
+        list.add(
+          _MovRow(
             transDate: m['trans_date'] as int,
             qtyIn: (m['quantity_in'] as num).toDouble(),
             qtyOut: (m['quantity_out'] as num).toDouble(),
             referenceNo: m['refrenc_no'] as String? ?? '',
             productName: m['name'] as String,
           ),
-        )
-        .toList();
+        );
+      }
+    } catch (_) {}
+
+    // 2. Query legacy category_movs table if stock_movements has few or no records
+    if (list.isEmpty) {
+      try {
+        final rows = await db.rawQuery(
+          'SELECT cm.trans_date, cm.quantity_in, cm.quantity_out, cm.refrenc_no, c.name FROM category_movs cm JOIN categories c ON c.id = cm.category_id ORDER BY cm.trans_date DESC LIMIT 100',
+        );
+        for (final m in rows) {
+          list.add(
+            _MovRow(
+              transDate: m['trans_date'] as int,
+              qtyIn: (m['quantity_in'] as num).toDouble(),
+              qtyOut: (m['quantity_out'] as num).toDouble(),
+              referenceNo: m['refrenc_no'] as String? ?? '',
+              productName: m['name'] as String,
+            ),
+          );
+        }
+      } catch (_) {}
+    }
+
     return _MovResult(
       rows: list,
       totalIn: list.fold(0, (s, r) => s + r.qtyIn),
@@ -263,19 +332,39 @@ class _StockMovementsContent extends StatelessWidget {
   }
 }
 
-class _LowStockContent extends StatelessWidget {
+class _LowStockContent extends StatefulWidget {
   final Function(List<_LowStockRow>) onLoad;
   const _LowStockContent({required this.onLoad});
 
   @override
+  State<_LowStockContent> createState() => _LowStockContentState();
+}
+
+class _LowStockContentState extends State<_LowStockContent> {
+  late Future<List<_LowStockRow>> _future;
+  List<_LowStockRow>? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_LowStockRow>>(
-      future: _load(),
+      future: _future,
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final rows = snapshot.data!;
-        WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        if (rows != _notifiedResult) {
+          _notifiedResult = rows;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => widget.onLoad(rows),
+          );
+        }
         return ListView.builder(
           padding: AppConstant.defaultPadding,
           itemCount: rows.length,
@@ -334,19 +423,39 @@ class _LowStockContent extends StatelessWidget {
   }
 }
 
-class _StockValuationContent extends StatelessWidget {
+class _StockValuationContent extends StatefulWidget {
   final Function(List<_ValuationRow>) onLoad;
   const _StockValuationContent({required this.onLoad});
 
   @override
+  State<_StockValuationContent> createState() => _StockValuationContentState();
+}
+
+class _StockValuationContentState extends State<_StockValuationContent> {
+  late Future<List<_ValuationRow>> _future;
+  List<_ValuationRow>? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _future = _load();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_ValuationRow>>(
-      future: _load(),
+      future: _future,
       builder: (context, snapshot) {
-        if (!snapshot.hasData)
+        if (!snapshot.hasData) {
           return const Center(child: CircularProgressIndicator());
+        }
         final rows = snapshot.data!;
-        WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        if (rows != _notifiedResult) {
+          _notifiedResult = rows;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => widget.onLoad(rows),
+          );
+        }
         return Column(
           children: [
             ReportSummaryRow(
@@ -408,14 +517,21 @@ class _StockValuationContent extends StatelessWidget {
 
   Future<List<_ValuationRow>> _load() async {
     final db = await getIt<DatabaseService>().database;
-    final rows = await db.rawQuery(
-      'SELECT name, quantity, COALESCE(cost_amount, 0) * COALESCE(quantity, 0) as val FROM categories WHERE is_active = 1 AND quantity > 0 ORDER BY val DESC',
-    );
+    final rows = await db.rawQuery('''
+      SELECT c.id, c.name, 
+             COALESCE((SELECT SUM(ws.quantity) FROM warehouse_stocks ws WHERE ws.product_id = c.id), c.quantity, 0) as total_qty,
+             COALESCE((SELECT SUM(ws.quantity * CASE WHEN ws.avg_cost > 0 THEN ws.avg_cost ELSE COALESCE(c.cost_amount, 0) END) FROM warehouse_stocks ws WHERE ws.product_id = c.id), COALESCE(c.cost_amount, 0) * COALESCE(c.quantity, 0), 0) as val 
+      FROM categories c 
+      WHERE c.is_active = 1 
+      GROUP BY c.id 
+      HAVING total_qty > 0 OR val > 0 
+      ORDER BY val DESC
+    ''');
     return rows
         .map(
           (m) => _ValuationRow(
             name: m['name'] as String,
-            qty: (m['quantity'] as num).toDouble(),
+            qty: (m['total_qty'] as num).toDouble(),
             value: (m['val'] as num).toDouble(),
           ),
         )
@@ -435,7 +551,7 @@ class _MovRow {
     required this.productName,
   });
   String get dateLabel {
-    final d = DateTime.fromMillisecondsSinceEpoch(transDate * 1000);
+    final d = dateTimeFromReportTimestamp(transDate);
     return '${d.day}/${d.month}/${d.year}';
   }
 }

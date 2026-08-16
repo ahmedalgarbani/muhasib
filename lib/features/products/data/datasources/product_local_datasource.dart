@@ -90,6 +90,11 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
   @override
   Future<int> insertProduct(ProductModel product) async {
     try {
+      // Check table availability BEFORE opening the transaction
+      // (querying the Database inside a transaction would deadlock)
+      final hasWarehouseStocks = await _hasTable('warehouse_stocks');
+      final hasJournalTables = await _hasTable('journal_entries');
+
       return await database.transaction((txn) async {
         final data = product.toJson();
         // Ensure timestamps are set
@@ -104,7 +109,7 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
 
         // Initial stock: create warehouse row + movement + opening journal
         final initialQty = product.quantity;
-        if (initialQty > 0 && await _hasTable('warehouse_stocks')) {
+        if (initialQty > 0 && hasWarehouseStocks && hasJournalTables) {
           await _postInitialStock(txn, product, id, initialQty);
         }
 

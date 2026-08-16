@@ -45,6 +45,7 @@ class AppRoutes {
   // ======= المشتريات =======
   static const String purchases = '/purchases';
   static const String purchasesAddInvoice = '/purchases/add-invoice';
+  static const String purchasesDetail = '/purchases/detail';
   static const String purchasesList = '/purchases/list';
   static const String purchasesOrders = '/purchases/orders';
   static const String purchasesReturns = '/purchases/returns';

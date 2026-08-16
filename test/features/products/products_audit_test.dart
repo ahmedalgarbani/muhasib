@@ -178,23 +178,30 @@ void main() {
     expect(product.costAmount, closeTo(60, 0.01));
   });
 
-  test('حذف منتج بكمية في المخزن مرفوض', () async {
+  test('حذف منتج بكمية/حركات في المخزن مرفوض — والمنتج السليم يُحذف', () async {
     final id = await dataSource.insertProduct(buildProduct(quantity: 3, cost: 50));
 
+    // كمية في المخزن → رفض
     expect(() => dataSource.deleteProduct(id), throwsException);
 
-    // بعد تصفير الكمية يُحذف (soft delete)
+    // حتى بعد تصفير الكمية تبقى حركة المخزون (سجل تدقيق) → رفض
     await db.update(
       'warehouse_stocks',
       {'quantity': 0},
       where: 'product_id = ?',
       whereArgs: [id],
     );
-    await dataSource.deleteProduct(id);
+    expect(() => dataSource.deleteProduct(id), throwsException);
+
+    // منتج بدون كمية ولا حركات → حذف ناعم
+    final cleanId = await dataSource.insertProduct(
+      buildProduct(barcode: 'TEST-CLEAN', quantity: 0),
+    );
+    await dataSource.deleteProduct(cleanId);
     final deleted = await db.query(
       'categories',
       where: 'id = ?',
-      whereArgs: [id],
+      whereArgs: [cleanId],
     );
     expect(deleted.first['is_deleted'], 1);
   });
@@ -203,9 +210,19 @@ void main() {
     final id = await dataSource.insertProduct(buildProduct(quantity: 0));
 
     await db.insert('invoice_lines', {
-      'invoice_id': 1,
-      'category_id': id,
+      'invoice_type': 1,
+      'amount': 100,
+      'total_amount': 100,
+      'net_revenue_amt': 100,
       'quantity': 1,
+      'category_id': id,
+      'group_id': 1,
+      'unit_id': 1,
+      'category_sub_unit_id': 1,
+      'stock_id': 1,
+      'invoice_id': 1,
+      'customer_id': 1,
+      'date': DateTime.now().millisecondsSinceEpoch ~/ 1000,
     });
 
     expect(() => dataSource.deleteProduct(id), throwsException);

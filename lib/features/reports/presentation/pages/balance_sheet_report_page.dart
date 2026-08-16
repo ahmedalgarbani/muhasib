@@ -231,28 +231,39 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
   Future<_BalanceSheetResult> _load(DatabaseService dbs, ReportFilter f) async {
     final db = await dbs.database;
     final asOf = (f.endDate ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
-    final startOfPeriod =
-        (f.startDate ?? DateTime(DateTime.now().year, 1, 1))
-            .millisecondsSinceEpoch ~/
-        1000;
 
     final accounts = await db.rawQuery(
       '''
       SELECT a.id, a.code, a.name, a.type, COALESCE(SUM(jel.debit_amount - jel.credit_amount), 0) as net
-      FROM accounts a LEFT JOIN journal_entry_lines jel ON jel.account_id = a.id LEFT JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND (je.is_posted = 1 OR je.id IS NULL) AND (je.entry_date <= ? OR je.id IS NULL) AND a.type IN (0, 1, 2)
-      GROUP BY a.id, a.code, a.name, a.type HAVING net != 0 ORDER BY a.code
+      FROM accounts a 
+      LEFT JOIN journal_entry_lines jel ON jel.account_id = a.id 
+      LEFT JOIN journal_entries je ON je.id = jel.journal_entry_id
+      WHERE a.is_active = 1 AND (je.is_posted = 1 OR je.id IS NULL) AND (je.entry_date <= ? OR je.id IS NULL) 
+        AND (a.type IN (0, 1, 2) OR a.code LIKE '1%' OR a.code LIKE '2%')
+      GROUP BY a.id, a.code, a.name, a.type 
+      HAVING net != 0 
+      ORDER BY a.code
     ''',
       [asOf],
     );
 
     final niRes = await db.rawQuery(
       '''
-      SELECT COALESCE(SUM(jel.credit_amount - jel.debit_amount), 0) as ni
-      FROM accounts a JOIN journal_entry_lines jel ON jel.account_id = a.id JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1 AND je.entry_date >= ? AND je.entry_date <= ? AND a.type IN (3, 4) AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')
+      SELECT COALESCE(SUM(
+        CASE 
+          WHEN (a.type = 4 OR a.code LIKE '4%') THEN jel.credit_amount - jel.debit_amount
+          WHEN (a.type = 3 OR a.code LIKE '3%') THEN -(jel.debit_amount - jel.credit_amount)
+          ELSE 0
+        END
+      ), 0) as ni
+      FROM accounts a 
+      JOIN journal_entry_lines jel ON jel.account_id = a.id 
+      JOIN journal_entries je ON je.id = jel.journal_entry_id
+      WHERE a.is_active = 1 AND je.is_posted = 1 AND je.entry_date <= ? 
+        AND (a.type IN (3, 4) OR a.code LIKE '3%' OR a.code LIKE '4%') 
+        AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')
     ''',
-      [startOfPeriod, asOf],
+      [asOf],
     );
     final ni = (niRes.first['ni'] as num).toDouble();
 
@@ -265,30 +276,54 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
     double tA = 0, tL = 0, tE = 0;
 
     for (final m in accounts) {
+      final code = (m['code'] as String?) ?? '';
+      final name = (m['name'] as String?) ?? '';
+      final rawType = m['type'] as int? ?? 1;
+
+      final isAsset = rawType == 1 || rawType == 0 || code.startsWith('1');
+      final isEquity = (rawType == 2 || code.startsWith('2')) &&
+          (code.startsWith('22') ||
+              code.startsWith('23') ||
+              code.startsWith('24') ||
+              name.contains('رأس المال') ||
+              name.contains('أرباح') ||
+              name.contains('ملكية') ||
+              name.contains('جاري المالك'));
+
       final r = _AccountBalanceRow(
         id: m['id'] as int,
-        code: m['code'] as String,
-        name: m['name'] as String,
-        type: m['type'] as int,
+        code: code,
+        name: name,
+        type: isAsset ? 0 : (isEquity ? 2 : 1),
         net: (m['net'] as num).toDouble(),
       );
-      if (r.type == 0) {
+
+      if (isAsset) {
+        if (code.startsWith('12') || code.startsWith('13') || name.contains('ثابت')) {
+          fixA.add(r);
+        } else {
+          curA.add(r);
+        }
         tA += r.displayAmount;
-        curA.add(r);
-      } else if (r.type == 2) {
-        tE += r.displayAmount;
+      } else if (isEquity) {
         equ.add(r);
-      } else if (r.type == 1) {
+        tE += r.displayAmount;
+      } else {
+        if (code.startsWith('23') || name.contains('طويلة الأجل')) {
+          ltrL.add(r);
+        } else {
+          curL.add(r);
+        }
         tL += r.displayAmount;
-        curL.add(r);
       }
     }
+
     if (ni.abs() > 0.01) {
       equ.add(
         _AccountBalanceRow(
           id: -1,
           code: 'NI',
-          name: 'صافي دخل الفترة الحالية',
+          name: 'صافي دخل الفترة التراكمي',
           type: 2,
           net: -ni,
         ),

@@ -2,15 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/reports/presentation/widgets/journal_report_components.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class JournalReportPage extends StatefulWidget {
   const JournalReportPage({super.key});
@@ -102,22 +101,50 @@ class _JournalReportPageState extends State<JournalReportPage> {
       data: data,
     );
 
+    if (!context.mounted) return;
     AppToast.showSuccess(context, 'تم تصدير ملف Excel بنجاح: $path');
   }
 }
 
-class _JournalReportContent extends StatelessWidget {
+class _JournalReportContent extends StatefulWidget {
   final ReportFilter filter;
   final Function(_JournalReportResult) onLoad;
 
   const _JournalReportContent({required this.filter, required this.onLoad});
+
+  @override
+  State<_JournalReportContent> createState() => _JournalReportContentState();
+}
+
+class _JournalReportContentState extends State<_JournalReportContent> {
+  late Future<_JournalReportResult> _future;
+  _JournalReportResult? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _JournalReportContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load(widget.filter);
+  }
 
   String _formatCurrency(double value) => NumberFormatter.formatNumber(value);
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_JournalReportResult>(
-      future: _load(filter),
+      future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -126,11 +153,17 @@ class _JournalReportContent extends StatelessWidget {
           return Center(child: Text('خطأ: ${snapshot.error}'));
         }
         final data = snapshot.data;
+        if (data != null && data != _notifiedResult) {
+          _notifiedResult = data;
+          if (data.entries.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => widget.onLoad(data),
+            );
+          }
+        }
         if (data == null || data.entries.isEmpty) {
           return const Center(child: Text('لا توجد قيود في الفترة المحددة'));
         }
-
-        onLoad(data);
 
         return Column(
           children: [
@@ -187,9 +220,9 @@ class _JournalReportContent extends StatelessWidget {
     final args = <Object?>[];
     String where = '1=1';
     if (filter.startDate != null && filter.endDate != null) {
-      where += ' AND entry_date >= ? AND entry_date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('entry_date');
+      where += ' AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
 
     final entriesRows = await db.query(
@@ -268,7 +301,7 @@ class _JournalEntryRow {
   });
 
   String get dateLabel {
-    final d = DateTime.fromMillisecondsSinceEpoch(entryDate * 1000);
+    final d = dateTimeFromReportTimestamp(entryDate);
     return '${d.day}/${d.month}/${d.year}';
   }
 

@@ -88,33 +88,45 @@ Future<void> seedDefaultAccounts(Database db) async {
   await _seedLiabilitiesAndEquity(db);
   await _seedExpenses(db);
   await _seedRevenues(db);
-  
+
   // Seed account connections after accounts are created
   await seedDefaultAccountConnects(db);
 }
 
 Future<void> seedDefaultAccountConnects(Database db) async {
   final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-  
+
   // Check if account connects already exist
   final connects = await db.query('account_connects');
   if (connects.isNotEmpty) return;
-  
+
   // Default account connections based on common accounting setup
   final defaultConnections = [
-    {'type': 0, 'cId': 1110, 'name': 'البنوك'},         // Banks -> النقدية في البنوك
-    {'type': 1, 'cId': 1110, 'name': 'الصناديق'},       // Cash -> الصندوق
-    {'type': 2, 'cId': 1120, 'name': 'العملاء'},        // Customers -> العملاء
-    {'type': 3, 'cId': 2110, 'name': 'الموردون'},       // Suppliers -> الموردون
-    {'type': 4, 'cId': 2140, 'name': 'الضرائب'},        // Taxes -> ضرائب مستحقة
-    {'type': 5, 'cId': 1130, 'name': 'المخزون'},        // Inventory -> المخزون
-    {'type': 6, 'cId': 1130, 'name': 'البضاعة'},        // Goods -> المخزون (same as inventory)
-    {'type': 7, 'cId': 4110, 'name': 'المبيعات'},       // Sales -> المبيعات
-    {'type': 8, 'cId': 3150, 'name': 'الخصم المسموح به'}, // Discount Allowed -> خصومات ممنوحة
-    {'type': 9, 'cId': 4140, 'name': 'الخصم المكتسب'},   // Discount Received -> خصومات مكتسبة
-    {'type': 10, 'cId': 3110, 'name': 'المشتريات'},     // Purchases -> المشتريات
+    {'type': 0, 'cId': 1110, 'name': 'البنوك'}, // Banks -> النقدية في البنوك
+    {'type': 1, 'cId': 1110, 'name': 'الصناديق'}, // Cash -> الصندوق
+    {'type': 2, 'cId': 1120, 'name': 'العملاء'}, // Customers -> العملاء
+    {'type': 3, 'cId': 2110, 'name': 'الموردون'}, // Suppliers -> الموردون
+    {'type': 4, 'cId': 2140, 'name': 'الضرائب'}, // Taxes -> ضرائب مستحقة
+    {'type': 5, 'cId': 1130, 'name': 'المخزون'}, // Inventory -> المخزون
+    {
+      'type': 6,
+      'cId': 1130,
+      'name': 'البضاعة',
+    }, // Goods -> المخزون (same as inventory)
+    {'type': 7, 'cId': 4110, 'name': 'المبيعات'}, // Sales -> المبيعات
+    {
+      'type': 8,
+      'cId': 3150,
+      'name': 'الخصم المسموح به',
+    }, // Discount Allowed -> خصومات ممنوحة
+    {
+      'type': 9,
+      'cId': 4140,
+      'name': 'الخصم المكتسب',
+    }, // Discount Received -> خصومات مكتسبة
+    {'type': 10, 'cId': 3110, 'name': 'المشتريات'}, // Purchases -> المشتريات
   ];
-  
+
   for (final connection in defaultConnections) {
     // Check if the account exists before creating connection
     final accounts = await db.query(
@@ -123,7 +135,7 @@ Future<void> seedDefaultAccountConnects(Database db) async {
       whereArgs: [connection['cId']],
       limit: 1,
     );
-    
+
     if (accounts.isNotEmpty) {
       await db.insert('account_connects', {
         'account_connect_type': connection['type'],
@@ -132,14 +144,116 @@ Future<void> seedDefaultAccountConnects(Database db) async {
         'last_modification_time': now,
         'creator_id': 1,
       });
-      
-      print('Created account connection: ${connection['name']} -> cId: ${connection['cId']}');
+
+      print(
+        'Created account connection: ${connection['name']} -> cId: ${connection['cId']}',
+      );
     } else {
-      print('Warning: Account with cId ${connection['cId']} not found for ${connection['name']}');
+      print(
+        'Warning: Account with cId ${connection['cId']} not found for ${connection['name']}',
+      );
     }
   }
-  
+
   print('Default account connections seeded successfully');
+}
+
+Future<void> seedDefaultFunds(Database db) async {
+  final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final funds = await db.query('funds');
+  if (funds.isNotEmpty) return;
+
+  final cashAccounts = await db.query(
+    'accounts',
+    columns: ['id'],
+    where: 'c_id = ?',
+    whereArgs: [1110],
+    limit: 1,
+  );
+  final accountId = cashAccounts.isNotEmpty
+      ? (cashAccounts.first['id'] as int?)
+      : null;
+
+  await db.insert('funds', {
+    'id': 1,
+    'name': 'الصندوق الرئيسي',
+    'is_active': 1,
+    'is_main_fund': 1,
+    'account_id': accountId,
+    'current_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  await db.insert('funds', {
+    'id': 2,
+    'name': 'صندوق فرع الشمال',
+    'is_active': 1,
+    'is_main_fund': 0,
+    'account_id': accountId,
+    'current_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+}
+
+Future<void> seedDefaultBanks(Database db) async {
+  final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+  final banks = await db.query('banks');
+  if (banks.isNotEmpty) return;
+
+  final bankAccounts = await db.query(
+    'accounts',
+    columns: ['id'],
+    where: 'c_id = ?',
+    whereArgs: [1110],
+    limit: 1,
+  );
+  final accountId = bankAccounts.isNotEmpty
+      ? (bankAccounts.first['id'] as int?)
+      : null;
+
+  await db.insert('banks', {
+    'id': 1,
+    'name': 'مصرف الراجحي',
+    'contact': '920003344',
+    'contact_type': 1,
+    'is_active': 1,
+    'account_id': accountId,
+    'bank_code': 'RJHI',
+    'branch_name': 'الفرع الرئيسي',
+    'account_number': 'SA0380000000608010101001',
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  await db.insert('banks', {
+    'id': 2,
+    'name': 'البنك الأهلي السعودي',
+    'contact': '920001000',
+    'contact_type': 1,
+    'is_active': 1,
+    'account_id': accountId,
+    'bank_code': 'SNB',
+    'branch_name': 'فرع الأعمال',
+    'account_number': 'SA0310000000608010102002',
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  await db.insert('banks', {
+    'id': 3,
+    'name': 'مصرف الإنماء',
+    'contact': '920028000',
+    'contact_type': 1,
+    'is_active': 1,
+    'account_id': accountId,
+    'bank_code': 'INMA',
+    'branch_name': 'فرع الرياض',
+    'account_number': 'SA0305000000608010103003',
+    'creation_time': now,
+    'last_modification_time': now,
+  });
 }
 
 // أصول (Assets)
@@ -810,45 +924,119 @@ Future<void> _seedRevenues(Database db) async {
 Future<void> seedDefaultNumberSequences(Database db) async {
   final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
   final sequences = [
-    {'sequence_type': 'sales_invoice', 'prefix': 'INV', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'purchase_invoice', 'prefix': 'PINV', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'quotation', 'prefix': 'QT', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'journal_entry', 'prefix': 'JE', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'receipt_voucher', 'prefix': 'RV', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'payment_voucher', 'prefix': 'PV', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'sales_return', 'prefix': 'SRT', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'purchase_return', 'prefix': 'PRT', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'opening_balance', 'prefix': 'OB', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'stock_transfer', 'prefix': 'TR', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
-    {'sequence_type': 'stock_adjustment', 'prefix': 'ADJ', 'current_value': 0, 'padding_length': 6, 'reset_on_year_change': 0},
+    {
+      'sequence_type': 'sales_invoice',
+      'prefix': 'INV',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'purchase_invoice',
+      'prefix': 'PINV',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'quotation',
+      'prefix': 'QT',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'journal_entry',
+      'prefix': 'JE',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'receipt_voucher',
+      'prefix': 'RV',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'payment_voucher',
+      'prefix': 'PV',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'sales_return',
+      'prefix': 'SRT',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'purchase_return',
+      'prefix': 'PRT',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'opening_balance',
+      'prefix': 'OB',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'stock_transfer',
+      'prefix': 'TR',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
+    {
+      'sequence_type': 'stock_adjustment',
+      'prefix': 'ADJ',
+      'current_value': 0,
+      'padding_length': 6,
+      'reset_on_year_change': 0,
+    },
   ];
 
   for (final seq in sequences) {
-    await db.rawInsert('''
+    await db.rawInsert(
+      '''
       INSERT OR IGNORE INTO number_sequences 
         (sequence_type, prefix, current_value, padding_length, reset_on_year_change, creation_time, last_modification_time)
       VALUES (?, ?, ?, ?, ?, ?, ?)
-    ''', [
-      seq['sequence_type'],
-      seq['prefix'],
-      seq['current_value'],
-      seq['padding_length'],
-      seq['reset_on_year_change'],
-      now,
-      now,
-    ]);
+    ''',
+      [
+        seq['sequence_type'],
+        seq['prefix'],
+        seq['current_value'],
+        seq['padding_length'],
+        seq['reset_on_year_change'],
+        now,
+        now,
+      ],
+    );
   }
 }
 
 Future<void> seedDefaultFiscalPeriods(Database db) async {
   final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
   final currentYear = DateTime.now().year;
-  final startOfYear = DateTime(currentYear, 1, 1).millisecondsSinceEpoch ~/ 1000;
-  final endOfYear = DateTime(currentYear, 12, 31, 23, 59, 59).millisecondsSinceEpoch ~/ 1000;
+  final startOfYear =
+      DateTime(currentYear, 1, 1).millisecondsSinceEpoch ~/ 1000;
+  final endOfYear =
+      DateTime(currentYear, 12, 31, 23, 59, 59).millisecondsSinceEpoch ~/ 1000;
 
-  await db.rawInsert('''
+  await db.rawInsert(
+    '''
     INSERT OR IGNORE INTO fiscal_periods 
       (year, period, start_date, end_date, status, is_closed, creation_time, last_modification_time)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  ''', [currentYear, 0, startOfYear, endOfYear, 0, 0, now, now]);
+  ''',
+    [currentYear, 0, startOfYear, endOfYear, 0, 0, now, now],
+  );
 }

@@ -99,7 +99,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
         case 'today':
           _filter = _filter.copyWith(
             startDate: DateTime(now.year, now.month, now.day),
-            endDate: DateTime(now.year, now.month, now.day, 23, 59, 59),
+            endDate: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
           );
           break;
         case 'week':
@@ -110,7 +110,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
               startOfWeek.month,
               startOfWeek.day,
             ),
-            endDate: now,
+            endDate: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
           );
           break;
         case 'month':
@@ -274,10 +274,9 @@ class _ReportBasePageState extends State<ReportBasePage> {
                                   )
                                 : null,
                             filled: true,
-                            fillColor:
-                                Theme.of(context)
-                                    .colorScheme
-                                    .surfaceContainerHighest,
+                            fillColor: Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 8,

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class SalesByCustomerReportPage extends StatefulWidget {
   const SalesByCustomerReportPage({super.key});
@@ -263,7 +263,7 @@ class _PurchaseByProductReportPageState
   );
 }
 
-class _AggregateByPartyContent extends StatelessWidget {
+class _AggregateByPartyContent extends StatefulWidget {
   final ReportFilter filter;
   final int invoiceType;
   final String titleLabel;
@@ -276,17 +276,54 @@ class _AggregateByPartyContent extends StatelessWidget {
   });
 
   @override
+  State<_AggregateByPartyContent> createState() =>
+      _AggregateByPartyContentState();
+}
+
+class _AggregateByPartyContentState extends State<_AggregateByPartyContent> {
+  late Future<List<_PartyRow>> _future;
+  List<_PartyRow>? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AggregateByPartyContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter ||
+        oldWidget.invoiceType != widget.invoiceType) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_PartyRow>>(
-      future: _load(),
+      future: _future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(child: Text('خطأ: ${snapshot.error}'));
+        }
         final rows = snapshot.data ?? const [];
-        if (rows.isNotEmpty)
-          WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        if (rows != _notifiedResult) {
+          _notifiedResult = rows;
+          if (rows.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => widget.onLoad(rows),
+            );
+          }
+        }
         if (rows.isEmpty) return const Center(child: Text('لا توجد بيانات'));
 
         final total = rows.fold<double>(0, (s, r) => s + r.total);
@@ -309,7 +346,7 @@ class _AggregateByPartyContent extends StatelessWidget {
                   color: Colors.green,
                 ),
                 ReportSummaryCard(
-                  title: 'عدد $titleLabel',
+                  title: 'عدد ${widget.titleLabel}',
                   value: rows.length.toString(),
                   icon: Icons.people,
                   color: Colors.purple,
@@ -357,12 +394,12 @@ class _AggregateByPartyContent extends StatelessWidget {
 
   Future<List<_PartyRow>> _load() async {
     final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[invoiceType];
+    final args = <Object?>[widget.invoiceType];
     String dateFilter = '';
-    if (filter.startDate != null && filter.endDate != null) {
-      dateFilter = 'AND i.date >= ? AND i.date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+    if (widget.filter.startDate != null && widget.filter.endDate != null) {
+      final dateColumn = normalizedReportTimestampSql('i.date');
+      dateFilter = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(widget.filter));
     }
 
     final rows = await db.rawQuery('''
@@ -386,7 +423,7 @@ class _AggregateByPartyContent extends StatelessWidget {
   }
 }
 
-class _AggregateByProductContent extends StatelessWidget {
+class _AggregateByProductContent extends StatefulWidget {
   final ReportFilter filter;
   final int invoiceType;
   final Function(List<_ProductRow>) onLoad;
@@ -397,17 +434,55 @@ class _AggregateByProductContent extends StatelessWidget {
   });
 
   @override
+  State<_AggregateByProductContent> createState() =>
+      _AggregateByProductContentState();
+}
+
+class _AggregateByProductContentState
+    extends State<_AggregateByProductContent> {
+  late Future<List<_ProductRow>> _future;
+  List<_ProductRow>? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _AggregateByProductContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter ||
+        oldWidget.invoiceType != widget.invoiceType) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_ProductRow>>(
-      future: _load(),
+      future: _future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(child: Text('خطأ: ${snapshot.error}'));
+        }
         final rows = snapshot.data ?? const [];
-        if (rows.isNotEmpty)
-          WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        if (rows != _notifiedResult) {
+          _notifiedResult = rows;
+          if (rows.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => widget.onLoad(rows),
+            );
+          }
+        }
         if (rows.isEmpty) return const Center(child: Text('لا توجد بيانات'));
 
         final total = rows.fold<double>(0, (s, r) => s + r.total);
@@ -477,12 +552,12 @@ class _AggregateByProductContent extends StatelessWidget {
 
   Future<List<_ProductRow>> _load() async {
     final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[invoiceType];
+    final args = <Object?>[widget.invoiceType];
     String df = '';
-    if (filter.startDate != null && filter.endDate != null) {
-      df = 'AND i.date >= ? AND i.date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+    if (widget.filter.startDate != null && widget.filter.endDate != null) {
+      final dateColumn = normalizedReportTimestampSql('i.date');
+      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(widget.filter));
     }
     final rows = await db.rawQuery('''
       SELECT c.id as pid, c.name as pname, COALESCE(SUM(il.quantity), 0) as qty, COALESCE(SUM(il.total_amount), 0) as total
@@ -503,7 +578,7 @@ class _AggregateByProductContent extends StatelessWidget {
   }
 }
 
-class _DailyTotalsContent extends StatelessWidget {
+class _DailyTotalsContent extends StatefulWidget {
   final ReportFilter filter;
   final int invoiceType;
   final Function(List<_DailyRow>) onLoad;
@@ -514,17 +589,53 @@ class _DailyTotalsContent extends StatelessWidget {
   });
 
   @override
+  State<_DailyTotalsContent> createState() => _DailyTotalsContentState();
+}
+
+class _DailyTotalsContentState extends State<_DailyTotalsContent> {
+  late Future<List<_DailyRow>> _future;
+  List<_DailyRow>? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _DailyTotalsContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter ||
+        oldWidget.invoiceType != widget.invoiceType) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<_DailyRow>>(
-      future: _load(),
+      future: _future,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
+        }
+        if (snapshot.hasError) {
           return Center(child: Text('خطأ: ${snapshot.error}'));
+        }
         final rows = snapshot.data ?? const [];
-        if (rows.isNotEmpty)
-          WidgetsBinding.instance.addPostFrameCallback((_) => onLoad(rows));
+        if (rows != _notifiedResult) {
+          _notifiedResult = rows;
+          if (rows.isNotEmpty) {
+            WidgetsBinding.instance.addPostFrameCallback(
+              (_) => widget.onLoad(rows),
+            );
+          }
+        }
         if (rows.isEmpty) return const Center(child: Text('لا توجد بيانات'));
 
         final total = rows.fold<double>(0, (s, r) => s + r.total);
@@ -592,17 +703,17 @@ class _DailyTotalsContent extends StatelessWidget {
 
   Future<List<_DailyRow>> _load() async {
     final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[invoiceType];
+    final args = <Object?>[widget.invoiceType];
     String df = '';
-    if (filter.startDate != null && filter.endDate != null) {
-      df = 'AND i.date >= ? AND i.date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+    if (widget.filter.startDate != null && widget.filter.endDate != null) {
+      final dateColumn = normalizedReportTimestampSql('i.date');
+      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(widget.filter));
     }
     final rows = await db.rawQuery('''
-      SELECT date(i.date, 'unixepoch') as day, COUNT(i.id) as cnt, COALESCE(SUM(COALESCE(i.final_amt, i.total_amount, i.amount, 0)), 0) as total
+      SELECT date(${normalizedReportTimestampSql('i.date')}, 'unixepoch') as day, COUNT(i.id) as cnt, COALESCE(SUM(COALESCE(i.final_amt, i.total_amount, i.amount, 0)), 0) as total
       FROM invoices i WHERE i.invoice_type = ? AND COALESCE(i.approval_status, 1) != 3 $df
-      GROUP BY date(i.date, 'unixepoch') ORDER BY day
+      GROUP BY day ORDER BY day
     ''', args);
     return rows
         .map(

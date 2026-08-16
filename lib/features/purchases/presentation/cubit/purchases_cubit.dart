@@ -1,12 +1,12 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart' as limit;
+import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart'
+    as limit;
 import 'package:muhasib/features/purchases/domain/repositories/purchase_repository.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/purchases/domain/usecases/create_purchase.dart';
 
 part 'purchases_state.dart';
-
 
 class PurchasesCubit extends Cubit<PurchasesState> {
   final PurchaseRepository repository;
@@ -32,30 +32,29 @@ class PurchasesCubit extends Cubit<PurchasesState> {
   // Create new purchase invoice
   Future<void> createPurchaseInvoice(InvoiceEntity invoice) async {
     emit(PurchasesLoading());
-    
+
     // Validate limits
     final limitCheck = await limitInterceptor.validateInvoice(
       accountId: invoice.customerId,
       totalAmount: invoice.amount,
       currencyId: invoice.currencyId ?? 1,
-      invoiceType: invoice.invoiceType == 5 ? limit.InvoiceType.purchaseReturn : limit.InvoiceType.purchase,
+      invoiceType: invoice.invoiceType == 5
+          ? limit.InvoiceType.purchaseReturn
+          : limit.InvoiceType.purchase,
     );
-    
+
     bool hasStopped = false;
-    limitCheck.fold(
-      (failure) {
-        emit(PurchasesError(failure.message));
-        hasStopped = true;
-      },
-      (_) => null,
-    );
+    limitCheck.fold((failure) {
+      emit(PurchasesError(failure.message));
+      hasStopped = true;
+    }, (_) => null);
     if (hasStopped) return;
 
     final result = await createPurchase(params: invoice);
-    result.fold((failure) => emit(PurchasesError(failure.message)), (id) {
-      emit(PurchaseInvoiceCreated(id));
-      loadPurchaseInvoices();
-    });
+    result.fold(
+      (failure) => emit(PurchasesError(failure.message)),
+      (id) => emit(PurchaseInvoiceCreated(id)),
+    );
   }
 
   // Update purchase invoice
@@ -67,34 +66,33 @@ class PurchasesCubit extends Cubit<PurchasesState> {
       accountId: invoice.customerId,
       totalAmount: invoice.amount,
       currencyId: invoice.currencyId ?? 1,
-      invoiceType: invoice.invoiceType == 5 ? limit.InvoiceType.purchaseReturn : limit.InvoiceType.purchase,
+      invoiceType: invoice.invoiceType == 5
+          ? limit.InvoiceType.purchaseReturn
+          : limit.InvoiceType.purchase,
     );
 
     bool hasStopped = false;
-    limitCheck.fold(
-      (failure) {
-        emit(PurchasesError(failure.message));
-        hasStopped = true;
-      },
-      (_) => null,
-    );
+    limitCheck.fold((failure) {
+      emit(PurchasesError(failure.message));
+      hasStopped = true;
+    }, (_) => null);
     if (hasStopped) return;
 
     final result = await repository.updatePurchaseInvoice(invoice);
-    result.fold((failure) => emit(PurchasesError(failure.message)), (_) {
-      emit(PurchaseInvoiceUpdated());
-      loadPurchaseInvoices();
-    });
+    result.fold(
+      (failure) => emit(PurchasesError(failure.message)),
+      (_) => emit(PurchaseInvoiceUpdated()),
+    );
   }
 
   // Delete purchase invoice
   Future<void> deletePurchaseInvoice(int id) async {
     emit(PurchasesLoading());
     final result = await repository.deletePurchaseInvoice(id);
-    result.fold((failure) => emit(PurchasesError(failure.message)), (_) {
-      emit(PurchaseInvoiceDeleted());
-      loadPurchaseInvoices();
-    });
+    result.fold(
+      (failure) => emit(PurchasesError(failure.message)),
+      (_) => emit(PurchaseInvoiceDeleted()),
+    );
   }
 
   // Load purchase orders
@@ -111,22 +109,20 @@ class PurchasesCubit extends Cubit<PurchasesState> {
   Future<void> createPurchaseOrder(InvoiceEntity order) async {
     emit(PurchasesLoading());
     final result = await repository.createPurchaseOrder(order);
-    result.fold((failure) => emit(PurchasesError(failure.message)), (id) {
-      emit(PurchaseOrderCreated(id));
-      loadPurchaseOrders();
-    });
+    result.fold(
+      (failure) => emit(PurchasesError(failure.message)),
+      (id) => emit(PurchaseOrderCreated(id)),
+    );
   }
 
   // Convert purchase order to invoice
   Future<void> convertOrderToInvoice(int orderId, InvoiceEntity invoice) async {
     emit(PurchasesLoading());
     final result = await repository.convertOrderToInvoice(orderId, invoice);
-    result.fold((failure) => emit(PurchasesError(failure.message)), (
-      invoiceId,
-    ) {
-      emit(PurchaseOrderConverted(invoiceId));
-      loadPurchaseOrders();
-    });
+    result.fold(
+      (failure) => emit(PurchasesError(failure.message)),
+      (invoiceId) => emit(PurchaseOrderConverted(invoiceId)),
+    );
   }
 
   // Load purchase returns
@@ -155,23 +151,20 @@ class PurchasesCubit extends Cubit<PurchasesState> {
     );
 
     bool hasStopped = false;
-    limitCheck.fold(
-      (failure) {
-        emit(PurchasesError(failure.message));
-        hasStopped = true;
-      },
-      (_) => null,
-    );
+    limitCheck.fold((failure) {
+      emit(PurchasesError(failure.message));
+      hasStopped = true;
+    }, (_) => null);
     if (hasStopped) return;
 
     final result = await repository.createPurchaseReturn(
       returnInvoice,
       parentInvoiceId,
     );
-    result.fold((failure) => emit(PurchasesError(failure.message)), (id) {
-      emit(PurchaseReturnCreated(id));
-      loadPurchaseReturns();
-    });
+    result.fold(
+      (failure) => emit(PurchasesError(failure.message)),
+      (id) => emit(PurchaseReturnCreated(id)),
+    );
   }
 
   // Search purchases

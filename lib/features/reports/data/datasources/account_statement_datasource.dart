@@ -1,5 +1,6 @@
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/reports/data/models/account_statement_model.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/entities/account_statement_entity.dart';
 
@@ -32,9 +33,9 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
     String dateFilter = '';
     final args = <Object?>[accountId];
     if (filter.startDate != null && filter.endDate != null) {
-      dateFilter = 'AND je.entry_date >= ? AND je.entry_date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('je.entry_date');
+      dateFilter = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
 
     final query =
@@ -42,7 +43,7 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
       SELECT 
         jel.id as transaction_id,
         jel.journal_entry_id as journal_entry_id,
-        datetime(je.entry_date, 'unixepoch') as transaction_date,
+        datetime(${normalizedReportTimestampSql('je.entry_date')}, 'unixepoch') as transaction_date,
         COALESCE(je.description, '') as description,
         COALESCE(je.reference_number, je.number, '') as reference,
         jel.debit_amount as debit_amount,
@@ -56,15 +57,43 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
       ORDER BY je.entry_date, jel.id
     ''';
 
+    // Get account type to determine normal balance nature
+    final accRows = await db.query(
+      'accounts',
+      columns: ['type', 'code'],
+      where: 'id = ?',
+      whereArgs: [accountId],
+      limit: 1,
+    );
+    final accType = accRows.isNotEmpty
+        ? (accRows.first['type'] as int? ?? 1)
+        : 1;
+    final accCode = accRows.isNotEmpty
+        ? (accRows.first['code'] as String? ?? '')
+        : '';
+    final isCreditNormal =
+        accType == 2 ||
+        accType == 4 ||
+        accCode.startsWith('2') ||
+        accCode.startsWith('4');
+
     final result = await db.rawQuery(query, args);
 
-    double balance = await _getOpeningBalance(accountId, filter.startDate);
+    double balance = await _getOpeningBalance(
+      accountId,
+      filter.startDate,
+      isCreditNormal: isCreditNormal,
+    );
     final transactions = <AccountStatementModel>[];
 
     for (final row in result) {
       final debit = (row['debit_amount'] as num?)?.toDouble() ?? 0.0;
       final credit = (row['credit_amount'] as num?)?.toDouble() ?? 0.0;
-      balance += (debit - credit);
+      if (isCreditNormal) {
+        balance += (credit - debit);
+      } else {
+        balance += (debit - credit);
+      }
 
       transactions.add(
         AccountStatementModel.fromMap({...row, 'balance': balance}),
@@ -83,7 +112,7 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
 
     // Get account info
     final accountQuery = '''
-      SELECT id, code, name 
+      SELECT id, code, name, type 
       FROM accounts 
       WHERE id = ?
     ''';
@@ -94,13 +123,20 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
     }
 
     final account = accountResult.first;
+    final accType = (account['type'] as int?) ?? 1;
+    final accCode = (account['code'] as String?) ?? '';
+    final isCreditNormal =
+        accType == 2 ||
+        accType == 4 ||
+        accCode.startsWith('2') ||
+        accCode.startsWith('4');
 
     String dateFilter = '';
     final args = <Object?>[accountId];
     if (filter.startDate != null && filter.endDate != null) {
-      dateFilter = 'AND je.entry_date >= ? AND je.entry_date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('je.entry_date');
+      dateFilter = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
 
     // Get transaction summary
@@ -121,12 +157,15 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
     final openingBalance = await _getOpeningBalance(
       accountId,
       filter.startDate,
+      isCreditNormal: isCreditNormal,
     );
     final totalDebits =
         (summaryResult.first['total_debits'] as num?)?.toDouble() ?? 0.0;
     final totalCredits =
         (summaryResult.first['total_credits'] as num?)?.toDouble() ?? 0.0;
-    final closingBalance = openingBalance + (totalDebits - totalCredits);
+    final closingBalance = isCreditNormal
+        ? openingBalance + (totalCredits - totalDebits)
+        : openingBalance + (totalDebits - totalCredits);
 
     return AccountStatementSummary(
       accountId: accountId,
@@ -156,26 +195,34 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
     return await db.rawQuery(query);
   }
 
-  Future<double> _getOpeningBalance(int accountId, DateTime? beforeDate) async {
+  Future<double> _getOpeningBalance(
+    int accountId,
+    DateTime? beforeDate, {
+    bool isCreditNormal = false,
+  }) async {
     if (beforeDate == null) return 0;
 
     final db = await databaseService.database;
 
-    final query = '''
+    final query =
+        '''
       SELECT 
-        COALESCE(SUM(jel.debit_amount - jel.credit_amount), 0) as balance
+        COALESCE(SUM(jel.debit_amount), 0) as d,
+        COALESCE(SUM(jel.credit_amount), 0) as c
       FROM journal_entry_lines jel
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
       WHERE je.is_posted = 1 AND jel.account_id = ?
-      AND je.entry_date < ?
+      AND ${normalizedReportTimestampSql('je.entry_date')} < ?
     ''';
 
     final result = await db.rawQuery(query, [
       accountId,
-      beforeDate.millisecondsSinceEpoch ~/ 1000,
+      reportTimestampSeconds(beforeDate),
     ]);
     if (result.isNotEmpty) {
-      return (result.first['balance'] as num?)?.toDouble() ?? 0.0;
+      final d = (result.first['d'] as num?)?.toDouble() ?? 0.0;
+      final c = (result.first['c'] as num?)?.toDouble() ?? 0.0;
+      return isCreditNormal ? (c - d) : (d - c);
     }
     return 0;
   }

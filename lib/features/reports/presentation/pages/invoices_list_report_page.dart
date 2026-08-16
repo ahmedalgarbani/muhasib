@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/reports/presentation/widgets/invoice_report_components.dart';
 
@@ -102,6 +102,7 @@ class _InvoicesListReportPageState extends State<InvoicesListReportPage> {
       data: data,
     );
 
+    if (!context.mounted) return;
     AppToast.showSuccess(context, 'تم تصدير ملف Excel بنجاح: $path');
   }
 
@@ -121,7 +122,7 @@ class _InvoicesListReportPageState extends State<InvoicesListReportPage> {
   }
 }
 
-class _InvoicesListContent extends StatelessWidget {
+class _InvoicesListContent extends StatefulWidget {
   final ReportFilter filter;
   final List<int> invoiceTypes;
   final String? partyTypeLabel;
@@ -136,6 +137,33 @@ class _InvoicesListContent extends StatelessWidget {
     required this.onLoad,
   });
 
+  @override
+  State<_InvoicesListContent> createState() => _InvoicesListContentState();
+}
+
+class _InvoicesListContentState extends State<_InvoicesListContent> {
+  late Future<_InvoicesListResult> _future;
+  _InvoicesListResult? _notifiedResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchData();
+  }
+
+  @override
+  void didUpdateWidget(covariant _InvoicesListContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.filter != widget.filter) {
+      _fetchData();
+    }
+  }
+
+  void _fetchData() {
+    _notifiedResult = null;
+    _future = _load(widget.filter);
+  }
+
   String _formatCurrency(double value) {
     return NumberFormatter.formatCurrency(value, symbol: 'ر.س');
   }
@@ -143,7 +171,7 @@ class _InvoicesListContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<_InvoicesListResult>(
-      future: _load(filter),
+      future: _future,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -157,6 +185,12 @@ class _InvoicesListContent extends StatelessWidget {
           );
         }
         final data = snapshot.data;
+        if (data != null && data != _notifiedResult) {
+          _notifiedResult = data;
+          WidgetsBinding.instance.addPostFrameCallback(
+            (_) => widget.onLoad(data),
+          );
+        }
         if (data == null || data.rows.isEmpty) {
           return const EmptyStateWidget(
             title: 'لا توجد فواتير لهذه الفترة',
@@ -165,11 +199,7 @@ class _InvoicesListContent extends StatelessWidget {
           );
         }
 
-        // Notify parent about loaded data for export
-        onLoad(data);
-
         return Column(
-
           children: [
             Container(
               height: 100,
@@ -216,11 +246,10 @@ class _InvoicesListContent extends StatelessWidget {
                   vertical: 8,
                 ),
                 itemCount: data.rows.length,
-                itemBuilder: (context, index) =>
-                    InvoiceReportCardWidget(
-                      row: data.rows[index],
-                      formattedCurrency: _formatCurrency(data.rows[index].amount),
-                    ),
+                itemBuilder: (context, index) => InvoiceReportCardWidget(
+                  row: data.rows[index],
+                  formattedCurrency: _formatCurrency(data.rows[index].amount),
+                ),
               ),
             ),
           ],
@@ -229,67 +258,21 @@ class _InvoicesListContent extends StatelessWidget {
     );
   }
 
-
-  Color _getStatusColor(int status) {
-    switch (status) {
-      case 1:
-        return Colors.green;
-      case 2:
-        return Colors.orange;
-      case 3:
-        return Colors.red;
-      case 4:
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  IconData _getStatusIcon(int status) {
-    switch (status) {
-      case 1:
-        return Icons.check_circle_outline;
-      case 2:
-        return Icons.mode_edit_outline;
-      case 3:
-        return Icons.cancel_outlined;
-      case 4:
-        return Icons.settings_backup_restore;
-      default:
-        return Icons.description_outlined;
-    }
-  }
-
-  String _getStatusLabel(int status) {
-    switch (status) {
-      case 1:
-        return 'مُرحّلة';
-      case 2:
-        return 'مسودة';
-      case 3:
-        return 'ملغاة';
-      case 4:
-        return 'مرتجعة';
-      default:
-        return 'غير محدد';
-    }
-  }
-
   Future<_InvoicesListResult> _load(ReportFilter filter) async {
     final db = await getIt<DatabaseService>().database;
     final args = <Object?>[];
     final whereParts = <String>[];
 
     if (filter.startDate != null && filter.endDate != null) {
-      whereParts.add('i.date >= ? AND i.date <= ?');
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('i.date');
+      whereParts.add('$dateColumn >= ? AND $dateColumn <= ?');
+      args.addAll(reportDateRangeArgs(filter));
     }
-    if (invoiceTypes.isNotEmpty) {
+    if (widget.invoiceTypes.isNotEmpty) {
       whereParts.add(
-        'i.invoice_type IN (${invoiceTypes.map((_) => '?').join(',')})',
+        'i.invoice_type IN (${widget.invoiceTypes.map((_) => '?').join(',')})',
       );
-      args.addAll(invoiceTypes);
+      args.addAll(widget.invoiceTypes);
     }
     final where = whereParts.isEmpty ? '' : 'WHERE ${whereParts.join(' AND ')}';
 
@@ -371,7 +354,7 @@ class _InvoiceRow {
     required this.hasJournalEntry,
   });
   String get dateLabel {
-    final d = DateTime.fromMillisecondsSinceEpoch(date * 1000);
+    final d = dateTimeFromReportTimestamp(date);
     return '${d.day}/${d.month}/${d.year}';
   }
 }

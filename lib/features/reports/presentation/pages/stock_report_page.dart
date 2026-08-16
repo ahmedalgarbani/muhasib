@@ -10,7 +10,7 @@ import 'package:muhasib/features/reports/presentation/widgets/report_data_table.
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class StockReportPage extends StatefulWidget {
   const StockReportPage({super.key});
@@ -37,7 +37,8 @@ class _StockReportPageState extends State<StockReportPage> {
             showDateFilter: false,
             onPrint: _lastState == null ? null : () => _exportPdf(),
             onExportExcel: _lastState == null ? null : () => _exportExcel(),
-            reportBuilder: (filter) => const _StockReportContent(),
+            reportBuilder: (filter) =>
+                _StockReportContent(searchQuery: filter.searchQuery ?? ''),
           );
         },
       ),
@@ -94,12 +95,30 @@ class _StockReportPageState extends State<StockReportPage> {
 }
 
 class _StockReportContent extends StatefulWidget {
-  const _StockReportContent();
+  final String searchQuery;
+
+  const _StockReportContent({required this.searchQuery});
   @override
   State<_StockReportContent> createState() => _StockReportContentState();
 }
 
 class _StockReportContentState extends State<_StockReportContent> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<StockCubit>().updateSearch(widget.searchQuery);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _StockReportContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.searchQuery != widget.searchQuery) {
+      context.read<StockCubit>().updateSearch(widget.searchQuery);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<StockCubit, StockState>(
@@ -122,8 +141,10 @@ class _StockReportContentState extends State<_StockReportContent> {
                     Expanded(
                       child: ReportKpiCard(
                         title: 'إجمالي قيمة المخزون',
-                        value:
-                            NumberFormatter.formatCurrency(s.totalStockValue, symbol: 'ر.س'),
+                        value: NumberFormatter.formatCurrency(
+                          s.totalStockValue,
+                          symbol: 'ر.س',
+                        ),
                         icon: Icons.monetization_on,
                         color: Colors.green[700]!,
                         subtitle: 'بالتكلفة الفعلية',
@@ -149,8 +170,8 @@ class _StockReportContentState extends State<_StockReportContent> {
                             ? Colors.orange[700]!
                             : Colors.grey[700]!,
                         subtitle: s.lowStockCount > 0
-                            ? 'يحتاج إلى إعادة طلب ⚠'
-                            : 'المخزون آمن ✓',
+                            ? 'يحتاج إلى إعادة طلب'
+                            : 'المخزون آمن',
                         isPositiveTrend: s.lowStockCount == 0,
                       ),
                     ),
@@ -247,7 +268,10 @@ class _StockReportContentState extends State<_StockReportContent> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            NumberFormatter.formatCurrency(item.costPrice, symbol: 'ر.س'),
+                            NumberFormatter.formatCurrency(
+                              item.costPrice,
+                              symbol: 'ر.س',
+                            ),
                             textAlign: TextAlign.center,
                             style: const TextStyle(fontSize: 12),
                           ),
@@ -255,7 +279,10 @@ class _StockReportContentState extends State<_StockReportContent> {
                         Expanded(
                           flex: 2,
                           child: Text(
-                            NumberFormatter.formatCurrency(item.stockValue, symbol: 'ر.س'),
+                            NumberFormatter.formatCurrency(
+                              item.stockValue,
+                              symbol: 'ر.س',
+                            ),
                             textAlign: TextAlign.end,
                             style: TextStyle(
                               fontSize: 13,
@@ -294,7 +321,10 @@ class _StockReportContentState extends State<_StockReportContent> {
                       Expanded(
                         flex: 2,
                         child: Text(
-                          NumberFormatter.formatCurrency(s.totalStockValue, symbol: 'ر.س'),
+                          NumberFormatter.formatCurrency(
+                            s.totalStockValue,
+                            symbol: 'ر.س',
+                          ),
                           textAlign: TextAlign.end,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,

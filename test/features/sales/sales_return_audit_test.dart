@@ -140,10 +140,10 @@ Future<List<Map<String, dynamic>>> journalLinesFor(
 ) async {
   final entries = await db.query(
     'journal_entries',
-    where: 'reference_type = ? AND reference_id = ?',
+    where: 'reference_type = ? AND reference_id = ? AND status = 1',
     whereArgs: [referenceType, referenceId],
   );
-  expect(entries.length, 1, reason: 'يجب وجود قيد واحد فقط لـ $referenceType/$referenceId');
+  expect(entries.length, 1, reason: 'يجب وجود قيد فعال واحد فقط لـ $referenceType/$referenceId');
   final entry = entries.first;
   expect(
     (entry['total_debit'] as num).toDouble(),
@@ -335,7 +335,17 @@ void main() {
         where: 'reference_type = ? AND reference_id = ?',
         whereArgs: ['sales_invoice', id],
       );
-      expect(entries, isEmpty);
+      // مسار التدقيق: القيد الأصلي يبقى محفوظاً بحالة معكوس (status = 2)
+      expect(entries.isNotEmpty, isTrue);
+      expect(entries.first['status'], equals(2));
+
+      // التحقق من وجود القيد العكسي
+      final revEntries = await db.query(
+        'journal_entries',
+        where: 'reference_type = ? AND reference_id = ?',
+        whereArgs: ['sales_invoice_reversal', id],
+      );
+      expect(revEntries.isNotEmpty, isTrue);
       expect(await accountBalance(db, salesId), closeTo(0, 0.01));
 
       final stock = await db.query(
@@ -428,7 +438,17 @@ void main() {
         where: 'reference_type = ? AND reference_id = ?',
         whereArgs: ['sales_return', id],
       );
-      expect(entries, isEmpty);
+      // مسار التدقيق: القيد الأصلي يبقى بحالة معكوس (status = 2)
+      expect(entries.isNotEmpty, isTrue);
+      expect(entries.first['status'], equals(2));
+
+      // التحقق من وجود القيد العكسي
+      final revEntries = await db.query(
+        'journal_entries',
+        where: 'reference_type = ? AND reference_id = ?',
+        whereArgs: ['sales_return_reversal', id],
+      );
+      expect(revEntries.isNotEmpty, isTrue);
 
       final stock = await db.query(
         'warehouse_stocks',

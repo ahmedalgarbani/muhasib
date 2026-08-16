@@ -53,6 +53,7 @@ import 'package:muhasib/features/purchases/presentation/pages/purchases_list_pag
 import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_orders_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_returns_page.dart';
+import 'package:muhasib/features/purchases/presentation/pages/purchase_detail_page.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/products/presentation/pages/product_groups_page.dart';
 import 'package:muhasib/features/products/presentation/pages/product_units_page.dart';
@@ -367,6 +368,14 @@ final router = GoRouter(
       builder: (context, state) {
         final invoice = state.extra as InvoiceEntity?;
         return PurchaseFormPage(invoice: invoice);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.purchasesDetail,
+      name: AppRoutes.purchasesDetail,
+      builder: (context, state) {
+        final invoice = state.extra as InvoiceEntity;
+        return PurchaseDetailPage(invoice: invoice);
       },
     ),
     GoRoute(

@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/expandable_section.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/features/settings_entities/domain/entities/cashbox_entity.dart';
+import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.dart';
+import 'package:muhasib/features/settings_entities/domain/repositories/cashbox_repository.dart';
+import 'package:muhasib/features/settings_entities/domain/repositories/bank_repository.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
@@ -34,6 +39,11 @@ class _Step3PaymentState extends State<Step3Payment> {
   late PaymentMethod _selectedMethod;
   String? _selectedCashBox = 'الصندوق الرئيسي';
   String? _selectedBank = 'الراجحي';
+  int? _selectedFundId;
+  int? _selectedBankId;
+  List<CashboxEntity> _funds = [];
+  List<BankEntity> _banks = [];
+  bool _isLoadingFundsAndBanks = false;
   String? _transferNumber;
   String? _senderName;
   DateTime? _deferredDate;
@@ -53,6 +63,44 @@ class _Step3PaymentState extends State<Step3Payment> {
         : '0';
 
     _amountController.addListener(_validateAmount);
+    _loadFundsAndBanks();
+  }
+
+  Future<void> _loadFundsAndBanks() async {
+    setState(() => _isLoadingFundsAndBanks = true);
+    try {
+      final cashboxRepo = getIt<CashboxRepository>();
+      final bankRepo = getIt<BankRepository>();
+
+      final cashboxesRes = await cashboxRepo.getActiveCashboxes();
+      final banksRes = await bankRepo.getActiveBanks();
+
+      final loadedFunds = cashboxesRes.fold(
+        (_) => <CashboxEntity>[],
+        (list) => list,
+      );
+      final loadedBanks = banksRes.fold((_) => <BankEntity>[], (list) => list);
+
+      if (mounted) {
+        setState(() {
+          _funds = loadedFunds;
+          _banks = loadedBanks;
+          if (_funds.isNotEmpty) {
+            final mainFund =
+                _funds.where((f) => f.isMainFund).firstOrNull ?? _funds.first;
+            _selectedFundId = mainFund.id;
+            _selectedCashBox = mainFund.name;
+          }
+          if (_banks.isNotEmpty) {
+            _selectedBankId = _banks.first.id;
+            _selectedBank = _banks.first.name;
+          }
+          _isLoadingFundsAndBanks = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingFundsAndBanks = false);
+    }
   }
 
   PaymentMethod _defaultPaymentMethod() {
@@ -99,15 +147,22 @@ class _Step3PaymentState extends State<Step3Payment> {
     final amount = double.tryParse(_amountController.text) ?? 0;
     if (amount <= 0) return;
 
+    final selectedFund = _funds
+        .where((f) => f.id == _selectedFundId)
+        .firstOrNull;
+    final selectedBank = _banks
+        .where((b) => b.id == _selectedBankId)
+        .firstOrNull;
+
     // Check if adding this payment causes overpayment
     final newPayment = Payment(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       method: _selectedMethod,
       amount: amount,
       details: _selectedMethod == PaymentMethod.cash
-          ? _selectedCashBox
+          ? (selectedFund?.name ?? _selectedCashBox ?? 'الصندوق الرئيسي')
           : _selectedMethod == PaymentMethod.bank
-          ? '$_selectedBank - ${_transferNumber ?? ''}'
+          ? '${selectedBank?.name ?? _selectedBank ?? "البنك"} - ${_transferNumber ?? ''}'
           : _deferredDate != null
           ? 'استحقاق: ${DateFormatter.formatDate(_deferredDate!)}'
           : null,
@@ -375,47 +430,83 @@ class _Step3PaymentState extends State<Step3Payment> {
 
                       // Method-specific fields
                       if (_selectedMethod == PaymentMethod.cash) ...[
-                        CustomDropdownField<String>(
-                          value: _selectedCashBox,
-                          label: 'الصندوق',
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'الصندوق الرئيسي',
-                              child: Text('الصندوق الرئيسي'),
+                        if (_isLoadingFundsAndBanks)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Center(
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
                             ),
-                            DropdownMenuItem(
-                              value: 'صندوق فرع الشمال',
-                              child: Text('صندوق فرع الشمال'),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            setState(() => _selectedCashBox = value);
-                          },
-                        ),
+                          )
+                        else
+                          CustomDropdownField<String>(
+                            value: _selectedCashBox,
+                            label: 'الصندوق',
+                            items: _funds.isNotEmpty
+                                ? _funds
+                                      .map(
+                                        (f) => DropdownMenuItem<String>(
+                                          value: f.name,
+                                          child: Text(f.name),
+                                        ),
+                                      )
+                                      .toList()
+                                : const [],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedCashBox = value;
+                                _selectedFundId = _funds
+                                    .where((f) => f.name == value)
+                                    .firstOrNull
+                                    ?.id;
+                              });
+                            },
+                          ),
                       ],
 
                       if (_selectedMethod == PaymentMethod.bank) ...[
-                        CustomDropdownField<String>(
-                          value: _selectedBank,
-                          label: 'البنك',
-                          items: const [
-                            DropdownMenuItem(
-                              value: 'الراجحي',
-                              child: Text('الراجحي'),
+                        if (_isLoadingFundsAndBanks)
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8),
+                            child: Center(
+                              child: SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
                             ),
-                            DropdownMenuItem(
-                              value: 'الأهلي',
-                              child: Text('الأهلي'),
-                            ),
-                            DropdownMenuItem(
-                              value: 'الإنماء',
-                              child: Text('الإنماء'),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            setState(() => _selectedBank = value);
-                          },
-                        ),
+                          )
+                        else
+                          CustomDropdownField<String>(
+                            value: _selectedBank,
+                            label: 'البنك',
+                            items: _banks.isNotEmpty
+                                ? _banks
+                                      .map(
+                                        (b) => DropdownMenuItem<String>(
+                                          value: b.name,
+                                          child: Text(b.name),
+                                        ),
+                                      )
+                                      .toList()
+                                : [],
+                            onChanged: (value) {
+                              setState(() {
+                                _selectedBank = value;
+                                _selectedBankId = _banks
+                                    .where((b) => b.name == value)
+                                    .firstOrNull
+                                    ?.id;
+                              });
+                            },
+                          ),
                         const SizedBox(height: AppSpacing.md),
                         ExpandableSection(
                           title: 'تفاصيل التحويل',
@@ -505,9 +596,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 const SizedBox(width: AppSpacing.sm),
                                 Text(
                                   _deferredDate != null
-                                      ? DateFormatter.formatDate(
-                                          _deferredDate!,
-                                        )
+                                      ? DateFormatter.formatDate(_deferredDate!)
                                       : 'اختر التاريخ',
                                   style: const TextStyle(
                                     fontSize: 16,
@@ -608,7 +697,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                           : 'إضافة باقي المبلغ (${NumberFormatter.formatCurrency(widget.invoice.remaining)})',
                       onPressed: _addPayment,
                       variant: HasibButtonVariant.success,
-                      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.md,
+                      ),
                       fontSize: 16,
                     ),
                   ),

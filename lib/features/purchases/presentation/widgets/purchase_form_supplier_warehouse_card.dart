@@ -49,22 +49,35 @@ class PurchaseFormSupplierWarehouseCard extends StatelessWidget {
             BlocBuilder<CustomersCubit, CustomersState>(
               builder: (context, state) {
                 if (state is SuppliersLoaded) {
+                  final supplierItems = state.suppliers.map((supplier) {
+                    final sId = int.tryParse(supplier.id) ?? 1;
+                    return DropdownMenuItem<int>(
+                      value: sId,
+                      child: Text(
+                        supplier.name,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    );
+                  }).toList();
+
+                  final effectiveValue = supplierItems.any((item) => item.value == selectedSupplierId)
+                      ? selectedSupplierId
+                      : (supplierItems.isNotEmpty ? supplierItems.first.value : null);
+
+                  if (effectiveValue != selectedSupplierId && effectiveValue != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      onSupplierChanged(effectiveValue);
+                    });
+                  }
+
                   return Row(
                     children: [
                       Expanded(
                         child: CustomDropdownField<int>(
-                          value: selectedSupplierId,
+                          value: effectiveValue,
                           label: 'المورد',
                           prefixIcon: const Icon(Icons.business, size: 20),
-                          items: state.suppliers.map((supplier) {
-                            return DropdownMenuItem<int>(
-                              value: int.parse(supplier.id),
-                              child: Text(
-                                supplier.name,
-                                style: const TextStyle(fontSize: 13),
-                              ),
-                            );
-                          }).toList(),
+                          items: supplierItems,
                           onChanged: onSupplierChanged,
                           validator: (value) {
                             if (value == null) {
@@ -110,19 +123,31 @@ class PurchaseFormSupplierWarehouseCard extends StatelessWidget {
             BlocBuilder<WarehousesCubit, WarehousesState>(
               builder: (context, state) {
                 if (state is WarehousesLoaded) {
+                  final warehouseItems = state.warehouses.map((warehouse) {
+                    return DropdownMenuItem<int>(
+                      value: warehouse.id,
+                      child: Text(
+                        warehouse.name,
+                        style: const TextStyle(fontSize: 13),
+                      ),
+                    );
+                  }).toList();
+
+                  final effectiveValue = warehouseItems.any((item) => item.value == selectedWarehouseId)
+                      ? selectedWarehouseId
+                      : (warehouseItems.isNotEmpty ? warehouseItems.first.value : null);
+
+                  if (effectiveValue != selectedWarehouseId && effectiveValue != null) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      onWarehouseChanged(effectiveValue);
+                    });
+                  }
+
                   return CustomDropdownField<int>(
-                    value: selectedWarehouseId,
+                    value: effectiveValue,
                     label: 'المخزن',
                     prefixIcon: const Icon(Icons.warehouse, size: 20),
-                    items: state.warehouses.map((warehouse) {
-                      return DropdownMenuItem(
-                        value: warehouse.id,
-                        child: Text(
-                          warehouse.name,
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                      );
-                    }).toList(),
+                    items: warehouseItems,
                     onChanged: onWarehouseChanged,
                     validator: (value) {
                       if (value == null) {

@@ -82,12 +82,20 @@ class AccountLimitInterceptor {
       // Determine debit/credit based on invoice type
       switch (invoiceType) {
         case InvoiceType.sales:
+          debitAmount = totalAmount; // Sales increases customer debit (receivable)
+          creditAmount = 0;
+          break;
         case InvoiceType.salesReturn:
-          creditAmount = totalAmount;
+          creditAmount = totalAmount; // Sales return increases customer credit (reversal)
+          debitAmount = 0;
           break;
         case InvoiceType.purchase:
+          creditAmount = totalAmount; // Purchase increases supplier credit (payable)
+          debitAmount = 0;
+          break;
         case InvoiceType.purchaseReturn:
-          debitAmount = totalAmount;
+          debitAmount = totalAmount; // Purchase return increases supplier debit (reversal)
+          creditAmount = 0;
           break;
         case InvoiceType.quotation:
           // Quotations don't affect limits

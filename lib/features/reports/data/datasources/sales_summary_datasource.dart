@@ -1,4 +1,5 @@
 import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/entities/sales_summary_entity.dart';
 
@@ -20,18 +21,9 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
     String dateFilter = '';
     final args = <Object?>[];
     if (filter.startDate != null && filter.endDate != null) {
-      // Older invoices use seconds while the sales form historically stored
-      // milliseconds. Support both formats so a new invoice is not hidden.
-      dateFilter = '''AND ((i.date >= ? AND i.date <= ?) OR
-          (i.date >= ? AND i.date <= ?))''';
-      final startSeconds = filter.startDate!.millisecondsSinceEpoch ~/ 1000;
-      final endSeconds = filter.endDate!.millisecondsSinceEpoch ~/ 1000;
-      args.addAll([
-        startSeconds,
-        endSeconds,
-        startSeconds * 1000,
-        endSeconds * 1000,
-      ]);
+      final dateColumn = normalizedReportTimestampSql('i.date');
+      dateFilter = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
 
     // Get sales totals
@@ -47,6 +39,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
         COUNT(DISTINCT i.customer_id) as customer_count
       FROM invoices i
       WHERE (i.invoice_type = 1 OR i.invoice_type = 4)
+        AND COALESCE(i.approval_status, 0) != 3
       $dateFilter
     ''';
 
@@ -84,6 +77,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
       INNER JOIN invoices i ON i.id = il.invoice_id
       LEFT JOIN categories c ON c.id = il.category_id
       WHERE i.invoice_type = 1
+        AND COALESCE(i.approval_status, 0) != 3
       $dateFilter
       GROUP BY c.id, c.name
       ORDER BY total_amount DESC
@@ -94,8 +88,8 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
     final topProducts = topProductsResult
         .map(
           (row) => TopProductEntity(
-            productId: row['product_id'] as int,
-            productName: row['product_name'] as String,
+            productId: row['product_id'] as int? ?? 0,
+            productName: row['product_name'] as String? ?? 'صنف غير محدد',
             quantity: (row['quantity'] as num?)?.toDouble() ?? 0.0,
             totalAmount: (row['total_amount'] as num?)?.toDouble() ?? 0.0,
             salesCount: row['sales_count'] as int,
@@ -114,6 +108,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
       FROM invoices i
       INNER JOIN customers c ON c.id = i.customer_id
       WHERE i.invoice_type = 1
+        AND COALESCE(i.approval_status, 0) != 3
       $dateFilter
       GROUP BY c.id, c.name
       ORDER BY total_purchases DESC
@@ -136,12 +131,13 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
     final dailySalesQuery =
         '''
       SELECT 
-         date(CASE WHEN i.date > 1000000000000 THEN i.date / 1000 ELSE i.date END, 'unixepoch') as sale_date,
+        date(${normalizedReportTimestampSql('i.date')}, 'unixepoch') as sale_date,
         SUM(COALESCE(i.final_amt, i.total_amount, i.amount)) as daily_total
       FROM invoices i
       WHERE i.invoice_type = 1
+        AND COALESCE(i.approval_status, 0) != 3
       $dateFilter
-      GROUP BY date(i.date, 'unixepoch')
+      GROUP BY sale_date
       ORDER BY sale_date
     ''';
 

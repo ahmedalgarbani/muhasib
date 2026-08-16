@@ -20,14 +20,34 @@ class HomePageView extends StatefulWidget {
 }
 
 class _HomePageViewState extends State<HomePageView> {
-  bool showBalance = false;
+  bool showBalance = true;
   int activeCardIndex = 0;
 
-  final List<CardData> cards = [
-    CardData('الصندوق الرئيسي', '0.00', CardType.primary),
-    CardData('الحساب البنكي', '0.00', CardType.secondary),
-    CardData('حساب التوفير', '0.00', CardType.tertiary),
-    CardData('المحفظة الاستثمارية', '0.00', CardType.success),
+  final List<CardData> cards = const [
+    CardData(
+      title: 'الصندوق الرئيسي',
+      balance: '12,765.00',
+      currency: 'RY',
+      type: CardType.primary,
+    ),
+    CardData(
+      title: 'الحساب البنكي',
+      balance: '45,200.00',
+      currency: 'RY',
+      type: CardType.secondary,
+    ),
+    CardData(
+      title: 'حساب التوفير',
+      balance: '8,430.00',
+      currency: 'RY',
+      type: CardType.tertiary,
+    ),
+    CardData(
+      title: 'المحفظة الاستثمارية',
+      balance: '120,000.00',
+      currency: 'RY',
+      type: CardType.success,
+    ),
   ];
 
   @override
@@ -93,6 +113,7 @@ class _HomePageViewState extends State<HomePageView> {
                       onToggleBalance: () =>
                           setState(() => showBalance = !showBalance),
                     ),
+                    const SizedBox(height: 8),
                     const QuickAccessSection(),
                     RecentActionsSection(transactions: transactions),
                     StatsCardsSection(

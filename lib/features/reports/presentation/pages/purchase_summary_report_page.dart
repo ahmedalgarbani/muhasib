@@ -4,6 +4,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
@@ -196,9 +197,9 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                             radius: 12,
                             backgroundColor: index < 3
                                 ? Colors.deepOrange[100]
-                                : Theme.of(context)
-                                      .colorScheme
-                                      .surfaceContainerHighest,
+                                : Theme.of(
+                                    context,
+                                  ).colorScheme.surfaceContainerHighest,
                             child: Text(
                               '${index + 1}',
                               style: TextStyle(
@@ -250,9 +251,9 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
     final args = <Object?>[];
     String df = '';
     if (filter.startDate != null && filter.endDate != null) {
-      df = 'AND i.date >= ? AND i.date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('i.date');
+      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
     final totals = await db.rawQuery(
       'SELECT COUNT(CASE WHEN i.invoice_type = 2 THEN 1 END) as ic, COUNT(CASE WHEN i.invoice_type = 5 THEN 1 END) as rc, COALESCE(SUM(CASE WHEN i.invoice_type = 2 THEN COALESCE(i.final_amt, i.total_amount, i.amount, 0) END), 0) as tp, COALESCE(SUM(CASE WHEN i.invoice_type = 5 THEN COALESCE(i.final_amt, i.total_amount, i.amount, 0) END), 0) as tr, COALESCE(SUM(CASE WHEN i.invoice_type = 2 THEN COALESCE(i.tax_amt, 0) END), 0) as tx, COALESCE(SUM(CASE WHEN i.invoice_type = 2 THEN COALESCE(i.discount_amt, 0) END), 0) as td FROM invoices i WHERE (i.invoice_type = 2 OR i.invoice_type = 5) AND COALESCE(i.approval_status, 1) != 3 $df',

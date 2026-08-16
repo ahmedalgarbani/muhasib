@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
-import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
-import 'package:muhasib/features/sales/domain/templates/sales_accounting_template.dart';
-import 'package:muhasib/features/sales/presentation/widgets/constants/invoice_ui_constants.dart';
-import 'package:muhasib/core/services/database_service.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-
+import 'package:muhasib/features/products/domain/entities/product_entity.dart';
+import 'package:muhasib/features/products/domain/repositories/product_repository.dart';
+import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/features/sales/domain/templates/sales_accounting_template.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/return_detail_components.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Return Invoice Detail Page
 /// Displays complete return information with accounting entries preview
@@ -64,30 +60,21 @@ class ReturnDetailPage extends StatelessWidget {
 
   Future<Map<String, dynamic>> _loadReturnEntries() async {
     final template = SalesAccountingTemplate();
-    final db = await DatabaseService().database;
-    final ids = returnInvoice.lines
-        .map((e) => e.categoryId)
-        .whereType<int>()
-        .toSet()
-        .toList();
+    final productRepo = getIt<ProductRepository>();
 
-    final Map<int, Map<String, dynamic>> categories = {};
-    if (ids.isNotEmpty) {
-      final placeholders = List.filled(ids.length, '?').join(',');
-      final rows = await db.rawQuery(
-        'SELECT id, name, cost_amount FROM categories WHERE id IN ($placeholders)',
-        ids,
-      );
-      for (final row in rows) {
-        final id = row['id'] as int;
-        categories[id] = row;
+    final productMap = <int, ProductEntity>{};
+    final productResult = await productRepo.getProducts();
+    productResult.fold((_) => null, (products) {
+      for (final p in products) {
+        if (p.id != null) productMap[p.id!] = p;
       }
-    }
+    });
 
     final invoiceLines = returnInvoice.lines.map((line) {
       final cid = line.categoryId ?? 0;
-      final name = (categories[cid]?['name'] as String?) ?? 'منتج #$cid';
-      final cost = (categories[cid]?['cost_amount'] as num?)?.toDouble() ?? 0.0;
+      final product = productMap[cid];
+      final name = product?.name ?? 'منتج #$cid';
+      final cost = product?.costAmount ?? 0.0;
       final unitPrice = line.amount;
       return InvoiceLineEntry.fromInvoiceLine(
         categoryId: cid,

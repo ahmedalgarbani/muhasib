@@ -1,5 +1,6 @@
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/reports/data/models/income_statement_model.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/entities/income_statement_entity.dart';
 
@@ -42,9 +43,9 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     String dateFilter = '';
     final args = <Object?>[];
     if (filter.startDate != null && filter.endDate != null) {
-      dateFilter = 'AND je.entry_date >= ? AND je.entry_date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('je.entry_date');
+      dateFilter = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
 
     final List<IncomeStatementEntity> categories = [];
@@ -54,7 +55,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
         "AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')";
 
     // ==================== REVENUE SECTION ====================
-    // Revenue accounts use type 3 in the account chart.
+    // Revenue accounts: type = 4 or code starting with '4'
     final revenueQuery =
         '''
       SELECT 
@@ -65,7 +66,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE (a.type = 4 OR a.code LIKE '4%') AND a.is_active = 1 AND je.is_posted = 1
         AND NOT (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%إيرادات أخرى%' OR a.name LIKE '%فروق صرف%')
       $referenceExclusion
       $dateFilter
@@ -92,8 +93,6 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     }
 
     // ==================== OTHER INCOME ====================
-    // Other Income: gains from asset sales, exchange rate gains, etc.
-    // Looking for accounts with specific codes or patterns
     final otherIncomeQuery =
         '''
       SELECT 
@@ -104,7 +103,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 3 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE (a.type = 4 OR a.code LIKE '4%') AND a.is_active = 1 AND je.is_posted = 1
         AND (
           a.code LIKE '42%' OR 
           a.code LIKE '43%' OR
@@ -137,7 +136,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     }
 
     // ==================== COST OF SALES ====================
-    // Cost of Sales: purchases accounts (code starts with '311')
+    // Cost of Sales: purchases/COGS accounts (type = 3 or code 3xxx, c_id in 3110, 3190, 3160)
     final costOfSalesQuery =
         '''
       SELECT 
@@ -148,7 +147,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.c_id IN (3110, 3190, 3160) AND a.is_active = 1 AND je.is_posted = 1
+      WHERE (a.type = 3 OR a.code LIKE '3%') AND (a.c_id IN (3110, 3190) OR a.code LIKE '311%' OR a.code LIKE '3001%' OR a.code LIKE '3008%' OR a.name LIKE '%مشتريات%' OR a.name LIKE '%تكلفة البضاعة%') AND a.is_active = 1 AND je.is_posted = 1
       $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
@@ -174,7 +173,6 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     }
 
     // ==================== OPERATING EXPENSES ====================
-    // Operating Expenses: common expense accounts (312-315)
     final operatingExpensesQuery =
         '''
       SELECT 
@@ -185,11 +183,18 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND (
+      WHERE (a.type = 3 OR a.code LIKE '3%') AND (
+        a.c_id IN (3120, 3130, 3140, 3150, 3170, 3180) OR
         a.code LIKE '312%' OR
         a.code LIKE '313%' OR
         a.code LIKE '314%' OR
-        a.code LIKE '315%'
+        a.code LIKE '315%' OR
+        a.code LIKE '3002%' OR
+        a.code LIKE '3003%' OR
+        a.code LIKE '3004%' OR
+        a.code LIKE '3005%' OR
+        a.code LIKE '3006%' OR
+        a.code LIKE '3007%'
       ) AND a.is_active = 1 AND je.is_posted = 1
       $referenceExclusion
       $dateFilter
@@ -219,7 +224,6 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     }
 
     // ==================== OTHER EXPENSES ====================
-    // Other Expenses: remaining expenses (type=4) not included above
     final otherExpensesQuery =
         '''
       SELECT 
@@ -230,15 +234,18 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
-        AND a.c_id NOT IN (3110, 3190, 3160)
-        AND a.code NOT LIKE '312%'
-        AND a.code NOT LIKE '313%'
-        AND a.code NOT LIKE '314%'
-        AND a.code NOT LIKE '315%'
+      WHERE (a.type = 3 OR a.code LIKE '3%') AND a.is_active = 1 AND je.is_posted = 1
+        AND a.c_id NOT IN (3110, 3190, 3120, 3130, 3140, 3150, 3160, 3170, 3180)
+        AND a.code NOT LIKE '311%' AND a.code NOT LIKE '3001%' AND a.code NOT LIKE '3008%'
+        AND a.code NOT LIKE '312%' AND a.code NOT LIKE '3002%'
+        AND a.code NOT LIKE '313%' AND a.code NOT LIKE '3003%'
+        AND a.code NOT LIKE '314%' AND a.code NOT LIKE '3004%'
+        AND a.code NOT LIKE '315%' AND a.code NOT LIKE '3005%'
         AND a.code NOT LIKE '316%'
         AND a.name NOT LIKE '%ضريبة الدخل%'
         AND a.name NOT LIKE '%ضريبة أرباح%'
+        AND a.name NOT LIKE '%مشتريات%'
+        AND a.name NOT LIKE '%تكلفة البضاعة%'
       $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
@@ -264,7 +271,6 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     }
 
     // ==================== TAX EXPENSE ====================
-    // Tax Expense: accounts with tax-related names or codes (316x)
     final taxExpenseQuery =
         '''
       SELECT 
@@ -275,8 +281,9 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.type = 4 AND a.is_active = 1 AND je.is_posted = 1
+      WHERE (a.type = 3 OR a.code LIKE '3%') AND a.is_active = 1 AND je.is_posted = 1
         AND (
+          a.c_id = 3160 OR
           a.code LIKE '316%' OR
           a.name LIKE '%ضريبة الدخل%' OR
           a.name LIKE '%ضريبة أرباح%'
@@ -344,44 +351,51 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
     String dateFilter = '';
     final args = <Object?>[];
     if (filter.startDate != null && filter.endDate != null) {
-      dateFilter = 'AND je.entry_date >= ? AND je.entry_date <= ?';
-      args.add(filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(filter.endDate!.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('je.entry_date');
+      dateFilter = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
 
     // Reference type exclusion for opening/closing entries
     const referenceExclusion =
         "AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')";
 
-    // Enhanced summary query with all categories including tax and other income
+    // Summary query with standard categories
     final summaryQuery =
         '''
       SELECT 
         CASE 
-          WHEN a.type = 3 AND (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%إيرادات أخرى%' OR a.name LIKE '%فروق صرف%') THEN 'other_income'
-          WHEN a.type = 3 THEN 'revenue'
-          WHEN a.type = 4 AND a.c_id IN (3110, 3190, 3160) THEN 'cost_of_sales'
-          WHEN a.type = 4 AND (
+          WHEN (a.type = 4 OR a.code LIKE '4%') AND (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%إيرادات أخرى%' OR a.name LIKE '%فروق صرف%') THEN 'other_income'
+          WHEN (a.type = 4 OR a.code LIKE '4%') THEN 'revenue'
+          WHEN (a.type = 3 OR a.code LIKE '3%') AND (a.c_id IN (3110, 3190) OR a.code LIKE '311%' OR a.code LIKE '3001%' OR a.code LIKE '3008%' OR a.name LIKE '%مشتريات%' OR a.name LIKE '%تكلفة البضاعة%') THEN 'cost_of_sales'
+          WHEN (a.type = 3 OR a.code LIKE '3%') AND (
+            a.c_id IN (3120, 3130, 3140, 3150, 3170, 3180) OR
             a.code LIKE '312%' OR
             a.code LIKE '313%' OR
             a.code LIKE '314%' OR
-            a.code LIKE '315%'
+            a.code LIKE '315%' OR
+            a.code LIKE '3002%' OR
+            a.code LIKE '3003%' OR
+            a.code LIKE '3004%' OR
+            a.code LIKE '3005%' OR
+            a.code LIKE '3006%' OR
+            a.code LIKE '3007%'
           ) THEN 'operating_expenses'
-          WHEN a.type = 4 AND (a.code LIKE '316%' OR a.name LIKE '%ضريبة الدخل%' OR a.name LIKE '%ضريبة أرباح%') THEN 'tax_expense'
-          WHEN a.type = 4 THEN 'other_expenses'
+          WHEN (a.type = 3 OR a.code LIKE '3%') AND (a.c_id = 3160 OR a.code LIKE '316%' OR a.name LIKE '%ضريبة الدخل%' OR a.name LIKE '%ضريبة أرباح%') THEN 'tax_expense'
+          WHEN (a.type = 3 OR a.code LIKE '3%') THEN 'other_expenses'
           ELSE 'other'
         END as category,
         COALESCE(SUM(
           CASE 
-            WHEN a.type = 3 THEN jel.credit_amount - jel.debit_amount
-            WHEN a.type = 4 THEN jel.debit_amount - jel.credit_amount
+            WHEN (a.type = 4 OR a.code LIKE '4%') THEN jel.credit_amount - jel.debit_amount
+            WHEN (a.type = 3 OR a.code LIKE '3%') THEN jel.debit_amount - jel.credit_amount
             ELSE 0
           END
         ), 0) as amount
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1 AND (a.type = 4 OR a.type = 3)
+      WHERE a.is_active = 1 AND je.is_posted = 1 AND (a.type = 4 OR a.type = 3 OR a.code LIKE '4%' OR a.code LIKE '3%')
       $referenceExclusion
       $dateFilter
       GROUP BY category

@@ -22,9 +22,12 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   double _discountAmount = 0.0;
   double _total = 0.0;
 
+  late final PurchasesCubit _purchasesCubit;
+
   @override
   void initState() {
     super.initState();
+    _purchasesCubit = getIt<PurchasesCubit>();
     _initializeForm();
   }
 
@@ -44,6 +47,8 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
       _shippingAddressController.text = widget.invoice!.shippingAddress ?? '';
       _calculateTotals();
     } else {
+      _selectedSupplierId = 1;
+      _selectedWarehouseId = 1;
       _generateInvoiceNumber();
       _dateController.text = DateFormat('yyyy-MM-dd').format(_selectedDate);
     }
@@ -76,6 +81,8 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
     showDialog(
       context: context,
       builder: (context) => AddLineDialog(
+        stockId: _selectedWarehouseId ?? 1,
+        supplierId: _selectedSupplierId ?? 1,
         onAdd: (line) {
           setState(() {
             _invoiceLines.add(line);
@@ -91,6 +98,8 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
       context: context,
       builder: (context) => AddLineDialog(
         line: _invoiceLines[index],
+        stockId: _selectedWarehouseId ?? 1,
+        supplierId: _selectedSupplierId ?? 1,
         onAdd: (line) {
           setState(() {
             _invoiceLines[index] = line;
@@ -115,13 +124,18 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
         return;
       }
 
+      final supplierId = _selectedSupplierId ?? 1;
+      final warehouseId = _selectedWarehouseId ?? 1;
+
       final invoice = InvoiceEntity(
         id: widget.invoice?.id,
         number: _numberController.text,
         date: _selectedDate.millisecondsSinceEpoch ~/ 1000,
-        customerId: _selectedSupplierId!,
-        stockId: _selectedWarehouseId!,
-        statement: _statementController.text,
+        customerId: supplierId,
+        stockId: warehouseId,
+        statement: _statementController.text.trim().isEmpty
+            ? null
+            : _statementController.text.trim(),
         lines: _invoiceLines,
         amount: _subtotal,
         discountAmt: _discountAmount,
@@ -136,16 +150,18 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
         paymentStatus: widget.invoiceType == 3
             ? 0
             : (_paymentType == 0 ? 1 : 0),
-        shippingAddress: _shippingAddressController.text,
+        shippingAddress: _shippingAddressController.text.trim().isEmpty
+            ? null
+            : _shippingAddressController.text.trim(),
       );
 
       if (widget.invoice != null) {
-        context.read<PurchasesCubit>().updatePurchaseInvoice(invoice);
+        _purchasesCubit.updatePurchaseInvoice(invoice);
       } else {
         if (widget.invoiceType == 3) {
-          context.read<PurchasesCubit>().createPurchaseOrder(invoice);
+          _purchasesCubit.createPurchaseOrder(invoice);
         } else {
-          context.read<PurchasesCubit>().createPurchaseInvoice(invoice);
+          _purchasesCubit.createPurchaseInvoice(invoice);
         }
       }
     }
@@ -155,20 +171,36 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => getIt<PurchasesCubit>()),
+        BlocProvider.value(value: _purchasesCubit),
         BlocProvider(create: (_) => getIt<CustomersCubit>()..loadSuppliers()),
         BlocProvider(create: (_) => getIt<WarehousesCubit>()..loadWarehouses()),
       ],
       child: BlocListener<PurchasesCubit, PurchasesState>(
+        bloc: _purchasesCubit,
         listener: (context, state) {
-          if (state is PurchaseInvoiceCreated) {
+          if (state is PurchasesError) {
+            AppToast.showError(context, state.message);
+          } else if (state is PurchaseInvoiceCreated) {
             AppToast.showSuccess(context, 'تم إنشاء فاتورة المشتريات بنجاح');
-            context.pop();
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop(true);
+            } else if (context.canPop()) {
+              context.pop(true);
+            }
+          } else if (state is PurchaseOrderCreated) {
+            AppToast.showSuccess(context, 'تم إنشاء أمر الشراء بنجاح');
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop(true);
+            } else if (context.canPop()) {
+              context.pop(true);
+            }
           } else if (state is PurchaseInvoiceUpdated) {
             AppToast.showSuccess(context, 'تم تحديث فاتورة المشتريات بنجاح');
-            context.pop();
-          } else if (state is PurchasesError) {
-            AppToast.showError(context, state.message);
+            if (Navigator.of(context).canPop()) {
+              Navigator.of(context).pop(true);
+            } else if (context.canPop()) {
+              context.pop(true);
+            }
           }
         },
         child: Scaffold(
@@ -206,8 +238,9 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                       if (picked != null) {
                         setState(() {
                           _selectedDate = picked;
-                          _dateController.text =
-                              DateFormat('yyyy-MM-dd').format(picked);
+                          _dateController.text = DateFormat(
+                            'yyyy-MM-dd',
+                          ).format(picked);
                         });
                       }
                     },
@@ -255,5 +288,17 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _purchasesCubit.close();
+    _numberController.dispose();
+    _dateController.dispose();
+    _statementController.dispose();
+    _discountController.dispose();
+    _taxController.dispose();
+    _shippingAddressController.dispose();
+    super.dispose();
   }
 }

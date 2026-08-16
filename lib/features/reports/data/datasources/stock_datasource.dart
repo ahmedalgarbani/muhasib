@@ -9,9 +9,7 @@ abstract class StockDataSource {
     String? categoryId,
   });
 
-  Future<StockSummary> getStockSummary({
-    int? warehouseId,
-  });
+  Future<StockSummary> getStockSummary({int? warehouseId});
 }
 
 class StockDataSourceImpl implements StockDataSource {
@@ -48,46 +46,59 @@ class StockDataSourceImpl implements StockDataSource {
 
     final whereClause = where.isNotEmpty ? 'WHERE ${where.join(' AND ')}' : '';
 
-    // Query warehouse_stocks for accurate per-warehouse quantities
-    final query = '''
+    final hasWarehouseFilter = warehouseId != null;
+    final warehouseJoin = hasWarehouseFilter
+        ? 'LEFT JOIN warehouse_stocks ws ON ws.product_id = c.id'
+        : '';
+    final quantityExpression = hasWarehouseFilter
+        ? 'COALESCE(ws.quantity, 0)'
+        : 'COALESCE((SELECT SUM(wsq.quantity) FROM warehouse_stocks wsq WHERE wsq.product_id = c.id), c.quantity, 0)';
+    final costExpression = hasWarehouseFilter
+        ? 'COALESCE(ws.avg_cost, c.cost_amount, 0)'
+        : 'COALESCE((SELECT SUM(wsc.quantity * wsc.avg_cost) / NULLIF(SUM(wsc.quantity), 0) FROM warehouse_stocks wsc WHERE wsc.product_id = c.id), c.cost_amount, 0)';
+    final valueExpression = hasWarehouseFilter
+        ? 'COALESCE(ws.quantity * ws.avg_cost, 0)'
+        : 'COALESCE((SELECT SUM(wsv.quantity * wsv.avg_cost) FROM warehouse_stocks wsv WHERE wsv.product_id = c.id), c.quantity * c.cost_amount, 0)';
+
+    final query =
+        '''
       SELECT 
         c.id as product_id,
         c.barcode_no as product_code,
         c.name as product_name,
         cg.name as category_name,
         cu.name as unit_name,
-        COALESCE(ws.quantity, c.quantity, 0) as current_stock,
+        $quantityExpression as current_stock,
         COALESCE(c.min_stock_level, 0) as min_stock,
         COALESCE(c.max_stock_level, 999999) as max_stock,
-        COALESCE(ws.avg_cost, c.cost_amount, 0) as cost_price,
+        $costExpression as cost_price,
         COALESCE(c.sell_amount, 0) as sale_price,
-        COALESCE(ws.quantity * ws.avg_cost, c.quantity * c.cost_amount, 0) as stock_value,
-        COALESCE(ws.warehouse_id, c.stock_id) as warehouse_id,
+        $valueExpression as stock_value,
+        ${hasWarehouseFilter ? 'COALESCE(ws.warehouse_id, c.stock_id)' : 'c.stock_id'} as warehouse_id,
         COALESCE(s.name, 'غير محدد') as warehouse_name,
         (
           SELECT datetime(MAX(sm.creation_time), 'unixepoch')
           FROM stock_movements sm
           WHERE sm.product_id = c.id 
-          AND (sm.warehouse_id = ws.warehouse_id OR ws.warehouse_id IS NULL)
+          ${hasWarehouseFilter ? 'AND sm.warehouse_id = ws.warehouse_id' : ''}
         ) as last_movement_date
       FROM categories c
-      LEFT JOIN warehouse_stocks ws ON ws.product_id = c.id
+      $warehouseJoin
       LEFT JOIN categories_groups cg ON c.group_id = cg.id
       LEFT JOIN categories_units cu ON c.unit_id = cu.id
-      LEFT JOIN stocks s ON COALESCE(ws.warehouse_id, c.stock_id) = s.id
+      LEFT JOIN stocks s ON ${hasWarehouseFilter ? 'COALESCE(ws.warehouse_id, c.stock_id)' : 'c.stock_id'} = s.id
       $whereClause
+      ${hasWarehouseFilter ? '' : 'GROUP BY c.id'}
       ORDER BY c.name, s.name
     ''';
 
     final result = await db.rawQuery(query, args);
-    
+
     return result.map((map) => StockModel.fromMap(map)).toList();
   }
 
   @override
-  Future<StockSummary> getStockSummary({
-    int? warehouseId,
-  }) async {
+  Future<StockSummary> getStockSummary({int? warehouseId}) async {
     final db = await databaseService.database;
 
     final where = <String>['c.is_active = 1'];
@@ -98,33 +109,44 @@ class StockDataSourceImpl implements StockDataSource {
     }
     final whereClause = where.isNotEmpty ? 'WHERE ${where.join(' AND ')}' : '';
 
-    // Use warehouse_stocks for accurate per-warehouse quantities
-    final query = '''
+    final hasWarehouseFilter = warehouseId != null;
+    final warehouseJoin = hasWarehouseFilter
+        ? 'LEFT JOIN warehouse_stocks ws ON ws.product_id = c.id'
+        : '';
+    final quantityExpression = hasWarehouseFilter
+        ? 'COALESCE(ws.quantity, 0)'
+        : 'COALESCE((SELECT SUM(wsq.quantity) FROM warehouse_stocks wsq WHERE wsq.product_id = c.id), c.quantity, 0)';
+    final valueExpression = hasWarehouseFilter
+        ? 'COALESCE(ws.quantity * ws.avg_cost, 0)'
+        : 'COALESCE((SELECT SUM(wsv.quantity * wsv.avg_cost) FROM warehouse_stocks wsv WHERE wsv.product_id = c.id), c.quantity * c.cost_amount, 0)';
+
+    final query =
+        '''
       SELECT 
         COUNT(DISTINCT c.id) as total_products,
-        COALESCE(SUM(COALESCE(ws.quantity, c.quantity)), 0) as total_quantity,
-        COALESCE(SUM(COALESCE(ws.quantity * ws.avg_cost, c.quantity * c.cost_amount)), 0) as total_stock_value,
+        COALESCE(SUM($quantityExpression), 0) as total_quantity,
+        COALESCE(SUM($valueExpression), 0) as total_stock_value,
         COUNT(DISTINCT CASE 
-          WHEN COALESCE(ws.quantity, c.quantity) <= COALESCE(c.min_stock_level, 0) 
-          AND COALESCE(ws.quantity, c.quantity) > 0 
+          WHEN $quantityExpression <= COALESCE(c.min_stock_level, 0) 
+          AND $quantityExpression > 0 
           THEN c.id 
         END) as low_stock_count,
         COUNT(DISTINCT CASE 
           WHEN c.max_stock_level IS NOT NULL 
-          AND COALESCE(ws.quantity, c.quantity) >= c.max_stock_level 
+          AND $quantityExpression >= c.max_stock_level 
           THEN c.id 
         END) as over_stock_count,
         COUNT(DISTINCT CASE 
-          WHEN COALESCE(ws.quantity, c.quantity) <= 0 
+          WHEN $quantityExpression <= 0 
           THEN c.id 
         END) as out_of_stock_count
       FROM categories c
-      LEFT JOIN warehouse_stocks ws ON ws.product_id = c.id
+      $warehouseJoin
       $whereClause
     ''';
 
     final result = await db.rawQuery(query, args);
-    
+
     if (result.isNotEmpty) {
       final row = result.first;
       return StockSummary(

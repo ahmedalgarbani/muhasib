@@ -157,6 +157,12 @@ class DatabaseService implements IDatabaseService {
     try {
       await seedDefaultFiscalPeriods(db);
     } catch (_) {}
+    try {
+      await seedDefaultFunds(db);
+    } catch (_) {}
+    try {
+      await seedDefaultBanks(db);
+    } catch (_) {}
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -418,6 +424,8 @@ class DatabaseService implements IDatabaseService {
     seedDefaultStocks,
     seedDefaultCustomers,
     seedDefaultAccounts,
+    seedDefaultFunds,
+    seedDefaultBanks,
     seedDefaultNumberSequences,
     seedDefaultFiscalPeriods,
   ];
