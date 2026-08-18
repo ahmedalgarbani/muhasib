@@ -81,50 +81,101 @@ class _ReportsHubPageState extends State<ReportsHubPage>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        backgroundColor: theme.scaffoldBackgroundColor,
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.surface,
+          backgroundColor: theme.scaffoldBackgroundColor,
           elevation: 0,
-          leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back,
-              color: Theme.of(context).colorScheme.onSurface,
+          scrolledUnderElevation: 0,
+          leading: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Material(
+              color: theme.colorScheme.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                side: BorderSide(color: theme.dividerColor, width: 1),
+              ),
+              child: InkWell(
+                onTap: () => context.safePop(),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: SizedBox(
+                  width: 38,
+                  height: 38,
+                  child: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: theme.colorScheme.onSurface,
+                    size: 18,
+                  ),
+                ),
+              ),
             ),
-            onPressed: () => context.safePop(),
           ),
-          title: const Text(
-            'التقارير',
+          title: Text(
+            'مركز التقارير',
             style: TextStyle(
-              color: AppColors.customBlue,
+              color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
               fontSize: 18,
               fontWeight: FontWeight.bold,
+              letterSpacing: 0.2,
             ),
           ),
           centerTitle: true,
-          bottom: TabBar(
-            controller: _tabController,
-            isScrollable: true,
-            indicatorColor: AppColors.customBlue,
-            indicatorWeight: 3,
-            labelColor: AppColors.customBlue,
-            unselectedLabelColor: Colors.grey,
-            tabs: _tabs
-                .map(
-                  (tab) => Tab(
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(tab.icon, size: 20),
-                        const SizedBox(width: 8),
-                        Text(tab.title),
-                      ],
-                    ),
-                  ),
-                )
-                .toList(),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(48),
+            child: Container(
+              height: 44,
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              child: TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                tabAlignment: TabAlignment.start,
+                indicator: BoxDecoration(
+                  color: isDark ? AppColors.primaryLight : AppColors.primary,
+                  borderRadius: BorderRadius.circular(AppRadius.xl28),
+                ),
+                indicatorSize: TabBarIndicatorSize.tab,
+                dividerColor: Colors.transparent,
+                labelColor: Colors.white,
+                unselectedLabelColor: theme.colorScheme.onSurfaceVariant,
+                labelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Tajawal',
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'Tajawal',
+                ),
+                padding: EdgeInsets.zero,
+                labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                tabs: _tabs
+                    .map(
+                      (tab) => Tab(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(AppRadius.xl28),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(tab.icon, size: 16),
+                              const SizedBox(width: 6),
+                              Text(tab.title),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
           ),
         ),
         body: Column(

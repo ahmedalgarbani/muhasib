@@ -147,7 +147,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE (a.type = 3 OR a.code LIKE '3%') AND (a.c_id IN (3110, 3190) OR a.code LIKE '311%' OR a.code LIKE '3001%' OR a.code LIKE '3008%' OR a.name LIKE '%مشتريات%' OR a.name LIKE '%تكلفة البضاعة%') AND a.is_active = 1 AND je.is_posted = 1
+      WHERE (a.type = 3 OR a.code LIKE '3%') AND (a.c_id IN (3110, 3190, 3160) OR a.code LIKE '311%' OR a.code LIKE '3001%' OR a.code LIKE '3008%' OR a.code LIKE '3009%' OR a.name LIKE '%مشتريات%' OR a.name LIKE '%تكلفة البضاعة%') AND a.is_active = 1 AND je.is_posted = 1
       $referenceExclusion
       $dateFilter
       GROUP BY a.id, a.code, a.name
@@ -283,8 +283,6 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
       WHERE (a.type = 3 OR a.code LIKE '3%') AND a.is_active = 1 AND je.is_posted = 1
         AND (
-          a.c_id = 3160 OR
-          a.code LIKE '316%' OR
           a.name LIKE '%ضريبة الدخل%' OR
           a.name LIKE '%ضريبة أرباح%'
         )
@@ -367,7 +365,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
         CASE 
           WHEN (a.type = 4 OR a.code LIKE '4%') AND (a.code LIKE '42%' OR a.code LIKE '43%' OR a.name LIKE '%أرباح%' OR a.name LIKE '%إيرادات أخرى%' OR a.name LIKE '%فروق صرف%') THEN 'other_income'
           WHEN (a.type = 4 OR a.code LIKE '4%') THEN 'revenue'
-          WHEN (a.type = 3 OR a.code LIKE '3%') AND (a.c_id IN (3110, 3190) OR a.code LIKE '311%' OR a.code LIKE '3001%' OR a.code LIKE '3008%' OR a.name LIKE '%مشتريات%' OR a.name LIKE '%تكلفة البضاعة%') THEN 'cost_of_sales'
+          WHEN (a.type = 3 OR a.code LIKE '3%') AND (a.c_id IN (3110, 3190, 3160) OR a.code LIKE '311%' OR a.code LIKE '3001%' OR a.code LIKE '3008%' OR a.code LIKE '3009%' OR a.name LIKE '%مشتريات%' OR a.name LIKE '%تكلفة البضاعة%') THEN 'cost_of_sales'
           WHEN (a.type = 3 OR a.code LIKE '3%') AND (
             a.c_id IN (3120, 3130, 3140, 3150, 3170, 3180) OR
             a.code LIKE '312%' OR
@@ -381,7 +379,7 @@ class IncomeStatementDataSourceImpl implements IncomeStatementDataSource {
             a.code LIKE '3006%' OR
             a.code LIKE '3007%'
           ) THEN 'operating_expenses'
-          WHEN (a.type = 3 OR a.code LIKE '3%') AND (a.c_id = 3160 OR a.code LIKE '316%' OR a.name LIKE '%ضريبة الدخل%' OR a.name LIKE '%ضريبة أرباح%') THEN 'tax_expense'
+          WHEN (a.type = 3 OR a.code LIKE '3%') AND (a.name LIKE '%ضريبة الدخل%' OR a.name LIKE '%ضريبة أرباح%') THEN 'tax_expense'
           WHEN (a.type = 3 OR a.code LIKE '3%') THEN 'other_expenses'
           ELSE 'other'
         END as category,

@@ -104,6 +104,12 @@ class AppNavigator {
       ],
     ),
 
+    NavItem(
+      title: 'نقطة البيع',
+      icon: Icons.point_of_sale_rounded,
+      route: AppRoutes.pos,
+    ),
+
     // ======= المشتريات =======
     NavItem(
       title: 'المشتريات',

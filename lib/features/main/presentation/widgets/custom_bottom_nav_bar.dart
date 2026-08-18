@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
@@ -16,32 +17,37 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = Theme.of(context).colorScheme.surface;
+
     return Container(
-      margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppRadius.xl28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.07),
+            blurRadius: 20,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(AppRadius.xl28),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            height: 72,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            height: 68,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withOpacity(0.85),
+              color: surfaceColor.withValues(alpha: isDark ? 0.92 : 0.95),
               borderRadius: BorderRadius.circular(AppRadius.xl28),
               border: Border.all(
-                color: Colors.white.withOpacity(0.2),
-                width: 1.5,
+                color: isDark
+                    ? AppColors.borderDark.withValues(alpha: 0.6)
+                    : AppColors.borderLight.withValues(alpha: 0.9),
+                width: 1.2,
               ),
             ),
             child: Row(
@@ -54,19 +60,20 @@ class CustomBottomNavBar extends StatelessWidget {
                   onTap: () => _handleTap(context, 0, AppRoutes.home),
                 ),
                 _NavBarItem(
-                  icon: Icons.shopping_cart_rounded,
+                  icon: Icons.point_of_sale_rounded,
                   label: 'المبيعات',
                   isActive: currentIndex == 1,
                   onTap: () => _handleTap(context, 1, AppRoutes.salesList),
                 ),
                 _NavBarItem(
-                  icon: Icons.analytics_rounded,
+                  icon: Icons.analytics_outlined,
+                  activeIcon: Icons.analytics_rounded,
                   label: 'التقارير',
                   isActive: currentIndex == 2,
                   onTap: () => _handleTap(context, 2, AppRoutes.reports),
                 ),
                 _NavBarItem(
-                  icon: Icons.settings_suggest_rounded,
+                  icon: Icons.tune_rounded,
                   label: 'الإعدادات',
                   isActive: currentIndex == 3,
                   onTap: () => _handleTap(context, 3, AppRoutes.settings),
@@ -92,12 +99,14 @@ class CustomBottomNavBar extends StatelessWidget {
 
 class _NavBarItem extends StatelessWidget {
   final IconData icon;
+  final IconData? activeIcon;
   final String label;
   final bool isActive;
   final VoidCallback onTap;
 
   const _NavBarItem({
     required this.icon,
+    this.activeIcon,
     required this.label,
     required this.isActive,
     required this.onTap,
@@ -105,38 +114,48 @@ class _NavBarItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryColor = theme.primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.primaryLight : AppColors.primary;
+    final inactiveColor = isDark ? AppColors.slate400 : AppColors.slate500;
 
-    return InkResponse(
-      onTap: onTap,
-      radius: 35,
-      splashColor: primaryColor.withOpacity(0.1),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 300),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: isActive ? primaryColor.withOpacity(0.12) : Colors.transparent,
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isActive ? primaryColor : Colors.grey[400],
-              size: 26,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              style: TextStyle(
-                color: isActive ? primaryColor : Colors.grey[500],
-                fontSize: 10,
-                fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          decoration: BoxDecoration(
+            color: isActive
+                ? (isDark
+                      ? AppColors.primaryDark.withValues(alpha: 0.4)
+                      : AppColors.saudiMint)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(AppRadius.lg20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                isActive ? (activeIcon ?? icon) : icon,
+                color: isActive ? primaryColor : inactiveColor,
+                size: 23,
               ),
-            ),
-          ],
+              const SizedBox(height: 3),
+              Text(
+                label,
+                style: TextStyle(
+                  color: isActive ? primaryColor : inactiveColor,
+                  fontSize: 11,
+                  fontWeight: isActive ? FontWeight.bold : FontWeight.w500,
+                  letterSpacing: 0.1,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

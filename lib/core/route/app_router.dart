@@ -43,12 +43,14 @@ import 'package:muhasib/features/sales/presentation/pages/quotations_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/returns_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/return_invoice_form_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/select_invoice_for_return_page.dart';
+import 'package:muhasib/features/sales/presentation/pages/pos_page.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/customers/presentation/pages/customers_profile_page.dart';
 import 'package:muhasib/features/customers/presentation/pages/suppliers_profile_page.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchases_list_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_form_page.dart';
 import 'package:muhasib/features/purchases/presentation/pages/purchase_orders_page.dart';
@@ -354,6 +356,19 @@ final router = GoRouter(
           ),
         );
       },
+    ),
+    GoRoute(
+      path: AppRoutes.pos,
+      name: AppRoutes.pos,
+      builder: (context, state) => MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (_) => getIt<SalesCubit>()),
+          BlocProvider(create: (_) => getIt<ProductsCubit>()),
+          BlocProvider(create: (_) => getIt<CustomersCubit>()),
+          BlocProvider(create: (_) => getIt<ProductGroupsCubit>()),
+        ],
+        child: const PosPage(),
+      ),
     ),
 
     // ======= المشتريات =======

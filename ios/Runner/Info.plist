@@ -4,6 +4,8 @@
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>يحتاج التطبيق إلى الكاميرا لمسح باركود المنتجات.</string>
 	<key>CFBundleDisplayName</key>
 	<string>Muhasib</string>
 	<key>CFBundleExecutable</key>

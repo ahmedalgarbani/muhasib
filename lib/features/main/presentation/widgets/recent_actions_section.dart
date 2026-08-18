@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/accounts/presentation/pages/account_detail_old.dart';
 import 'package:muhasib/features/main/presentation/cubit/main_cubit.dart';
@@ -7,24 +8,25 @@ import 'package:muhasib/features/main/presentation/widgets/recent_action_item.da
 class RecentActionsSection extends StatelessWidget {
   final List<RecentTransactionEntity> transactions;
 
-  const RecentActionsSection({
-    super.key,
-    required this.transactions,
-  });
+  const RecentActionsSection({super.key, required this.transactions});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg20),
+        border: Border.all(color: theme.dividerColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.025),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -34,8 +36,16 @@ class RecentActionsSection extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              TextButton(
-                onPressed: () {
+              const Text(
+                'آخر العمليات',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2,
+                ),
+              ),
+              InkWell(
+                onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -43,34 +53,68 @@ class RecentActionsSection extends StatelessWidget {
                     ),
                   );
                 },
-                child: const Text('عرض الكل', style: TextStyle(fontSize: 12)),
-              ),
-              const Flexible(
-                child: Text(
-                  'آخر العمليات',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        'عرض الكل',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: isDark
+                              ? AppColors.primaryLight
+                              : AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.chevron_left_rounded,
+                        size: 16,
+                        color: isDark
+                            ? AppColors.primaryLight
+                            : AppColors.primary,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           if (transactions.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 24),
               child: Center(
                 child: Column(
                   children: [
-                    Icon(
-                      Icons.receipt_long_outlined,
-                      size: 40,
-                      color: Colors.grey[400],
+                    Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? AppColors.borderDark
+                            : AppColors.slate100,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.receipt_long_outlined,
+                        size: 26,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Text(
                       'لا توجد عمليات مسجلة حتى الآن',
                       style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
+                        fontSize: 13,
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],

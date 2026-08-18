@@ -54,14 +54,25 @@ class AccountColors {
     }
   }
 }
+
 class AppColors {
-  // Primary colors
-  static const primary = Color(0xFF2563EB);
-  static const primaryDark = Color(0xFF1E40AF);
-  static const primaryLight = Color(0xFF3B82F6);
+  // Saudi Deep Royal Emerald & Modern Palette
+  static const primary = Color(0xFF006C35);
+  static const primaryDark = Color(0xFF004D25);
+  static const primaryLight = Color(0xFF059669);
+  static const primaryAccent = Color(0xFF10B981);
+  static const primarySurface = Color(0xFFECFDF5);
+
+  // Saudi Brand Accents
+  static const saudiEmerald = Color(0xFF006C35);
+  static const saudiEmeraldDark = Color(0xFF004D25);
+  static const saudiEmeraldLight = Color(0xFF059669);
+  static const saudiMint = Color(0xFFECFDF5);
+  static const saudiGold = Color(0xFFD97706);
+  static const saudiGoldLight = Color(0xFFFFFBEB);
 
   static const success = Color(0xFF10B981);
-  static const successLight = Color(0xFFD1FAE5);
+  static const successLight = Color(0xFFECFDF5);
 
   static const warning = Color(0xFFF59E0B);
   static const warningLight = Color(0xFFFEF3C7);
@@ -69,28 +80,31 @@ class AppColors {
   static const error = Color(0xFFEF4444);
   static const errorLight = Color(0xFFFEE2E2);
 
-  static const info = Color(0xFF3B82F6);
-  static const infoLight = Color(0xFFDBEAFE);
+  static const info = Color(0xFF0284C7);
+  static const infoLight = Color(0xFFE0F2FE);
 
-  // Surface and Dark/Light variations
+  // Surface and Dark/Light variations (Clean Canvas)
   static const surfaceDark = Color(0xFF1E293B);
   static const surfaceLight = Colors.white;
   static const surface = Colors.white;
+  static const cardSurfaceDark = Color(0xFF1E293B);
+  static const cardSurfaceLight = Colors.white;
   static const borderDark = Color(0xFF334155);
   static const borderLight = Color(0xFFE2E8F0);
-  static const border = Color(0xFFE5E7EB);
+  static const border = Color(0xFFE2E8F0);
   static const textPrimaryDark = Color(0xFFF8FAFC);
-  static const textPrimaryLight = Color(0xFF1E293B);
+  static const textPrimaryLight = Color(0xFF0F172A);
   static const textSecondaryDark = Color(0xFF94A3B8);
   static const textSecondaryLight = Color(0xFF64748B);
-  static const textDisabled = Color(0xFF9CA3AF);
+  static const textDisabled = Color(0xFF94A3B8);
 
   // Shared colors and aliases
-  static const textPrimary = Color(0xFF1E293B);
+  static const textPrimary = Color(0xFF0F172A);
   static const textSecondary = Color(0xFF64748B);
   static const white = Colors.white;
   static const darkSecondary = Color(0xFF475569);
   static const background = Color(0xFFF8FAFC);
+  static const backgroundDark = Color(0xFF0F172A);
 
   // Tailwind-like Grey scale
   static const gray50 = Color(0xFFF9FAFB);
@@ -246,6 +260,6 @@ class AppColors {
   static const materialIndigo500 = Color(0xFF3F51B5);
 
   // Custom
-  static const customBlue = Color(0xFF4A90E2);
+  static const customBlue = Color(0xFF006C35);
   static const orange500Alpha = Color(0x4DFF9800);
 }

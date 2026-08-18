@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class RecentActionItem extends StatelessWidget {
@@ -19,63 +20,81 @@ class RecentActionItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final color = isIncome ? AppColors.saudiEmerald : AppColors.error;
+    final bgColor = isIncome
+        ? (isDark
+              ? AppColors.primaryDark.withValues(alpha: 0.35)
+              : AppColors.saudiMint)
+        : (isDark
+              ? AppColors.error.withValues(alpha: 0.2)
+              : AppColors.errorLight);
+
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6),
-      padding: EdgeInsets.all(8),
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: Theme.of(context).dividerColor),
+        color: isDark ? theme.colorScheme.surface : AppColors.slate50,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: theme.dividerColor, width: 1),
       ),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Text(
-                '${isIncome ? '+' : '-'}$amount',
-                style: TextStyle(
-                  color: isIncome ? Colors.green : Colors.red,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Text(
-                    date,
-                    style: TextStyle(
-                      color: Colors.grey[500],
-                      fontSize: 13,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          SizedBox(
-            width: 12,
-          ),
           Container(
-            width: 48,
-            height: 48,
+            width: 40,
+            height: 40,
             decoration: BoxDecoration(
-              color: isIncome ? Colors.green[50] : Colors.red[50],
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              color: bgColor,
+              borderRadius: BorderRadius.circular(AppRadius.sm10),
             ),
             child: Icon(
               icon,
-              color: isIncome ? Colors.green : Colors.red,
-              size: 24,
+              color: isDark && isIncome ? AppColors.emerald300 : color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 13.5,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  date,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.normal,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Directionality(
+            textDirection: TextDirection.ltr,
+            child: Text(
+              '${isIncome ? '+' : '-'}$amount',
+              style: TextStyle(
+                color: isDark && isIncome ? AppColors.emerald300 : color,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.3,
+              ),
             ),
           ),
         ],

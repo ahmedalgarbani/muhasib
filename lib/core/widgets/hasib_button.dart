@@ -63,12 +63,12 @@ class HasibButton extends StatelessWidget {
             : colorScheme.onSurfaceVariant;
         break;
       case HasibButtonVariant.danger:
-        backgroundColor = isEnabled ? Colors.red : Colors.red.shade200;
-        foregroundColor = Colors.white;
+        backgroundColor = isEnabled ? AppColors.error : AppColors.errorLight;
+        foregroundColor = isEnabled ? Colors.white : AppColors.red800;
         break;
       case HasibButtonVariant.success:
-        backgroundColor = isEnabled ? Colors.green : Colors.green.shade200;
-        foregroundColor = Colors.white;
+        backgroundColor = isEnabled ? AppColors.success : AppColors.successLight;
+        foregroundColor = isEnabled ? Colors.white : AppColors.emerald800;
         break;
     }
 
@@ -84,7 +84,7 @@ class HasibButton extends StatelessWidget {
             width: 18,
             height: 18,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
+              strokeWidth: 2.2,
               valueColor: AlwaysStoppedAnimation<Color>(foregroundColor),
             ),
           ),
@@ -104,6 +104,7 @@ class HasibButton extends StatelessWidget {
           style: TextStyle(
             fontSize: fontSize ?? 15,
             fontWeight: FontWeight.bold,
+            letterSpacing: 0.2,
           ),
         ),
       ],
@@ -116,7 +117,7 @@ class HasibButton extends StatelessWidget {
           foregroundColor: foregroundColor,
           padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(AppRadius.sm14),
           ),
         ),
         child: content,
@@ -131,16 +132,16 @@ class HasibButton extends StatelessWidget {
           width: shouldExpand ? double.infinity : null,
           height: height,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppRadius.md),
+            borderRadius: BorderRadius.circular(AppRadius.sm14),
             boxShadow: (variant == HasibButtonVariant.primary ||
                     variant == HasibButtonVariant.danger ||
                     variant == HasibButtonVariant.success) &&
                     isEnabled
                 ? [
                     BoxShadow(
-                      color: backgroundColor.withValues(alpha: 0.25),
-                      blurRadius: 8,
-                      offset: const Offset(0, 4),
+                      color: backgroundColor.withValues(alpha: 0.22),
+                      blurRadius: 10,
+                      offset: const Offset(0, 3),
                     )
                   ]
                 : null,
@@ -152,10 +153,10 @@ class HasibButton extends StatelessWidget {
               foregroundColor: foregroundColor,
               disabledBackgroundColor: backgroundColor,
               disabledForegroundColor: foregroundColor,
-              padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+              padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
               elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
+                borderRadius: BorderRadius.circular(AppRadius.sm14),
                 side: borderSide,
               ),
             ),

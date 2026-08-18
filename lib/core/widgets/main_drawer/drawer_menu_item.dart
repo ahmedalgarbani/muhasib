@@ -83,15 +83,15 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
             child: InkWell(
               onTap: _onTap,
               borderRadius: BorderRadius.circular(AppRadius.md),
-              splashColor: AppColors.blue100,
-              highlightColor: AppColors.blue50.withValues(alpha: 0.5),
+              splashColor: AppColors.saudiMint,
+              highlightColor: AppColors.saudiMint.withValues(alpha: 0.5),
               child: Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: isChild ? 10 : 12,
                 ),
                 decoration: BoxDecoration(
-                  color: _isExpanded ? AppColors.blue50 : Colors.transparent,
+                  color: _isExpanded ? AppColors.saudiMint : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Row(
@@ -158,14 +158,15 @@ class _DrawerItemIcon extends StatelessWidget {
       width: 32,
       height: 32,
       decoration: BoxDecoration(
-        color: isChild ? AppColors.gray100 : AppColors.blue100,
+        color: isChild ? AppColors.slate100 : AppColors.saudiMint,
         borderRadius: BorderRadius.circular(10),
       ),
       child: Icon(
         icon,
         size: isChild ? 16 : 18,
-        color: isChild ? AppColors.textSecondary : AppColors.blue700,
+        color: isChild ? AppColors.textSecondary : AppColors.primary,
       ),
     );
   }
 }
+

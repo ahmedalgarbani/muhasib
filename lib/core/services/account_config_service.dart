@@ -19,7 +19,7 @@ class AccountConnectTypes {
   static const int salesCommissionExpense = 14;
   static const int commissionPayable = 15;
   static const int exchangeGainLoss = 16;
-  static const int inputVAT = 17;  // ضريبة المدخلات (مشتريات)
+  static const int inputVAT = 17; // ضريبة المدخلات (مشتريات)
   static const int outputVAT = 18; // ضريبة المخرجات (مبيعات)
 }
 
@@ -42,24 +42,24 @@ class DefaultAccountIds {
   static const int commissionPayable = 2160;
   static const int exchangeGains = 4160;
   static const int exchangeLosses = 3170;
-  static const int inputVAT = 1170;  // ضريبة مدخلات قابلة للاسترداد
+  static const int inputVAT = 1170; // ضريبة مدخلات قابلة للاسترداد
   static const int outputVAT = 2170; // ضريبة مخرجات مستحقة
 }
 
 /// Service for retrieving dynamically configured account IDs from account_connects table
 class AccountConfigService {
   final Database database;
-  
+
   // Cache for account IDs
   final Map<int, int?> _accountIdCache = {};
-  
+
   AccountConfigService({required this.database});
-  
+
   /// Clear the cache (call when account connects are updated)
   void clearCache() {
     _accountIdCache.clear();
   }
-  
+
   /// Get the configured account c_id for a given connect type
   /// Returns the default account ID if no connection is configured
   Future<int> getAccountId(int connectType, {int? defaultId}) async {
@@ -69,7 +69,7 @@ class AccountConfigService {
       if (cached != null) return cached;
       return defaultId ?? _getDefaultForType(connectType);
     }
-    
+
     try {
       final result = await database.query(
         'account_connects',
@@ -77,7 +77,7 @@ class AccountConfigService {
         whereArgs: [connectType],
         limit: 1,
       );
-      
+
       if (result.isNotEmpty && result.first['c_id'] != null) {
         final accountCId = result.first['c_id'] as int;
         _accountIdCache[connectType] = accountCId;
@@ -86,12 +86,12 @@ class AccountConfigService {
     } catch (e) {
       // Database error, use default
     }
-    
+
     // No connection found, cache null and return default
     _accountIdCache[connectType] = null;
     return defaultId ?? _getDefaultForType(connectType);
   }
-  
+
   /// Get default account ID for a connect type
   int _getDefaultForType(int connectType) {
     switch (connectType) {
@@ -127,7 +127,7 @@ class AccountConfigService {
         return 100; // Fallback
     }
   }
-  
+
   /// Get sales-related account IDs
   Future<SalesAccountConfig> getSalesAccountConfig() async {
     return SalesAccountConfig(
@@ -136,13 +136,21 @@ class AccountConfigService {
       bankAccountId: await getAccountId(AccountConnectTypes.banks),
       customersAccountId: await getAccountId(AccountConnectTypes.customers),
       taxAccountId: await getAccountId(AccountConnectTypes.taxes),
-      salesReturnsAccountId: await getAccountId(AccountConnectTypes.salesReturns, defaultId: DefaultAccountIds.salesReturns),
-      discountAllowedAccountId: await getAccountId(AccountConnectTypes.discountAllowed),
+      salesReturnsAccountId: await getAccountId(
+        AccountConnectTypes.salesReturns,
+        defaultId: DefaultAccountIds.salesReturns,
+      ),
+      discountAllowedAccountId: await getAccountId(
+        AccountConnectTypes.discountAllowed,
+      ),
       inventoryAccountId: await getAccountId(AccountConnectTypes.inventory),
-      costOfGoodsSoldAccountId: await getAccountId(AccountConnectTypes.costOfGoodsSold, defaultId: DefaultAccountIds.costOfGoodsSold),
+      costOfGoodsSoldAccountId: await getAccountId(
+        AccountConnectTypes.costOfGoodsSold,
+        defaultId: DefaultAccountIds.costOfGoodsSold,
+      ),
     );
   }
-  
+
   /// Get purchase-related account IDs
   Future<PurchaseAccountConfig> getPurchaseAccountConfig() async {
     return PurchaseAccountConfig(
@@ -151,8 +159,13 @@ class AccountConfigService {
       bankAccountId: await getAccountId(AccountConnectTypes.banks),
       suppliersAccountId: await getAccountId(AccountConnectTypes.suppliers),
       taxAccountId: await getAccountId(AccountConnectTypes.taxes),
-      purchaseReturnsAccountId: await getAccountId(AccountConnectTypes.purchaseReturns, defaultId: DefaultAccountIds.purchaseReturns),
-      discountEarnedAccountId: await getAccountId(AccountConnectTypes.discountEarned),
+      purchaseReturnsAccountId: await getAccountId(
+        AccountConnectTypes.purchaseReturns,
+        defaultId: DefaultAccountIds.purchaseReturns,
+      ),
+      discountEarnedAccountId: await getAccountId(
+        AccountConnectTypes.discountEarned,
+      ),
       inventoryAccountId: await getAccountId(AccountConnectTypes.inventory),
     );
   }
@@ -181,7 +194,7 @@ class SalesAccountConfig {
     required this.inventoryAccountId,
     required this.costOfGoodsSoldAccountId,
   });
-  
+
   /// Create default configuration
   static const SalesAccountConfig defaults = SalesAccountConfig(
     salesAccountId: DefaultAccountIds.sales,
@@ -217,7 +230,7 @@ class PurchaseAccountConfig {
     required this.discountEarnedAccountId,
     required this.inventoryAccountId,
   });
-  
+
   /// Create default configuration
   static const PurchaseAccountConfig defaults = PurchaseAccountConfig(
     purchasesAccountId: DefaultAccountIds.purchases,

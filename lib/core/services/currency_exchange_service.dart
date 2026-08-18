@@ -145,13 +145,18 @@ class CurrencyExchangeService {
         });
         
         // 4. If there's an exchange difference, record it
-        if (diffAbs > 0.005 && exchangeDifferenceAccountId != null) {
+        final diffAccountId = exchangeDifferenceAccountId ??
+            (diffAbs > 0.005
+                ? await _resolveExchangeDifferenceAccount(txn, isProfit)
+                : null);
+
+        if (diffAbs > 0.005 && diffAccountId != null) {
           if (isProfit) {
             // Profit from exchange - Credit to income
             await txn.insert('journal_entry_lines', {
               'journal_entry_id': journalEntryId,
               'line_number': lineNumber++,
-              'account_id': exchangeDifferenceAccountId,
+              'account_id': diffAccountId,
               'account_code': '',
               'account_name': '',
               'currency_id': null,
@@ -165,7 +170,7 @@ class CurrencyExchangeService {
             await txn.insert('journal_entry_lines', {
               'journal_entry_id': journalEntryId,
               'line_number': lineNumber++,
-              'account_id': exchangeDifferenceAccountId,
+              'account_id': diffAccountId,
               'account_code': '',
               'account_name': '',
               'currency_id': null,
@@ -180,7 +185,11 @@ class CurrencyExchangeService {
         // 5. Update the exchange record with journal entry ID
         await txn.update(
           'currency_exchanges',
-          {'journal_entry_id': journalEntryId},
+          {
+            'journal_entry_id': journalEntryId,
+            if (diffAccountId != null && exchangeDifferenceAccountId == null)
+              'exchange_difference_account_id': diffAccountId,
+          },
           where: 'id = ?',
           whereArgs: [exchangeId],
         );
@@ -188,11 +197,11 @@ class CurrencyExchangeService {
         // 6. Apply balance updates to accounts
         await _applyAccountBalanceDelta(txn, debitAccountId, debitLocalAmount);
         await _applyAccountBalanceDelta(txn, creditAccountId, -creditLocalAmount);
-        if (diffAbs > 0.005 && exchangeDifferenceAccountId != null) {
+        if (diffAbs > 0.005 && diffAccountId != null) {
           if (isProfit) {
-            await _applyAccountBalanceDelta(txn, exchangeDifferenceAccountId, -diffAbs);
+            await _applyAccountBalanceDelta(txn, diffAccountId, -diffAbs);
           } else {
-            await _applyAccountBalanceDelta(txn, exchangeDifferenceAccountId, diffAbs);
+            await _applyAccountBalanceDelta(txn, diffAccountId, diffAbs);
           }
         }
         
@@ -564,5 +573,47 @@ class CurrencyExchangeService {
       where: 'id = ?',
       whereArgs: [accountId],
     );
+  }
+
+  Future<int?> _resolveExchangeDifferenceAccount(Transaction txn, bool isProfit) async {
+    // 1. Try account_connects (type 16)
+    final connect = await txn.query(
+      'account_connects',
+      columns: ['c_id'],
+      where: 'account_connect_type = ?',
+      whereArgs: [16],
+      limit: 1,
+    );
+    final targetCId = connect.isNotEmpty
+        ? (connect.first['c_id'] as int?)
+        : (isProfit ? 4160 : 3170);
+
+    if (targetCId != null) {
+      final acc = await txn.query(
+        'accounts',
+        columns: ['id'],
+        where: 'c_id = ?',
+        whereArgs: [targetCId],
+        limit: 1,
+      );
+      if (acc.isNotEmpty && acc.first['id'] != null) {
+        return acc.first['id'] as int;
+      }
+    }
+
+    // 2. Fallback by name search
+    final nameSearch = isProfit ? '%أرباح فروق صرف%' : '%خسائر فروق صرف%';
+    final byName = await txn.query(
+      'accounts',
+      columns: ['id'],
+      where: 'name LIKE ?',
+      whereArgs: [nameSearch],
+      limit: 1,
+    );
+    if (byName.isNotEmpty && byName.first['id'] != null) {
+      return byName.first['id'] as int;
+    }
+
+    return null;
   }
 }

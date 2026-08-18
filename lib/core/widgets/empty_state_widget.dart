@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 
 /// Reusable Empty State Widget for lists, pages, and components with no data.
@@ -27,7 +28,8 @@ class EmptyStateWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final defaultIconColor = iconColor ?? colorScheme.outlineVariant;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final defaultIconColor = iconColor ?? (isDark ? AppColors.primaryLight : AppColors.primary);
 
     return Center(
       child: Padding(
@@ -37,17 +39,33 @@ class EmptyStateWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: iconSize,
-              color: defaultIconColor,
+            Container(
+              width: 88,
+              height: 88,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? AppColors.primaryDark.withValues(alpha: 0.3)
+                    : AppColors.saudiMint,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark
+                      ? AppColors.primaryLight.withValues(alpha: 0.2)
+                      : AppColors.emerald200,
+                  width: 1.5,
+                ),
+              ),
+              child: Icon(
+                icon,
+                size: 38,
+                color: defaultIconColor,
+              ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Text(
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.bold,
                 color: colorScheme.onSurface,
               ),
@@ -58,7 +76,7 @@ class EmptyStateWidget extends StatelessWidget {
                 subtitle!,
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 13.5,
                   color: colorScheme.onSurfaceVariant,
                 ),
               ),
@@ -71,7 +89,7 @@ class EmptyStateWidget extends StatelessWidget {
               HasibButton(
                 label: actionText!,
                 onPressed: onActionPressed,
-                leading: const Icon(Icons.add),
+                leading: const Icon(Icons.add_rounded),
                 variant: HasibButtonVariant.primary,
               ),
             ],

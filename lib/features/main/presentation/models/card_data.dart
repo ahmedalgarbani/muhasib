@@ -13,7 +13,7 @@ class CardData {
   const CardData({
     required this.title,
     required this.balance,
-    this.currency = 'RY',
+    this.currency = 'YER',
     this.type = CardType.primary,
     this.subtitle,
     this.icon,
@@ -22,26 +22,35 @@ class CardData {
   List<Color> get gradientColors {
     switch (type) {
       case CardType.primary:
-        return const [Color(0xFF006D74), Color(0xFF004B50)]; // Shamil Money Deep Teal
+        return const [
+          Color(0xFF006C35),
+          Color(0xFF004D25),
+        ]; // Saudi Royal Emerald
       case CardType.secondary:
-        return const [Color(0xFF1E3A8A), Color(0xFF0F172A)]; // Royal Deep Blue
+        return const [
+          Color(0xFF0F2E22),
+          Color(0xFF061C14),
+        ]; // Deep Forest Emerald
       case CardType.tertiary:
-        return const [Color(0xFF047857), Color(0xFF064E3B)]; // Emerald Green
+        return const [Color(0xFF1E293B), Color(0xFF0F172A)]; // Sleek Tech Slate
       case CardType.success:
-        return const [Color(0xFF334155), Color(0xFF1E293B)]; // Dark Slate
+        return const [
+          Color(0xFF059669),
+          Color(0xFF047857),
+        ]; // Vibrant Saudi Mint-Emerald
     }
   }
 
   Color get accentColor {
     switch (type) {
       case CardType.primary:
-        return const Color(0xFF4FD1C5);
-      case CardType.secondary:
-        return const Color(0xFF93C5FD);
-      case CardType.tertiary:
         return const Color(0xFF6EE7B7);
-      case CardType.success:
+      case CardType.secondary:
+        return const Color(0xFFA7F3D0);
+      case CardType.tertiary:
         return const Color(0xFF94A3B8);
+      case CardType.success:
+        return const Color(0xFFD1FAE5);
     }
   }
 }

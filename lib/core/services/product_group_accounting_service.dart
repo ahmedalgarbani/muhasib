@@ -127,7 +127,7 @@ class ProductGroupAccountingService {
 
   Future<int> _getDefaultPurchaseAccount() async {
     // Try to get from account config service or use default
-    return 5110; // Default purchases account
+    return DefaultAccountIds.purchases; // 3110: Default purchases account
   }
 
   /// Get summary of inventory value by product group

@@ -5,6 +5,7 @@ import 'package:muhasib/core/route/app_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/app_drawer_controller.dart';
 import 'package:muhasib/core/widgets/main_drawer/drawer_menu_item.dart';
 
@@ -63,62 +64,90 @@ class _MainDrawerHeader extends StatelessWidget {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
+        gradient: LinearGradient(
+          begin: Alignment.topRight,
+          end: Alignment.bottomLeft,
+          colors: [AppColors.saudiEmerald, AppColors.saudiEmeraldDark],
+        ),
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(AppRadius.xl),
+        ),
       ),
-      padding: const EdgeInsets.fromLTRB(20, 12, 12, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+      padding: const EdgeInsets.fromLTRB(20, 16, 16, 24),
+      child: Stack(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Positioned(
+            left: -20,
+            top: -20,
+            child: Container(
+              width: 90,
+              height: 90,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.07),
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.menu_book_rounded,
-                  color: Colors.white,
-                  size: 28,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(AppRadius.sm14),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.account_balance_wallet_rounded,
+                      color: Colors.white,
+                      size: 26,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    onPressed: closeAppDrawer,
+                    tooltip: 'إغلاق',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () {
+                  closeAppDrawer();
+                  router.go(AppRoutes.home);
+                },
+                child: const Text(
+                  'محاسب',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.3,
+                  ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.close_rounded,
-                  color: Colors.white,
-                  size: 26,
+              const SizedBox(height: 4),
+              Text(
+                'نظام إدارة الحسابات ونقاط البيع الذكي',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.85),
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.normal,
                 ),
-                onPressed: closeAppDrawer,
-                tooltip: 'إغلاق',
               ),
             ],
-          ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () {
-              closeAppDrawer();
-              router.go(AppRoutes.home);
-            },
-            child: const Text(
-              'محاسب',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'نظام إدارة الحسابات والمخزون',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 13,
-            ),
           ),
         ],
       ),

@@ -22,16 +22,20 @@ class ReportSummaryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: AppConstant.defaultPadding,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: theme.dividerColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.025),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -51,9 +55,14 @@ class ReportSummaryCard extends StatelessWidget {
               const Spacer(),
               if (change != null)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
-                    color: change! >= 0 ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    color: change! >= 0
+                        ? Colors.green.withOpacity(0.1)
+                        : Colors.red.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Row(
@@ -79,29 +88,17 @@ class ReportSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
+          Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           if (subtitle != null) ...[
             const SizedBox(height: 4),
             Text(
               subtitle!,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[500],
-              ),
+              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
             ),
           ],
         ],
@@ -124,14 +121,10 @@ class ReportSummaryRow extends StatelessWidget {
         children: cards.map((card) {
           return Padding(
             padding: const EdgeInsets.only(right: 12),
-            child: SizedBox(
-              width: 180,
-              child: card,
-            ),
+            child: SizedBox(width: 180, child: card),
           );
         }).toList(),
       ),
     );
   }
 }
-

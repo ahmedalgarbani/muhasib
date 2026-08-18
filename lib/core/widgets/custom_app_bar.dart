@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/route/safe_pop.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/app_bar_icon.dart';
 import 'package:muhasib/core/widgets/app_drawer_controller.dart';
 
@@ -34,51 +35,88 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   );
 
   Widget? _buildLeading(BuildContext context) {
-    final iconColor = Theme.of(context).iconTheme.color ?? Colors.black;
+    final theme = Theme.of(context);
+    final iconColor = theme.colorScheme.onSurface;
+
+    Widget buildButton({
+      required IconData icon,
+      required VoidCallback onTap,
+      required String tooltip,
+    }) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        child: Material(
+          color: theme.colorScheme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            side: BorderSide(color: theme.dividerColor, width: 1),
+          ),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: SizedBox(
+              width: 38,
+              height: 38,
+              child: Icon(icon, color: iconColor, size: 20),
+            ),
+          ),
+        ),
+      );
+    }
+
     if (onMenuPressed != null) {
-      return IconButton(
-        icon: Icon(Icons.menu, color: iconColor, size: 26),
-        onPressed: onMenuPressed,
+      return buildButton(
+        icon: Icons.menu_rounded,
+        onTap: onMenuPressed!,
+        tooltip: 'القائمة',
       );
     }
     if (showBack) {
-      return IconButton(
-        icon: Icon(Icons.arrow_back_ios_new, color: iconColor, size: 20),
-        onPressed: () => context.safePop(),
+      return buildButton(
+        icon: Icons.arrow_forward_ios_rounded,
+        onTap: () => context.safePop(),
+        tooltip: 'رجوع',
       );
     }
-    return IconButton(
-      icon: Icon(Icons.menu, color: iconColor, size: 26),
-      onPressed: toggleAppDrawer,
+    return buildButton(
+      icon: Icons.menu_rounded,
+      onTap: toggleAppDrawer,
+      tooltip: 'القائمة',
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      elevation: 0,
+      scrolledUnderElevation: 0,
       leading: _buildLeading(context),
       title: Text(
         title ?? 'محاسب',
         style: TextStyle(
-          color: Theme.of(context).brightness == Brightness.dark
-              ? AppColors.primaryLight
-              : AppColors.customBlue,
+          color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
           fontSize: 18,
           fontWeight: FontWeight.bold,
+          letterSpacing: 0.2,
         ),
       ),
       centerTitle: true,
-      actions:
-          actions ??
+      actions: actions ??
           [
-            GestureDetector(
-              child: AppBarIcon(icon: Icons.settings_outlined),
-              onTap: () {
-                GoRouter.of(context).go(AppRoutes.settings);
-              },
+            Padding(
+              padding: const EdgeInsets.only(left: 8),
+              child: GestureDetector(
+                child: const AppBarIcon(icon: Icons.settings_outlined),
+                onTap: () {
+                  GoRouter.of(context).go(AppRoutes.settings);
+                },
+              ),
             ),
           ],
+      bottom: bottom,
     );
   }
 }
+

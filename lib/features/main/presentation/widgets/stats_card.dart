@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 
 class StatsCard extends StatelessWidget {
@@ -6,6 +7,7 @@ class StatsCard extends StatelessWidget {
   final String title;
   final String value;
   final String subtitle;
+  final Color? color;
 
   const StatsCard({
     super.key,
@@ -13,56 +15,82 @@ class StatsCard extends StatelessWidget {
     required this.title,
     required this.value,
     required this.subtitle,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = color ?? AppColors.saudiEmerald;
+
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(color: theme.dividerColor, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.025),
             blurRadius: 10,
-            offset: const Offset(0, 4),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: Column(
-        spacing: 5,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 45,
-            height: 45,
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(AppRadius.lg),
-            ),
-            child: Icon(icon, color: Colors.blue, size: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? cardColor.withValues(alpha: 0.2)
+                      : cardColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Icon(icon, color: cardColor, size: 20),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.primaryDark.withValues(alpha: 0.3)
+                      : AppColors.saudiMint,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                ),
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? AppColors.emerald300 : AppColors.primary,
+                  ),
+                ),
+              ),
+            ],
           ),
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+          const SizedBox(height: 12),
           Text(
             value,
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[400],
+              color: theme.colorScheme.onSurface,
+              letterSpacing: 0.3,
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             subtitle,
-            style: const TextStyle(
-              fontSize: 10,
-              color: Colors.green,
-              fontWeight: FontWeight.w600,
+            style: TextStyle(
+              fontSize: 11.5,
+              color: theme.colorScheme.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -70,3 +98,4 @@ class StatsCard extends StatelessWidget {
     );
   }
 }
+

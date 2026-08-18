@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Reusable Card Container with unified border radius, background, border, and elevation.
 class CustomCardContainer extends StatelessWidget {
@@ -43,10 +44,12 @@ class CustomCardContainer extends StatelessWidget {
         ? shape! as RoundedRectangleBorder
         : null;
     final borderRadius =
-        roundedShape?.borderRadius ?? BorderRadius.circular(AppRadius.lg20);
+        roundedShape?.borderRadius ?? BorderRadius.circular(AppRadius.lg);
     final BorderRadius inkBorderRadius = borderRadius is BorderRadius
         ? borderRadius
-        : BorderRadius.circular(AppRadius.lg20);
+        : BorderRadius.circular(AppRadius.lg);
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final cardContent = Container(
       padding: padding,
@@ -59,20 +62,29 @@ class CustomCardContainer extends StatelessWidget {
                 roundedShape?.side ??
                     BorderSide(
                       color: borderColor ?? Theme.of(context).dividerColor,
+                      width: 1,
                     ),
               )
             : Border.all(
                 color: borderColor ?? Theme.of(context).dividerColor,
+                width: 1,
               ),
-        boxShadow: elevation > 0
-            ? [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04 * elevation),
-                  blurRadius: 8 * elevation,
-                  offset: Offset(0, 2 * elevation),
-                ),
-              ]
-            : null,
+        boxShadow: [
+          if (elevation > 0)
+            BoxShadow(
+              color: Colors.black.withValues(
+                alpha: isDark ? 0.2 : 0.04 * elevation,
+              ),
+              blurRadius: 8 * elevation,
+              offset: Offset(0, 2 * elevation),
+            )
+          else if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.025),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+        ],
       ),
       child: child,
     );

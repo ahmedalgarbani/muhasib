@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/features/main/presentation/widgets/stats_card.dart';
 
 class StatsCardsSection extends StatelessWidget {
@@ -14,24 +15,26 @@ class StatsCardsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
-        spacing: 5,
         children: [
           Expanded(
             child: StatsCard(
-              icon: Icons.people,
-              title: 'الزبائن',
+              icon: Icons.people_alt_outlined,
+              title: 'العملاء',
               value: '$customersCount',
-              subtitle: '$customersCount زبون مسجل',
+              subtitle: '$customersCount عميل مسجل',
+              color: AppColors.saudiEmerald,
             ),
           ),
+          const SizedBox(width: 12),
           Expanded(
             child: StatsCard(
-              icon: Icons.handshake,
-              title: 'الموردين',
+              icon: Icons.handshake_outlined,
+              title: 'الموردون',
               value: '$suppliersCount',
               subtitle: '$suppliersCount مورد مسجل',
+              color: const Color(0xFF0284C7),
             ),
           ),
         ],
