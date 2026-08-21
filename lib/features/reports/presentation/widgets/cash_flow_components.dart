@@ -65,7 +65,7 @@ class CashFlowFinalSummaryWidget extends StatelessWidget {
     final diff = (d.closingBalance - d.actualCashBalance).abs();
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.lg20),

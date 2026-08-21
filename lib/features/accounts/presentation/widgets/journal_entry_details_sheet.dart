@@ -44,7 +44,7 @@ class JournalEntryDetailsSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.xxs),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
@@ -68,10 +68,10 @@ class JournalEntryDetailsSheet extends StatelessWidget {
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(12),
                   children: [
                     JournalEntryInfoGrid(entry: entry),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
                     const Text(
                       'الأسطر المحاسبية',
                       style: AppTextStyles.titleMedium,
@@ -83,7 +83,7 @@ class JournalEntryDetailsSheet extends StatelessWidget {
                         numberFormat: numberFormat,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     JournalEntryDetailedSummary(
                       entry: entry,
                       numberFormat: numberFormat,
@@ -237,7 +237,7 @@ class JournalEntryDetailedSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => CustomCardContainer(
-    padding: const EdgeInsets.all(20),
+    padding: const EdgeInsets.all(12),
     backgroundColor: AppColors.primary.withValues(alpha: 0.05),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(AppRadius.lg20),

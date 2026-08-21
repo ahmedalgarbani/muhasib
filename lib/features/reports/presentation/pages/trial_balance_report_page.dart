@@ -219,7 +219,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 ReportDataTable<TrialBalanceEntity>(
                   columns: const [
                     ReportTableColumn(title: 'رمز الحساب / الاسم', flex: 3),

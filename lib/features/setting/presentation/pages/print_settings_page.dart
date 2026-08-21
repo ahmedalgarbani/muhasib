@@ -9,7 +9,8 @@ import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PrintSettingsPage extends StatefulWidget {
   const PrintSettingsPage({super.key});
@@ -316,7 +317,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 HasibButton(
                   label: 'حفظ التغييرات',
                   onPressed: _saveSettings,

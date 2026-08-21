@@ -1,65 +1,52 @@
 # AGENTS.md
 
-Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
+Flutter/Dart accounting app (muhasib / محاسب). Arabic-first, RTL, multi-feature
+business/ERP app. Entrypoint: `lib/main.dart`.
 
-**Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
+## Commands
 
-## 1. Think Before Coding
+- `flutter analyze` — lint/static checks (flutter_lints rules in `analysis_options.yaml`).
+- `flutter test` — full suite. Run one file: `flutter test test/path_to_test.dart`.
+- `flutter run` — run app (needs a device/emulator; DB uses sqflite with FFI on desktop/web).
 
-**Don't assume. Don't hide confusion. Surface tradeoffs.**
+## Architecture
 
-Before implementing:
-- State your assumptions explicitly. If uncertain, ask.
-- If multiple interpretations exist, present them - don't pick silently.
-- If a simpler approach exists, say so. Push back when warranted.
-- If something is unclear, stop. Name what's confusing. Ask.
+- Feature-first layout under `lib/features/<feature>/` with three layers: `data`
+  (datasources, repository impls), `domain` (entities, repository interfaces, usecases,
+  services), `presentation` (cubit, pages, widgets). Shared infrastructure lives in `lib/core/`.
+- State management is **BLoC** (`bloc` / `flutter_bloc` / `hydrated_bloc`). `HydratedBloc.storage`
+  is initialized in `main.dart`; many cubits are provided at the root via `MultiBlocProvider`.
+- Dependency injection is **get_it**. Every repository/service/cubit must be registered in
+  `lib/core/helpers/get_it.dart` (`GetItHelper.init()`); an unregistered lookup fails at runtime.
+- Routing is **go_router**, centralized in `lib/core/route/app_router.dart` (route names in
+  `route_names.dart`). Bottom navigation is a `StatefulShellRoute.indexedStack`
+  (Home / Sales / Reports / Settings). Several routes (login, dashboard, profile, about*)
+  are `PlaceholderWidget` stubs — do not assume those screens exist.
 
-## 2. Simplicity First
+## Database
 
-**Minimum code that solves the problem. Nothing speculative.**
+- `sqflite` with FFI on desktop/web (`database_initializer*.dart` selects the factory).
+- Schema migrations are plain SQL files in `lib/core/database/migrations/` (e.g. `001_*.sql`),
+  executed in order by `MigrationRunner` in `lib/core/database/migration_runner.dart`.
+  **A new migration must be added to the hardcoded `migrations` list there** or it will never run.
+- Table definitions: `lib/core/database/tables/`. Seed data: `lib/core/database/seeders/`.
+- Settings are loaded into `SettingsCubit` at startup and read DB-backed/live across features.
 
-- No features beyond what was asked.
-- No abstractions for single-use code.
-- No "flexibility" or "configurability" that wasn't requested.
-- No error handling for impossible scenarios.
-- If you write 200 lines and it could be 50, rewrite it.
+## i18n (flutter_intl)
 
-Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
+- User-facing strings come from ARB files in `lib/l10n/*.arb` (e.g. `intl_en.arb`), generated
+  into `lib/generated/` by the flutter-intl tooling. Reference them as `S.of(context).key`.
+  Do not hardcode UI text; add the key to the ARB and regenerate.
+- `Directionality(textDirection: rtl)` is forced globally in `main.dart` — account for RTL in
+  layout, widget tests, and text alignment defaults.
 
-## 3. Surgical Changes
+## Conventions / gotchas
 
-**Touch only what you must. Clean up only your own mess.**
-
-When editing existing code:
-- Don't "improve" adjacent code, comments, or formatting.
-- Don't refactor things that aren't broken.
-- Match existing style, even if you'd do it differently.
-- If you notice unrelated dead code, mention it - don't delete it.
-
-When your changes create orphans:
-- Remove imports/variables/functions that YOUR changes made unused.
-- Don't remove pre-existing dead code unless asked.
-
-The test: Every changed line should trace directly to the user's request.
-
-## 4. Goal-Driven Execution
-
-**Define success criteria. Loop until verified.**
-
-Transform tasks into verifiable goals:
-- "Add validation" → "Write tests for invalid inputs, then make them pass"
-- "Fix the bug" → "Write a test that reproduces it, then make it pass"
-- "Refactor X" → "Ensure tests pass before and after"
-
-For multi-step tasks, state a brief plan:
-```
-1. [Step] → verify: [check]
-2. [Step] → verify: [check]
-3. [Step] → verify: [check]
-```
-
-Strong success criteria let you loop independently. Weak criteria ("make it work") require constant clarification.
-
----
-
-**These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes.
+- There are two similar Settings cubits: `setting_cubit.SettingCubit` and
+  `settings_cubit.SettingsCubit` (aliased as `new_settings_cubit` in the router). Disambiguate
+  before editing either.
+- `build_runner`, `json_serializable`, and `freezed` are declared dependencies but **not currently
+  used** in the source — do not assume generated `*.g.dart`/`*.freezed.dart` files exist; if you
+  introduce codegen, run it and commit/regenerate the outputs.
+- Keep changes surgical: this is a large 750+ file codebase; match existing BLoC/feature patterns
+  rather than introducing new state or DI approaches.

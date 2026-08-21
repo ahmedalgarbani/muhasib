@@ -33,7 +33,7 @@ class EmptyStateWidget extends StatelessWidget {
 
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -60,7 +60,7 @@ class EmptyStateWidget extends StatelessWidget {
                 color: defaultIconColor,
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -82,10 +82,10 @@ class EmptyStateWidget extends StatelessWidget {
               ),
             ],
             if (customAction != null) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               customAction!,
             ] else if (actionText != null && onActionPressed != null) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               HasibButton(
                 label: actionText!,
                 onPressed: onActionPressed,

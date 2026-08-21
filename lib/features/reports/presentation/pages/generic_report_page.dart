@@ -5,7 +5,8 @@ import 'package:muhasib/core/route/safe_pop.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class GenericReportPage extends StatelessWidget {
   final ReportItem report;
@@ -32,7 +33,7 @@ class _GenericReportContent extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -49,7 +50,7 @@ class _GenericReportContent extends StatelessWidget {
                 color: report.color,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
             Text(
               report.titleAr,
               style: const TextStyle(
@@ -67,7 +68,7 @@ class _GenericReportContent extends StatelessWidget {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 16),
             Container(
               padding: AppConstant.defaultPadding,
               decoration: BoxDecoration(
@@ -90,7 +91,7 @@ class _GenericReportContent extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
             HasibButton(
               label: 'العودة للتقارير',
               onPressed: () => context.safePop(null, AppRoutes.reports),

@@ -5,7 +5,8 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class AddEntryDialog extends StatefulWidget {
   const AddEntryDialog({super.key});
@@ -54,7 +55,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                     topRight: Radius.circular(AppRadius.lg),
                   ),
                 ),
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(12),
                 child: Row(
                   children: [
                     Expanded(
@@ -90,7 +91,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
               // Form
               Expanded(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(12),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -330,7 +331,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: 24),
+                        const SizedBox(height: 12),
 
                         // أزرار الإجراء
                         Row(
@@ -348,7 +349,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                   }
                                 },
                                 variant: HasibButtonVariant.primary,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
                                 fontSize: 16,
                               ),
                             ),
@@ -358,7 +359,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                 label: 'إلغاء',
                                 onPressed: () => Navigator.pop(context),
                                 variant: HasibButtonVariant.secondary,
-                                padding: const EdgeInsets.symmetric(vertical: 16),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
                                 fontSize: 16,
                               ),
                             ),

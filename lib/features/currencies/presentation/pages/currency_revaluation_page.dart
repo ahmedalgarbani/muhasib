@@ -105,7 +105,7 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
               const SizedBox(height: 16),
               if (calculatedDifference != null)
                 RevaluationDifferenceCard(difference: calculatedDifference!),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               RevaluationActionButtons(
                 isLoading: isLoading,
                 canSave:

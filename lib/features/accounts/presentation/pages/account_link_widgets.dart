@@ -297,7 +297,7 @@ class AccountLinkActionIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
     decoration: BoxDecoration(
       color: AppColors.primary,
       borderRadius: BorderRadius.circular(AppRadius.md),
@@ -362,7 +362,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
               borderRadius: BorderRadius.circular(AppRadius.sm10),
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -448,7 +448,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                   ),
           ),
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               border: Border(
@@ -461,7 +461,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
@@ -487,7 +487,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                           },
                     leading: const Icon(Icons.link),
                     variant: HasibButtonVariant.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     fontSize: 16,
                   ),
                 ),

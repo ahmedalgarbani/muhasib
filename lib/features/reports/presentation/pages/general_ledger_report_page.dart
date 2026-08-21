@@ -352,7 +352,7 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
           return const Padding(
-            padding: EdgeInsets.all(20),
+            padding: EdgeInsets.all(12),
             child: LinearProgressIndicator(),
           );
         }

@@ -34,7 +34,7 @@ class ReportDataTable<T> extends StatelessWidget {
   Widget build(BuildContext context) {
     if (items.isEmpty) {
       return Container(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -80,7 +80,7 @@ class ReportDataTable<T> extends StatelessWidget {
           children: [
             // Table Header
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               color: Theme.of(context).colorScheme.surfaceContainerHighest,
               child: Row(
                 children: columns.map((col) {

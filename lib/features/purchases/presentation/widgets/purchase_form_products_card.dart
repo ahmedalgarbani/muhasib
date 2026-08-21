@@ -59,7 +59,7 @@ class PurchaseFormProductsCard extends StatelessWidget {
             const SizedBox(height: 12),
             if (invoiceLines.isEmpty)
               Container(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(12),
                 alignment: Alignment.center,
                 child: Column(
                   children: [

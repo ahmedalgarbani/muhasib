@@ -50,7 +50,7 @@ class _ProductPickerSheetState extends State<ProductPickerSheet> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
             child: Column(
               children: [
                 const Text(

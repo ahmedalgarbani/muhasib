@@ -23,7 +23,7 @@ class SettingsPage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           return SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 110),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 16),
             child: Column(
               children: [
                 SettingsNavigationCard(

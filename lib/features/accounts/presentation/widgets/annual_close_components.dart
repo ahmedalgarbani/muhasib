@@ -27,7 +27,7 @@ class AnnualCloseYearSelector extends StatelessWidget {
       side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       child: Row(
         children: [
           Container(
@@ -191,7 +191,7 @@ class AnnualCloseStepsCard extends StatelessWidget {
       side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -203,7 +203,7 @@ class AnnualCloseStepsCard extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           ...steps.asMap().entries.map(
             (entry) => AnnualCloseStepItem(
               step: entry.value,
@@ -313,7 +313,7 @@ class AnnualCloseActionButtons extends StatelessWidget {
           icon: const Icon(Icons.preview),
           label: const Text('معاينة'),
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 10),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
@@ -330,7 +330,7 @@ class AnnualCloseActionButtons extends StatelessWidget {
           leading: const Icon(Icons.play_arrow),
           loading: processing,
           variant: HasibButtonVariant.primary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 10),
         ),
       ),
     ],

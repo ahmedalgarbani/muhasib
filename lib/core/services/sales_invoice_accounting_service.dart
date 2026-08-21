@@ -640,11 +640,11 @@ class SalesInvoiceAccountingService {
         'description': line['description'],
       });
       
-      // Update account balance
-      await txn.rawUpdate(
-        'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) + ? WHERE id = ?',
-        [debit - credit, accountId],
-      );
+      // Update account balance + local_balance with exchangeRate-aware delta
+      final delta = debit - credit;
+      final exch = payment.exchangeRate ?? 1.0;
+      // For foreign currency lines, local_balance tracks in local currency
+      await _applyBalanceDelta(txn, accountId, delta, exchangeRate: exch);
     }
     
     // Update payment with journal entry ID
@@ -659,6 +659,17 @@ class SalesInvoiceAccountingService {
       'payment_id': paymentId,
       'journal_entry_id': journalEntryId,
     };
+  }
+
+  /// Helper: apply delta to balance + local_balance with exchangeRate
+  Future<void> _applyBalanceDelta(Transaction txn, int accountId, double delta, {double exchangeRate = 1.0}) async {
+    final rows = await txn.query(_accountsTable, columns: ['balance', 'local_balance'], where: 'id = ?', whereArgs: [accountId], limit: 1);
+    if (rows.isEmpty) return;
+    final cur = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
+    final curLocal = (rows.first['local_balance'] as num?)?.toDouble() ?? cur;
+    final newBal = cur + delta;
+    final newLocal = curLocal + delta * exchangeRate;
+    await txn.update(_accountsTable, {'balance': newBal, 'local_balance': newLocal, 'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000}, where: 'id = ?', whereArgs: [accountId]);
   }
 
   /// Create accounts receivable entry for unpaid balance - FIXED to split VAT/discount/fees/COGS
@@ -780,7 +791,7 @@ class SalesInvoiceAccountingService {
         'credit_amount': credit,
         'description': l['desc'],
       });
-      await txn.rawUpdate('UPDATE $_accountsTable SET balance = COALESCE(balance, 0) + ? WHERE id = ?', [debit - credit, accId]);
+      await _applyBalanceDelta(txn, accId, debit - credit);
     }
     
     return journalEntryId;
@@ -877,15 +888,9 @@ class SalesInvoiceAccountingService {
         'description': 'عمولة مستحقة للمندوب',
       });
       
-      // Update account balances
-      await txn.rawUpdate(
-        'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) + ? WHERE id = ?',
-        [commissionAmount, commissionExpenseAccountId],
-      );
-      await txn.rawUpdate(
-        'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) - ? WHERE id = ?',
-        [commissionAmount, commissionAccountId],
-      );
+      // Update account balances (with local_balance)
+      await _applyBalanceDelta(txn, commissionExpenseAccountId, commissionAmount);
+      await _applyBalanceDelta(txn, commissionAccountId, -commissionAmount);
       
       return journalEntryId;
     }

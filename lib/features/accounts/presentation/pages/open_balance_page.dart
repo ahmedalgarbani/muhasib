@@ -104,7 +104,7 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
                 children: [
                   Expanded(
                     child: SingleChildScrollView(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(12),
                       child: Column(
                         children: [
                           OpeningBalanceMasterDataCardWidget(
@@ -112,11 +112,11 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
                             descriptionController: _descriptionController,
                             onPickDate: () => _pickDate(context, opening),
                           ),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 10),
                           OpeningBalanceSummaryCardWidget(
                             opening: opening,
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 12),
                           OpeningBalanceLinesHeaderWidget(
                             onAddLine: () => _showAddLineDialog(context),
                           ),
@@ -228,7 +228,7 @@ class OpeningBalanceMasterDataCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -317,7 +317,7 @@ class OpeningBalanceSummaryCardWidget extends StatelessWidget {
     final diff = (opening.totalDebit - opening.totalCredit).abs();
 
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isBalanced ? Colors.green.shade50 : Colors.red.shade50,
         borderRadius: BorderRadius.circular(AppRadius.xl),
@@ -571,7 +571,7 @@ class OpeningBalanceBottomActionBarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         boxShadow: [

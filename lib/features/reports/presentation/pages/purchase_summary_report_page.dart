@@ -170,7 +170,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               const Text(
                 'أكثر الموردين تعاملاً في المشتريات',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

@@ -11,7 +11,8 @@ import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class BalanceSheetReportPage extends StatefulWidget {
   const BalanceSheetReportPage({super.key});
@@ -203,7 +204,7 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               BalanceSheetSectionWidget(
                 title: 'الأصول',
                 value: data.totalAssets,
@@ -250,7 +251,7 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
       final name = (m['name'] as String?) ?? '';
       final rawType = m['type'] as int? ?? 1;
 
-      final isAsset = rawType == 1 || rawType == 0 || code.startsWith('1');
+      final isAsset = rawType == 0 || code.startsWith('1');
       final isEquity = (rawType == 2 || code.startsWith('2')) &&
           (code.startsWith('22') ||
               code.startsWith('23') ||
@@ -258,7 +259,8 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
               name.contains('رأس المال') ||
               name.contains('أرباح') ||
               name.contains('ملكية') ||
-              name.contains('جاري المالك'));
+              name.contains('جاري المالك') ||
+              name.contains('حقوق'));
 
       final r = _AccountBalanceRow(
         id: m['id'] as int,

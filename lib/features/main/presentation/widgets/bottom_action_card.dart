@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class BottomActionCard extends StatelessWidget {
   const BottomActionCard({super.key});
@@ -9,7 +10,7 @@ class BottomActionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: AppConstant.defaultPadding,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.xl),

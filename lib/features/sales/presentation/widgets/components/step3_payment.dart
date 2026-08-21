@@ -345,7 +345,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                         onTap: () => setState(() => _selectedMethod = method),
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? AppColors.primary

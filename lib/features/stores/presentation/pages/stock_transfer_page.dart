@@ -168,13 +168,13 @@ class _StockTransferPageState extends State<StockTransferPage> {
                     controller: _statementController,
                     hint: 'أدخل أي ملاحظات عن التحويل',
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   WarehouseActionButtons(
                     primaryLabel: 'ترحيل',
                     onSecondary: _saveTransfer,
                     onPrimary: _submitTransfer,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                 ],
               ),
             ),
@@ -214,7 +214,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
             const SizedBox(height: 16),
             if (_transferLines.isEmpty)
               const Padding(
-                padding: EdgeInsets.all(24),
+                padding: EdgeInsets.all(12),
                 child: Center(
                   child: Text('لا توجد أصناف مضافة', style: TextStyle(color: Colors.grey)),
                 ),

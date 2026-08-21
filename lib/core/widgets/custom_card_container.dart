@@ -24,7 +24,7 @@ class CustomCardContainer extends StatelessWidget {
     super.key,
     required this.child,
     this.padding = AppConstant.defaultPadding,
-    this.margin = const EdgeInsets.only(bottom: 12),
+    this.margin = const EdgeInsets.only(bottom: 8),
     this.onTap,
     this.backgroundColor,
     this.color,

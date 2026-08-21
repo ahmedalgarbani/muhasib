@@ -393,7 +393,7 @@ class QuotationDetailBottomActions extends StatelessWidget {
           onPressed: onConvert,
           leading: const Icon(Icons.transform),
           variant: HasibButtonVariant.success,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 10),
           fontSize: 16,
         ),
       ),

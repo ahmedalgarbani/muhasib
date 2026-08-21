@@ -68,7 +68,7 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
           ),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -77,13 +77,13 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
                   if (widget.existingLine == null) ...[
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 10),
                     _OpenBalanceModeSelector(
                       isSolo: _isSolo,
                       onChanged: (v) => setState(() => _isSolo = v),
                     ),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   const Text(
                     'اختر الحساب',
                     style: TextStyle(color: Colors.grey, fontSize: 13),
@@ -93,7 +93,7 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
                     selectedAccount: _selectedAccount,
                     onTap: () => _pickAccount(context),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   const Text(
                     'نوع الرصيد',
                     style: TextStyle(color: Colors.grey, fontSize: 13),
@@ -107,7 +107,7 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
                     const SizedBox(height: 16),
                     const _OpenBalanceSoloHintWidget(),
                   ],
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   TextInputField(
                     label: 'قيمة الرصيد',
                     textEditingController: _amountController,
@@ -115,7 +115,7 @@ class _AddBalanceLineSheetState extends State<_AddBalanceLineSheet> {
                     prefixIcon: const Icon(Icons.calculate_outlined),
                     hint: '0.00',
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 16),
                   HasibButton(
                     label: _isSolo ? 'إضافة بموازنة تلقائية' : 'إضافة للجدول',
                     onPressed: _submit,
@@ -277,7 +277,7 @@ class _OpenBalanceModeButton extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: selected
               ? AppColors.primary.withValues(alpha: 0.1)
@@ -445,7 +445,7 @@ class OpenBalanceTypeButtonWidget extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
+        padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           color: active ? color.withOpacity(0.1) : Colors.transparent,
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -748,7 +748,7 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector>
     if (filtered.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -775,7 +775,7 @@ class _SimpleAccountSelectorState extends State<_SimpleAccountSelector>
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: filtered.length,
       separatorBuilder: (_, __) => const Divider(height: 1, indent: 64),
       itemBuilder: (context, i) {

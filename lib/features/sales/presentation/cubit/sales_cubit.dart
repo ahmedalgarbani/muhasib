@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
-import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart' as limit;
+import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart'
+    as limit;
 import 'package:muhasib/core/usecase/usecases.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/usecases/create_invoice.dart';
@@ -25,17 +26,17 @@ class SalesCubit extends Cubit<SalesState> {
   final UpdateInvoice updateInvoice;
   final DeleteInvoice deleteInvoice;
   final SearchInvoices searchInvoices;
-  
+
   // Quotation use cases
   final GetQuotations getQuotations;
   final GetOpenQuotations getOpenQuotations;
   final ConvertQuotationToInvoice convertQuotationToInvoice;
-  
+
   // Return invoice use cases
   final GetReturnInvoices getReturnInvoices;
   final CreateReturnInvoice createReturnInvoice;
   final GetReturnsByParentInvoice getReturnsByParentInvoice;
-  
+
   final limit.AccountLimitInterceptor limitInterceptor;
 
   List<InvoiceEntity>? allInvoices;
@@ -56,6 +57,12 @@ class SalesCubit extends Cubit<SalesState> {
     required this.limitInterceptor,
   }) : super(SalesInitial());
 
+  @override
+  void emit(SalesState state) {
+    if (isClosed) return;
+    super.emit(state);
+  }
+
   Future<void> loadInvoices() async {
     emit(SalesLoading());
     final result = await getInvoices(params: NoParams());
@@ -67,23 +74,22 @@ class SalesCubit extends Cubit<SalesState> {
 
   Future<void> addInvoice(InvoiceEntity invoice) async {
     emit(SalesLoading());
-    
+
     // Validate limits
     final limitCheck = await limitInterceptor.validateInvoice(
       accountId: invoice.customerId,
       totalAmount: invoice.amount,
       currencyId: invoice.currencyId ?? 1,
-      invoiceType: invoice.invoiceType == 4 ? limit.InvoiceType.salesReturn : limit.InvoiceType.sales,
+      invoiceType: invoice.invoiceType == 4
+          ? limit.InvoiceType.salesReturn
+          : limit.InvoiceType.sales,
     );
-    
+
     bool hasStopped = false;
-    limitCheck.fold(
-      (failure) {
-        emit(SalesError(failure.message));
-        hasStopped = true;
-      },
-      (_) => null,
-    );
+    limitCheck.fold((failure) {
+      emit(SalesError(failure.message));
+      hasStopped = true;
+    }, (_) => null);
     if (hasStopped) return;
 
     final result = await createInvoice(params: invoice);
@@ -101,17 +107,16 @@ class SalesCubit extends Cubit<SalesState> {
       accountId: invoice.customerId,
       totalAmount: invoice.amount,
       currencyId: invoice.currencyId ?? 1,
-      invoiceType: invoice.invoiceType == 4 ? limit.InvoiceType.salesReturn : limit.InvoiceType.sales,
+      invoiceType: invoice.invoiceType == 4
+          ? limit.InvoiceType.salesReturn
+          : limit.InvoiceType.sales,
     );
 
     bool hasStopped = false;
-    limitCheck.fold(
-      (failure) {
-        emit(SalesError(failure.message));
-        hasStopped = true;
-      },
-      (_) => null,
-    );
+    limitCheck.fold((failure) {
+      emit(SalesError(failure.message));
+      hasStopped = true;
+    }, (_) => null);
     if (hasStopped) return;
 
     final result = await updateInvoice(params: invoice);
@@ -147,26 +152,23 @@ class SalesCubit extends Cubit<SalesState> {
   Future<void> loadQuotations() async {
     emit(SalesLoading());
     final result = await getQuotations(params: NoParams());
-    result.fold(
-      (failure) => emit(SalesError(failure.message)),
-      (items) {
-        emit(QuotationsLoaded(items));
-      },
-    );
+    result.fold((failure) => emit(SalesError(failure.message)), (items) {
+      emit(QuotationsLoaded(items));
+    });
   }
 
   Future<void> loadOpenQuotations() async {
     emit(SalesLoading());
     final result = await getOpenQuotations(params: NoParams());
-    result.fold(
-      (failure) => emit(SalesError(failure.message)),
-      (items) {
-        emit(QuotationsLoaded(items));
-      },
-    );
+    result.fold((failure) => emit(SalesError(failure.message)), (items) {
+      emit(QuotationsLoaded(items));
+    });
   }
 
-  Future<void> convertQuotation(int quotationId, InvoiceEntity salesInvoice) async {
+  Future<void> convertQuotation(
+    int quotationId,
+    InvoiceEntity salesInvoice,
+  ) async {
     emit(SalesLoading());
     final result = await convertQuotationToInvoice(
       params: ConvertQuotationParams(
@@ -174,39 +176,34 @@ class SalesCubit extends Cubit<SalesState> {
         salesInvoice: salesInvoice,
       ),
     );
-    result.fold(
-      (failure) => emit(SalesError(failure.message)),
-      (invoiceId) {
-        emit(QuotationConverted(invoiceId));
-        loadQuotations(); // Refresh quotations list
-      },
-    );
+    result.fold((failure) => emit(SalesError(failure.message)), (invoiceId) {
+      emit(QuotationConverted(invoiceId));
+      loadQuotations(); // Refresh quotations list
+    });
   }
 
   // Return invoice methods
   Future<void> loadReturnInvoices() async {
     emit(SalesLoading());
     final result = await getReturnInvoices(params: NoParams());
-    result.fold(
-      (failure) => emit(SalesError(failure.message)),
-      (items) {
-        emit(ReturnInvoicesLoaded(items));
-      },
-    );
+    result.fold((failure) => emit(SalesError(failure.message)), (items) {
+      emit(ReturnInvoicesLoaded(items));
+    });
   }
 
   Future<void> loadReturnsByParent(int parentInvoiceId) async {
     emit(SalesLoading());
     final result = await getReturnsByParentInvoice(params: parentInvoiceId);
-    result.fold(
-      (failure) => emit(SalesError(failure.message)),
-      (items) {
-        emit(ReturnInvoicesLoaded(items));
-      },
-    );
+    result.fold((failure) => emit(SalesError(failure.message)), (items) {
+      emit(ReturnInvoicesLoaded(items));
+    });
   }
 
-  Future<void> createReturn(InvoiceEntity returnInvoice, int parentInvoiceId, String customerName) async {
+  Future<void> createReturn(
+    InvoiceEntity returnInvoice,
+    int parentInvoiceId,
+    String customerName,
+  ) async {
     emit(SalesLoading());
     final result = await createReturnInvoice(
       params: CreateReturnParams(
@@ -215,12 +212,9 @@ class SalesCubit extends Cubit<SalesState> {
         customerName: customerName,
       ),
     );
-    result.fold(
-      (failure) => emit(SalesError(failure.message)),
-      (returnId) {
-        emit(ReturnInvoiceCreated(returnId));
-        loadReturnInvoices(); // Refresh returns list
-      },
-    );
+    result.fold((failure) => emit(SalesError(failure.message)), (returnId) {
+      emit(ReturnInvoiceCreated(returnId));
+      loadReturnInvoices(); // Refresh returns list
+    });
   }
 }

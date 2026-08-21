@@ -345,7 +345,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                         const SizedBox(height: 16),
                         if (_adjustmentLines.isEmpty)
                           Container(
-                            padding: const EdgeInsets.all(32),
+                            padding: const EdgeInsets.all(16),
                             alignment: Alignment.center,
                             child: Column(
                               children: [
@@ -447,7 +447,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
 
                 // Action Buttons
                 Row(
@@ -460,7 +460,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                             : () => _saveAdjustment('draft'),
                         leading: const Icon(Icons.save),
                         variant: HasibButtonVariant.secondary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -472,12 +472,12 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                             : () => _postAdjustment(),
                         leading: const Icon(Icons.check),
                         variant: HasibButtonVariant.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
               ],
             ),
           ),

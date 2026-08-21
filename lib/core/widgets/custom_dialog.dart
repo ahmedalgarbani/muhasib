@@ -108,7 +108,7 @@ class CustomDialog extends StatelessWidget {
               // Body Content
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(12),
                   child: content,
                 ),
               ),

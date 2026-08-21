@@ -559,8 +559,8 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
       '''
       SELECT COALESCE(SUM(
         CASE 
-          WHEN (a.type = 4 OR a.code LIKE '4%') THEN jel.credit_amount - jel.debit_amount
-          WHEN (a.type = 3 OR a.code LIKE '3%') THEN -(jel.debit_amount - jel.credit_amount)
+          WHEN (a.type = 3 OR a.code LIKE '4%') THEN jel.credit_amount - jel.debit_amount
+          WHEN (a.type = 4 OR a.code LIKE '3%') THEN -(jel.debit_amount - jel.credit_amount)
           ELSE 0
         END
       ), 0) as ni

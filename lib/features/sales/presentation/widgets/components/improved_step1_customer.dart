@@ -11,7 +11,8 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class ImprovedStep1Customer extends StatefulWidget {
   final Invoice invoice;
@@ -390,7 +391,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
             ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
 
           // Date and Currency Row
           Row(
@@ -491,7 +492,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
             ],
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
 
           // Warehouse Selection
           BlocBuilder<WarehousesCubit, WarehousesState>(
@@ -521,7 +522,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                         }
                       },
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                   ],
                 );
               }
@@ -551,7 +552,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
             ),
           ),
 
-          const SizedBox(height: 32),
+          const SizedBox(height: 16),
 
           // Next Button
           SizedBox(
@@ -561,7 +562,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
               onPressed: widget.invoice.customer != null ? widget.onNext : null,
               leading: const Icon(Icons.arrow_forward, size: 20),
               variant: HasibButtonVariant.success,
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               fontSize: 16,
             ),
           ),

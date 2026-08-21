@@ -80,6 +80,11 @@ class _PosPageState extends State<PosPage> {
     context.read<CustomersCubit>().loadCustomers();
     context.read<ProductGroupsCubit>().loadAllGroups();
     context.read<CurrenciesCubit>().loadAllCurrencies();
+    final customerState = context.read<CustomersCubit>().state;
+    if (customerState is CustomersLoaded &&
+        customerState.customers.isNotEmpty) {
+      _selectedCustomer = customerState.customers.first;
+    }
     _loadBanksAndFunds();
     _initDefaultPaymentMethod();
   }
@@ -238,7 +243,13 @@ class _PosPageState extends State<PosPage> {
   void _clearCart() {
     setState(() {
       _cart.clear();
-      _selectedCustomer = null;
+      final customerState = context.read<CustomersCubit>().state;
+      if (customerState is CustomersLoaded &&
+          customerState.customers.isNotEmpty) {
+        _selectedCustomer = customerState.customers.first;
+      } else {
+        _selectedCustomer = null;
+      }
       _discountController.clear();
       _statementController.clear();
       _cashReceivedController.clear();
@@ -614,7 +625,7 @@ class _PosPageState extends State<PosPage> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg20),
           ),
-          contentPadding: const EdgeInsets.all(24),
+          contentPadding: const EdgeInsets.all(12),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -698,7 +709,7 @@ class _PosPageState extends State<PosPage> {
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -769,15 +780,30 @@ class _PosPageState extends State<PosPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return BlocListener<SalesCubit, SalesState>(
-      listener: (context, state) {
-        if (state is InvoiceCreated) {
-          setState(() => _saving = false);
-        } else if (state is SalesError) {
-          setState(() => _saving = false);
-          AppToast.showError(context, state.message);
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SalesCubit, SalesState>(
+          listener: (context, state) {
+            if (state is InvoiceCreated) {
+              setState(() => _saving = false);
+            } else if (state is SalesError) {
+              setState(() => _saving = false);
+              AppToast.showError(context, state.message);
+            }
+          },
+        ),
+        BlocListener<CustomersCubit, CustomersState>(
+          listener: (context, state) {
+            if (state is CustomersLoaded && state.customers.isNotEmpty) {
+              if (_selectedCustomer == null) {
+                setState(() {
+                  _selectedCustomer = state.customers.first;
+                });
+              }
+            }
+          },
+        ),
+      ],
       child: Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(
@@ -1431,7 +1457,7 @@ class _PosPageState extends State<PosPage> {
           // 3. Discount & Notes Section
           _buildDiscountAndNotesSection(theme, isDark),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
 
           // Action Buttons
           Row(
@@ -1457,7 +1483,7 @@ class _PosPageState extends State<PosPage> {
                       : () => setState(() => _currentStep = 2),
                   style: FilledButton.styleFrom(
                     backgroundColor: AppColors.saudiEmerald,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
@@ -1821,7 +1847,7 @@ class _PosPageState extends State<PosPage> {
           // Payment Methods Cards
           _buildPaymentMethodsSection(theme, isDark),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
 
           // Submit / Finalize Button
           SizedBox(
@@ -2068,9 +2094,14 @@ class _PosPageState extends State<PosPage> {
             _isSplitPayment = true;
             if (_splitCashController.text.isEmpty &&
                 _splitBankController.text.isEmpty) {
-              _splitCashController.text = (_grandTotal / 2).toStringAsFixed(0);
-              _splitBankController.text =
-                  (_grandTotal - (_grandTotal / 2).floor()).toStringAsFixed(0);
+              final half = _grandTotal / 2;
+              _splitCashController.text = (half % 1 == 0)
+                  ? half.toStringAsFixed(0)
+                  : half.toStringAsFixed(2);
+              final remaining = _grandTotal - half;
+              _splitBankController.text = (remaining % 1 == 0)
+                  ? remaining.toStringAsFixed(0)
+                  : remaining.toStringAsFixed(2);
             }
           } else {
             _isSplitPayment = false;
@@ -2724,9 +2755,15 @@ class _PosPageState extends State<PosPage> {
               return Padding(
                 padding: const EdgeInsets.only(left: 6),
                 child: ActionChip(
-                  label: Text(isExact ? 'المبلغ بالضبط' : '${amt.toInt()}'),
+                  label: Text(
+                    isExact
+                        ? 'المبلغ بالضبط'
+                        : (amt % 1 == 0 ? '${amt.toInt()}' : NumberFormatter.formatNumber(amt)),
+                  ),
                   onPressed: () {
-                    _cashReceivedController.text = amt.toStringAsFixed(0);
+                    _cashReceivedController.text = (amt % 1 == 0)
+                        ? amt.toStringAsFixed(0)
+                        : amt.toStringAsFixed(2);
                     setState(() {});
                   },
                   shape: RoundedRectangleBorder(

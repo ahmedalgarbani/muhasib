@@ -72,9 +72,9 @@ class CurrencyExchangeForm extends StatelessWidget {
             notesController: notesController,
             onDateChanged: onDateChanged,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           CurrencyActionButtons(onClear: onClear, onSave: onSave),
-          const SizedBox(height: 24),
+          const SizedBox(height: 12),
           QuickExchangeRates(currencies: currencies),
         ],
       ),
@@ -108,7 +108,7 @@ class CurrencyExchangeCard extends StatelessWidget {
       side: BorderSide(color: Theme.of(context).dividerColor),
     ),
     child: Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       child: Column(
         children: [
           _CurrencyRow(

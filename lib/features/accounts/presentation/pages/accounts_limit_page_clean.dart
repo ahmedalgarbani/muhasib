@@ -368,7 +368,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -381,7 +381,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 32),
+                const SizedBox(height: 16),
                 const Text(
                   'الحساب المستهدف',
                   style: TextStyle(color: Colors.grey, fontSize: 13),
@@ -392,7 +392,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                   selectedAccount: _selectedAccount,
                   onPickAccount: _pickAccount,
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -414,7 +414,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 SwitchListTile(
                   title: const Text('تفعيل السقف (نشط)'),
                   subtitle: const Text(
@@ -602,7 +602,7 @@ class _AccountSearchSheetState extends State<_AccountSearchSheet> {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: TextInputField(

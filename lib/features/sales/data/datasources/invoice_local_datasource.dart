@@ -367,7 +367,11 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
         });
 
         // 3. Update account balances (net change is -(origDebit - origCredit))
-        await _applyAccountBalanceDelta(txn, accountId, -(origDebit - origCredit));
+        await _applyAccountBalanceDelta(
+          txn,
+          accountId,
+          -(origDebit - origCredit),
+        );
 
         if (currencyId != null) {
           await txn.rawUpdate(
@@ -388,7 +392,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         _journalEntriesTable,
         {
           'status': 2,
-          'notes': '${entry['notes'] ?? ''} (تم عكس القيد بالقيد رقم $revNumber)'.trim(),
+          'notes':
+              '${entry['notes'] ?? ''} (تم عكس القيد بالقيد رقم $revNumber)'
+                  .trim(),
           'last_modification_time': now,
         },
         where: 'id = ?',
@@ -433,10 +439,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
       if (stockResult.isNotEmpty) {
         currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-        final oldAvg = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+        final oldAvg =
+            (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
         // Weighted Average Cost (WAC) calculation as per IAS 2
         if (currentQty + qty > 0) {
-          avgCost = ((currentQty * oldAvg) + (qty * unitCost)) / (currentQty + qty);
+          avgCost =
+              ((currentQty * oldAvg) + (qty * unitCost)) / (currentQty + qty);
         }
       }
 
@@ -494,7 +502,14 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final lines = await txn.query(
       _linesTable,
-      columns: ['category_id', 'stock_id', 'quantity', 'amount', 'discount_amt', 'cost_price'],
+      columns: [
+        'category_id',
+        'stock_id',
+        'quantity',
+        'amount',
+        'discount_amt',
+        'cost_price',
+      ],
       where: 'invoice_id = ?',
       whereArgs: [invoiceId],
     );
@@ -512,8 +527,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       );
       if (stockResult.isEmpty) continue;
 
-      final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-      final avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      final currentQty =
+          (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+      final avgCost =
+          (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
       final newQty = currentQty - qty;
 
       await txn.update(
@@ -569,8 +586,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       );
       if (stockResult.isEmpty) continue;
 
-      final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-      final avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      final currentQty =
+          (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+      final avgCost =
+          (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
       final newQty = currentQty - returnQty;
 
       await txn.update(
@@ -626,8 +645,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       );
       if (stockResult.isEmpty) continue;
 
-      final currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-      final avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      final currentQty =
+          (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+      final avgCost =
+          (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
       final newQty = currentQty + returnQty;
 
       await txn.update(
@@ -682,13 +703,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       double avgCost = 0.0;
 
       if (stockResult.isNotEmpty) {
-        currentQty =
-            (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-        avgCost =
-            (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+        currentQty = (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
+        avgCost = (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
       }
 
       final newQty = currentQty - qty;
+
+      // C3 Fix: prevent negative stock (no oversell)
+      if (newQty < -0.001) {
+        throw LocalStorageException(
+          'الكمية غير كافية: المتاح $currentQty، المطلوب $qty',
+        );
+      }
 
       if (stockResult.isNotEmpty) {
         await txn.update(
@@ -698,7 +724,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           whereArgs: [productId, warehouseId],
         );
       } else {
-        // Create new record with negative quantity (oversold)
+        // No stock row exists -> cannot sell if qty > 0
+        if (qty > 0.001) {
+          throw LocalStorageException(
+            'الكمية غير كافية: لا يوجد مخزون للمنتج $productId',
+          );
+        }
         await txn.insert('warehouse_stocks', {
           'product_id': productId,
           'warehouse_id': warehouseId,
@@ -991,7 +1022,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     }
 
     // If no cash and no credit (shouldn't happen, but fallback)
-    if (cashPortion <= 0 && bankPortion <= 0 && creditPortion <= 0 && total > 0) {
+    if (cashPortion <= 0 &&
+        bankPortion <= 0 &&
+        creditPortion <= 0 &&
+        total > 0) {
       rawLines.add({
         'account_id': isCredit ? customerAccountId : cashAccountId,
         'debit_amount': total,
@@ -1034,11 +1068,73 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       });
     }
 
-    // Other fee account - use default if not specified to ensure accounting integrity
+    // Other fee account - resolve via account_connects or fallback to other revenue (4120)
     if (otherFee > 0) {
-      // Use provided account or default to "Other Revenue" account (4260)
-      final effectiveAccountId =
-          invoiceData['other_fee_account_id'] as int? ?? 4260;
+      int? providedId = invoiceData['other_fee_account_id'] as int?;
+      int effectiveAccountId;
+      if (providedId != null) {
+        effectiveAccountId = providedId;
+      } else {
+        // Try account_connects type 15 (other fees) else fallback to 4120 (other revenue)
+        final connectRes = await txn.query(
+          'account_connects',
+          columns: ['c_id'],
+          where: 'account_connect_type = ?',
+          whereArgs: [15],
+          limit: 1,
+        );
+        if (connectRes.isNotEmpty && connectRes.first['c_id'] != null) {
+          final cId = connectRes.first['c_id'] as int;
+          final accRes = await txn.query(
+            'accounts',
+            columns: ['id'],
+            where: 'c_id = ?',
+            whereArgs: [cId],
+            limit: 1,
+          );
+          if (accRes.isNotEmpty) {
+            effectiveAccountId = accRes.first['id'] as int;
+          } else {
+            // fallback to c_id 4120
+            final fb = await txn.query(
+              'accounts',
+              columns: ['id'],
+              where: 'c_id = ?',
+              whereArgs: [4120],
+              limit: 1,
+            );
+            effectiveAccountId = fb.isNotEmpty ? fb.first['id'] as int : 4120;
+          }
+        } else {
+          final fb = await txn.query(
+            'accounts',
+            columns: ['id'],
+            where: 'c_id = ?',
+            whereArgs: [4120],
+            limit: 1,
+          );
+          if (fb.isNotEmpty) {
+            effectiveAccountId = fb.first['id'] as int;
+          } else {
+            int now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+            // auto-create fallback other revenue account if missing
+            effectiveAccountId = await txn.insert('accounts', {
+              'c_id': 4120,
+              'code': '4002',
+              'name': 'إيرادات أخرى - رسوم',
+              'is_master': 0,
+              'master_id': 4,
+              'master_c_id': 4000,
+              'type': 3,
+              'is_active': 1,
+              'balance': 0.0,
+              'local_balance': 0.0,
+              'creation_time': now,
+              'last_modification_time': now,
+            });
+          }
+        }
+      }
       rawLines.add({
         'account_id': effectiveAccountId,
         'debit_amount': 0.0,
@@ -2441,13 +2537,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               whereArgs: [invoice.id],
               limit: 1,
             );
-            final oldNumber =
-                oldHeader.isNotEmpty ? oldHeader.first['number'] as String? : null;
+            final oldNumber = oldHeader.isNotEmpty
+                ? oldHeader.first['number'] as String?
+                : null;
             final oldStockId = oldHeader.isNotEmpty
                 ? oldHeader.first['stock_id'] as int?
                 : null;
 
-            await _reverseJournalEntryEffects(txn, 'sales_invoice', invoice.id!);
+            await _reverseJournalEntryEffects(
+              txn,
+              'sales_invoice',
+              invoice.id!,
+            );
             await _restoreStockForSalesLines(
               txn,
               invoiceId: invoice.id!,
@@ -2474,13 +2575,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               whereArgs: [invoice.id],
               limit: 1,
             );
-            final oldNumber =
-                oldHeader.isNotEmpty ? oldHeader.first['number'] as String? : null;
+            final oldNumber = oldHeader.isNotEmpty
+                ? oldHeader.first['number'] as String?
+                : null;
             final oldStockId = oldHeader.isNotEmpty
                 ? oldHeader.first['stock_id'] as int?
                 : null;
 
-            await _reverseJournalEntryEffects(txn, 'purchase_invoice', invoice.id!);
+            await _reverseJournalEntryEffects(
+              txn,
+              'purchase_invoice',
+              invoice.id!,
+            );
             await _reverseStockForPurchaseLines(
               txn,
               invoiceId: invoice.id!,
@@ -2495,13 +2601,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
               whereArgs: [invoice.id],
               limit: 1,
             );
-            final oldNumber =
-                oldHeader.isNotEmpty ? oldHeader.first['number'] as String? : null;
+            final oldNumber = oldHeader.isNotEmpty
+                ? oldHeader.first['number'] as String?
+                : null;
             final oldStockId = oldHeader.isNotEmpty
                 ? oldHeader.first['stock_id'] as int?
                 : null;
 
-            await _reverseJournalEntryEffects(txn, 'purchase_return', invoice.id!);
+            await _reverseJournalEntryEffects(
+              txn,
+              'purchase_return',
+              invoice.id!,
+            );
             await _restoreStockForPurchaseReturnLines(
               txn,
               returnInvoiceId: invoice.id!,
@@ -2738,8 +2849,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         whereArgs: [id],
         limit: 1,
       );
-      final headerStockId =
-          header.isNotEmpty ? header.first['stock_id'] as int? : null;
+      final headerStockId = header.isNotEmpty
+          ? header.first['stock_id'] as int?
+          : null;
 
       await _reverseJournalEntryEffects(txn, 'purchase_invoice', id);
       await _reverseStockForPurchaseLines(
@@ -2749,16 +2861,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         headerStockId: headerStockId,
       );
 
-      await txn.delete(
-        _linesTable,
-        where: 'invoice_id = ?',
-        whereArgs: [id],
-      );
-      await txn.delete(
-        _invoicesTable,
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await txn.delete(_linesTable, where: 'invoice_id = ?', whereArgs: [id]);
+      await txn.delete(_invoicesTable, where: 'id = ?', whereArgs: [id]);
     });
   }
 
@@ -2777,8 +2881,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         whereArgs: [id],
         limit: 1,
       );
-      final headerStockId =
-          header.isNotEmpty ? header.first['stock_id'] as int? : null;
+      final headerStockId = header.isNotEmpty
+          ? header.first['stock_id'] as int?
+          : null;
 
       await _reverseJournalEntryEffects(txn, 'purchase_return', id);
       await _restoreStockForPurchaseReturnLines(
@@ -2788,16 +2893,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         headerStockId: headerStockId,
       );
 
-      await txn.delete(
-        _linesTable,
-        where: 'invoice_id = ?',
-        whereArgs: [id],
-      );
-      await txn.delete(
-        _invoicesTable,
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await txn.delete(_linesTable, where: 'invoice_id = ?', whereArgs: [id]);
+      await txn.delete(_invoicesTable, where: 'id = ?', whereArgs: [id]);
     });
   }
 
@@ -2816,8 +2913,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         whereArgs: [id],
         limit: 1,
       );
-      final headerStockId =
-          header.isNotEmpty ? header.first['stock_id'] as int? : null;
+      final headerStockId = header.isNotEmpty
+          ? header.first['stock_id'] as int?
+          : null;
 
       await _reverseJournalEntryEffects(txn, 'sales_invoice', id);
       await _restoreStockForSalesLines(
@@ -2827,16 +2925,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         headerStockId: headerStockId,
       );
 
-      await txn.delete(
-        _linesTable,
-        where: 'invoice_id = ?',
-        whereArgs: [id],
-      );
-      await txn.delete(
-        _invoicesTable,
-        where: 'id = ?',
-        whereArgs: [id],
-      );
+      await txn.delete(_linesTable, where: 'invoice_id = ?', whereArgs: [id]);
+      await txn.delete(_invoicesTable, where: 'id = ?', whereArgs: [id]);
     });
   }
 
@@ -3178,9 +3268,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           invoiceNumber: salesInvoice.number,
           lines: salesInvoice.lines
               .map(
-                (l) => l is InvoiceLineModel
-                    ? l
-                    : InvoiceLineModel.fromEntity(l),
+                (l) =>
+                    l is InvoiceLineModel ? l : InvoiceLineModel.fromEntity(l),
               )
               .toList(),
           headerStockId: invoiceData['stock_id'] as int?,

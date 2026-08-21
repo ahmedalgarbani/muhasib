@@ -65,7 +65,7 @@ class PurchaseDetailProductsList extends StatelessWidget {
             if (lines.isEmpty)
               Center(
                 child: Padding(
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(12),
                   child: Text(
                     'لا توجد أصناف في هذه الفاتورة',
                     style: TextStyle(fontSize: 13, color: Colors.grey[600]),

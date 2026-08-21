@@ -24,7 +24,7 @@ class JournalHeaderCardWidget extends StatelessWidget {
       ),
       elevation: 3,
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -118,7 +118,7 @@ class JournalEntriesCardWidget extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -286,7 +286,7 @@ class JournalSummaryCardWidget extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -346,9 +346,9 @@ class JournalSummaryCardWidget extends StatelessWidget {
                   : AppTheme.redColor,
               icon: Icons.balance,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             StatusCard(balanced: totals.isBalanced),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(

@@ -419,14 +419,21 @@ class PurchaseInvoiceAccountingService {
         'description': line['description'],
       });
 
-      // Update account balance
-      await txn.rawUpdate(
-        'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) + ? WHERE id = ?',
-        [debit - credit, accountId],
-      );
+      // Update account balance + local_balance
+      await _applyBalanceDelta(txn, accountId, debit - credit);
     }
 
     return journalEntryId;
+  }
+
+  Future<void> _applyBalanceDelta(Transaction txn, int accountId, double delta, {double exchangeRate = 1.0}) async {
+    final rows = await txn.query(_accountsTable, columns: ['balance', 'local_balance'], where: 'id = ?', whereArgs: [accountId], limit: 1);
+    if (rows.isEmpty) return;
+    final cur = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
+    final curLocal = (rows.first['local_balance'] as num?)?.toDouble() ?? cur;
+    final newBal = cur + delta;
+    final newLocal = curLocal + delta * exchangeRate;
+    await txn.update(_accountsTable, {'balance': newBal, 'local_balance': newLocal, 'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000}, where: 'id = ?', whereArgs: [accountId]);
   }
 
   // ==================== Helper Methods ====================

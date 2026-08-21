@@ -177,7 +177,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 ReportDataTable<dynamic>(
                   columns: const [
                     ReportTableColumn(title: 'رمز الصنف / اسم المنتج', flex: 3),

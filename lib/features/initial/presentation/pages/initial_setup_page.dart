@@ -64,7 +64,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
         isActive: currentStep >= 0,
         state: currentStep > 0 ? StepState.complete : StepState.indexed,
         content: CustomCardContainer(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           child: Column(
             children: [
               TextInputField(
@@ -99,7 +99,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
         isActive: currentStep >= 1,
         state: currentStep > 1 ? StepState.complete : StepState.indexed,
         content: CustomCardContainer(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           child: BlocBuilder<CurrenciesCubit, CurrenciesState>(
             builder: (context, state) {
               if (state is CurrenciesLoading) {
@@ -140,7 +140,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
         isActive: currentStep >= 2,
         state: currentStep > 2 ? StepState.complete : StepState.indexed,
         content: CustomCardContainer(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           child: BlocBuilder<WarehousesCubit, WarehousesState>(
             builder: (context, state) {
               if (state is WarehousesLoading) {
@@ -167,7 +167,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
         isActive: currentStep >= 3,
         state: currentStep > 3 ? StepState.complete : StepState.indexed,
         content: CustomCardContainer(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

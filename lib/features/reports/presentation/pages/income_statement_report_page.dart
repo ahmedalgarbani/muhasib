@@ -148,7 +148,7 @@ class _IncomeStatementContentState extends State<_IncomeStatementContent> {
                   summary: summary,
                   formatCurrency: _formatCurrency,
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 10),
                 CustomCardContainer(
                   padding: EdgeInsets.zero,
                   elevation: 0,

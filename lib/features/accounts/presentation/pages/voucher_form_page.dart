@@ -120,7 +120,7 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                 : 'تعديل ${_type.label}',
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
             child: Form(
               key: _formKey,
               child: Column(
@@ -138,18 +138,18 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                       }
                     },
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   VoucherFormAccountAndAmountWidget(
                     accountName: _accountName,
                     amountController: _amountController,
                     onPickAccount: () => _pickAccount(isLine: false),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   VoucherFormStatementFieldWidget(
                     typeLabel: _type.label,
                     statementController: _statementController,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   VoucherFormLinesSectionWidget(
                     lines: _lines,
                     headerAmount: double.tryParse(_amountController.text) ?? 0,

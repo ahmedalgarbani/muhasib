@@ -145,7 +145,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
         );
 
         return Container(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(12),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -204,7 +204,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                   label: 'ملاحظات',
                   value: transaction['notes'],
                 ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
             ],
           ),
         );

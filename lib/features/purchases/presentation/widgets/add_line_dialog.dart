@@ -155,7 +155,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
             content: isLoading
                 ? const Center(
                     child: Padding(
-                      padding: EdgeInsets.all(24.0),
+                      padding: EdgeInsets.all(12),
                       child: CircularProgressIndicator(),
                     ),
                   )

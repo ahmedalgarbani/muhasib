@@ -61,7 +61,7 @@ class InventoryLinesCard extends StatelessWidget {
             const SizedBox(height: 16),
             if (inventoryLines.isEmpty)
               Container(
-                padding: const EdgeInsets.all(32),
+                padding: const EdgeInsets.all(16),
                 alignment: Alignment.center,
                 child: Column(
                   children: [

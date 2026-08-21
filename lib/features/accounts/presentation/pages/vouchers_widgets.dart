@@ -198,7 +198,7 @@ class _VoucherDetailsSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.xxs),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
@@ -222,13 +222,13 @@ class _VoucherDetailsSheet extends StatelessWidget {
               Expanded(
                 child: ListView(
                   controller: scrollController,
-                  padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(12),
                   children: [
                     VoucherInfoCardWidget(
                       voucher: voucher,
                       color: color,
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     const Text(
                       'الأسطر والتوزيع المالي',
                       style: TextStyle(
@@ -246,7 +246,7 @@ class _VoucherDetailsSheet extends StatelessWidget {
                       )
                     else
                       const VoucherSingleLineItemWidget(),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 16),
                     VoucherStatementCardWidget(statement: voucher.statement),
                     const SizedBox(height: 40),
                   ],
@@ -273,7 +273,7 @@ class VoucherInfoCardWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: color.withOpacity(0.05),
         borderRadius: BorderRadius.circular(AppRadius.lg20),

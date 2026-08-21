@@ -9,7 +9,8 @@ import 'package:muhasib/features/reports/presentation/widgets/report_data_table.
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CustomerBalancesReportPage extends StatefulWidget {
   const CustomerBalancesReportPage({super.key});
@@ -201,7 +202,7 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               ReportDataTable<_PartyBalanceRow>(
                 columns: [
                   ReportTableColumn(title: 'اسم ${widget.titleLabel}', flex: 3),

@@ -223,7 +223,7 @@ class _AccountFormPageState extends State<AccountFormPage> {
                   value: _allowUpdateDelete,
                   onChanged: (value) => setState(() => _allowUpdateDelete = value),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 BlocBuilder<AccountsCubit, AccountsState>(
                   builder: (context, state) {
                     final loading = state is AccountsLoading;

@@ -378,7 +378,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   HasibButton(
                     label: widget.product == null
                         ? 'إضافة المنتج'

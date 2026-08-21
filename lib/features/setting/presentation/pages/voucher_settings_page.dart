@@ -8,7 +8,8 @@ import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class VoucherSettingsPage extends StatefulWidget {
   const VoucherSettingsPage({super.key});
@@ -272,7 +273,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     ],
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 HasibButton(
                   label: 'حفظ التغييرات',
                   onPressed: _saveSettings,

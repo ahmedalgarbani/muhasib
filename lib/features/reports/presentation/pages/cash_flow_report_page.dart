@@ -11,7 +11,8 @@ import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/reports/presentation/widgets/cash_flow_components.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class CashFlowReportPage extends StatefulWidget {
   const CashFlowReportPage({super.key});
@@ -172,7 +173,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
 
               CashFlowSectionCardWidget(
                 title: 'الأنشطة التشغيلية (المبيعات، المشتريات، المصروفات)',
@@ -197,7 +198,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                 icon: Icons.account_balance,
                 formatCurrency: NumberFormatter.formatNumber,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 10),
               CashFlowFinalSummaryWidget(result: data),
             ],
           ),

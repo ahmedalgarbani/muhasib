@@ -137,7 +137,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
                                 VoucherFormHeaderWidget(
                                   onBack: () => Navigator.pop(context),
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 12),
                                 VoucherTypeSectionWidget(
                                   voucherType: _voucherType,
                                   onChanged: (value) {
@@ -183,7 +183,7 @@ class _VoucherFormScreenState extends State<VoucherFormScreen> {
                                   isSaving: _isSaving,
                                   onSave: (ctx) => _handleSave(ctx),
                                 ),
-                                const SizedBox(height: 24),
+                                const SizedBox(height: 12),
                               ],
                             ),
                           ),

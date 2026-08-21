@@ -221,7 +221,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   PurchaseFormHeader(isEdit: widget.invoice != null),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
                   PurchaseFormInfoCard(
                     numberController: _numberController,
                     dateController: _dateController,
@@ -276,7 +276,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                     statementController: _statementController,
                     shippingAddressController: _shippingAddressController,
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
                   PurchaseFormActionButtons(
                     invoice: widget.invoice,
                     onSaveInvoice: _saveInvoice,

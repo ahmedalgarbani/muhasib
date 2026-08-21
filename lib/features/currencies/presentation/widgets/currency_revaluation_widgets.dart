@@ -340,7 +340,7 @@ class RevaluationActionButtons extends StatelessWidget {
           icon: const Icon(Icons.clear),
           label: const Text('مسح'),
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 10),
           ),
         ),
       ),
@@ -353,7 +353,7 @@ class RevaluationActionButtons extends StatelessWidget {
           leading: const Icon(Icons.save),
           loading: isLoading,
           variant: HasibButtonVariant.primary,
-          padding: const EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 10),
         ),
       ),
     ],

@@ -136,7 +136,7 @@ class CurrencyExchangeV2Form extends StatelessWidget {
               notesController: notesController,
               onDate: onDate,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
 
             // 6. Action Buttons
             _ActionButtons(
@@ -159,7 +159,7 @@ class _ExchangeGuideBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: AppColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -270,7 +270,7 @@ class _ModernConverterCard extends StatelessWidget {
 
             // Center Swap & Rate Info
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               child: Row(
                 children: [
                   const Expanded(child: Divider()),
@@ -527,7 +527,7 @@ class _CustomRateCard extends StatelessWidget {
         side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.6)),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           children: [
             SwitchListTile.adaptive(
@@ -925,7 +925,7 @@ class _ActionButtons extends StatelessWidget {
             icon: const Icon(Icons.refresh, size: 18),
             label: const Text('إعادة تعيين'),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
+              padding: const EdgeInsets.symmetric(vertical: 8),
             ),
           ),
         ),

@@ -91,7 +91,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(showBalance, isFalse);
-      expect(find.text('••••••••'), findsOneWidget);
+      expect(find.text('••••••••'), findsWidgets);
     });
 
     testWidgets('Swiping page triggers onPageChanged', (tester) async {

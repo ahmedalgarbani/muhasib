@@ -75,9 +75,9 @@ class ExportService {
         theme: pw.ThemeData.withFont(base: ttf),
         build: (context) => [
           _buildHeader(title, settings, ttf),
-          pw.SizedBox(height: 20),
+          pw.SizedBox(height: 10),
           _buildTable(headers, data, ttf),
-          pw.SizedBox(height: 20),
+          pw.SizedBox(height: 10),
           _buildFooter(settings, ttf),
         ],
       ),

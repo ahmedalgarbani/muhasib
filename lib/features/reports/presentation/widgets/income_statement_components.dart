@@ -140,7 +140,7 @@ class IncomeStatementFinalResultWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isProfit = summary.netIncome >= 0;
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isProfit ? Colors.green[50] : Colors.red[50],
         borderRadius: const BorderRadius.vertical(

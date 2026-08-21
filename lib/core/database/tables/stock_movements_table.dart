@@ -70,9 +70,9 @@ class WarehouseStocksTable implements TableSchema {
       warehouse_id INTEGER NOT NULL REFERENCES stocks (id),
       
       -- Current quantities and costs
-      quantity REAL NOT NULL DEFAULT 0.0,
-      reserved_quantity REAL NOT NULL DEFAULT 0.0,
-      available_quantity REAL NOT NULL DEFAULT 0.0,
+      quantity REAL NOT NULL DEFAULT 0.0 CHECK(quantity >= 0),
+      reserved_quantity REAL NOT NULL DEFAULT 0.0 CHECK(reserved_quantity >= 0),
+      available_quantity REAL NOT NULL DEFAULT 0.0 CHECK(available_quantity >= 0),
       
       -- Cost tracking (for COGS calculation)
       avg_cost REAL NOT NULL DEFAULT 0.0,

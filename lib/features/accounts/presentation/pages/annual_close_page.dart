@@ -79,11 +79,11 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
                     ? () => setState(() => selectedYear++)
                     : null,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               const AnnualCloseSummaryCards(),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               AnnualCloseStepsCard(steps: steps),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               AnnualCloseActionButtons(
                 processing: isProcessing,
                 onPreview: _showPreviewDialog,

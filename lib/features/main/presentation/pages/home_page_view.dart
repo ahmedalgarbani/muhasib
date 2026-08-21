@@ -164,7 +164,7 @@ class _HomePageViewState extends State<HomePageView> {
                     const BottomActionCard(),
                   ]);
                 }
-                sections.add(const SizedBox(height: 20));
+                sections.add(const SizedBox(height: 10));
 
                 return Column(children: sections);
               },

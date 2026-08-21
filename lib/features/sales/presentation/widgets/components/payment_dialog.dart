@@ -250,7 +250,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
           ),
 
           if (_payments.isNotEmpty) ...[
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             const Text(
               'الدفعات المضافة',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),

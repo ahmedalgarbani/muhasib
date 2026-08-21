@@ -22,6 +22,10 @@ class MigrationRunner {
         '001_add_fiscal_periods.sql',
         '002_add_number_sequences.sql',
         '003_add_audit_log.sql',
+        '004_fix_account_types.sql',
+        '005_fix_audit_logs.sql',
+        '006_prevent_negative_stock.sql',
+        '007_fix_tolerance.sql',
       ];
 
       // Run pending migrations

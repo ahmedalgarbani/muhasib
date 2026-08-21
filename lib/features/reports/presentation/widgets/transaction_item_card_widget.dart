@@ -66,10 +66,7 @@ class TransactionItemCardWidget extends StatelessWidget {
           ListTile(
             title: Text(
               t.description,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
             ),
             subtitle: Text(
               'نوع الحركة: ${_getTypeLabel(t.transactionType)}',
@@ -84,40 +81,49 @@ class TransactionItemCardWidget extends StatelessWidget {
               ),
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Divider(height: 1),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Icon(Icons.circle, size: 8, color: Colors.green[300]),
-                const SizedBox(width: 8),
-                Text(
-                  t.details
-                      .firstWhere(
-                        (d) => d.debitAmount > 0,
-                        orElse: () => t.details.first,
-                      )
-                      .accountName,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[700]),
-                ),
-                const Spacer(),
-                Icon(Icons.circle, size: 8, color: Colors.red[300]),
-                const SizedBox(width: 8),
-                Text(
-                  t.details
-                      .firstWhere(
-                        (d) => d.creditAmount > 0,
-                        orElse: () => t.details.first,
-                      )
-                      .accountName,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[700]),
-                ),
-              ],
+          if (t.details.isNotEmpty) ...[
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Divider(height: 1),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Icon(Icons.circle, size: 8, color: Colors.green[300]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      t.details
+                              .where((d) => d.debitAmount > 0)
+                              .firstOrNull
+                              ?.accountName ??
+                          t.details.firstOrNull?.accountName ??
+                          '—',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Icon(Icons.circle, size: 8, color: Colors.red[300]),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      t.details
+                              .where((d) => d.creditAmount > 0)
+                              .firstOrNull
+                              ?.accountName ??
+                          t.details.firstOrNull?.accountName ??
+                          '—',
+                      textAlign: TextAlign.end,
+                      style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ],
       ),
     );

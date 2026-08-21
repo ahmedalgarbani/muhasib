@@ -24,7 +24,7 @@ class InventoryActionButtons extends StatelessWidget {
             icon: const Icon(Icons.save),
             label: const Text('حفظ كمسودة'),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
+              padding: const EdgeInsets.symmetric(vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
@@ -38,7 +38,7 @@ class InventoryActionButtons extends StatelessWidget {
             onPressed: isEmpty ? null : onPostInventory,
             leading: const Icon(Icons.check),
             variant: HasibButtonVariant.primary,
-            padding: const EdgeInsets.symmetric(vertical: 16),
+            padding: const EdgeInsets.symmetric(vertical: 10),
           ),
         ),
       ],

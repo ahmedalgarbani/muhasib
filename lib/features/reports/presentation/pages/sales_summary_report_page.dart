@@ -164,7 +164,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
                 const Text(
                   'ترتيب المنتجات الأكثر مبيعاً',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

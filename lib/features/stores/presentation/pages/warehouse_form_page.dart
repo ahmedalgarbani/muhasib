@@ -355,7 +355,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
 
                       // Action Buttons
                       Row(
@@ -397,7 +397,7 @@ class _WarehouseFormPageState extends State<WarehouseFormPage> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 12),
                     ],
                   ),
                 ),

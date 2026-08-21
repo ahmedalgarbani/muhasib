@@ -175,7 +175,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
 
                   Row(
                     children: [
@@ -203,7 +203,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
 
                   TextInputField(
                     label: 'اسم سسسسالحساب',
@@ -268,7 +268,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                         ],
                       ),
                     ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 12),
 
                   BlocBuilder<AccountsCubit, AccountsState>(
                     builder: (context, state) {

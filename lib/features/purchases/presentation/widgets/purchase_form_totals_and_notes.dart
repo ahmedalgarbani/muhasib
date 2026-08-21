@@ -243,7 +243,7 @@ class PurchaseFormActionButtons extends StatelessWidget {
                 leading: const Icon(Icons.save, size: 18),
                 loading: isLoading,
                 variant: HasibButtonVariant.success,
-                padding: const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 8),
                 fontSize: 13,
               );
             },
@@ -256,7 +256,7 @@ class PurchaseFormActionButtons extends StatelessWidget {
             icon: const Icon(Icons.close, size: 18),
             label: const Text('إلغاء', style: TextStyle(fontSize: 13)),
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),

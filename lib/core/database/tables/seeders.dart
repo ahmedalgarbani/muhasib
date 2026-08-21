@@ -256,7 +256,7 @@ Future<void> seedDefaultBanks(Database db) async {
   });
 }
 
-// أصول (Assets)
+// أصول (Assets) - type 0 per AccountType.assets
 Future<void> _seedAssets(Database db) async {
   final now = DateTime.now().millisecondsSinceEpoch;
 
@@ -267,7 +267,7 @@ Future<void> _seedAssets(Database db) async {
     'is_master': 1,
     'master_id': null,
     'master_c_id': null,
-    'type': 1,
+    'type': 0,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -286,7 +286,7 @@ Future<void> _seedAssets(Database db) async {
     'is_master': 1,
     'master_id': 1,
     'master_c_id': 1000,
-    'type': 1,
+    'type': 0,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -305,7 +305,7 @@ Future<void> _seedAssets(Database db) async {
     'is_master': 1,
     'master_id': 1,
     'master_c_id': 1000,
-    'type': 1,
+    'type': 0,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -324,7 +324,7 @@ Future<void> _seedAssets(Database db) async {
     'is_master': 0,
     'master_id': 1,
     'master_c_id': 1000,
-    'type': 1,
+    'type': 0,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -343,7 +343,7 @@ Future<void> _seedAssets(Database db) async {
     'is_master': 0,
     'master_id': 1,
     'master_c_id': 1000,
-    'type': 1,
+    'type': 0,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -362,7 +362,7 @@ Future<void> _seedAssets(Database db) async {
     'is_master': 0,
     'master_id': 1,
     'master_c_id': 1000,
-    'type': 1,
+    'type': 0,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -378,7 +378,7 @@ Future<void> _seedAssets(Database db) async {
 Future<void> _seedLiabilitiesAndEquity(Database db) async {
   final now = DateTime.now().millisecondsSinceEpoch;
 
-  // Main Liabilities Category
+  // Main Liabilities Category - type 1 per AccountType.liabilities
   await db.insert('accounts', {
     'c_id': 2000,
     'code': '2',
@@ -386,7 +386,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
     'is_master': 1,
     'master_id': null,
     'master_c_id': null,
-    'type': 2,
+    'type': 1,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -397,7 +397,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
     'last_modification_time': now,
   });
 
-  // الموردون
+  // الموردون - liability type 1
   await db.insert('accounts', {
     'c_id': 2110,
     'code': '2001',
@@ -405,7 +405,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
     'is_master': 1,
     'master_id': 2,
     'master_c_id': 2000,
-    'type': 2,
+    'type': 1,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -435,7 +435,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
     'last_modification_time': now,
   });
 
-  // القروض والسلف
+  // القروض والسلف - liability type 1
   await db.insert('accounts', {
     'c_id': 2130,
     'code': '2003',
@@ -443,7 +443,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
     'is_master': 0,
     'master_id': 2,
     'master_c_id': 2000,
-    'type': 2,
+    'type': 1,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -454,7 +454,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
     'last_modification_time': now,
   });
 
-  // الضرائب المستحقة
+  // الضرائب المستحقة - liability type 1
   await db.insert('accounts', {
     'c_id': 2140,
     'code': '2004',
@@ -462,7 +462,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
     'is_master': 0,
     'master_id': 2,
     'master_c_id': 2000,
-    'type': 2,
+    'type': 1,
     'national': 1,
     'statement': 'الميزانية العمومية',
     'is_active': 1,
@@ -478,7 +478,7 @@ Future<void> _seedLiabilitiesAndEquity(Database db) async {
 Future<void> _seedExpenses(Database db) async {
   final now = DateTime.now().millisecondsSinceEpoch;
 
-  // Main Expenses Category
+  // Main Expenses Category - type 4 per AccountType.expenses
   await db.insert('accounts', {
     'c_id': 3000,
     'code': '3',
@@ -486,7 +486,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 1,
     'master_id': null,
     'master_c_id': null,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -497,7 +497,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // المشتريات
+  // المشتريات - expense type 4
   await db.insert('accounts', {
     'c_id': 3110,
     'code': '3001',
@@ -505,7 +505,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -516,7 +516,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // الرواتب والأجور
+  // الرواتب والأجور - expense type 4
   await db.insert('accounts', {
     'c_id': 3120,
     'code': '3002',
@@ -524,7 +524,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -535,7 +535,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // مصاريف إدارية
+  // مصاريف إدارية - expense type 4
   await db.insert('accounts', {
     'c_id': 3130,
     'code': '3003',
@@ -543,7 +543,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -554,7 +554,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // مصاريف تشغيلية
+  // مصاريف تشغيلية - expense type 4
   await db.insert('accounts', {
     'c_id': 3140,
     'code': '3004',
@@ -562,7 +562,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -573,7 +573,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // الخصم المسموح به
+  // الخصم المسموح به - expense type 4
   await db.insert('accounts', {
     'c_id': 3150,
     'code': '3005',
@@ -581,7 +581,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -592,7 +592,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // خسائر فروق صرف العملات (Exchange Rate Losses)
+  // خسائر فروق صرف العملات - expense type 4
   await db.insert('accounts', {
     'c_id': 3170,
     'code': '3006',
@@ -600,7 +600,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -611,7 +611,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // عمولات المبيعات (Sales Commission Expense)
+  // عمولات المبيعات - expense type 4
   await db.insert('accounts', {
     'c_id': 3180,
     'code': '3007',
@@ -619,7 +619,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -630,7 +630,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // عمولات مستحقة الدفع (Commission Payables)
+  // عمولات مستحقة الدفع - liability type 1
   await db.insert('accounts', {
     'c_id': 2160,
     'code': '2005',
@@ -638,7 +638,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 2,
     'master_c_id': 2000,
-    'type': 2,
+    'type': 1,
     'national': 1,
     'statement': 'قائمة المركز المالي',
     'is_active': 1,
@@ -649,7 +649,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // ضريبة القيمة المضافة - مدخلات (Input VAT - Recoverable)
+  // ضريبة القيمة المضافة - مدخلات - asset type 0
   await db.insert('accounts', {
     'c_id': 1170,
     'code': '1006',
@@ -657,7 +657,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 1,
     'master_c_id': 1000,
-    'type': 1,
+    'type': 0,
     'national': 1,
     'statement': 'قائمة المركز المالي',
     'is_active': 1,
@@ -668,7 +668,7 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // ضريبة القيمة المضافة - مخرجات (Output VAT - Payable)
+  // ضريبة القيمة المضافة - مخرجات - liability type 1
   await db.insert('accounts', {
     'c_id': 2170,
     'code': '2006',
@@ -676,25 +676,6 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 2,
     'master_c_id': 2000,
-    'type': 2,
-    'national': 1,
-    'statement': 'قائمة المركز المالي',
-    'is_active': 1,
-    'allow_update_delete': 1,
-    'balance': 0.0,
-    'local_balance': 0.0,
-    'creation_time': now,
-    'last_modification_time': now,
-  });
-
-  // المخزون (Inventory Asset)
-  await db.insert('accounts', {
-    'c_id': 1180,
-    'code': '1007',
-    'name': 'المخزون',
-    'is_master': 0,
-    'master_id': 1,
-    'master_c_id': 1000,
     'type': 1,
     'national': 1,
     'statement': 'قائمة المركز المالي',
@@ -706,7 +687,26 @@ Future<void> _seedExpenses(Database db) async {
     'last_modification_time': now,
   });
 
-  // تكلفة البضاعة المباعة (Cost of Goods Sold)
+  // المخزون - asset type 0
+  await db.insert('accounts', {
+    'c_id': 1180,
+    'code': '1007',
+    'name': 'المخزون',
+    'is_master': 0,
+    'master_id': 1,
+    'master_c_id': 1000,
+    'type': 0,
+    'national': 1,
+    'statement': 'قائمة المركز المالي',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // تكلفة البضاعة المباعة - expense type 4
   await db.insert('accounts', {
     'c_id': 3190,
     'code': '3008',
@@ -714,7 +714,7 @@ Future<void> _seedExpenses(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -730,7 +730,7 @@ Future<void> _seedExpenses(Database db) async {
 Future<void> _seedRevenues(Database db) async {
   final now = DateTime.now().millisecondsSinceEpoch;
 
-  // Main Revenues Category
+  // Main Revenues Category - revenue type 3 per AccountType.revenue
   await db.insert('accounts', {
     'c_id': 4000,
     'code': '4',
@@ -738,7 +738,7 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 1,
     'master_id': null,
     'master_c_id': null,
-    'type': 4,
+    'type': 3,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -749,7 +749,7 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
-  // المبيعات
+  // المبيعات - revenue type 3
   await db.insert('accounts', {
     'c_id': 4110,
     'code': '4001',
@@ -757,7 +757,7 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 0,
     'master_id': 4,
     'master_c_id': 4000,
-    'type': 4,
+    'type': 3,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -768,7 +768,7 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
-  // إيرادات أخرى
+  // إيرادات أخرى - revenue type 3
   await db.insert('accounts', {
     'c_id': 4120,
     'code': '4002',
@@ -776,7 +776,7 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 0,
     'master_id': 4,
     'master_c_id': 4000,
-    'type': 4,
+    'type': 3,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -787,7 +787,7 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
-  // إيرادات الخدمات
+  // إيرادات الخدمات - revenue type 3
   await db.insert('accounts', {
     'c_id': 4130,
     'code': '4003',
@@ -795,7 +795,7 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 0,
     'master_id': 4,
     'master_c_id': 4000,
-    'type': 4,
+    'type': 3,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -806,7 +806,7 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
-  // الخصم المكتسب
+  // الخصم المكتسب - revenue type 3
   await db.insert('accounts', {
     'c_id': 4140,
     'code': '4004',
@@ -814,7 +814,7 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 0,
     'master_id': 4,
     'master_c_id': 4000,
-    'type': 4,
+    'type': 3,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -825,7 +825,7 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
-  // أرباح فروق صرف العملات (Exchange Rate Gains)
+  // أرباح فروق صرف العملات - revenue type 3
   await db.insert('accounts', {
     'c_id': 4160,
     'code': '4005',
@@ -833,7 +833,7 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 0,
     'master_id': 4,
     'master_c_id': 4000,
-    'type': 4,
+    'type': 3,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -844,7 +844,7 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
-  // مرتجعات المبيعات (Sales Returns - Contra Revenue)
+  // مرتجعات المبيعات - revenue type 3 (contra)
   await db.insert('accounts', {
     'c_id': 4150,
     'code': '4006',
@@ -852,7 +852,7 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 0,
     'master_id': 4,
     'master_c_id': 4000,
-    'type': 4,
+    'type': 3,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,
@@ -863,7 +863,7 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
-  // إيرادات تسوية المخزون (Inventory Adjustment Gains)
+  // إيرادات تسوية المخزون - revenue type 3
   await db.insert('accounts', {
     'c_id': 4200,
     'code': '4200',
@@ -871,6 +871,25 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 0,
     'master_id': 4,
     'master_c_id': 4000,
+    'type': 3,
+    'national': 1,
+    'statement': 'قائمة الدخل',
+    'is_active': 1,
+    'allow_update_delete': 1,
+    'balance': 0.0,
+    'local_balance': 0.0,
+    'creation_time': now,
+    'last_modification_time': now,
+  });
+
+  // تكلفة البضاعة المباعة - expense type 4
+  await db.insert('accounts', {
+    'c_id': 3160,
+    'code': '3009',
+    'name': 'تكلفة البضاعة المباعة',
+    'is_master': 0,
+    'master_id': 3,
+    'master_c_id': 3000,
     'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
@@ -882,26 +901,7 @@ Future<void> _seedRevenues(Database db) async {
     'last_modification_time': now,
   });
 
-  // تكلفة البضاعة المباعة (Cost of Goods Sold)
-  await db.insert('accounts', {
-    'c_id': 3160,
-    'code': '3009',
-    'name': 'تكلفة البضاعة المباعة',
-    'is_master': 0,
-    'master_id': 3,
-    'master_c_id': 3000,
-    'type': 3,
-    'national': 1,
-    'statement': 'قائمة الدخل',
-    'is_active': 1,
-    'allow_update_delete': 1,
-    'balance': 0.0,
-    'local_balance': 0.0,
-    'creation_time': now,
-    'last_modification_time': now,
-  });
-
-  // خسائر تسوية المخزون (Inventory Adjustment Losses)
+  // خسائر تسوية المخزون - expense type 4
   await db.insert('accounts', {
     'c_id': 5200,
     'code': '5200',
@@ -909,7 +909,7 @@ Future<void> _seedRevenues(Database db) async {
     'is_master': 0,
     'master_id': 3,
     'master_c_id': 3000,
-    'type': 3,
+    'type': 4,
     'national': 1,
     'statement': 'قائمة الدخل',
     'is_active': 1,

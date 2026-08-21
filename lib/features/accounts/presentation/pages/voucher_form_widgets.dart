@@ -394,7 +394,7 @@ class VoucherAccountListWidget extends StatelessWidget {
     if (filtered.isEmpty) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -421,7 +421,7 @@ class VoucherAccountListWidget extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       itemCount: filtered.length,
       separatorBuilder: (_, __) => const Divider(height: 1, indent: 64),
       itemBuilder: (context, i) {

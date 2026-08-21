@@ -462,7 +462,7 @@ class PartyDetailsSheet extends StatelessWidget {
       expand: false,
       builder: (sheetContext, scrollController) => SingleChildScrollView(
         controller: scrollController,
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -535,7 +535,7 @@ class PartyDetailsSheet extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 10),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -593,7 +593,7 @@ class PartyDetailsSheet extends StatelessWidget {
                 label: 'العنوان',
                 value: party.address!,
               ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(

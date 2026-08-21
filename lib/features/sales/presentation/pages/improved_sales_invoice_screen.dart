@@ -222,7 +222,7 @@ class _ImprovedSalesInvoiceScreenState
               // Progress Indicator
               Container(
                 color: Theme.of(context).colorScheme.surface,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 10),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: List.generate(maxStep, (index) {
@@ -336,7 +336,7 @@ class _ImprovedSalesInvoiceScreenState
                         child: OutlinedButton(
                           onPressed: _previousStep,
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            padding: const EdgeInsets.symmetric(vertical: 8),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(AppRadius.sm),
                             ),
@@ -372,7 +372,7 @@ class _ImprovedSalesInvoiceScreenState
                         variant: _currentStep == maxStep
                             ? HasibButtonVariant.success
                             : HasibButtonVariant.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         fontSize: 16,
                       ),
                     ),
