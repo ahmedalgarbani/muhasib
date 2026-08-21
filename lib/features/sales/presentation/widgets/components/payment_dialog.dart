@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:flutter/services.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
@@ -6,9 +7,12 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/custom_confirm_dialog.dart';
+import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_method_chip_widget.dart';
+import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.dart';
+import 'package:muhasib/features/settings_entities/domain/repositories/bank_repository.dart';
 
 class PaymentDialog extends StatefulWidget {
   final double totalAmount;
@@ -32,12 +36,36 @@ class _PaymentDialogState extends State<PaymentDialog> {
   final _amountController = TextEditingController();
   final _referenceController = TextEditingController();
   String? _errorMessage;
+  List<BankEntity> _banks = [];
+  int? _selectedBankId;
+  bool _loadingBanks = false;
 
   @override
   void initState() {
     super.initState();
     _payments = List.from(widget.existingPayments);
     _updateSuggestedAmount();
+    _loadBanks();
+  }
+
+  Future<void> _loadBanks() async {
+    setState(() => _loadingBanks = true);
+    try {
+      final repo = getIt<BankRepository>();
+      final res = await repo.getActiveBanks();
+      final list = res.fold((_) => <BankEntity>[], (l) => l);
+      if (mounted) {
+        setState(() {
+          _banks = list;
+          if (_banks.isNotEmpty && _selectedBankId == null) {
+            _selectedBankId = _banks.first.id;
+          }
+          _loadingBanks = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadingBanks = false);
+    }
   }
 
   double get _totalPaid => _payments.fold(0, (sum, p) => sum + p.amount);
@@ -80,15 +108,24 @@ class _PaymentDialogState extends State<PaymentDialog> {
   }
 
   void _confirmAddPayment(double amount) {
+    String? bankName;
+    if (_selectedMethod == PaymentMethod.bank && _selectedBankId != null) {
+      try {
+        bankName = _banks.firstWhere((b) => b.id == _selectedBankId).name;
+      } catch (_) {}
+    }
     setState(() {
       _payments.add(
         Payment(
           method: _selectedMethod,
           amount: amount,
-          details:
-              _selectedMethod == PaymentMethod.bank &&
-                  _referenceController.text.isNotEmpty
-              ? {'reference': _referenceController.text}
+          details: _selectedMethod == PaymentMethod.bank
+              ? {
+                  if (_referenceController.text.isNotEmpty)
+                    'reference': _referenceController.text,
+                  if (_selectedBankId != null) 'bank_id': _selectedBankId,
+                  if (bankName != null) 'bank_name': bankName,
+                }
               : null,
         ),
       );
@@ -234,10 +271,42 @@ class _PaymentDialogState extends State<PaymentDialog> {
 
           if (_selectedMethod == PaymentMethod.bank) ...[
             const SizedBox(height: 16),
+            if (_loadingBanks)
+              const LinearProgressIndicator()
+            else if (_banks.isNotEmpty)
+              CustomDropdownField<int>(
+                value: _selectedBankId,
+                label: 'البنك',
+                prefixIcon: const Icon(Icons.account_balance, size: 18),
+                items: _banks
+                    .map(
+                      (b) => DropdownMenuItem<int>(
+                        value: b.id,
+                        child: Text(b.name, overflow: TextOverflow.ellipsis),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (v) => setState(() => _selectedBankId = v),
+              )
+            else
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.amber.shade200),
+                ),
+                child: const Text(
+                  'لا توجد بنوك مفعلة. أضف بنكاً من الإعدادات.',
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+            const SizedBox(height: 12),
             TextInputField(
-              label: 'رقم المرجع (اختياري)',
+              label: 'رقم المرجع / الحوالة (اختياري)',
               textEditingController: _referenceController,
               prefixIcon: const Icon(Icons.confirmation_number),
+              hint: 'مرجع العملية البنكية',
             ),
           ],
 
@@ -274,8 +343,17 @@ class _PaymentDialogState extends State<PaymentDialog> {
                     _getPaymentMethodName(payment.method),
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  subtitle: payment.details?['reference'] != null
-                      ? Text('مرجع: ${payment.details!['reference']}')
+                  subtitle: (payment.details?['bank_name'] != null ||
+                          payment.details?['reference'] != null)
+                      ? Text(
+                          [
+                            if (payment.details?['bank_name'] != null)
+                              'البنك: ${payment.details!['bank_name']}',
+                            if (payment.details?['reference'] != null)
+                              'مرجع: ${payment.details!['reference']}',
+                          ].join(' • '),
+                          style: const TextStyle(fontSize: 11),
+                        )
                       : null,
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,

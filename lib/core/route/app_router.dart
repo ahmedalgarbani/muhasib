@@ -46,6 +46,7 @@ import 'package:muhasib/features/sales/presentation/widgets/sale_page_body.dart'
 import 'package:muhasib/features/sales/presentation/pages/quotations_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/returns_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/return_invoice_form_page.dart';
+import 'package:muhasib/features/sales/presentation/pages/return_detail_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/select_invoice_for_return_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/pos_page.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
@@ -340,16 +341,26 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.salesReturns,
       name: AppRoutes.salesReturns,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<SalesCubit>(),
+      builder: (context, state) => MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => getIt<SalesCubit>()),
+          BlocProvider(
+            create: (context) => getIt<CustomersCubit>()..loadCustomers(),
+          ),
+        ],
         child: const ReturnsPage(),
       ),
     ),
     GoRoute(
       path: AppRoutes.selectInvoiceForReturn,
       name: AppRoutes.selectInvoiceForReturn,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<SalesCubit>(),
+      builder: (context, state) => MultiBlocProvider(
+        providers: [
+          BlocProvider(create: (context) => getIt<SalesCubit>()),
+          BlocProvider(
+            create: (context) => getIt<CustomersCubit>()..loadCustomers(),
+          ),
+        ],
         child: const SelectInvoiceForReturnPage(),
       ),
     ),
@@ -358,14 +369,35 @@ final router = GoRouter(
       name: AppRoutes.salesReturnsForm,
       builder: (context, state) {
         final invoiceId = state.uri.queryParameters['invoiceId'];
-        return BlocProvider(
-          create: (context) => getIt<SalesCubit>(),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => getIt<SalesCubit>()),
+            BlocProvider(
+              create: (context) => getIt<CustomersCubit>()..loadCustomers(),
+            ),
+            BlocProvider(
+              create: (context) => getIt<ProductsCubit>()..loadProducts(),
+            ),
+          ],
           child: ReturnInvoiceFormPage(
             originalInvoiceId: invoiceId != null
                 ? int.tryParse(invoiceId)
                 : null,
           ),
         );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.salesReturnDetail,
+      name: AppRoutes.salesReturnDetail,
+      builder: (context, state) {
+        final returnInvoice = state.extra as InvoiceEntity?;
+        if (returnInvoice == null) {
+          return const Scaffold(
+            body: Center(child: Text('بيانات المرتجع غير متوفرة')),
+          );
+        }
+        return ReturnDetailPage(returnInvoice: returnInvoice);
       },
     ),
     GoRoute(

@@ -29,6 +29,7 @@ import 'package:muhasib/features/settings_entities/domain/repositories/bank_repo
 import 'package:muhasib/features/settings_entities/domain/repositories/cashbox_repository.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/core/widgets/unit_picker_page.dart';
 
 class PosPage extends StatefulWidget {
   const PosPage({super.key});
@@ -501,75 +502,13 @@ class _PosPageState extends State<PosPage> {
     List<ProductUnitOption> units,
     double basePrice,
   ) async {
-    final svc = getIt<UnitConversionService>();
-    return showModalBottomSheet<ProductUnitOption>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.layers_outlined, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'اختر الوحدة لـ ${product.name}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              ...units.map((u) {
-                final price = svc.resolveUnitPrice(
-                  baseSellPrice: basePrice,
-                  unit: u,
-                );
-                final factor = u.totalConversion;
-                final isMain = u.isMainUnit;
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 8),
-                  child: ListTile(
-                    title: Text(
-                      '${u.unitName} ${isMain ? "(أساسية)" : "($factor حبة)"}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      'السعر: ${price.toStringAsFixed(2)} ${_getCurrencySymbol()}'
-                      '${u.hasBarcode ? " | باركود: ${u.barcode}" : ""}'
-                      '${u.isDefaultSale ? " ★ افتراضي" : ""}',
-                      style: const TextStyle(fontSize: 12),
-                    ),
-                    trailing: const Icon(
-                      Icons.add_circle,
-                      color: AppColors.primary,
-                    ),
-                    onTap: () => Navigator.pop(ctx, u),
-                  ),
-                );
-              }),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('إلغاء'),
-                ),
-              ),
-            ],
-          ),
+    return Navigator.of(context).push<ProductUnitOption>(
+      MaterialPageRoute(
+        builder: (_) => UnitPickerPage(
+          productName: product.name,
+          units: units,
+          basePrice: basePrice,
+          currencySymbol: _getCurrencySymbol(),
         ),
       ),
     );
@@ -1249,112 +1188,55 @@ class _PosPageState extends State<PosPage> {
   Widget _buildWarehouseSelector(ThemeData theme, bool isDark) {
     if (_isLoadingWarehouses) {
       return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: LinearProgressIndicator(),
       );
     }
     if (_warehouses.isEmpty) return const SizedBox.shrink();
-    return Container(
-      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.cardSurfaceDark : Colors.white,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: theme.dividerColor),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.warehouse_outlined,
-            size: 18,
-            color: isDark ? AppColors.emerald300 : AppColors.primary,
-          ),
-          const SizedBox(width: 8),
-          const Text(
-            'المخزن:',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<int>(
-                value: _selectedWarehouseId,
-                isExpanded: true,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: theme.colorScheme.onSurface,
-                ),
-                items: _warehouses.map((w) {
-                  return DropdownMenuItem<int>(
-                    value: w.id,
-                    child: Text(
-                      '${w.name}${w.isMainStock == true ? " (الرئيسي)" : ""}',
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val == null || val == _selectedWarehouseId) return;
-                  if (_cart.isNotEmpty) {
-                    showDialog(
-                      context: context,
-                      builder: (ctx) => AlertDialog(
-                        title: const Text('تغيير المخزن'),
-                        content: const Text(
-                          'تغيير المخزن سيفرغ السلة الحالية لأن الأصناف مرتبطة بالمخزن محاسبياً. هل تريد المتابعة؟',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(ctx),
-                            child: const Text('إلغاء'),
-                          ),
-                          FilledButton(
-                            onPressed: () {
-                              Navigator.pop(ctx);
-                              setState(() {
-                                _selectedWarehouseId = val;
-                                _cart.clear();
-                              });
-                              AppToast.showSuccess(
-                                context,
-                                'تم تغيير المخزن، يرجى إعادة إضافة الأصناف',
-                              );
-                            },
-                            child: const Text('متابعة ومسح السلة'),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    setState(() => _selectedWarehouseId = val);
-                  }
-                },
-              ),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? AppColors.emerald400.withValues(alpha: 0.2)
-                  : AppColors.saudiMint,
-              borderRadius: BorderRadius.circular(6),
-            ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: CustomDropdownField<int>(
+        value: _selectedWarehouseId,
+        label: 'المخزن',
+        prefixIcon: const Icon(Icons.warehouse_outlined, size: 18),
+        items: _warehouses.map((w) {
+          return DropdownMenuItem<int>(
+            value: w.id,
             child: Text(
-              'محاسبي',
-              style: TextStyle(
-                fontSize: 10,
-                color: isDark ? AppColors.emerald300 : AppColors.primary,
-                fontWeight: FontWeight.bold,
-              ),
+              '${w.name}${w.isMainStock == true ? " (الرئيسي)" : ""}',
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 13, color: theme.colorScheme.onSurface),
             ),
-          ),
-        ],
+          );
+        }).toList(),
+        onChanged: (val) {
+          if (val == null || val == _selectedWarehouseId) return;
+          if (_cart.isNotEmpty) {
+            showDialog(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('تغيير المخزن'),
+                content: const Text('تغيير المخزن سيفرغ السلة الحالية لأن الأصناف مرتبطة بالمخزن محاسبياً. هل تريد المتابعة؟'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('إلغاء')),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      setState(() {
+                        _selectedWarehouseId = val;
+                        _cart.clear();
+                      });
+                      AppToast.showSuccess(context, 'تم تغيير المخزن، يرجى إعادة إضافة الأصناف');
+                    },
+                    child: const Text('متابعة ومسح السلة'),
+                  ),
+                ],
+              ),
+            );
+          } else {
+            setState(() => _selectedWarehouseId = val);
+          }
+        },
       ),
     );
   }

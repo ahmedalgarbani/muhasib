@@ -527,39 +527,20 @@ class _ProductFormPageState extends State<ProductFormPage> {
       title: 'الوحدات الإضافية / التعبئة',
       icon: Icons.layers,
       children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.amber.shade50,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: Colors.amber.shade200),
-          ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.lightbulb_outline,
-                size: 16,
-                color: Colors.amber.shade800,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'مثال: حبة (أساس) + درزن (12 حبة) + كرتون (24 حبة). سعر الكرتون يحسب تلقائياً أو يحدد يدوياً.',
-                  style: TextStyle(fontSize: 11, color: Colors.amber.shade800),
-                ),
-              ),
-            ],
-          ),
+        Text(
+          'أضف وحدات التعبئة للصنف (مثال: درزن 12 حبة، كرتون 24). يُحسب السعر تلقائياً إن ترك فارغاً.',
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
         ),
         const SizedBox(height: 12),
         if (_loadingSubUnits) const LinearProgressIndicator(),
         if (_extraUnits.isEmpty)
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            alignment: Alignment.center,
-            child: Text(
-              'لا توجد وحدات إضافية',
-              style: TextStyle(color: Colors.grey.shade600),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Center(
+              child: Text(
+                'لا توجد وحدات إضافية — اضغط أدناه للإضافة',
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+              ),
             ),
           ),
         ..._extraUnits.asMap().entries.map((entry) {
@@ -576,11 +557,12 @@ class _ProductFormPageState extends State<ProductFormPage> {
         const SizedBox(height: 8),
         OutlinedButton.icon(
           onPressed: _addExtraUnit,
-          icon: const Icon(Icons.add),
-          label: const Text('إضافة وحدة / تعبئة'),
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('إضافة وحدة'),
           style: OutlinedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 44),
-            side: BorderSide(color: AppColors.primary),
+            minimumSize: const Size(double.infinity, 42),
+            side: BorderSide(color: AppColors.primary.withValues(alpha: 0.5)),
+            foregroundColor: AppColors.primary,
           ),
         ),
       ],
@@ -808,20 +790,14 @@ class _ExtraUnitCard extends StatefulWidget {
 class _ExtraUnitCardState extends State<_ExtraUnitCard> {
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: Theme.of(context).dividerColor),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

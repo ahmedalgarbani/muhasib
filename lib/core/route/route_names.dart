@@ -39,6 +39,7 @@ class AppRoutes {
   static const String salesQuotes = '/sales/quotes';
   static const String salesReturns = '/sales/returns';
   static const String salesReturnsForm = '/sales-returns-form';
+  static const String salesReturnDetail = '/sales/return-detail';
   static const String pos = '/pos';
   static const String selectInvoiceForReturn =
       '/sales/select-invoice-for-return';

@@ -24,6 +24,7 @@ import 'package:muhasib/features/reports/presentation/cubit/reports_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/setting_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/stores/presentation/cubit/stores_cubit.dart';
+import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -65,6 +66,9 @@ void main() async {
         BlocProvider(create: (context) => getIt<JournalEntryCubit>()),
         BlocProvider(create: (context) => getIt<CurrenciesCubit>()),
         BlocProvider(create: (context) => getIt<SalesCubit>()),
+        BlocProvider(
+          create: (context) => getIt<CustomersCubit>()..loadCustomers(),
+        ),
         BlocProvider(create: (context) => getIt<ProductsCubit>()..loadProducts()),
         BlocProvider(create: (context) => getIt<ProductGroupsCubit>()),
         BlocProvider(create: (context) => getIt<ProductUnitsCubit>()),

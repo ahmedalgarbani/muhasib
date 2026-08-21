@@ -77,37 +77,39 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
     });
   }
 
-  void _addInvoiceLine() {
-    showDialog(
-      context: context,
-      builder: (context) => AddLineDialog(
-        stockId: _selectedWarehouseId ?? 1,
-        supplierId: _selectedSupplierId ?? 1,
-        onAdd: (line) {
-          setState(() {
-            _invoiceLines.add(line);
-            _calculateTotals();
-          });
-        },
+  Future<void> _addInvoiceLine() async {
+    final line = await Navigator.of(context).push<InvoiceLineEntity>(
+      MaterialPageRoute(
+        builder: (_) => PurchaseLineEditorPage(
+          stockId: _selectedWarehouseId ?? 1,
+          supplierId: _selectedSupplierId ?? 1,
+        ),
       ),
     );
+    if (line != null && mounted) {
+      setState(() {
+        _invoiceLines.add(line);
+        _calculateTotals();
+      });
+    }
   }
 
-  void _editInvoiceLine(int index) {
-    showDialog(
-      context: context,
-      builder: (context) => AddLineDialog(
-        line: _invoiceLines[index],
-        stockId: _selectedWarehouseId ?? 1,
-        supplierId: _selectedSupplierId ?? 1,
-        onAdd: (line) {
-          setState(() {
-            _invoiceLines[index] = line;
-            _calculateTotals();
-          });
-        },
+  Future<void> _editInvoiceLine(int index) async {
+    final line = await Navigator.of(context).push<InvoiceLineEntity>(
+      MaterialPageRoute(
+        builder: (_) => PurchaseLineEditorPage(
+          line: _invoiceLines[index],
+          stockId: _selectedWarehouseId ?? 1,
+          supplierId: _selectedSupplierId ?? 1,
+        ),
       ),
     );
+    if (line != null && mounted) {
+      setState(() {
+        _invoiceLines[index] = line;
+        _calculateTotals();
+      });
+    }
   }
 
   void _deleteInvoiceLine(int index) {

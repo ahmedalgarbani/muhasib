@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
-import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
-import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/enums/invoice_type.dart';
+import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/widgets/text_input_field.dart';
-import 'package:muhasib/features/sales/presentation/widgets/components/select_return_invoice_card_widget.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/widgets/text_input_field.dart';
+import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
+import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
+import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
+import 'package:muhasib/features/sales/presentation/widgets/components/select_return_invoice_card_widget.dart';
 
 class SelectInvoiceForReturnPage extends StatefulWidget {
   const SelectInvoiceForReturnPage({super.key});
@@ -31,7 +32,7 @@ class _SelectInvoiceForReturnPageState
   @override
   void initState() {
     super.initState();
-    // Load sales invoices only (not returns or quotations)
+    // Load sales invoices
     context.read<SalesCubit>().loadInvoices();
   }
 
@@ -43,12 +44,14 @@ class _SelectInvoiceForReturnPageState
 
   void _filterInvoices(String query) {
     setState(() {
-      if (query.isEmpty) {
+      if (query.trim().isEmpty) {
         _filteredInvoices = _allInvoices;
       } else {
+        final q = query.trim().toLowerCase();
         _filteredInvoices = _allInvoices.where((invoice) {
-          return invoice.number.toLowerCase().contains(query.toLowerCase()) ||
-              invoice.customerId.toString().contains(query);
+          final numberMatches = invoice.number.toLowerCase().contains(q);
+          final customerMatches = invoice.customerId.toString().contains(q);
+          return numberMatches || customerMatches;
         }).toList();
       }
     });
@@ -58,7 +61,7 @@ class _SelectInvoiceForReturnPageState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      appBar: CustomAppBar(title: 'اختر الفاتورة لإنشاء مرتجع'),
+      appBar: const CustomAppBar(title: 'اختر الفاتورة لإنشاء مرتجع'),
       body: Column(
         children: [
           // Search Bar
@@ -67,7 +70,7 @@ class _SelectInvoiceForReturnPageState
             color: Theme.of(context).colorScheme.surface,
             child: TextInputField(
               controller: _searchController,
-              hint: 'ابحث برقم الفاتورة أو اسم العميل...',
+              hint: 'ابحث برقم الفاتورة أو رقم العميل...',
               onChanged: _filterInvoices,
               decoration: InputDecoration(
                 prefixIcon: const Icon(Icons.search),
@@ -101,10 +104,11 @@ class _SelectInvoiceForReturnPageState
                 if (state is SalesLoading) {
                   return const Center(child: CircularProgressIndicator());
                 } else if (state is SalesLoaded) {
-                  // Filter only sales invoices (type 0 or 1)
+                  // Filter only sales invoices (type 1) and quick invoices (type 6)
                   _allInvoices = state.invoices.where((invoice) {
-                    // Filter only sales invoices (type 1) and quick invoices (type 6)
-                    return invoice.invoiceType == 1 || invoice.invoiceType == 6;
+                    return invoice.invoiceType ==
+                            InvoiceType.salesInvoice.value ||
+                        invoice.invoiceType == InvoiceType.quickInvoice.value;
                   }).toList();
 
                   if (_filteredInvoices.isEmpty &&
@@ -129,8 +133,10 @@ class _SelectInvoiceForReturnPageState
                         invoice: invoice,
                         onTap: () {
                           context.pushNamed(
-                            'sales-returns-form',
-                            queryParameters: {'invoiceId': invoice.id.toString()},
+                            AppRoutes.salesReturnsForm,
+                            queryParameters: {
+                              'invoiceId': invoice.id.toString(),
+                            },
                           );
                         },
                       );
@@ -170,4 +176,3 @@ class _SelectInvoiceForReturnPageState
     );
   }
 }
-

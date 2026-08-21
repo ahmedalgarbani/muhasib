@@ -9,7 +9,7 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
-import 'package:muhasib/features/purchases/presentation/widgets/add_line_dialog.dart';
+import 'package:muhasib/features/purchases/presentation/pages/purchase_line_editor_page.dart';
 import 'package:muhasib/features/purchases/presentation/widgets/purchase_form_header.dart';
 import 'package:muhasib/features/purchases/presentation/widgets/purchase_form_info_card.dart';
 import 'package:muhasib/features/purchases/presentation/widgets/purchase_form_products_card.dart';

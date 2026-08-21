@@ -23,6 +23,7 @@ import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart
 import 'package:muhasib/core/constant/app_constant.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/services/precision_helper.dart';
+import 'package:muhasib/features/sales/presentation/pages/payment_editor_page.dart';
 
 class ImprovedSalesInvoiceScreen extends StatefulWidget {
   final InvoiceType invoiceType;
@@ -210,21 +211,21 @@ class _ImprovedSalesInvoiceScreenState
     }
   }
 
-  void _showPaymentDialog() {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => PaymentDialog(
-        totalAmount: _invoice.total,
-        existingPayments: _payments,
-        onPaymentsUpdate: (payments) {
-          setState(() {
-            _payments = payments;
-            _invoice = _invoice.copyWith(payments: payments);
-          });
-        },
+  Future<void> _showPaymentDialog() async {
+    final result = await Navigator.of(context).push<List<Payment>>(
+      MaterialPageRoute(
+        builder: (_) => PaymentEditorPage(
+          totalAmount: _invoice.total,
+          existingPayments: _payments,
+        ),
       ),
     );
+    if (result != null && mounted) {
+      setState(() {
+        _payments = result;
+        _invoice = _invoice.copyWith(payments: result);
+      });
+    }
   }
 
   void _showErrorSnackBar(String message) {
