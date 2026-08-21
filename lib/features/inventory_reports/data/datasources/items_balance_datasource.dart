@@ -72,7 +72,10 @@ class ItemsBalanceDataSourceImpl implements ItemsBalanceDataSource {
         $unitCostExpr as unit_cost,
         ($currentQtyExpr * $unitCostExpr) as total_value,
         $warehouseIdSelect,
-        $warehouseNameSelect
+        $warehouseNameSelect,
+        (SELECT cu2.name FROM category_sub_units csu2 JOIN categories_units cu2 ON cu2.id = csu2.unit_id WHERE csu2.category_id = c.id AND csu2.is_active=1 AND csu2.is_main_unit=0 ORDER BY (csu2.packaging * csu2.conversion_rate) DESC LIMIT 1) as package_unit_name,
+        (SELECT csu2.packaging FROM category_sub_units csu2 WHERE csu2.category_id = c.id AND csu2.is_active=1 AND csu2.is_main_unit=0 ORDER BY (csu2.packaging * csu2.conversion_rate) DESC LIMIT 1) as packaging,
+        (SELECT csu2.conversion_rate FROM category_sub_units csu2 WHERE csu2.category_id = c.id AND csu2.is_active=1 AND csu2.is_main_unit=0 ORDER BY (csu2.packaging * csu2.conversion_rate) DESC LIMIT 1) as conversion_rate
       FROM categories c
       LEFT JOIN categories_units cu ON cu.id = c.unit_id
       $whereSql

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/precision_helper.dart';
+import 'package:muhasib/core/services/unit_conversion_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
@@ -34,13 +36,19 @@ class _AddLineDialogState extends State<AddLineDialog> {
   final _quantityController = TextEditingController(text: '1');
   final _priceController = TextEditingController();
   final _discountController = TextEditingController(text: '0');
+  final _barcodeController = TextEditingController();
 
   int? _selectedCategoryId;
   int? _selectedGroupId;
   int? _selectedUnitId;
   bool _initializedFromLine = false;
 
+  List<ProductUnitOption> _availableUnits = [];
+  ProductUnitOption? _selectedUnitOption;
+  bool _loadingUnits = false;
   double _total = 0.0;
+  double _selectedProductBaseCost = 0.0;
+  double _selectedProductBaseSell = 0.0;
 
   @override
   void initState() {
@@ -57,66 +65,152 @@ class _AddLineDialogState extends State<AddLineDialog> {
       _discountController.text = (widget.line!.discountAmt ?? 0).toString();
       _initializedFromLine = true;
       _calculateTotal();
+      if (_selectedCategoryId != null)
+        _loadUnitsForProduct(_selectedCategoryId!);
     }
   }
 
-  void _onProductSelected(ProductEntity product) {
+  Future<void> _loadUnitsForProduct(int productId) async {
+    setState(() => _loadingUnits = true);
+    try {
+      final svc = getIt<UnitConversionService>();
+      final units = await svc.getUnitsForProduct(productId);
+      ProductUnitOption? def;
+      try {
+        def = await svc.getDefaultPurchaseUnit(productId);
+      } catch (_) {}
+      if (!mounted) return;
+      setState(() {
+        _availableUnits = units;
+        if (units.isNotEmpty) {
+          if (_selectedUnitId != null) {
+            _selectedUnitOption = units.firstWhere(
+              (u) => u.unitId == _selectedUnitId,
+              orElse: () => def ?? units.first,
+            );
+          } else {
+            _selectedUnitOption = def ?? units.first;
+            _selectedUnitId = _selectedUnitOption?.unitId;
+          }
+          // Auto-price if field empty
+          if (_priceController.text.isEmpty ||
+              _priceController.text == '0' ||
+              _priceController.text == '0.00') {
+            // Try to find product cost
+            // Will be set via _onProductSelected caller
+          }
+        }
+        _loadingUnits = false;
+      });
+    } catch (_) {
+      if (mounted) setState(() => _loadingUnits = false);
+    }
+  }
+
+  Future<void> _onProductSelected(ProductEntity product) async {
     setState(() {
       _selectedCategoryId = product.id;
       _selectedGroupId = product.groupId ?? 1;
       _selectedUnitId = product.unitId ?? 1;
-
-      final cost = product.costAmount ?? product.sellAmount ?? 0.0;
-      if (_priceController.text.isEmpty || _priceController.text == '0') {
-        _priceController.text = cost.toStringAsFixed(2);
-      }
-      _calculateTotal();
+      _selectedProductBaseCost = product.costAmount ?? product.sellAmount ?? 0.0;
+      _selectedProductBaseSell = product.sellAmount ?? product.costAmount ?? 0.0;
     });
+    await _loadUnitsForProduct(product.id!);
+    // Resolve price per selected unit - دائماً حدث السعر تلقائياً عند تغيير الصنف أو الوحدة
+    if (_selectedUnitOption != null) {
+      final svc = getIt<UnitConversionService>();
+      final resolved = _selectedUnitOption!.costPrice ??
+          svc.resolveUnitCost(
+            baseCost: _selectedProductBaseCost,
+            unit: _selectedUnitOption!,
+          );
+      _priceController.text = PrecisionHelper.roundCurrency(resolved)
+          .toStringAsFixed(2);
+    } else {
+      _priceController.text = PrecisionHelper.roundCurrency(
+        _selectedProductBaseCost,
+      ).toStringAsFixed(2);
+    }
+    _calculateTotal();
+  }
+
+  void _onUnitChanged(ProductUnitOption? unit) {
+    if (unit == null) return;
+    setState(() {
+      _selectedUnitOption = unit;
+      _selectedUnitId = unit.unitId;
+    });
+    // التغيير التلقائي للسعر عند تغيير الوحدة - يعاد احتساب الإجمالي (الكمية × السعر)
+    if (_selectedCategoryId != null) {
+      final svc = getIt<UnitConversionService>();
+      final resolved = unit.costPrice ??
+          svc.resolveUnitCost(
+            baseCost: _selectedProductBaseCost,
+            unit: unit,
+          );
+      _priceController.text = PrecisionHelper.roundCurrency(resolved)
+          .toStringAsFixed(2);
+      _calculateTotal();
+    }
   }
 
   void _calculateTotal() {
     final quantity = double.tryParse(_quantityController.text) ?? 0;
     final price = double.tryParse(_priceController.text) ?? 0;
     final discount = double.tryParse(_discountController.text) ?? 0;
-
     setState(() {
-      _total = (quantity * price) - discount;
+      _total = PrecisionHelper.roundCurrency((quantity * price) - discount);
     });
   }
 
   void _save(List<ProductEntity> products) {
     if (_formKey.currentState!.validate()) {
       if (_selectedCategoryId == null && products.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('يرجى اختيار الصنف')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('يرجى اختيار الصنف')));
         return;
       }
 
       final unitPrice = double.parse(_priceController.text);
       final quantity = double.parse(_quantityController.text);
       final discountAmount = double.tryParse(_discountController.text) ?? 0;
-      final amount = quantity * unitPrice;
+      final amount = PrecisionHelper.roundCurrency(quantity * unitPrice);
+
+      final selectedUnit = _selectedUnitOption;
+      final conversionRate = selectedUnit?.conversionRate ?? 1.0;
+      final packaging = selectedUnit?.packaging ?? 1;
+      final baseQty = PrecisionHelper.calcBaseQuantity(
+        quantity: quantity,
+        packaging: packaging,
+        conversionRate: conversionRate,
+      );
+      final subUnitId =
+          selectedUnit?.subUnitId ?? widget.line?.categorySubUnitId ?? 1;
+      final unitIdToSave = selectedUnit?.unitId ?? _selectedUnitId ?? 1;
 
       final line = InvoiceLineEntity(
         id: widget.line?.id,
         invoiceId: widget.line?.invoiceId ?? 0,
-        invoiceType: 2, // Purchase invoice
+        invoiceType: 2,
         categoryId: _selectedCategoryId,
         groupId: _selectedGroupId ?? 1,
-        unitId: _selectedUnitId ?? 1,
-        categorySubUnitId: widget.line?.categorySubUnitId ?? 1,
+        unitId: unitIdToSave,
+        categorySubUnitId: subUnitId,
         stockId: widget.stockId ?? widget.line?.stockId ?? 1,
         customerId: widget.supplierId ?? widget.line?.customerId ?? 1,
         amount: amount,
-        totalAmount: amount - discountAmount,
+        totalAmount: PrecisionHelper.roundCurrency(amount - discountAmount),
         discountAmt: discountAmount,
         taxAmt: 0,
-        netRevenueAmt: amount - discountAmount,
+        netRevenueAmt: PrecisionHelper.roundCurrency(amount - discountAmount),
         quantity: quantity,
+        baseQuantity: baseQty,
+        conversionRate: conversionRate,
+        packaging: packaging,
         price: unitPrice,
         costPrice: unitPrice,
-        costTotal: amount - discountAmount,
+        costTotal: PrecisionHelper.roundCurrency(amount - discountAmount),
         date: DateTime.now().millisecondsSinceEpoch ~/ 1000,
         invoiceTransType: 1,
       );
@@ -124,6 +218,34 @@ class _AddLineDialogState extends State<AddLineDialog> {
       widget.onAdd(line);
       Navigator.of(context).pop();
     }
+  }
+
+  Future<void> _handleBarcodeChanged(
+    String code,
+    List<ProductEntity> products,
+  ) async {
+    if (code.trim().isEmpty) return;
+    try {
+      final svc = getIt<UnitConversionService>();
+      final lookup = await svc.lookupByBarcode(code.trim());
+      if (lookup != null && mounted) {
+        final prod = products.firstWhere(
+          (p) => p.id == lookup.productId,
+          orElse: () => products.first,
+        );
+        if (lookup.unit != null) {
+          setState(() {
+            _selectedUnitOption = lookup.unit;
+            _selectedUnitId = lookup.unit!.unitId;
+          });
+        }
+        await _onProductSelected(prod);
+        if (lookup.unit?.sellPrice != null) {
+          _priceController.text = lookup.unit!.sellPrice!.toStringAsFixed(2);
+          _calculateTotal();
+        }
+      }
+    } catch (_) {}
   }
 
   @override
@@ -178,15 +300,17 @@ class _AddLineDialogState extends State<AddLineDialog> {
                             isExpanded: true,
                             decoration: InputDecoration(
                               border: OutlineInputBorder(
-                                borderRadius:
-                                    BorderRadius.circular(AppRadius.sm),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.sm,
+                                ),
                               ),
                               contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 12,
                                 vertical: 12,
                               ),
-                              prefixIcon:
-                                  const Icon(Icons.inventory_2_outlined),
+                              prefixIcon: const Icon(
+                                Icons.inventory_2_outlined,
+                              ),
                             ),
                             items: products.map((prod) {
                               final id = prod.id!;
@@ -214,20 +338,132 @@ class _AddLineDialogState extends State<AddLineDialog> {
                             validator: (val) =>
                                 val == null ? 'يرجى اختيار الصنف' : null,
                           ),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 12),
+                          // Barcode quick entry for smart unit detection
+                          TextInputField(
+                            label: 'باركود (اختياري - للبحث الذكي)',
+                            textEditingController: _barcodeController,
+                            prefixIcon: const Icon(Icons.qr_code_2),
+                            inputType: TextInputType.text,
+                            onChanged: (v) =>
+                                _handleBarcodeChanged(v, products),
+                          ),
+                          const SizedBox(height: 12),
+                          // Unit selector dropdown
+                          if (_loadingUnits)
+                            const LinearProgressIndicator()
+                          else if (_availableUnits.isNotEmpty)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'الوحدة',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                DropdownButtonFormField<ProductUnitOption>(
+                                  value: _selectedUnitOption,
+                                  isExpanded: true,
+                                  decoration: InputDecoration(
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.sm,
+                                      ),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    ),
+                                    prefixIcon: const Icon(Icons.straighten),
+                                  ),
+                                  items: _availableUnits
+                                      .map(
+                                        (u) =>
+                                            DropdownMenuItem<ProductUnitOption>(
+                                              value: u,
+                                              child: Row(
+                                                children: [
+                                                  Text(u.unitName),
+                                                  const SizedBox(width: 6),
+                                                  if (!u.isMainUnit)
+                                                    Text(
+                                                      '(${u.packaging} x)',
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: Colors
+                                                            .grey
+                                                            .shade600,
+                                                      ),
+                                                    ),
+                                                  if (u.barcode != null &&
+                                                      u.barcode!.isNotEmpty)
+                                                    const Padding(
+                                                      padding: EdgeInsets.only(
+                                                        right: 4,
+                                                      ),
+                                                      child: Icon(
+                                                        Icons.qr_code,
+                                                        size: 12,
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                      )
+                                      .toList(),
+                                  onChanged: _onUnitChanged,
+                                ),
+                                const SizedBox(height: 6),
+                                if (_selectedUnitOption != null)
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: Colors.blue.shade50,
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(
+                                        color: Colors.blue.shade200,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        const Icon(
+                                          Icons.info_outline,
+                                          size: 14,
+                                          color: Colors.blue,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Expanded(
+                                          child: Text(
+                                            'معامل التحويل: ${_selectedUnitOption!.totalConversion.toStringAsFixed(2)} → الكمية الأساسية = الكمية × ${_selectedUnitOption!.totalConversion}',
+                                            style: TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.blue.shade700,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                const SizedBox(height: 12),
+                              ],
+                            ),
                         ] else if (!isLoading) ...[
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.amber.withAlpha(30),
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.sm),
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
                               border: Border.all(color: Colors.amber),
                             ),
                             child: const Row(
                               children: [
-                                Icon(Icons.warning_amber_rounded,
-                                    color: Colors.amber),
+                                Icon(
+                                  Icons.warning_amber_rounded,
+                                  color: Colors.amber,
+                                ),
                                 SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
@@ -256,13 +492,11 @@ class _AddLineDialogState extends State<AddLineDialog> {
                                 isRequired: true,
                                 onChanged: (_) => _calculateTotal(),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) {
+                                  if (value == null || value.isEmpty)
                                     return 'الكمية مطلوبة';
-                                  }
                                   final q = double.tryParse(value);
-                                  if (q == null || q <= 0) {
+                                  if (q == null || q <= 0)
                                     return 'أدخل كمية صحيحة';
-                                  }
                                   return null;
                                 },
                               ),
@@ -282,20 +516,31 @@ class _AddLineDialogState extends State<AddLineDialog> {
                                 isRequired: true,
                                 onChanged: (_) => _calculateTotal(),
                                 validator: (value) {
-                                  if (value == null || value.isEmpty) {
+                                  if (value == null || value.isEmpty)
                                     return 'السعر مطلوب';
-                                  }
                                   final p = double.tryParse(value);
-                                  if (p == null || p < 0) {
+                                  if (p == null || p < 0)
                                     return 'أدخل سعر صحيح';
-                                  }
                                   return null;
                                 },
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 12),
+                        if (_selectedUnitOption != null)
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              'الكمية الأساسية: ${PrecisionHelper.calcBaseQuantity(quantity: double.tryParse(_quantityController.text) ?? 0, packaging: _selectedUnitOption!.packaging, conversionRate: _selectedUnitOption!.conversionRate).toStringAsFixed(2)} حبة',
+                              style: const TextStyle(fontSize: 11),
+                            ),
+                          ),
+                        const SizedBox(height: 12),
                         TextInputField(
                           label: 'الخصم على الصنف',
                           textEditingController: _discountController,
@@ -313,8 +558,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: Colors.grey[100],
-                            borderRadius:
-                                BorderRadius.circular(AppRadius.sm),
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -364,6 +608,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
     _quantityController.dispose();
     _priceController.dispose();
     _discountController.dispose();
+    _barcodeController.dispose();
     super.dispose();
   }
 }

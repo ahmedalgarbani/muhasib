@@ -24,6 +24,10 @@ class StockMovementsTable implements TableSchema {
       quantity REAL NOT NULL,
       unit_cost REAL NOT NULL DEFAULT 0.0,
       total_cost REAL NOT NULL DEFAULT 0.0,
+      unit_id INTEGER NULL REFERENCES categories_units (id),
+      conversion_rate REAL NULL DEFAULT 1.0 CHECK(conversion_rate IS NULL OR conversion_rate > 0),
+      original_quantity REAL NULL,
+      packaging INTEGER NULL DEFAULT 1 CHECK(packaging IS NULL OR packaging > 0),
       
       -- Balance tracking
       balance_before REAL NULL,

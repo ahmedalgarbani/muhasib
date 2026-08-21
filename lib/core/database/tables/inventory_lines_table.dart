@@ -23,7 +23,10 @@ class InventoryLinesTable implements TableSchema {
       group_id INTEGER NOT NULL REFERENCES categories_groups (id),
       unit_id INTEGER NOT NULL REFERENCES categories_units (id),
       category_sub_unit_id INTEGER NOT NULL REFERENCES category_sub_units (id),
-      inventory_id INTEGER NULL REFERENCES inventories (id) ON DELETE CASCADE
+      inventory_id INTEGER NULL REFERENCES inventories (id) ON DELETE CASCADE,
+      base_quantity REAL NULL,
+      conversion_rate REAL NULL DEFAULT 1.0 CHECK(conversion_rate IS NULL OR conversion_rate > 0),
+      packaging INTEGER NULL DEFAULT 1 CHECK(packaging IS NULL OR packaging > 0)
     );
   ''';
 

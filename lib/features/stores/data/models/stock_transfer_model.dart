@@ -18,6 +18,9 @@ class StockTransferLineModel extends StockTransferLineEntity {
     super.extraProperties,
     super.creationTime,
     super.lastModificationTime,
+    super.baseQuantity,
+    super.conversionRate,
+    super.packaging,
   });
 
   factory StockTransferLineModel.fromEntity(StockTransferLineEntity entity) {
@@ -37,6 +40,9 @@ class StockTransferLineModel extends StockTransferLineEntity {
       extraProperties: entity.extraProperties,
       creationTime: entity.creationTime,
       lastModificationTime: entity.lastModificationTime,
+      baseQuantity: entity.baseQuantity,
+      conversionRate: entity.conversionRate,
+      packaging: entity.packaging,
     );
   }
 
@@ -57,11 +63,14 @@ class StockTransferLineModel extends StockTransferLineEntity {
       extraProperties: map['extra_properties'] as String?,
       creationTime: map['creation_time'] as int?,
       lastModificationTime: map['last_modification_time'] as int?,
+      baseQuantity: (map['base_quantity'] as num?)?.toDouble(),
+      conversionRate: (map['conversion_rate'] as num?)?.toDouble(),
+      packaging: map['packaging'] as int?,
     );
   }
 
   Map<String, dynamic> toMap() {
-    return {
+    final m = <String, dynamic>{
       if (id != null) 'id': id,
       'quantity': quantity,
       'statement': statement,
@@ -78,6 +87,11 @@ class StockTransferLineModel extends StockTransferLineEntity {
       if (creationTime != null) 'creation_time': creationTime,
       if (lastModificationTime != null) 'last_modification_time': lastModificationTime,
     };
+    // Multi-unit fields
+    m['base_quantity'] = baseQuantity ?? effectiveBaseQuantity;
+    m['conversion_rate'] = conversionRate ?? 1.0;
+    m['packaging'] = packaging ?? 1;
+    return m;
   }
 }
 

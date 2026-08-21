@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
@@ -242,7 +243,7 @@ class _QuotationProductLineWidget extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                'الكمية: ${line.quantity} × ${_formatCurrency(line.unitPrice ?? 0)}',
+                'الكمية: ${line.quantity} ${line is InvoiceLineEntity ? "(${line.conversionRate ?? 1}x)" : ""} × ${_formatCurrency(line.unitPrice ?? line.price ?? 0)} ${line is InvoiceLineEntity && (line.packaging ?? 1) > 1 ? "(${line.baseQuantity ?? line.quantity} حبة أساس)" : ""}',
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
               ),
             ],

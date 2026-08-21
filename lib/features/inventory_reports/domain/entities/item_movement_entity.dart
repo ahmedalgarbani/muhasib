@@ -10,7 +10,11 @@ class ItemMovementEntity extends Equatable {
   final int warehouseId;
   final String warehouseName;
   final String movementType;
-  final double quantity; // موجب = وارد، سالب = منصرف
+  final double quantity; // base quantity (موجب = وارد، سالب = منصرف)
+  final double? originalQuantity; // الكمية بالوحدة الأصلية إن وجدت
+  final int? unitId;
+  final double? conversionRate;
+  final int? packaging;
   final double unitCost;
   final double totalCost;
   final double balanceAfter;
@@ -29,6 +33,10 @@ class ItemMovementEntity extends Equatable {
     required this.warehouseName,
     required this.movementType,
     required this.quantity,
+    this.originalQuantity,
+    this.unitId,
+    this.conversionRate,
+    this.packaging,
     required this.unitCost,
     required this.totalCost,
     required this.balanceAfter,
@@ -37,6 +45,22 @@ class ItemMovementEntity extends Equatable {
     required this.creationTime,
     this.notes,
   });
+
+  /// صيغة عرض الكمية مع الوحدة الأصلية إن وجدت: "2 كرتون (48 حبة)"
+  String get quantityDisplay {
+    if (originalQuantity != null && packaging != null && (packaging! > 1 || (conversionRate ?? 1) > 1)) {
+      final orig = originalQuantity!.abs();
+      final base = quantity.abs();
+      final origStr = orig == orig.roundToDouble() ? orig.toInt().toString() : orig.toStringAsFixed(2);
+      final baseStr = base == base.roundToDouble() ? base.toInt().toString() : base.toStringAsFixed(2);
+      // If custom unit name same as base, show only base
+      // Otherwise show both
+      return '$origStr $unitName ($baseStr حبة)';
+    }
+    final absQty = quantity.abs();
+    final qtyStr = absQty == absQty.roundToDouble() ? absQty.toInt().toString() : absQty.toStringAsFixed(2);
+    return '$qtyStr $unitName';
+  }
 
   bool get isInbound => quantity > 0;
   bool get isOutbound => quantity < 0;
@@ -91,6 +115,10 @@ class ItemMovementEntity extends Equatable {
         warehouseName,
         movementType,
         quantity,
+        originalQuantity,
+        unitId,
+        conversionRate,
+        packaging,
         unitCost,
         totalCost,
         balanceAfter,

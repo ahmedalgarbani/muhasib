@@ -17,10 +17,13 @@ class ProductPricesReportPage extends StatefulWidget {
   const ProductPricesReportPage({super.key});
 
   @override
-  State<ProductPricesReportPage> createState() => _ProductPricesReportPageState();
+  State<ProductPricesReportPage> createState() =>
+      _ProductPricesReportPageState();
 }
 
 class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
+  late final ProductPriceReportCubit _productPriceReportCubit;
+  late final ProductsCubit _productsCubit;
   List<int> _selectedIds = [];
   String _selectedLabel = '';
   List<ProductPriceReportEntity> _lastPrices = [];
@@ -28,14 +31,21 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
   @override
   void initState() {
     super.initState();
-    // Defer loading to BlocProvider create
+    _productPriceReportCubit = getIt<ProductPriceReportCubit>()..loadPrices();
+    _productsCubit = getIt<ProductsCubit>()..loadProducts();
+  }
+
+  @override
+  void dispose() {
+    _productPriceReportCubit.close();
+    _productsCubit.close();
+    super.dispose();
   }
 
   Future<void> _openProductPicker() async {
-    final productsCubit = getIt<ProductsCubit>();
     // Ensure products loaded
-    if (productsCubit.state is! ProductsLoaded) {
-      productsCubit.loadProducts();
+    if (_productsCubit.state is! ProductsLoaded) {
+      _productsCubit.loadProducts();
     }
     final result = await showModalBottomSheet<List<int>>(
       context: context,
@@ -43,7 +53,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
       backgroundColor: Colors.transparent,
       builder: (ctx) => _ProductPickerSheet(
         initialSelected: _selectedIds,
-        productsCubit: productsCubit,
+        productsCubit: _productsCubit,
       ),
     );
     if (result != null) {
@@ -53,11 +63,12 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
           _selectedLabel = '';
         } else if (result.length == 1) {
           // Find name
-          final state = productsCubit.state;
+          final state = _productsCubit.state;
           if (state is ProductsLoaded) {
-            final p = state.products.firstWhere((e) => e.id == result.first,
-                orElse: () => state.products.first);
-            _selectedLabel = p.name;
+            final p =
+                state.products.where((e) => e.id == result.first).firstOrNull ??
+                (state.products.isNotEmpty ? state.products.first : null);
+            _selectedLabel = p?.name ?? '';
           } else {
             _selectedLabel = '${result.length} صنف محدد';
           }
@@ -66,37 +77,48 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
         }
       });
       if (mounted) {
-        context.read<ProductPriceReportCubit>().loadPrices(productIds: _selectedIds.isEmpty ? null : _selectedIds);
+        _productPriceReportCubit.loadPrices(
+          productIds: _selectedIds.isEmpty ? null : _selectedIds,
+        );
       }
     }
   }
 
   Future<void> _printPrices() async {
-    final cubit = context.read<ProductPriceReportCubit>();
-    final state = cubit.state;
+    final state = _productPriceReportCubit.state;
     List<ProductPriceReportEntity> list;
     if (state is ProductPriceReportLoaded) {
       list = state.prices;
     } else if (_lastPrices.isNotEmpty) {
       list = _lastPrices;
     } else {
-      // Load all if empty selection
       list = [];
     }
     if (list.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('لا توجد بيانات للطباعة')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('لا توجد بيانات للطباعة')));
       return;
     }
-    final headers = ['اسم الصنف', 'الباركود', 'الوحدة', 'سعر البيع', 'سعر الجملة', 'أدنى سعر بيع'];
+    final headers = [
+      'اسم الصنف',
+      'الباركود',
+      'الوحدة',
+      'سعر البيع',
+      'سعر الجملة',
+      'أدنى سعر بيع',
+    ];
     final data = list
-        .map((e) => [
-              e.productName,
-              e.barcodeNo,
-              e.unitName,
-              e.retailPrice.toStringAsFixed(2),
-              e.wholesalePrice.toStringAsFixed(2),
-              e.minPrice.toStringAsFixed(2),
-            ])
+        .map(
+          (e) => [
+            e.productName,
+            e.barcodeNo,
+            e.unitName,
+            e.retailPrice.toStringAsFixed(2),
+            e.wholesalePrice.toStringAsFixed(2),
+            e.minPrice.toStringAsFixed(2),
+          ],
+        )
         .toList();
     await ExportService.printData(
       title: 'اسعار الاصناف الحالية',
@@ -109,101 +131,170 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => getIt<ProductPriceReportCubit>()..loadPrices()),
-        BlocProvider(create: (_) => getIt<ProductsCubit>()..loadProducts()),
+        BlocProvider.value(value: _productPriceReportCubit),
+        BlocProvider.value(value: _productsCubit),
       ],
-      child: Builder(
-        builder: (ctx) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: Scaffold(
-            backgroundColor: AppColors.neutral100,
-            appBar: const CustomAppBar(title: 'اسعار الاصناف الحالية'),
-            body: BlocConsumer<ProductPriceReportCubit, ProductPriceReportState>(
-              listener: (context, state) {
-                if (state is ProductPriceReportLoaded) _lastPrices = state.prices;
-              },
-              builder: (context, state) {
-                return Padding(
-                  padding: AppConstant.defaultPadding,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Dropdown field
-                      InkWell(
-                        onTap: _openProductPicker,
-                        borderRadius: BorderRadius.circular(AppRadius.md),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(AppRadius.md),
-                            border: Border.all(color: Colors.grey[300]!),
-                            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))],
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(Icons.inventory_2_outlined, size: 20, color: AppColors.primary),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  _selectedIds.isEmpty
-                                      ? 'اختر الأصناف (الكل افتراضياً)'
-                                      : _selectedLabel.isEmpty
-                                          ? '${_selectedIds.length} أصناف'
-                                          : _selectedLabel,
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: _selectedIds.isEmpty ? Colors.grey[600] : Colors.black87,
-                                    fontWeight: _selectedIds.isEmpty ? FontWeight.normal : FontWeight.w600,
-                                  ),
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: AppColors.neutral100,
+          appBar: const CustomAppBar(title: 'اسعار الاصناف الحالية'),
+          body: BlocConsumer<ProductPriceReportCubit, ProductPriceReportState>(
+            bloc: _productPriceReportCubit,
+            listener: (context, state) {
+              if (state is ProductPriceReportLoaded) _lastPrices = state.prices;
+            },
+            builder: (context, state) {
+              return Padding(
+                padding: AppConstant.defaultPadding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Dropdown field
+                    InkWell(
+                      onTap: _openProductPicker,
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(AppRadius.md),
+                          border: Border.all(color: Colors.grey[300]!),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.inventory_2_outlined,
+                              size: 20,
+                              color: AppColors.primary,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _selectedIds.isEmpty
+                                    ? 'اختر الأصناف (الكل افتراضياً)'
+                                    : _selectedLabel.isEmpty
+                                    ? '${_selectedIds.length} أصناف'
+                                    : _selectedLabel,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: _selectedIds.isEmpty
+                                      ? Colors.grey[600]
+                                      : Colors.black87,
+                                  fontWeight: _selectedIds.isEmpty
+                                      ? FontWeight.normal
+                                      : FontWeight.w600,
                                 ),
                               ),
-                              Icon(Icons.keyboard_arrow_down, color: Colors.grey[600]),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'اذا لم يتم اختيار اي صنف، يتم طباعة الاسعار لجميع الاصناف.',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
-                      ),
-                      const SizedBox(height: 16),
-                      // Preview table header
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary,
-                          borderRadius: BorderRadius.circular(AppRadius.sm),
-                        ),
-                        child: const Row(
-                          children: [
-                            Expanded(flex: 3, child: Text('الصنف', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 11))),
-                            Expanded(child: Text('الباركود', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10))),
-                            Expanded(child: Text('البيع', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10))),
-                            Expanded(child: Text('الجملة', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontSize: 10))),
-                            Expanded(child: Text('الأدنى', textAlign: TextAlign.end, style: TextStyle(color: Colors.white, fontSize: 10))),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              color: Colors.grey[600],
+                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: _buildContent(state),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'اذا لم يتم اختيار اي صنف، يتم طباعة الاسعار لجميع الاصناف.',
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 16),
+                    // Preview table header
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
                       ),
-                      const SizedBox(height: 12),
-                      HasibButton(
-                        label: 'طباعة',
-                        leading: const Icon(Icons.picture_as_pdf, color: Colors.white),
-                        onPressed: () => _printPrices(),
-                        variant: HasibButtonVariant.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
-                      const SizedBox(height: 12),
-                    ],
-                  ),
-                );
-              },
-            ),
+                      child: const Row(
+                        children: [
+                          Expanded(
+                            flex: 3,
+                            child: Text(
+                              'الصنف',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              'الباركود',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              'البيع',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              'الجملة',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Text(
+                              'الأدنى',
+                              textAlign: TextAlign.end,
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Expanded(child: _buildContent(state)),
+                    const SizedBox(height: 12),
+                    HasibButton(
+                      label: 'طباعة',
+                      leading: const Icon(
+                        Icons.picture_as_pdf,
+                        color: Colors.white,
+                      ),
+                      onPressed: () => _printPrices(),
+                      variant: HasibButtonVariant.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -224,7 +315,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
             Text(state.message),
             const SizedBox(height: 12),
             ElevatedButton.icon(
-              onPressed: () => context.read<ProductPriceReportCubit>().refresh(),
+              onPressed: () => _productPriceReportCubit.refresh(),
               icon: const Icon(Icons.refresh),
               label: const Text('إعادة المحاولة'),
             ),
@@ -254,7 +345,8 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
         ),
         child: ListView.separated(
           itemCount: list.length,
-          separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey[200]),
+          separatorBuilder: (_, __) =>
+              Divider(height: 1, color: Colors.grey[200]),
           itemBuilder: (context, i) {
             final e = list[i];
             return Padding(
@@ -266,15 +358,54 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(e.productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
-                        Text(e.unitName, style: TextStyle(fontSize: 10, color: Colors.grey[600])),
+                        Text(
+                          e.productName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          e.unitName,
+                          style: TextStyle(
+                            fontSize: 10,
+                            color: Colors.grey[600],
+                          ),
+                        ),
                       ],
                     ),
                   ),
-                  Expanded(child: Text(e.barcodeNo, textAlign: TextAlign.center, style: const TextStyle(fontSize: 11))),
-                  Expanded(child: Text(e.retailPrice.toStringAsFixed(2), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600))),
-                  Expanded(child: Text(e.wholesalePrice.toStringAsFixed(2), textAlign: TextAlign.center, style: const TextStyle(fontSize: 11))),
-                  Expanded(child: Text(e.minPrice.toStringAsFixed(2), textAlign: TextAlign.end, style: const TextStyle(fontSize: 11))),
+                  Expanded(
+                    child: Text(
+                      e.barcodeNo,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      e.retailPrice.toStringAsFixed(2),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      e.wholesalePrice.toStringAsFixed(2),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      e.minPrice.toStringAsFixed(2),
+                      textAlign: TextAlign.end,
+                      style: const TextStyle(fontSize: 11),
+                    ),
+                  ),
                 ],
               ),
             );
@@ -289,7 +420,10 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
 class _ProductPickerSheet extends StatefulWidget {
   final List<int> initialSelected;
   final ProductsCubit productsCubit;
-  const _ProductPickerSheet({required this.initialSelected, required this.productsCubit});
+  const _ProductPickerSheet({
+    required this.initialSelected,
+    required this.productsCubit,
+  });
 
   @override
   State<_ProductPickerSheet> createState() => _ProductPickerSheetState();
@@ -328,7 +462,10 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('اختر الاصناف', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  const Text(
+                    'اختر الاصناف',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
                   IconButton(
                     icon: const Icon(Icons.close),
                     onPressed: () => Navigator.pop(context),
@@ -352,8 +489,13 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                           }),
                         )
                       : null,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(AppRadius.md)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(AppRadius.md),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   filled: true,
                   fillColor: Colors.grey[50],
                 ),
@@ -367,19 +509,26 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
               builder: (context, state) {
                 if (state is! ProductsLoaded) return const SizedBox.shrink();
                 final products = _filteredProducts(state.products);
-                final allSelected = products.isNotEmpty && products.every((p) => _selected.contains(p.id));
+                final allSelected =
+                    products.isNotEmpty &&
+                    products.every((p) => _selected.contains(p.id));
                 return Container(
                   color: Colors.grey[50],
                   child: CheckboxListTile(
                     value: allSelected,
-                    title: const Text('تحديد الكل', style: TextStyle(fontWeight: FontWeight.bold)),
+                    title: const Text(
+                      'تحديد الكل',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     subtitle: Text('${_selected.length} محدد'),
                     onChanged: (val) {
                       setState(() {
                         if (val == true) {
                           _selected.addAll(products.map((e) => e.id!));
                         } else {
-                          for (var p in products) _selected.remove(p.id);
+                          for (var p in products) {
+                            _selected.remove(p.id);
+                          }
                         }
                       });
                     },
@@ -410,8 +559,20 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                         final isSel = _selected.contains(p.id);
                         return CheckboxListTile(
                           value: isSel,
-                          title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
-                          subtitle: Text('${p.barcodeNo} - ${p.quantity.toInt()} حبة', style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                          title: Text(
+                            p.name,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                          subtitle: Text(
+                            '${p.barcodeNo} - ${p.quantity.toInt()} حبة',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                          ),
                           onChanged: (val) {
                             setState(() {
                               if (val == true) {
@@ -455,6 +616,12 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
   List<ProductEntity> _filteredProducts(List<ProductEntity> all) {
     if (_query.isEmpty) return all;
     final q = _query.toLowerCase();
-    return all.where((p) => p.name.toLowerCase().contains(q) || p.barcodeNo.toLowerCase().contains(q)).toList();
+    return all
+        .where(
+          (p) =>
+              p.name.toLowerCase().contains(q) ||
+              p.barcodeNo.toLowerCase().contains(q),
+        )
+        .toList();
   }
 }

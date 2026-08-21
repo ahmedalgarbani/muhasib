@@ -126,6 +126,51 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
 
       final supplierId = _selectedSupplierId ?? 1;
       final warehouseId = _selectedWarehouseId ?? 1;
+      // محاسبياً: جميع البنود يجب أن تتبع نفس المخزن المختار في الهيدر لضمان دقة المخزون
+      final syncedLines = _invoiceLines.map((l) {
+        if (l.stockId == warehouseId) return l;
+        return InvoiceLineEntity(
+          id: l.id,
+          creatorId: l.creatorId,
+          lastModifierId: l.lastModifierId,
+          concurrencyStamp: l.concurrencyStamp,
+          extraProperties: l.extraProperties,
+          creationTime: l.creationTime,
+          lastModificationTime: l.lastModificationTime,
+          invoiceType: l.invoiceType,
+          amount: l.amount,
+          totalAmount: l.totalAmount,
+          taxAmt: l.taxAmt,
+          taxRatio: l.taxRatio,
+          discountAmt: l.discountAmt,
+          discountRatio: l.discountRatio,
+          otherFeeAmt: l.otherFeeAmt,
+          otherFeeNetRatio: l.otherFeeNetRatio,
+          netRevenueAmt: l.netRevenueAmt,
+          currencyCode: l.currencyCode,
+          exchangeRate: l.exchangeRate,
+          currencyId: l.currencyId,
+          quantity: l.quantity,
+          categoryId: l.categoryId,
+          groupId: l.groupId,
+          unitId: l.unitId,
+          categorySubUnitId: l.categorySubUnitId,
+          stockId: warehouseId,
+          invoiceId: l.invoiceId,
+          customerId: l.customerId,
+          date: l.date,
+          expireDate: l.expireDate,
+          invoiceTransType: l.invoiceTransType,
+          lineDiscount: l.lineDiscount,
+          baseQuantity: l.baseQuantity,
+          conversionRate: l.conversionRate,
+          packaging: l.packaging,
+          costPrice: l.costPrice,
+          costTotal: l.costTotal,
+          price: l.price,
+          sellingPrice: l.sellingPrice,
+        );
+      }).toList();
 
       final invoice = InvoiceEntity(
         id: widget.invoice?.id,
@@ -136,7 +181,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
         statement: _statementController.text.trim().isEmpty
             ? null
             : _statementController.text.trim(),
-        lines: _invoiceLines,
+        lines: syncedLines,
         amount: _subtotal,
         discountAmt: _discountAmount,
         taxRatio: double.tryParse(_taxController.text) ?? 0,

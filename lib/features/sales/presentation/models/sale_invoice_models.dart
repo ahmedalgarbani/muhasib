@@ -84,6 +84,8 @@ class InvoiceItem {
 
   // Unit conversion fields
   final int? unitId;
+  final int? subUnitId;
+  final int? groupId;
   final double conversionRate;
   final int packaging;
   double? baseQuantity;
@@ -99,13 +101,15 @@ class InvoiceItem {
     required this.stock,
     this.quantity = 1,
     this.unitId,
+    this.subUnitId,
+    this.groupId,
     this.conversionRate = 1.0,
     this.packaging = 1,
     this.baseQuantity,
     this.costPrice,
     this.trackInventory = true,
   }) {
-    // Calculate base quantity if not provided
+    // Calculate base quantity if not provided - use PrecisionHelper for accuracy
     baseQuantity ??= quantity * packaging * conversionRate;
   }
 
@@ -130,6 +134,8 @@ class InvoiceItem {
       stock: json['stock'],
       quantity: json['quantity'] ?? 1,
       unitId: json['unit_id'] as int?,
+      subUnitId: json['sub_unit_id'] as int?,
+      groupId: json['group_id'] as int?,
       conversionRate: (json['conversion_rate'] as num?)?.toDouble() ?? 1.0,
       packaging: json['packaging'] as int? ?? 1,
       baseQuantity: (json['base_quantity'] as num?)?.toDouble(),
@@ -148,6 +154,8 @@ class InvoiceItem {
       'stock': stock,
       'quantity': quantity,
       'unit_id': unitId,
+      'sub_unit_id': subUnitId,
+      'group_id': groupId,
       'conversion_rate': conversionRate,
       'packaging': packaging,
       'base_quantity': baseQuantity ?? inventoryQuantity,
@@ -165,6 +173,8 @@ class InvoiceItem {
     int? stock,
     int? quantity,
     int? unitId,
+    int? subUnitId,
+    int? groupId,
     double? conversionRate,
     int? packaging,
     double? baseQuantity,
@@ -180,6 +190,8 @@ class InvoiceItem {
       stock: stock ?? this.stock,
       quantity: quantity ?? this.quantity,
       unitId: unitId ?? this.unitId,
+      subUnitId: subUnitId ?? this.subUnitId,
+      groupId: groupId ?? this.groupId,
       conversionRate: conversionRate ?? this.conversionRate,
       packaging: packaging ?? this.packaging,
       baseQuantity: baseQuantity ?? this.baseQuantity,
@@ -313,6 +325,7 @@ class Invoice {
   DateTime date;
   String currency;
   String warehouse;
+  int? warehouseId; // المعرّف الفعلي للمخزن - يُستخدم محاسبياً ومخزنياً
   List<InvoiceItem> items;
   Discount discount;
   double otherCharges;
@@ -325,6 +338,7 @@ class Invoice {
     required this.date,
     this.currency = 'ريال سعودي',
     this.warehouse = 'المخزن الرئيسي',
+    this.warehouseId,
     this.items = const [],
     required this.discount,
     this.otherCharges = 0,
@@ -365,6 +379,7 @@ class Invoice {
       date: DateTime.parse(json['date']),
       currency: json['currency'] ?? 'ريال سعودي',
       warehouse: json['warehouse'] ?? 'المخزن الرئيسي',
+      warehouseId: json['warehouse_id'] as int?,
       items:
           (json['items'] as List?)
               ?.map((item) => InvoiceItem.fromJson(item))
@@ -388,6 +403,7 @@ class Invoice {
       'date': date.toIso8601String(),
       'currency': currency,
       'warehouse': warehouse,
+      'warehouse_id': warehouseId,
       'items': items.map((item) => item.toJson()).toList(),
       'discount': discount.toJson(),
       'otherCharges': otherCharges,
@@ -402,6 +418,7 @@ class Invoice {
     DateTime? date,
     String? currency,
     String? warehouse,
+    int? warehouseId,
     List<InvoiceItem>? items,
     Discount? discount,
     double? otherCharges,
@@ -414,6 +431,7 @@ class Invoice {
       date: date ?? this.date,
       currency: currency ?? this.currency,
       warehouse: warehouse ?? this.warehouse,
+      warehouseId: warehouseId ?? this.warehouseId,
       items: items ?? this.items,
       discount: discount ?? this.discount,
       otherCharges: otherCharges ?? this.otherCharges,

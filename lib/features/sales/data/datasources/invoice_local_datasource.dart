@@ -214,6 +214,29 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
     return accountId ?? fallbackCustomersAccountId;
   }
 
+  /// محاسبياً: إذا كان للمخزن حساب مخزون خاص (stocks.account_id) استخدمه بدلاً من حساب المخزون العام
+  Future<int?> _resolveWarehouseInventoryAccountId(Transaction txn, int? warehouseId) async {
+    if (warehouseId == null) return null;
+    try {
+      final rows = await txn.query(
+        'stocks',
+        columns: ['account_id'],
+        where: 'id = ?',
+        whereArgs: [warehouseId],
+        limit: 1,
+      );
+      if (rows.isEmpty) return null;
+      final accId = rows.first['account_id'] as int?;
+      if (accId == null) return null;
+      // تأكيد أن الحساب موجود ونشط
+      final acc = await txn.query(_accountsTable, columns: ['id'], where: 'id = ?', whereArgs: [accId], limit: 1);
+      if (acc.isEmpty) return null;
+      return accId;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>> _getAccountMeta(
     Transaction txn,
     int accountId,
@@ -418,11 +441,17 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     for (final lineModel in lines) {
       final productId = lineModel.categoryId;
       final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
-      final qty = lineModel.quantity;
+      // Multi-unit: استخدم الكمية الأساسية دائماً للمخزون
+      final baseQty = (lineModel.baseQuantity ?? lineModel.quantity);
+      final displayQty = lineModel.quantity;
+      final qty = baseQty;
+      final unitId = lineModel.unitId;
+      final convRate = lineModel.conversionRate ?? 1.0;
+      final packaging = lineModel.packaging ?? 1;
 
       if (productId == null || qty <= 0) continue;
 
-      // Net purchase cost per unit = (line amount - discount) / qty
+      // Net purchase cost per base unit = (line amount - discount) / baseQty
       final discountAmt = lineModel.discountAmt ?? 0.0;
       final netLineAmount = lineModel.amount - discountAmt;
       final unitCost = (qty > 0 && netLineAmount > 0)
@@ -481,7 +510,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'product_id': productId,
           'warehouse_id': warehouseId,
           'movement_type': 'purchase',
-          'quantity': qty, // Positive for incoming
+          'quantity': qty, // base quantity positive
           'unit_cost': unitCost,
           'total_cost': qty * unitCost,
           'balance_after': newQty,
@@ -489,6 +518,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'reference_id': invoiceId,
           'reference_number': invoiceNumber,
           'creation_time': now,
+          'unit_id': unitId,
+          'conversion_rate': convRate,
+          'packaging': packaging,
+          'original_quantity': displayQty,
         });
       } catch (_) {}
     }
@@ -508,16 +541,25 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         'category_id',
         'stock_id',
         'quantity',
+        'base_quantity',
         'amount',
         'discount_amt',
         'cost_price',
+        'unit_id',
+        'conversion_rate',
+        'packaging',
       ],
       where: 'invoice_id = ?',
       whereArgs: [invoiceId],
     );
     for (final line in lines) {
       final productId = line['category_id'] as int?;
-      final qty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final baseQty = (line['base_quantity'] as num?)?.toDouble() ?? (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final origQty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final qty = baseQty;
+      final unitId = line['unit_id'] as int?;
+      final convRate = (line['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+      final packaging = (line['packaging'] as int?) ?? 1;
       if (productId == null || qty <= 0) continue;
 
       final warehouseId = (line['stock_id'] as int?) ?? headerStockId ?? 1;
@@ -551,7 +593,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'product_id': productId,
           'warehouse_id': warehouseId,
           'movement_type': 'purchase_reversal',
-          'quantity': -qty, // Negative for outgoing reversal
+          'quantity': -qty,
           'unit_cost': unitCost,
           'total_cost': -qty * unitCost,
           'balance_after': newQty,
@@ -559,6 +601,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'reference_id': invoiceId,
           'reference_number': invoiceNumber,
           'creation_time': now,
+          'unit_id': unitId,
+          'conversion_rate': convRate,
+          'packaging': packaging,
+          'original_quantity': origQty,
         });
       } catch (_) {}
     }
@@ -576,7 +622,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     for (final lineModel in lines) {
       final productId = lineModel.categoryId;
       final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
-      final returnQty = lineModel.quantity;
+      final baseQty = (lineModel.baseQuantity ?? lineModel.quantity);
+      final displayQty = lineModel.quantity;
+      final returnQty = baseQty;
 
       if (productId == null || returnQty <= 0) continue;
 
@@ -606,7 +654,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'product_id': productId,
           'warehouse_id': warehouseId,
           'movement_type': 'return_purchase',
-          'quantity': -returnQty, // Negative for returned goods
+          'quantity': -returnQty,
           'unit_cost': avgCost,
           'total_cost': -returnQty * avgCost,
           'balance_after': newQty,
@@ -614,6 +662,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'reference_id': returnInvoiceId,
           'reference_number': returnInvoiceNumber,
           'creation_time': now,
+          'unit_id': lineModel.unitId,
+          'conversion_rate': lineModel.conversionRate ?? 1.0,
+          'packaging': lineModel.packaging ?? 1,
+          'original_quantity': displayQty,
         });
       } catch (_) {}
     }
@@ -629,13 +681,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final lines = await txn.query(
       _linesTable,
-      columns: ['category_id', 'stock_id', 'quantity'],
+      columns: ['category_id', 'stock_id', 'quantity', 'base_quantity', 'unit_id', 'conversion_rate', 'packaging'],
       where: 'invoice_id = ?',
       whereArgs: [returnInvoiceId],
     );
     for (final line in lines) {
       final productId = line['category_id'] as int?;
-      final returnQty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final baseQty = (line['base_quantity'] as num?)?.toDouble() ?? (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final origQty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final returnQty = baseQty;
+      final unitId = line['unit_id'] as int?;
+      final convRate = (line['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+      final packaging = (line['packaging'] as int?) ?? 1;
       if (productId == null || returnQty <= 0) continue;
 
       final warehouseId = (line['stock_id'] as int?) ?? headerStockId ?? 1;
@@ -665,7 +722,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'product_id': productId,
           'warehouse_id': warehouseId,
           'movement_type': 'purchase_return_reversal',
-          'quantity': returnQty, // Positive for restoration
+          'quantity': returnQty,
           'unit_cost': avgCost,
           'total_cost': returnQty * avgCost,
           'balance_after': newQty,
@@ -673,6 +730,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'reference_id': returnInvoiceId,
           'reference_number': returnInvoiceNumber,
           'creation_time': now,
+          'unit_id': unitId,
+          'conversion_rate': convRate,
+          'packaging': packaging,
+          'original_quantity': origQty,
         });
       } catch (_) {}
     }
@@ -690,7 +751,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     for (final lineModel in lines) {
       final productId = lineModel.categoryId;
       final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
-      final qty = lineModel.quantity;
+      final baseQty = (lineModel.baseQuantity ?? lineModel.quantity);
+      final displayQty = lineModel.quantity;
+      final unitId = lineModel.unitId;
+      final convRate = lineModel.conversionRate ?? 1.0;
+      final packaging = lineModel.packaging ?? 1;
+      final qty = baseQty;
 
       if (productId == null || qty <= 0) continue;
 
@@ -748,7 +814,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'product_id': productId,
           'warehouse_id': warehouseId,
           'movement_type': 'sale',
-          'quantity': -qty, // Negative for outgoing
+          'quantity': -qty,
           'unit_cost': avgCost,
           'total_cost': qty * avgCost,
           'balance_after': newQty,
@@ -756,6 +822,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'reference_id': invoiceId,
           'reference_number': invoiceNumber,
           'creation_time': now,
+          'unit_id': unitId,
+          'conversion_rate': convRate,
+          'packaging': packaging,
+          'original_quantity': displayQty,
         });
       } catch (_) {
         // Ignore if stock_movements table doesn't exist
@@ -773,13 +843,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final lines = await txn.query(
       _linesTable,
-      columns: ['category_id', 'stock_id', 'quantity'],
+      columns: ['category_id', 'stock_id', 'quantity', 'base_quantity', 'unit_id', 'conversion_rate', 'packaging'],
       where: 'invoice_id = ?',
       whereArgs: [invoiceId],
     );
     for (final line in lines) {
       final productId = line['category_id'] as int?;
-      final qty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final baseQty = (line['base_quantity'] as num?)?.toDouble() ?? (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final origQty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+      final unitId = line['unit_id'] as int?;
+      final convRate = (line['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+      final packaging = (line['packaging'] as int?) ?? 1;
+      final qty = baseQty;
       if (productId == null || qty <= 0) continue;
 
       final warehouseId = (line['stock_id'] as int?) ?? headerStockId ?? 1;
@@ -808,7 +883,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'product_id': productId,
           'warehouse_id': warehouseId,
           'movement_type': 'sale_reverse',
-          'quantity': qty, // Positive for reversal
+          'quantity': qty,
           'unit_cost': avgCost,
           'total_cost': qty * avgCost,
           'balance_after': newQty,
@@ -816,6 +891,10 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           'reference_id': invoiceId,
           'reference_number': invoiceNumber,
           'creation_time': now,
+          'unit_id': unitId,
+          'conversion_rate': convRate,
+          'packaging': packaging,
+          'original_quantity': origQty,
         });
       } catch (_) {
         // Ignore if stock_movements table doesn't exist
@@ -1213,11 +1292,14 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         AccountConnectType.costOfGoodsSold.value,
         label: 'تكلفة البضاعة المباعة',
       );
-      final inventoryAccountId = await _resolveConnectedAccountId(
+      var inventoryAccountId = await _resolveConnectedAccountId(
         txn,
         AccountConnectType.inventory.value,
         label: 'المخزون',
       );
+      // تفضيل حساب المخزن الخاص إن وجد (محاسبياً: كل مخزن قد يكون له حساب مخزون فرعي)
+      final whSpecific = await _resolveWarehouseInventoryAccountId(txn, invoiceData['stock_id'] as int?);
+      if (whSpecific != null) inventoryAccountId = whSpecific;
       rawLines.add({
         'account_id': cogsAccountId,
         'debit_amount': totalCogs,
@@ -1377,11 +1459,13 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         AccountConnectType.costOfGoodsSold.value,
         label: 'تكلفة البضاعة المباعة',
       );
-      inventoryAccountId = await _resolveConnectedAccountId(
+      final genericInv = await _resolveConnectedAccountId(
         txn,
         AccountConnectType.inventory.value,
         label: 'المخزون',
       );
+      final whSpec = await _resolveWarehouseInventoryAccountId(txn, invoiceData['stock_id'] as int?);
+      inventoryAccountId = whSpec ?? genericInv;
     }
 
     final rawLines = <Map<String, dynamic>>[];

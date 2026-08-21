@@ -17,6 +17,10 @@ class StockTransferLineEntity extends Equatable {
   final String? extraProperties;
   final int? creationTime;
   final int? lastModificationTime;
+  // Multi-unit enhancement
+  final double? baseQuantity;
+  final double? conversionRate;
+  final int? packaging;
 
   const StockTransferLineEntity({
     this.id,
@@ -34,7 +38,19 @@ class StockTransferLineEntity extends Equatable {
     this.extraProperties,
     this.creationTime,
     this.lastModificationTime,
+    this.baseQuantity,
+    this.conversionRate,
+    this.packaging,
   });
+
+  double get effectiveBaseQuantity {
+    if (baseQuantity != null && baseQuantity! > 0) return baseQuantity!;
+    final int pVal = packaging ?? 1;
+    final int p = pVal <= 0 ? 1 : pVal;
+    final double cVal = conversionRate ?? 1.0;
+    final double c = cVal <= 0 ? 1.0 : cVal;
+    return quantity * p * c;
+  }
 
   @override
   List<Object?> get props => [
@@ -53,6 +69,9 @@ class StockTransferLineEntity extends Equatable {
         extraProperties,
         creationTime,
         lastModificationTime,
+        baseQuantity,
+        conversionRate,
+        packaging,
       ];
 }
 

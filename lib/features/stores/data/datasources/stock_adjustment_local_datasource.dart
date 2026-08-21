@@ -479,7 +479,9 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
     if (rows.isEmpty) return;
     final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
     final type = (rows.first['type'] as int?) ?? 1;
-    final isCreditNormal = type == 2 || type == 3 || type == 4;
+    // Debit nature: assets(0), expenses(4) ; Credit nature: liabilities(1), equity(2), revenue(3)
+    // Type 5 (custom loss) treat as debit nature as well
+    final isCreditNormal = type == 1 || type == 2 || type == 3;
     final newBalance = isCreditNormal ? current - delta : current + delta;
     await txn.update(
       'accounts',

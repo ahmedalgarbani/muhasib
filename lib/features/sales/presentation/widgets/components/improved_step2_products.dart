@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/precision_helper.dart';
+import 'package:muhasib/core/services/unit_conversion_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
@@ -50,8 +53,25 @@ class ImprovedStep2Products extends StatelessWidget {
                 elevation: 1,
                 child: ListTile(
                   title: Text(product.name),
-                  subtitle: Text(
-                    'السعر: ${product.sellAmount ?? product.sellLocalAmount ?? 0} | المتوفر: ${product.quantity}',
+                  subtitle: FutureBuilder<List<ProductUnitOption>>(
+                    future: getIt<UnitConversionService>().getUnitsForProduct(product.id!),
+                    builder: (context, snapshot) {
+                      final basePrice = (product.sellAmount ?? product.sellLocalAmount ?? 0).toDouble();
+                      final availQty = PrecisionHelper.roundQuantity(product.quantity);
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return Text('السعر: $basePrice | المتوفر: $availQty حبة');
+                      }
+                      final units = snapshot.data!;
+                      if (units.length == 1) {
+                        return Text('السعر: $basePrice | المتوفر: $availQty ${units.first.unitName}');
+                      }
+                      // Multi-unit info: show prices for available packages
+                      final priceInfo = units.map((u) {
+                        final p = getIt<UnitConversionService>().resolveUnitPrice(baseSellPrice: basePrice, unit: u);
+                        return '${u.unitName}:${p.toStringAsFixed(2)}';
+                      }).join(' | ');
+                      return Text('المتوفر: $availQty حبة | أسعار: $priceInfo', style: TextStyle(fontSize: 11));
+                    },
                   ),
                   trailing: isAdded
                       ? const Icon(Icons.check_circle, color: AppColors.success)
@@ -60,18 +80,34 @@ class ImprovedStep2Products extends StatelessWidget {
                             Icons.add_circle_outline,
                             color: AppColors.primary,
                           ),
-                          onPressed: () {
+                          onPressed: () async {
+                            // Multi-unit unit picker
+                            final svc = getIt<UnitConversionService>();
+                            final units = await svc.getUnitsForProduct(product.id!);
+                            ProductUnitOption? selected = units.isNotEmpty ? await svc.getDefaultSaleUnit(product.id!) ?? units.first : null;
+                            double price = (product.sellAmount ?? product.sellLocalAmount ?? 0).toDouble();
+                            if (selected != null) {
+                              price = svc.resolveUnitPrice(baseSellPrice: price, unit: selected);
+                            }
+                            // If multiple units, show picker bottom sheet
+                            if (units.length > 1 && context.mounted) {
+                              selected = await _showUnitPicker(context, product, units, price);
+                              if (selected == null) return;
+                              price = svc.resolveUnitPrice(baseSellPrice: (product.sellAmount ?? 0).toDouble(), unit: selected);
+                            }
+                            if (!context.mounted) return;
                             final newItem = InvoiceItem(
                               id: product.id.toString(),
                               name: product.name,
-                              barcode: product.barcodeNo ?? '',
-                              price:
-                                  (product.sellAmount ??
-                                          product.sellLocalAmount ??
-                                          0)
-                                      .toDouble(),
+                              barcode: selected?.barcode ?? product.barcodeNo ?? '',
+                              price: price,
                               costPrice: product.costAmount,
-                              unit: 'قطعة',
+                              unit: selected?.unitName ?? selected?.unitShort ?? 'قطعة',
+                              unitId: selected?.unitId ?? product.unitId,
+                              subUnitId: selected?.subUnitId,
+                              groupId: product.groupId,
+                              conversionRate: selected?.conversionRate ?? 1.0,
+                              packaging: selected?.packaging ?? 1,
                               stock: product.quantity.toInt(),
                               quantity: 1,
                             );
@@ -89,6 +125,39 @@ class ImprovedStep2Products extends StatelessWidget {
         }
         return const SizedBox();
       },
+    );
+  }
+
+  Future<ProductUnitOption?> _showUnitPicker(BuildContext context, dynamic product, List<ProductUnitOption> units, double basePrice) async {
+    final svc = getIt<UnitConversionService>();
+    return showModalBottomSheet<ProductUnitOption>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('اختر الوحدة لـ ${product.name}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              const SizedBox(height: 12),
+              ...units.map((u) {
+                final price = svc.resolveUnitPrice(baseSellPrice: basePrice, unit: u);
+                final factor = u.totalConversion;
+                return ListTile(
+                  title: Text('${u.unitName} ${u.isMainUnit ? "(أساسية)" : "($factor حبة)"}'),
+                  subtitle: Text('السعر: ${price.toStringAsFixed(2)} ${u.hasBarcode ? "| باركود: ${u.barcode}" : ""}'),
+                  trailing: u.isDefaultSale ? const Icon(Icons.star, color: Colors.amber, size: 16) : null,
+                  onTap: () => Navigator.pop(ctx, u),
+                );
+              }),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

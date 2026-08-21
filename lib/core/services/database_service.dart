@@ -275,6 +275,49 @@ class DatabaseService implements IDatabaseService {
         // Ignore migration errors (e.g. fresh databases)
       }
     }
+
+    if (oldVersion < 9) {
+      // Multi-unit enhancement (008) - ensure columns exist for existing DBs
+      final upgrades = [
+        "ALTER TABLE category_sub_units ADD COLUMN barcode TEXT NULL",
+        "ALTER TABLE category_sub_units ADD COLUMN cost_price REAL NULL",
+        "ALTER TABLE category_sub_units ADD COLUMN sell_price REAL NULL",
+        "ALTER TABLE category_sub_units ADD COLUMN wholesale_price REAL NULL",
+        "ALTER TABLE category_sub_units ADD COLUMN is_default_sale INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE category_sub_units ADD COLUMN is_default_purchase INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE stock_transfer_lines ADD COLUMN base_quantity REAL NULL",
+        "ALTER TABLE stock_transfer_lines ADD COLUMN conversion_rate REAL NULL DEFAULT 1.0",
+        "ALTER TABLE stock_transfer_lines ADD COLUMN packaging INTEGER NULL DEFAULT 1",
+        "ALTER TABLE inventory_lines ADD COLUMN base_quantity REAL NULL",
+        "ALTER TABLE inventory_lines ADD COLUMN conversion_rate REAL NULL DEFAULT 1.0",
+        "ALTER TABLE inventory_lines ADD COLUMN packaging INTEGER NULL DEFAULT 1",
+        "ALTER TABLE stock_movements ADD COLUMN unit_id INTEGER NULL REFERENCES categories_units(id)",
+        "ALTER TABLE stock_movements ADD COLUMN conversion_rate REAL NULL DEFAULT 1.0",
+        "ALTER TABLE stock_movements ADD COLUMN original_quantity REAL NULL",
+        "ALTER TABLE stock_movements ADD COLUMN packaging INTEGER NULL DEFAULT 1",
+      ];
+      for (final sql in upgrades) {
+        try { await db.execute(sql); } catch (_) {}
+      }
+      final indexes = [
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_category_sub_units_barcode ON category_sub_units(barcode) WHERE barcode IS NOT NULL AND barcode != ''",
+        "CREATE INDEX IF NOT EXISTS idx_category_sub_units_product ON category_sub_units(category_id)",
+        "CREATE INDEX IF NOT EXISTS idx_category_sub_units_unit ON category_sub_units(unit_id)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS idx_category_sub_units_unique_product_unit ON category_sub_units(category_id, unit_id) WHERE unit_id IS NOT NULL",
+        "CREATE INDEX IF NOT EXISTS idx_stock_movements_unit ON stock_movements(unit_id)",
+      ];
+      for (final idx in indexes) {
+        try { await db.execute(idx); } catch (_) {}
+      }
+      // Seed default sub-units for existing products (if none)
+      try {
+        await db.rawInsert('''
+          INSERT OR IGNORE INTO category_sub_units (category_id, unit_id, packaging, conversion_rate, is_main_unit, is_active, is_default_sale, is_default_purchase, creation_time, last_modification_time)
+          SELECT c.id, c.unit_id, 1, 1.0, 1, 1, 1, 1, CAST(strftime('%s','now') AS INTEGER), CAST(strftime('%s','now') AS INTEGER)
+          FROM categories c WHERE c.unit_id IS NOT NULL AND NOT EXISTS (SELECT 1 FROM category_sub_units csu WHERE csu.category_id = c.id AND csu.is_main_unit = 1)
+        ''');
+      } catch (_) {}
+    }
   }
 
   final List<TableSchema> _tables = [

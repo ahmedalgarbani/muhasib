@@ -21,6 +21,8 @@ import 'package:muhasib/features/sales/presentation/widgets/components/improved_
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_dialog.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
+import 'package:muhasib/core/services/precision_helper.dart';
 
 class ImprovedSalesInvoiceScreen extends StatefulWidget {
   final InvoiceType invoiceType;
@@ -42,10 +44,14 @@ class _ImprovedSalesInvoiceScreenState
   late Invoice _invoice;
   List<Payment> _payments = [];
   bool _isSaving = false;
+  int? _selectedWarehouseId;
 
   @override
   void initState() {
     super.initState();
+    // المخزن الافتراضي من الإعدادات مع تراجع آمن
+    _selectedWarehouseId = SettingsCache.defaultWarehouse;
+    if (_selectedWarehouseId == 0) _selectedWarehouseId = 1;
     _invoice = Invoice(
       number: 'INV-${DateTime.now().millisecondsSinceEpoch}',
       date: DateTime.now(),
@@ -54,11 +60,47 @@ class _ImprovedSalesInvoiceScreenState
       payments: [],
       currency: 'ريال يمني',
       warehouse: 'المخزن الرئيسي',
+      warehouseId: _selectedWarehouseId ?? 1,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureWarehouseName();
+    });
+  }
+
+  Future<void> _ensureWarehouseName() async {
+    if (_selectedWarehouseId == null) return;
+    try {
+      final whCubit = context.read<WarehousesCubit>();
+      if (whCubit.state is WarehousesLoaded) {
+        final warehouses = (whCubit.state as WarehousesLoaded).warehouses;
+        final match = warehouses.where((w) => w.id == _selectedWarehouseId).firstOrNull;
+        if (match != null && mounted) {
+          setState(() {
+            _invoice = _invoice.copyWith(warehouse: match.name, warehouseId: match.id);
+          });
+        }
+      }
+    } catch (_) {}
   }
 
   void _updateInvoice(Invoice invoice) {
-    setState(() => _invoice = invoice);
+    setState(() {
+      _invoice = invoice;
+      // مزامنة اختيار المخزن المحاسبي
+      if (invoice.warehouseId != null) {
+        _selectedWarehouseId = invoice.warehouseId;
+      }
+    });
+  }
+
+  void _onWarehouseChanged(int? warehouseId, String? warehouseName) {
+    setState(() {
+      _selectedWarehouseId = warehouseId;
+      _invoice = _invoice.copyWith(
+        warehouseId: warehouseId,
+        warehouse: warehouseName ?? _invoice.warehouse,
+      );
+    });
   }
 
   void _nextStep() {
@@ -105,21 +147,30 @@ class _ImprovedSalesInvoiceScreenState
     final isFullyPaid = totalPaid >= finalAmount;
     final transType = isQuotation ? 0 : (hasDeferred || !isFullyPaid ? 1 : 0);
 
+    final headerWarehouseId = _selectedWarehouseId ?? _invoice.warehouseId ?? SettingsCache.defaultWarehouse ?? 1;
     final invoiceLines = _invoice.items.map((item) {
       return InvoiceLineEntity(
         invoiceType: isQuotation ? 3 : 1,
         amount: item.price * item.quantity,
         totalAmount: item.total,
         quantity: item.quantity.toDouble(),
-        groupId: int.parse(item.id),
-        unitId: 1,
-        categorySubUnitId: 1,
-        stockId: 1,
+        groupId: item.groupId ?? 1,
+        unitId: item.unitId ?? 1,
+        categorySubUnitId: item.subUnitId ?? 1,
+        stockId: headerWarehouseId,
         customerId: int.parse(_invoice.customer!.id),
         date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
         invoiceTransType: transType,
         netRevenueAmt: item.total,
         invoiceId: 0,
+        // Multi-unit: الكمية الأساسية دقيقة
+        baseQuantity: item.baseQuantity ?? PrecisionHelper.calcBaseQuantity(quantity: item.quantity.toDouble(), packaging: item.packaging, conversionRate: item.conversionRate),
+        conversionRate: item.conversionRate,
+        packaging: item.packaging,
+        costPrice: item.costPrice,
+        costTotal: PrecisionHelper.roundCurrency((item.costPrice ?? 0) * (item.baseQuantity ?? PrecisionHelper.calcBaseQuantity(quantity: item.quantity.toDouble(), packaging: item.packaging, conversionRate: item.conversionRate))),
+        price: item.price,
+        sellingPrice: item.price,
       );
     }).toList();
 
@@ -127,7 +178,7 @@ class _ImprovedSalesInvoiceScreenState
       number: _invoice.number,
       date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
       customerId: int.parse(_invoice.customer!.id),
-      stockId: 1,
+      stockId: headerWarehouseId,
       amount: _invoice.subtotal,
       discountAmt: discountAmount,
       taxAmt: taxAmount,

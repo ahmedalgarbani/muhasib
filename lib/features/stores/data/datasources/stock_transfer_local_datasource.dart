@@ -228,7 +228,10 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
 
     for (var line in transfer.lines) {
       final productId = line.categoryId;
-      final quantity = line.quantity;
+      // Multi-unit: استخدم الكمية الأساسية دائماً للمخزون
+      final baseQty = line.effectiveBaseQuantity;
+      final displayQty = line.quantity;
+      final quantity = baseQty;
       if (productId == null) continue;
 
       // 1. Validate availability + fetch source avg cost (authoritative)
@@ -328,7 +331,11 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
         'reference_id': transferId,
         'reference_number': transfer.number,
         'creation_time': now,
-        'notes': 'تحويل إلى مخزن ${transfer.toStockId}',
+        'notes': 'تحويل إلى مخزن ${transfer.toStockId} (${displayQty} x وحدة)',
+        'unit_id': line.unitId,
+        'conversion_rate': line.conversionRate ?? 1.0,
+        'packaging': line.packaging ?? 1,
+        'original_quantity': displayQty,
       });
 
       // 5. Record stock movement for destination (incoming)
@@ -344,7 +351,11 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
         'reference_id': transferId,
         'reference_number': transfer.number,
         'creation_time': now,
-        'notes': 'تحويل من مخزن ${transfer.fromStockId}',
+        'notes': 'تحويل من مخزن ${transfer.fromStockId} (${displayQty} x وحدة)',
+        'unit_id': line.unitId,
+        'conversion_rate': line.conversionRate ?? 1.0,
+        'packaging': line.packaging ?? 1,
+        'original_quantity': displayQty,
       });
 
       // 6. Legacy category_movs for backwards compatibility

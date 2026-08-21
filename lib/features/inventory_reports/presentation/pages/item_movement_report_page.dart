@@ -20,13 +20,24 @@ class ItemMovementReportPage extends StatefulWidget {
 }
 
 class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
+  late final ItemMovementCubit _itemMovementCubit;
+  late final WarehousesCubit _warehousesCubit;
   int? _selectedWarehouseId;
   bool _showSearch = false;
   final TextEditingController _searchCtrl = TextEditingController();
   List<ItemMovementEntity> _lastList = [];
 
   @override
+  void initState() {
+    super.initState();
+    _itemMovementCubit = getIt<ItemMovementCubit>()..loadMovements();
+    _warehousesCubit = getIt<WarehousesCubit>()..loadActiveWarehouses();
+  }
+
+  @override
   void dispose() {
+    _itemMovementCubit.close();
+    _warehousesCubit.close();
     _searchCtrl.dispose();
     super.dispose();
   }
@@ -53,90 +64,89 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => getIt<ItemMovementCubit>()..loadMovements()),
-        BlocProvider(create: (_) => getIt<WarehousesCubit>()..loadActiveWarehouses()),
+        BlocProvider.value(value: _itemMovementCubit),
+        BlocProvider.value(value: _warehousesCubit),
       ],
-      child: Builder(
-        builder: (ctx) => Directionality(
-          textDirection: TextDirection.rtl,
-          child: Scaffold(
-            backgroundColor: AppColors.neutral100,
-            appBar: CustomAppBar(
-              title: 'حركة الأصناف',
-              actions: [
-                IconButton(
-                  icon: Icon(_showSearch ? Icons.close : Icons.search),
-                  onPressed: () => setState(() => _showSearch = !_showSearch),
-                  tooltip: 'بحث',
-                ),
-                IconButton(
-                  icon: const Icon(Icons.filter_alt_outlined),
-                  onPressed: () {
-                    // filter handled via warehouse selector; could add date filter later
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('تصفية المخزن عبر الشريط أدناه')),
-                    );
-                  },
-                  tooltip: 'تصفية',
-                ),
-                BlocBuilder<ItemMovementCubit, ItemMovementState>(
-                  builder: (context, state) {
-                    final hasData = state is ItemMovementLoaded && state.movements.isNotEmpty;
-                    return IconButton(
-                      icon: const Icon(Icons.picture_as_pdf),
-                      onPressed: hasData
-                          ? () => _exportPdf((state as ItemMovementLoaded).movements)
-                          : _lastList.isEmpty
-                              ? null
-                              : () => _exportPdf(_lastList),
-                      tooltip: 'تصدير PDF',
-                    );
-                  },
-                ),
-              ],
-            ),
-            body: Column(
-              children: [
-                if (_showSearch)
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.all(12),
-                    child: TextInputField(
-                      controller: _searchCtrl,
-                      hint: 'بحث باسم الصنف، الباركود أو رقم المستند...',
-                      decoration: InputDecoration(
-                        prefixIcon: const Icon(Icons.search, size: 20),
-                        suffixIcon: _searchCtrl.text.isNotEmpty
-                            ? IconButton(
-                                icon: const Icon(Icons.clear, size: 18),
-                                onPressed: () {
-                                  _searchCtrl.clear();
-                                  context.read<ItemMovementCubit>().updateSearch('');
-                                },
-                              )
-                            : null,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.md),
-                        ),
-                        fillColor: Colors.grey[50],
-                        filled: true,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      ),
-                      onChanged: (v) => context.read<ItemMovementCubit>().updateSearch(v),
-                    ),
-                  ),
-                _WarehouseChips(
-                  selectedId: _selectedWarehouseId,
-                  onSelected: (id) {
-                    setState(() => _selectedWarehouseId = id);
-                    context.read<ItemMovementCubit>().filterByWarehouse(id);
-                  },
-                ),
-                // Table header
+      child: Directionality(
+        textDirection: TextDirection.rtl,
+        child: Scaffold(
+          backgroundColor: AppColors.neutral100,
+          appBar: CustomAppBar(
+            title: 'حركة الأصناف',
+            actions: [
+              IconButton(
+                icon: Icon(_showSearch ? Icons.close : Icons.search),
+                onPressed: () => setState(() => _showSearch = !_showSearch),
+                tooltip: 'بحث',
+              ),
+              IconButton(
+                icon: const Icon(Icons.filter_alt_outlined),
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('تصفية المخزن عبر الشريط أدناه')),
+                  );
+                },
+                tooltip: 'تصفية',
+              ),
+              BlocBuilder<ItemMovementCubit, ItemMovementState>(
+                bloc: _itemMovementCubit,
+                builder: (context, state) {
+                  final hasData = state is ItemMovementLoaded && state.movements.isNotEmpty;
+                  return IconButton(
+                    icon: const Icon(Icons.picture_as_pdf),
+                    onPressed: hasData
+                        ? () => _exportPdf(state.movements)
+                        : _lastList.isEmpty
+                            ? null
+                            : () => _exportPdf(_lastList),
+                    tooltip: 'تصدير PDF',
+                  );
+                },
+              ),
+            ],
+          ),
+          body: Column(
+            children: [
+              if (_showSearch)
                 Container(
-                  color: AppColors.materialBlue700,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  child: const Row(
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(12),
+                  child: TextInputField(
+                    controller: _searchCtrl,
+                    hint: 'بحث باسم الصنف، الباركود أو رقم المستند...',
+                    decoration: InputDecoration(
+                      prefixIcon: const Icon(Icons.search, size: 20),
+                      suffixIcon: _searchCtrl.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear, size: 18),
+                              onPressed: () {
+                                _searchCtrl.clear();
+                                _itemMovementCubit.updateSearch('');
+                              },
+                            )
+                          : null,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                      fillColor: Colors.grey[50],
+                      filled: true,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                    onChanged: (v) => _itemMovementCubit.updateSearch(v),
+                  ),
+                ),
+              _WarehouseChips(
+                selectedId: _selectedWarehouseId,
+                onSelected: (id) {
+                  setState(() => _selectedWarehouseId = id);
+                  _itemMovementCubit.filterByWarehouse(id);
+                },
+              ),
+              // Table header
+              Container(
+                color: AppColors.materialBlue700,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: const Row(
                     children: [
                       Expanded(flex: 3, child: Text('الصنف', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
                       Expanded(flex: 2, child: Text('الكمية', textAlign: TextAlign.center, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
@@ -163,7 +173,7 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
                               Text(state.message, textAlign: TextAlign.center),
                               const SizedBox(height: 12),
                               ElevatedButton.icon(
-                                onPressed: () => context.read<ItemMovementCubit>().refresh(),
+                                onPressed: () => _itemMovementCubit.refresh(),
                                 icon: const Icon(Icons.refresh),
                                 label: const Text('إعادة المحاولة'),
                               ),
@@ -187,7 +197,7 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
                       if (state is ItemMovementLoaded) {
                         final list = state.movements;
                         return RefreshIndicator(
-                          onRefresh: () async => context.read<ItemMovementCubit>().refresh(),
+                          onRefresh: () async => _itemMovementCubit.refresh(),
                           child: ListView.separated(
                             padding: AppConstant.defaultPadding,
                             itemCount: list.length,
@@ -207,7 +217,6 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
             ),
           ),
         ),
-      ),
     );
   }
 }
@@ -236,7 +245,7 @@ class _WarehouseChips extends StatelessWidget {
                   label: const Text('الكل'),
                   selected: selectedId == null,
                   onSelected: (_) => onSelected(null),
-                  selectedColor: AppColors.materialBlue700.withOpacity(0.15),
+                  selectedColor: AppColors.materialBlue700.withValues(alpha: 0.15),
                 ),
                 const SizedBox(width: 8),
                 ...warehouses.map((w) {
@@ -255,7 +264,7 @@ class _WarehouseChips extends StatelessWidget {
                       ),
                       selected: isSelected,
                       onSelected: (_) => onSelected(w.id),
-                      selectedColor: AppColors.materialBlue700.withOpacity(0.15),
+                      selectedColor: AppColors.materialBlue700.withValues(alpha: 0.15),
                     ),
                   );
                 }),
@@ -281,7 +290,7 @@ class _MovementCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(color: Colors.grey[200]!),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 4, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -312,9 +321,9 @@ class _MovementCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isIn ? Colors.green.withOpacity(0.1) : Colors.red.withOpacity(0.1),
+                    color: isIn ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isIn ? Colors.green.withOpacity(0.3) : Colors.red.withOpacity(0.3)),
+                    border: Border.all(color: isIn ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     movement.directionLabel,

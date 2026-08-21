@@ -6,7 +6,9 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/number_sequence_service.dart';
+import 'package:muhasib/core/services/precision_helper.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
+import 'package:muhasib/core/services/unit_conversion_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
@@ -25,6 +27,8 @@ import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.d
 import 'package:muhasib/features/settings_entities/domain/entities/cashbox_entity.dart';
 import 'package:muhasib/features/settings_entities/domain/repositories/bank_repository.dart';
 import 'package:muhasib/features/settings_entities/domain/repositories/cashbox_repository.dart';
+import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
+import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 
 class PosPage extends StatefulWidget {
   const PosPage({super.key});
@@ -66,6 +70,11 @@ class _PosPageState extends State<PosPage> {
   String? _selectedFundName;
   bool _isLoadingBanksAndFunds = false;
 
+  // Warehouse (محاسبي)
+  int? _selectedWarehouseId;
+  List<WarehouseEntity> _warehouses = [];
+  bool _isLoadingWarehouses = false;
+
   // Due Date for Deferred Payment
   DateTime? _dueDate;
 
@@ -86,7 +95,46 @@ class _PosPageState extends State<PosPage> {
       _selectedCustomer = customerState.customers.first;
     }
     _loadBanksAndFunds();
+    _loadWarehouses();
     _initDefaultPaymentMethod();
+  }
+
+  Future<void> _loadWarehouses() async {
+    setState(() => _isLoadingWarehouses = true);
+    try {
+      // حاول عبر Cubit أولاً
+      final whCubit = getIt<WarehousesCubit>();
+      await whCubit.loadWarehouses();
+      final state = whCubit.state;
+      if (state is WarehousesLoaded && mounted) {
+        setState(() {
+          _warehouses = state.warehouses;
+          if (_warehouses.isNotEmpty) {
+            // افتراضي: المخزن الافتراضي من الإعدادات أو الرئيسي
+            WarehouseEntity? target;
+            final defId = SettingsCache.defaultWarehouse;
+            for (final w in _warehouses) {
+              if (w.id == defId) {
+                target = w;
+                break;
+              }
+            }
+            target ??= _warehouses.firstWhere(
+              (w) => w.isMainStock == true,
+              orElse: () => _warehouses.first,
+            );
+            _selectedWarehouseId = target.id;
+          }
+          _isLoadingWarehouses = false;
+        });
+        return;
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isLoadingWarehouses = false);
+    }
+    if (mounted && _warehouses.isEmpty) {
+      setState(() => _isLoadingWarehouses = false);
+    }
   }
 
   void _initDefaultPaymentMethod() {
@@ -216,14 +264,59 @@ class _PosPageState extends State<PosPage> {
 
   // ==================== Cart Operations ====================
 
-  void _addProduct(ProductEntity product) {
+  Future<void> _addProduct(
+    ProductEntity product, {
+    ProductUnitOption? forcedUnit,
+  }) async {
     final id = product.id;
     if (id == null) return;
+    // If already in cart and same unit, just increase quantity
+    final existing = _cart[id];
+    if (existing != null && forcedUnit == null) {
+      setState(
+        () => _cart[id] = existing.copyWith(quantity: existing.quantity + 1),
+      );
+      return;
+    }
+    // Resolve unit: forcedUnit or default sale unit or base
+    ProductUnitOption? unit;
+    double price = product.sellAmount ?? 0;
+    try {
+      final svc = getIt<UnitConversionService>();
+      if (forcedUnit != null) {
+        unit = forcedUnit;
+        price = svc.resolveUnitPrice(baseSellPrice: price, unit: unit);
+      } else {
+        unit = await svc.getDefaultSaleUnit(product.id!);
+        if (unit != null) {
+          price = svc.resolveUnitPrice(baseSellPrice: price, unit: unit);
+        }
+      }
+    } catch (_) {}
     setState(() {
-      final existing = _cart[id];
-      _cart[id] = existing == null
-          ? _PosLine(product: product)
-          : existing.copyWith(quantity: existing.quantity + 1);
+      if (existing != null &&
+          forcedUnit != null &&
+          existing.unitOption?.unitId == forcedUnit.unitId) {
+        _cart[id] = existing.copyWith(quantity: existing.quantity + 1);
+      } else if (existing == null) {
+        _cart[id] = _PosLine(
+          product: product,
+          quantity: 1,
+          unitOption: unit,
+          unitPrice: price,
+        );
+      } else if (forcedUnit != null) {
+        // Different unit selected for same product: treat as separate? For simplicity increase qty with new unit
+        // Use composite key: replace with forced unit
+        _cart[id] = _PosLine(
+          product: product,
+          quantity: existing.quantity + 1,
+          unitOption: unit,
+          unitPrice: price,
+        );
+      } else {
+        _cart[id] = existing.copyWith(quantity: existing.quantity + 1);
+      }
     });
   }
 
@@ -237,6 +330,22 @@ class _PosPageState extends State<PosPage> {
       } else {
         _cart[id] = line.copyWith(quantity: quantity);
       }
+    });
+  }
+
+  Future<void> _changeLineUnit(int productId, ProductUnitOption newUnit) async {
+    final line = _cart[productId];
+    if (line == null) return;
+    final svc = getIt<UnitConversionService>();
+    final newPrice = svc.resolveUnitPrice(
+      baseSellPrice: line.product.sellAmount ?? 0,
+      unit: newUnit,
+    );
+    setState(() {
+      _cart[productId] = line.copyWith(
+        unitOption: newUnit,
+        unitPrice: newPrice,
+      );
     });
   }
 
@@ -304,6 +413,7 @@ class _PosPageState extends State<PosPage> {
                 icon: const Icon(Icons.close, color: Colors.white),
               ),
             ),
+
             Positioned(
               left: 24,
               right: 24,
@@ -342,6 +452,30 @@ class _PosPageState extends State<PosPage> {
     );
     if (!mounted || code == null) return;
 
+    // Multi-unit smart barcode: يحاول حل الباركود عبر خدمة الوحدات أولاً
+    try {
+      final svc = getIt<UnitConversionService>();
+      final lookup = await svc.lookupByBarcode(code);
+      if (lookup != null) {
+        ProductEntity? product;
+        for (final item in products) {
+          if (item.id == lookup.productId) {
+            product = item;
+            break;
+          }
+        }
+        if (product != null) {
+          await _addProduct(product, forcedUnit: lookup.unit);
+          if (!mounted) return;
+          final unitLabel = lookup.unit != null
+              ? ' (${lookup.unit!.unitName})'
+              : '';
+          AppToast.showSuccess(context, 'تمت إضافة: ${product.name}$unitLabel');
+          return;
+        }
+      }
+    } catch (_) {}
+    // Fallback legacy exact match
     ProductEntity? product;
     for (final item in products) {
       if (item.barcodeNo == code || item.id.toString() == code) {
@@ -356,8 +490,89 @@ class _PosPageState extends State<PosPage> {
       );
       return;
     }
-    _addProduct(product);
+    await _addProduct(product);
+    if (!mounted) return;
     AppToast.showSuccess(context, 'تمت إضافة: ${product.name}');
+  }
+
+  Future<ProductUnitOption?> _showPosUnitPicker(
+    BuildContext context,
+    ProductEntity product,
+    List<ProductUnitOption> units,
+    double basePrice,
+  ) async {
+    final svc = getIt<UnitConversionService>();
+    return showModalBottomSheet<ProductUnitOption>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.layers_outlined, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'اختر الوحدة لـ ${product.name}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              ...units.map((u) {
+                final price = svc.resolveUnitPrice(
+                  baseSellPrice: basePrice,
+                  unit: u,
+                );
+                final factor = u.totalConversion;
+                final isMain = u.isMainUnit;
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    title: Text(
+                      '${u.unitName} ${isMain ? "(أساسية)" : "($factor حبة)"}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      'السعر: ${price.toStringAsFixed(2)} ${_getCurrencySymbol()}'
+                      '${u.hasBarcode ? " | باركود: ${u.barcode}" : ""}'
+                      '${u.isDefaultSale ? " ★ افتراضي" : ""}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    trailing: const Icon(
+                      Icons.add_circle,
+                      color: AppColors.primary,
+                    ),
+                    onTap: () => Navigator.pop(ctx, u),
+                  ),
+                );
+              }),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('إلغاء'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   // ==================== Customer Picker Bottom Sheet ====================
@@ -535,7 +750,7 @@ class _PosPageState extends State<PosPage> {
         finalAmt: finalAmount,
         currencyCode: _getCurrencyCode(),
         exchangeRate: 1,
-        stockId: SettingsCache.defaultWarehouse,
+        stockId: _selectedWarehouseId ?? SettingsCache.defaultWarehouse,
         customerId: customerId,
         invoiceTransType: invoiceTransType,
         paymentStatus: paymentStatus,
@@ -575,10 +790,20 @@ class _PosPageState extends State<PosPage> {
     int invoiceTransType,
   ) {
     final product = line.product;
-    final price = product.sellAmount ?? 0;
+    final unit = line.unitOption;
+    final price = line.unitPrice;
+    final qty = line.quantity;
+    final baseQty = line.baseQuantity;
+    final convRate = unit?.conversionRate ?? 1.0;
+    final packaging = unit?.packaging ?? 1;
+    final unitId = unit?.unitId ?? product.unitId ?? 1;
+    final subUnitId = unit?.subUnitId ?? 1;
+    // COGS per base unit; ملاحظة: يتم إعادة حساب COGS الحقيقي عبر متوسط المخزون في الـ datasource
+    final baseCostPerUnit = product.costAmount ?? 0;
+    final costTotal = PrecisionHelper.roundCurrency(baseCostPerUnit * baseQty);
     return InvoiceLineEntity(
       invoiceType: 1,
-      amount: price,
+      amount: price * qty,
       totalAmount: line.total,
       taxAmt: 0,
       taxRatio: 0,
@@ -587,22 +812,23 @@ class _PosPageState extends State<PosPage> {
       netRevenueAmt: line.total,
       currencyCode: _getCurrencyCode(),
       exchangeRate: 1,
-      quantity: line.quantity,
+      quantity: qty,
       categoryId: product.id,
       groupId: product.groupId ?? 1,
-      unitId: product.unitId ?? 1,
-      categorySubUnitId: 1,
-      stockId: product.stockId,
+      unitId: unitId,
+      categorySubUnitId: subUnitId,
+      stockId: _selectedWarehouseId ?? product.stockId,
       invoiceId: 0,
       customerId: _selectedCustomer != null
           ? (int.tryParse(_selectedCustomer!.id) ?? 1)
           : 1,
       date: now,
       invoiceTransType: invoiceTransType,
-      baseQuantity: line.quantity,
-      conversionRate: 1,
-      costPrice: product.costAmount,
-      costTotal: (product.costAmount ?? 0) * line.quantity,
+      baseQuantity: baseQty,
+      conversionRate: convRate,
+      packaging: packaging,
+      costPrice: baseCostPerUnit,
+      costTotal: costTotal,
       price: price,
       sellingPrice: price,
       creatorId: 1,
@@ -1020,6 +1246,119 @@ class _PosPageState extends State<PosPage> {
 
   // ==================== Step 0: Product Selection ====================
 
+  Widget _buildWarehouseSelector(ThemeData theme, bool isDark) {
+    if (_isLoadingWarehouses) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: LinearProgressIndicator(),
+      );
+    }
+    if (_warehouses.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.cardSurfaceDark : Colors.white,
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: theme.dividerColor),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.warehouse_outlined,
+            size: 18,
+            color: isDark ? AppColors.emerald300 : AppColors.primary,
+          ),
+          const SizedBox(width: 8),
+          const Text(
+            'المخزن:',
+            style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<int>(
+                value: _selectedWarehouseId,
+                isExpanded: true,
+                style: TextStyle(
+                  fontSize: 13,
+                  color: theme.colorScheme.onSurface,
+                ),
+                items: _warehouses.map((w) {
+                  return DropdownMenuItem<int>(
+                    value: w.id,
+                    child: Text(
+                      '${w.name}${w.isMainStock == true ? " (الرئيسي)" : ""}',
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val == null || val == _selectedWarehouseId) return;
+                  if (_cart.isNotEmpty) {
+                    showDialog(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: const Text('تغيير المخزن'),
+                        content: const Text(
+                          'تغيير المخزن سيفرغ السلة الحالية لأن الأصناف مرتبطة بالمخزن محاسبياً. هل تريد المتابعة؟',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx),
+                            child: const Text('إلغاء'),
+                          ),
+                          FilledButton(
+                            onPressed: () {
+                              Navigator.pop(ctx);
+                              setState(() {
+                                _selectedWarehouseId = val;
+                                _cart.clear();
+                              });
+                              AppToast.showSuccess(
+                                context,
+                                'تم تغيير المخزن، يرجى إعادة إضافة الأصناف',
+                              );
+                            },
+                            child: const Text('متابعة ومسح السلة'),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else {
+                    setState(() => _selectedWarehouseId = val);
+                  }
+                },
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.emerald400.withValues(alpha: 0.2)
+                  : AppColors.saudiMint,
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'محاسبي',
+              style: TextStyle(
+                fontSize: 10,
+                color: isDark ? AppColors.emerald300 : AppColors.primary,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildStep0ProductSelection(ThemeData theme, bool isDark) {
     return BlocBuilder<ProductsCubit, ProductsState>(
       builder: (context, state) {
@@ -1030,6 +1369,8 @@ class _PosPageState extends State<PosPage> {
 
         return Column(
           children: [
+            // Warehouse Selector (محاسبي)
+            _buildWarehouseSelector(theme, isDark),
             // Search & Barcode Scan Bar
             _buildSearchBar(theme, isDark, products),
 
@@ -1238,7 +1579,29 @@ class _PosPageState extends State<PosPage> {
         ],
       ),
       child: InkWell(
-        onTap: () => _addProduct(product),
+        onTap: () async {
+          // إذا كان للصنف وحدات متعددة، اعرض اختيار الوحدة قبل الإضافة (المبيعات يتطلب تحديد الوحدة)
+          try {
+            final svc = getIt<UnitConversionService>();
+            final units = await svc.getUnitsForProduct(product.id!);
+            if (units.length > 1 && context.mounted) {
+              final basePrice = product.sellAmount ?? 0.0;
+              final picked = await _showPosUnitPicker(
+                context,
+                product,
+                units,
+                basePrice,
+              );
+              if (picked != null && context.mounted) {
+                await _addProduct(product, forcedUnit: picked);
+                return;
+              }
+              // إذا أغلق بدون اختيار، لا تضف
+              return;
+            }
+          } catch (_) {}
+          await _addProduct(product);
+        },
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Padding(
           padding: const EdgeInsets.all(10),
@@ -1677,13 +2040,55 @@ class _PosPageState extends State<PosPage> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          '${NumberFormatter.formatNumber(line.product.sellAmount ?? 0)} ${_getCurrencySymbol()} / وحدة',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: theme.colorScheme.onSurfaceVariant,
+                        InkWell(
+                          onTap: () async {
+                            try {
+                              final svc = getIt<UnitConversionService>();
+                              final units = await svc.getUnitsForProduct(
+                                line.product.id!,
+                              );
+                              if (units.length <= 1) return;
+                              if (!context.mounted) return;
+                              final picked = await _showPosUnitPicker(
+                                context,
+                                line.product,
+                                units,
+                                line.product.sellAmount ?? 0,
+                              );
+                              if (picked != null) {
+                                await _changeLineUnit(line.product.id!, picked);
+                              }
+                            } catch (_) {}
+                          },
+                          borderRadius: BorderRadius.circular(4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                '${NumberFormatter.formatNumber(line.unitPrice)} ${_getCurrencySymbol()} / ${line.unitDisplay}',
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.swap_horiz,
+                                size: 14,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ],
                           ),
                         ),
+                        if (line.unitOption != null &&
+                            line.unitOption!.totalConversion > 1)
+                          Text(
+                            'الأساس: ${PrecisionHelper.roundQuantity(line.baseQuantity).toStringAsFixed(line.baseQuantity % 1 == 0 ? 0 : 2)} حبة',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.blueGrey.shade600,
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -2758,7 +3163,9 @@ class _PosPageState extends State<PosPage> {
                   label: Text(
                     isExact
                         ? 'المبلغ بالضبط'
-                        : (amt % 1 == 0 ? '${amt.toInt()}' : NumberFormatter.formatNumber(amt)),
+                        : (amt % 1 == 0
+                              ? '${amt.toInt()}'
+                              : NumberFormatter.formatNumber(amt)),
                   ),
                   onPressed: () {
                     _cashReceivedController.text = (amt % 1 == 0)
@@ -2786,13 +3193,37 @@ class _PosPageState extends State<PosPage> {
 class _PosLine {
   final ProductEntity product;
   final double quantity;
+  final ProductUnitOption? unitOption;
+  final double unitPrice;
 
-  const _PosLine({required this.product, this.quantity = 1});
+  _PosLine({
+    required this.product,
+    this.quantity = 1,
+    this.unitOption,
+    double? unitPrice,
+  }) : unitPrice = unitPrice ?? (product.sellAmount ?? 0);
 
-  double get total => (product.sellAmount ?? 0) * quantity;
+  double get total => PrecisionHelper.roundCurrency(unitPrice * quantity);
+  double get baseQuantity => unitOption != null
+      ? PrecisionHelper.calcBaseQuantity(
+          quantity: quantity,
+          packaging: unitOption!.packaging,
+          conversionRate: unitOption!.conversionRate,
+        )
+      : quantity;
 
-  _PosLine copyWith({double? quantity}) =>
-      _PosLine(product: product, quantity: quantity ?? this.quantity);
+  String get unitDisplay => unitOption?.unitShort ?? 'حبة';
+
+  _PosLine copyWith({
+    double? quantity,
+    ProductUnitOption? unitOption,
+    double? unitPrice,
+  }) => _PosLine(
+    product: product,
+    quantity: quantity ?? this.quantity,
+    unitOption: unitOption ?? this.unitOption,
+    unitPrice: unitPrice ?? this.unitPrice,
+  );
 }
 
 // ==================== Customer Picker Sheet ====================

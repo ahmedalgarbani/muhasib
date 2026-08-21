@@ -100,4 +100,64 @@ class ProductSubUnitRepositoryImpl implements ProductSubUnitRepository {
       return Left(UnknownFailure('Unexpected error: ${e.toString()}'));
     }
   }
+
+  @override
+  Future<Either<Failure, ProductSubUnitEntity?>> getSubUnitByBarcode(String barcode) async {
+    try {
+      final su = await localDataSource.getSubUnitByBarcode(barcode);
+      return Right(su);
+    } on LocalStorageException catch (e) {
+      return Left(LocalStorageFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('Unexpected error: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ProductSubUnitEntity?>> getDefaultSaleUnit(int categoryId) async {
+    try {
+      final su = await localDataSource.getDefaultSaleUnit(categoryId);
+      return Right(su);
+    } on LocalStorageException catch (e) {
+      return Left(LocalStorageFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('Unexpected error: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, ProductSubUnitEntity?>> getDefaultPurchaseUnit(int categoryId) async {
+    try {
+      final su = await localDataSource.getDefaultPurchaseUnit(categoryId);
+      return Right(su);
+    } on LocalStorageException catch (e) {
+      return Left(LocalStorageFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('Unexpected error: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setDefaultSaleUnit(int categoryId, int subUnitId) async {
+    try {
+      await localDataSource.setDefaultSaleUnit(categoryId, subUnitId);
+      return const Right(null);
+    } on LocalStorageException catch (e) {
+      return Left(LocalStorageFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('Unexpected error: ${e.toString()}'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> setDefaultPurchaseUnit(int categoryId, int subUnitId) async {
+    try {
+      await localDataSource.setDefaultPurchaseUnit(categoryId, subUnitId);
+      return const Right(null);
+    } on LocalStorageException catch (e) {
+      return Left(LocalStorageFailure(e.message));
+    } catch (e) {
+      return Left(UnknownFailure('Unexpected error: ${e.toString()}'));
+    }
+  }
 }

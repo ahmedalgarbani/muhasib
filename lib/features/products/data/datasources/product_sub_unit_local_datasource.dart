@@ -10,6 +10,11 @@ abstract class ProductSubUnitLocalDataSource {
   Future<void> updateSubUnit(ProductSubUnitModel subUnit);
   Future<void> deleteSubUnit(int id);
   Future<void> setMainUnit(int categoryId, int subUnitId);
+  Future<ProductSubUnitModel?> getSubUnitByBarcode(String barcode);
+  Future<ProductSubUnitModel?> getDefaultSaleUnit(int categoryId);
+  Future<ProductSubUnitModel?> getDefaultPurchaseUnit(int categoryId);
+  Future<void> setDefaultSaleUnit(int categoryId, int subUnitId);
+  Future<void> setDefaultPurchaseUnit(int categoryId, int subUnitId);
 }
 
 class ProductSubUnitLocalDataSourceImpl implements ProductSubUnitLocalDataSource {
@@ -168,6 +173,111 @@ class ProductSubUnitLocalDataSourceImpl implements ProductSubUnitLocalDataSource
       });
     } catch (e) {
       throw LocalStorageException('Failed to set main unit: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<ProductSubUnitModel?> getSubUnitByBarcode(String barcode) async {
+    try {
+      if (barcode.trim().isEmpty) return null;
+      final result = await database.query(
+        _tableName,
+        where: 'barcode = ?',
+        whereArgs: [barcode.trim()],
+        limit: 1,
+      );
+      if (result.isEmpty) return null;
+      return ProductSubUnitModel.fromJson(result.first);
+    } catch (e) {
+      throw LocalStorageException('Failed to get sub unit by barcode: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<ProductSubUnitModel?> getDefaultSaleUnit(int categoryId) async {
+    try {
+      var result = await database.query(
+        _tableName,
+        where: 'category_id = ? AND is_default_sale = 1',
+        whereArgs: [categoryId],
+        limit: 1,
+      );
+      if (result.isNotEmpty) return ProductSubUnitModel.fromJson(result.first);
+      // fallback to main unit
+      result = await database.query(
+        _tableName,
+        where: 'category_id = ? AND is_main_unit = 1',
+        whereArgs: [categoryId],
+        limit: 1,
+      );
+      if (result.isNotEmpty) return ProductSubUnitModel.fromJson(result.first);
+      // fallback to first
+      result = await database.query(
+        _tableName,
+        where: 'category_id = ?',
+        whereArgs: [categoryId],
+        orderBy: 'is_main_unit DESC, packaging ASC',
+        limit: 1,
+      );
+      if (result.isEmpty) return null;
+      return ProductSubUnitModel.fromJson(result.first);
+    } catch (e) {
+      throw LocalStorageException('Failed to get default sale unit: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<ProductSubUnitModel?> getDefaultPurchaseUnit(int categoryId) async {
+    try {
+      var result = await database.query(
+        _tableName,
+        where: 'category_id = ? AND is_default_purchase = 1',
+        whereArgs: [categoryId],
+        limit: 1,
+      );
+      if (result.isNotEmpty) return ProductSubUnitModel.fromJson(result.first);
+      result = await database.query(
+        _tableName,
+        where: 'category_id = ? AND is_main_unit = 1',
+        whereArgs: [categoryId],
+        limit: 1,
+      );
+      if (result.isNotEmpty) return ProductSubUnitModel.fromJson(result.first);
+      result = await database.query(
+        _tableName,
+        where: 'category_id = ?',
+        whereArgs: [categoryId],
+        orderBy: 'is_main_unit DESC, packaging ASC',
+        limit: 1,
+      );
+      if (result.isEmpty) return null;
+      return ProductSubUnitModel.fromJson(result.first);
+    } catch (e) {
+      throw LocalStorageException('Failed to get default purchase unit: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> setDefaultSaleUnit(int categoryId, int subUnitId) async {
+    try {
+      await database.transaction((txn) async {
+        await txn.update(_tableName, {'is_default_sale': 0}, where: 'category_id = ?', whereArgs: [categoryId]);
+        await txn.update(_tableName, {'is_default_sale': 1}, where: 'id = ? AND category_id = ?', whereArgs: [subUnitId, categoryId]);
+      });
+    } catch (e) {
+      throw LocalStorageException('Failed to set default sale unit: ${e.toString()}');
+    }
+  }
+
+  @override
+  Future<void> setDefaultPurchaseUnit(int categoryId, int subUnitId) async {
+    try {
+      await database.transaction((txn) async {
+        await txn.update(_tableName, {'is_default_purchase': 0}, where: 'category_id = ?', whereArgs: [categoryId]);
+        await txn.update(_tableName, {'is_default_purchase': 1}, where: 'id = ? AND category_id = ?', whereArgs: [subUnitId, categoryId]);
+      });
+    } catch (e) {
+      throw LocalStorageException('Failed to set default purchase unit: ${e.toString()}');
     }
   }
 }

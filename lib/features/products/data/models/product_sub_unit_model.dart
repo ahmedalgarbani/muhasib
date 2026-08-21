@@ -15,6 +15,12 @@ class ProductSubUnitModel extends ProductSubUnitEntity {
     super.extraProperties,
     super.creationTime,
     super.lastModificationTime,
+    super.barcode,
+    super.costPrice,
+    super.sellPrice,
+    super.wholesalePrice,
+    super.isDefaultSale = false,
+    super.isDefaultPurchase = false,
   });
 
   factory ProductSubUnitModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +38,12 @@ class ProductSubUnitModel extends ProductSubUnitEntity {
       extraProperties: json['extra_properties'] as String?,
       creationTime: json['creation_time'] as int?,
       lastModificationTime: json['last_modification_time'] as int?,
+      barcode: json['barcode'] as String?,
+      costPrice: (json['cost_price'] as num?)?.toDouble(),
+      sellPrice: (json['sell_price'] as num?)?.toDouble(),
+      wholesalePrice: (json['wholesale_price'] as num?)?.toDouble(),
+      isDefaultSale: (json['is_default_sale'] as int? ?? 0) == 1,
+      isDefaultPurchase: (json['is_default_purchase'] as int? ?? 0) == 1,
     );
   }
 
@@ -48,6 +60,12 @@ class ProductSubUnitModel extends ProductSubUnitEntity {
       'last_modifier_id': lastModifierId ?? 1,
       'concurrency_stamp': concurrencyStamp,
       'extra_properties': extraProperties,
+      'barcode': barcode,
+      'cost_price': costPrice,
+      'sell_price': sellPrice,
+      'wholesale_price': wholesalePrice,
+      'is_default_sale': isDefaultSale ? 1 : 0,
+      'is_default_purchase': isDefaultPurchase ? 1 : 0,
     };
     
     // Omit timestamps if null to use database defaults
@@ -76,6 +94,12 @@ class ProductSubUnitModel extends ProductSubUnitEntity {
       extraProperties: entity.extraProperties,
       creationTime: entity.creationTime,
       lastModificationTime: entity.lastModificationTime,
+      barcode: entity.barcode,
+      costPrice: entity.costPrice,
+      sellPrice: entity.sellPrice,
+      wholesalePrice: entity.wholesalePrice,
+      isDefaultSale: entity.isDefaultSale,
+      isDefaultPurchase: entity.isDefaultPurchase,
     );
   }
 }

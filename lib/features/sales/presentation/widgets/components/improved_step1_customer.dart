@@ -494,33 +494,59 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
 
           const SizedBox(height: 12),
 
-          // Warehouse Selection
+          // Warehouse Selection - محاسبي: اختيار المخزن يؤثر على المخزون المحاسبي
           BlocBuilder<WarehousesCubit, WarehousesState>(
             builder: (context, state) {
               if (state is WarehousesLoaded && state.warehouses.isNotEmpty) {
+                // تحويل المخزن الحالي إلى id إن كان null (تراجع للرئيسي)
+                int? effectiveWarehouseId = widget.invoice.warehouseId;
+                if (effectiveWarehouseId == null) {
+                  final byName = state.warehouses.where((w) => w.name == widget.invoice.warehouse).firstOrNull;
+                  effectiveWarehouseId = byName?.id ?? state.warehouses.firstWhere((w) => w.isMainStock == true, orElse: () => state.warehouses.first).id;
+                }
+                // تأكد من أن القيمة موجودة في القائمة
+                final validIds = state.warehouses.map((w) => w.id).toSet();
+                if (effectiveWarehouseId != null && !validIds.contains(effectiveWarehouseId)) {
+                  effectiveWarehouseId = state.warehouses.first.id;
+                }
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomDropdownField<String>(
-                      value: widget.invoice.warehouse,
-                      label: 'المخزن',
+                    CustomDropdownField<int>(
+                      value: effectiveWarehouseId,
+                      label: 'المخزن (محاسبي)',
                       prefixIcon: const Icon(Icons.warehouse, size: 18),
                       items: state.warehouses.map((warehouse) {
-                        return DropdownMenuItem(
-                          value: warehouse.name,
+                        return DropdownMenuItem<int>(
+                          value: warehouse.id,
                           child: Text(
-                            warehouse.name,
-                            style: const TextStyle(fontSize: 14),
+                            '${warehouse.name}${warehouse.isMainStock == true ? " (الرئيسي)" : ""}',
+                            style: const TextStyle(fontSize: 13),
                           ),
                         );
                       }).toList(),
                       onChanged: (value) {
                         if (value != null) {
+                          final selected = state.warehouses.firstWhere((w) => w.id == value);
                           widget.onInvoiceUpdate(
-                            widget.invoice.copyWith(warehouse: value),
+                            widget.invoice.copyWith(
+                              warehouse: selected.name,
+                              warehouseId: selected.id,
+                            ),
                           );
                         }
                       },
+                      validator: (v) => v == null ? 'يرجى اختيار المخزن' : null,
+                    ),
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(6), border: Border.all(color: Colors.blue.shade200)),
+                      child: Row(children: [
+                        Icon(Icons.info_outline, size: 14, color: Colors.blue.shade700),
+                        const SizedBox(width: 6),
+                        Expanded(child: Text('المخزون سيُخصم من هذا المخزن محاسبياً', style: TextStyle(fontSize: 10, color: Colors.blue.shade700))),
+                      ]),
                     ),
                     const SizedBox(height: 12),
                   ],

@@ -60,11 +60,15 @@ class ItemMovementDataSourceImpl implements ItemMovementDataSource {
         sm.product_id as product_id,
         COALESCE(c.name, 'صنف محذوف') as product_name,
         COALESCE(c.barcode_no, '') as product_code,
-        COALESCE(cu.name, 'حبة') as unit_name,
+        COALESCE(mu.name, cu.name, 'حبة') as unit_name,
         sm.warehouse_id as warehouse_id,
         COALESCE(s.name, 'غير محدد') as warehouse_name,
         sm.movement_type as movement_type,
         sm.quantity as quantity,
+        sm.original_quantity as original_quantity,
+        sm.unit_id as unit_id,
+        sm.conversion_rate as conversion_rate,
+        sm.packaging as packaging,
         sm.unit_cost as unit_cost,
         sm.total_cost as total_cost,
         sm.balance_after as balance_after,
@@ -76,6 +80,7 @@ class ItemMovementDataSourceImpl implements ItemMovementDataSource {
       LEFT JOIN categories c ON c.id = sm.product_id
       LEFT JOIN stocks s ON s.id = sm.warehouse_id
       LEFT JOIN categories_units cu ON cu.id = c.unit_id
+      LEFT JOIN categories_units mu ON mu.id = sm.unit_id
       $whereSql
       ORDER BY sm.creation_time DESC, sm.id DESC
       $limitSql $offsetSql

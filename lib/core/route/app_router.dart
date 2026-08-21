@@ -41,6 +41,7 @@ import 'package:muhasib/features/reports/presentation/pages/cash_flow_report_pag
 import 'package:muhasib/features/reports/presentation/pages/purchase_summary_report_page.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
+import 'package:muhasib/features/sales/presentation/pages/improved_sales_invoice_screen.dart';
 import 'package:muhasib/features/sales/presentation/widgets/sale_page_body.dart';
 import 'package:muhasib/features/sales/presentation/pages/quotations_page.dart';
 import 'package:muhasib/features/sales/presentation/pages/returns_page.dart';
@@ -306,8 +307,11 @@ final router = GoRouter(
           BlocProvider(create: (context) => getIt<SalesCubit>()),
           BlocProvider(create: (context) => getIt<CustomersCubit>()),
           BlocProvider(create: (context) => getIt<ProductsCubit>()),
+          BlocProvider(create: (context) => getIt<WarehousesCubit>()..loadWarehouses()),
+          BlocProvider(create: (context) => getIt<CurrenciesCubit>()),
+          BlocProvider(create: (context) => getIt<ProductGroupsCubit>()),
         ],
-        child: const SalesInvoiceScreen(invoiceType: InvoiceType.salesInvoice),
+        child: const ImprovedSalesInvoiceScreen(invoiceType: InvoiceType.salesInvoice),
       ),
     ),
     GoRoute(
@@ -318,8 +322,11 @@ final router = GoRouter(
           BlocProvider(create: (context) => getIt<SalesCubit>()),
           BlocProvider(create: (context) => getIt<CustomersCubit>()),
           BlocProvider(create: (context) => getIt<ProductsCubit>()),
+          BlocProvider(create: (context) => getIt<WarehousesCubit>()..loadWarehouses()),
+          BlocProvider(create: (context) => getIt<CurrenciesCubit>()),
+          BlocProvider(create: (context) => getIt<ProductGroupsCubit>()),
         ],
-        child: const SalesInvoiceScreen(),
+        child: const ImprovedSalesInvoiceScreen(),
       ),
     ),
     GoRoute(
@@ -370,6 +377,8 @@ final router = GoRouter(
           BlocProvider(create: (_) => getIt<ProductsCubit>()),
           BlocProvider(create: (_) => getIt<CustomersCubit>()),
           BlocProvider(create: (_) => getIt<ProductGroupsCubit>()),
+          BlocProvider(create: (_) => getIt<WarehousesCubit>()..loadWarehouses()),
+          BlocProvider(create: (_) => getIt<CurrenciesCubit>()),
         ],
         child: const PosPage(),
       ),

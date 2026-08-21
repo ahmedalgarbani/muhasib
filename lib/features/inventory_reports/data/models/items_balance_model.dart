@@ -13,6 +13,9 @@ class ItemsBalanceModel extends ItemsBalanceEntity {
     required super.totalValue,
     super.warehouseId,
     super.warehouseName,
+    super.packageUnitName,
+    super.packaging,
+    super.conversionRate,
   });
 
   factory ItemsBalanceModel.fromMap(Map<String, dynamic> map) {
@@ -28,6 +31,9 @@ class ItemsBalanceModel extends ItemsBalanceEntity {
       totalValue: (map['total_value'] as num?)?.toDouble() ?? 0,
       warehouseId: map['warehouse_id'] as int?,
       warehouseName: map['warehouse_name'] as String?,
+      packageUnitName: map['package_unit_name'] as String?,
+      packaging: map['packaging'] as int?,
+      conversionRate: (map['conversion_rate'] as num?)?.toDouble(),
     );
   }
 

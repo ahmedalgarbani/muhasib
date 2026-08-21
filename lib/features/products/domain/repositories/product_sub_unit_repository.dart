@@ -10,4 +10,9 @@ abstract class ProductSubUnitRepository {
   Future<Either<Failure, void>> updateSubUnit(ProductSubUnitEntity subUnit);
   Future<Either<Failure, void>> deleteSubUnit(int id);
   Future<Either<Failure, void>> setMainUnit(int categoryId, int subUnitId);
+  Future<Either<Failure, ProductSubUnitEntity?>> getSubUnitByBarcode(String barcode);
+  Future<Either<Failure, ProductSubUnitEntity?>> getDefaultSaleUnit(int categoryId);
+  Future<Either<Failure, ProductSubUnitEntity?>> getDefaultPurchaseUnit(int categoryId);
+  Future<Either<Failure, void>> setDefaultSaleUnit(int categoryId, int subUnitId);
+  Future<Either<Failure, void>> setDefaultPurchaseUnit(int categoryId, int subUnitId);
 }

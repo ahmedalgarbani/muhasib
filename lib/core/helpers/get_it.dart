@@ -104,6 +104,7 @@ import 'package:muhasib/features/products/data/datasources/product_price_local_d
 import 'package:muhasib/features/products/data/repositories/product_price_repository_impl.dart';
 import 'package:muhasib/features/products/domain/repositories/product_price_repository.dart';
 import 'package:muhasib/features/products/presentation/cubit/product_prices_cubit.dart';
+import 'package:muhasib/core/services/unit_conversion_service.dart';
 import 'package:muhasib/features/initial/data/datasources/initial_local_datasource.dart';
 import 'package:muhasib/features/initial/data/repositories/initial_repository_impl.dart';
 import 'package:muhasib/features/initial/domain/repositories/initial_repository.dart';
@@ -660,6 +661,11 @@ class GetItHelper {
     );
     getIt.registerFactory(
       () => ProductPricesCubit(getIt<ProductPriceRepository>()),
+    );
+
+    // Unit Conversion Service (Multi-Unit)
+    getIt.registerLazySingleton<UnitConversionService>(
+      () => UnitConversionService(getIt<DatabaseService>()),
     );
 
     // ==================== Stores/Warehouses Feature ====================
