@@ -279,7 +279,7 @@ class AppNavigator {
         NavItem(
           title: 'المزيد من التقارير',
           icon: Icons.more_horiz,
-          route: AppRoutes.reportsMore,
+          route: AppRoutes.reports,
         ),
       ],
     ),

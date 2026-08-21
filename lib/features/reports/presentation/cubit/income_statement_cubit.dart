@@ -12,7 +12,7 @@ class IncomeStatementCubit extends Cubit<IncomeStatementState> {
   Future<void> loadIncomeStatement([ReportFilter? filter]) async {
     emit(IncomeStatementLoading());
 
-    _currentFilter = filter ?? ReportFilter();
+    _currentFilter = filter ?? _currentFilter ?? ReportFilter.currentMonth();
 
     final dataResult = await repository.getIncomeStatementData(filter: _currentFilter!);
     final summaryResult = await repository.getIncomeStatementSummary(filter: _currentFilter!);

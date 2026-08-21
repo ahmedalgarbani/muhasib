@@ -65,7 +65,7 @@ void main() async {
         BlocProvider(create: (context) => getIt<JournalEntryCubit>()),
         BlocProvider(create: (context) => getIt<CurrenciesCubit>()),
         BlocProvider(create: (context) => getIt<SalesCubit>()),
-        BlocProvider(create: (context) => getIt<ProductsCubit>()),
+        BlocProvider(create: (context) => getIt<ProductsCubit>()..loadProducts()),
         BlocProvider(create: (context) => getIt<ProductGroupsCubit>()),
         BlocProvider(create: (context) => getIt<ProductUnitsCubit>()),
         BlocProvider(create: (context) => getIt<ProductSubUnitsCubit>()),

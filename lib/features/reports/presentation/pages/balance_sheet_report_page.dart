@@ -42,19 +42,39 @@ class _BalanceSheetReportPageState extends State<BalanceSheetReportPage> {
     if (_lastResult == null) return;
     final headers = ['البند', 'المبلغ'];
     final List<List<String>> data = [];
-    data.add(['الأصول', '']);
+    data.add(['الأصول المتداولة', '']);
     for (var r in _lastResult!.currentAssets) {
       data.add(['  ${r.code} - ${r.name}', r.displayAmount.toStringAsFixed(2)]);
     }
+    if (_lastResult!.fixedAssets.isNotEmpty) {
+      data.add(['الأصول الثابتة', '']);
+      for (var r in _lastResult!.fixedAssets) {
+        data.add(['  ${r.code} - ${r.name}', r.displayAmount.toStringAsFixed(2)]);
+      }
+    }
     data.add(['إجمالي الأصول', _lastResult!.totalAssets.toStringAsFixed(2)]);
-    data.add(['الخصوم وحقوق الملكية', '']);
+    data.add(['الخصوم المتداولة', '']);
+    for (var r in _lastResult!.currentLiabilities) {
+      data.add(['  ${r.code} - ${r.name}', r.displayAmount.toStringAsFixed(2)]);
+    }
+    if (_lastResult!.longTermLiabilities.isNotEmpty) {
+      data.add(['الخصوم طويلة الأجل', '']);
+      for (var r in _lastResult!.longTermLiabilities) {
+        data.add(['  ${r.code} - ${r.name}', r.displayAmount.toStringAsFixed(2)]);
+      }
+    }
+    data.add(['حقوق الملكية', '']);
     for (var r in _lastResult!.equityRows) {
       data.add(['  ${r.code} - ${r.name}', r.displayAmount.toStringAsFixed(2)]);
     }
     data.add([
-      'الإجمالي',
+      'الإجمالي خصوم + ملكية',
       (_lastResult!.totalLiabilities + _lastResult!.totalEquity)
           .toStringAsFixed(2),
+    ]);
+    data.add([
+      'الفرق (أصول - خصوم/ملكية)',
+      _lastResult!.difference.toStringAsFixed(2),
     ]);
 
     await ExportService.printData(
@@ -68,7 +88,9 @@ class _BalanceSheetReportPageState extends State<BalanceSheetReportPage> {
     if (_lastResult == null) return;
     final rows = [
       ..._lastResult!.currentAssets,
+      ..._lastResult!.fixedAssets,
       ..._lastResult!.currentLiabilities,
+      ..._lastResult!.longTermLiabilities,
       ..._lastResult!.equityRows,
     ];
     final path = await ExportService.exportToExcel(
@@ -168,41 +190,47 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
             children: [
               BalanceSheetEquationWidget(result: data),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ReportKpiCard(
-                      title: 'إجمالي الأصول',
-                      value: _format(data.totalAssets),
-                      icon: Icons.trending_up,
-                      color: Colors.green[700]!,
-                      subtitle: 'الأصول المتداولة والثابتة',
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 170,
+                      child: ReportKpiCard(
+                        title: 'إجمالي الأصول',
+                        value: _format(data.totalAssets),
+                        icon: Icons.trending_up,
+                        color: Colors.green[700]!,
+                        subtitle: 'الأصول المتداولة والثابتة',
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ReportKpiCard(
-                      title: 'الخصوم وحقوق الملكية',
-                      value: _format(data.totalLiabilities + data.totalEquity),
-                      icon: Icons.account_balance_wallet,
-                      color: Colors.blue[700]!,
-                      subtitle: 'التزامات + الملكية',
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 170,
+                      child: ReportKpiCard(
+                        title: 'الخصوم وحقوق الملكية',
+                        value: _format(data.totalLiabilities + data.totalEquity),
+                        icon: Icons.account_balance_wallet,
+                        color: Colors.blue[700]!,
+                        subtitle: 'التزامات + الملكية',
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ReportKpiCard(
-                      title: 'رأس المال العامل',
-                      value: _format(workingCapital),
-                      icon: Icons.account_balance,
-                      color: workingCapital >= 0
-                          ? Colors.teal[700]!
-                          : Colors.red[700]!,
-                      subtitle: 'الأصول - الخصوم',
-                      isPositiveTrend: workingCapital >= 0,
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 170,
+                      child: ReportKpiCard(
+                        title: 'رأس المال العامل',
+                        value: _format(workingCapital),
+                        icon: Icons.account_balance,
+                        color: workingCapital >= 0
+                            ? Colors.teal[700]!
+                            : Colors.red[700]!,
+                        subtitle: 'الأصول - الخصوم',
+                        isPositiveTrend: workingCapital >= 0,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 10),
               BalanceSheetSectionWidget(
@@ -250,14 +278,20 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
       final code = (m['code'] as String?) ?? '';
       final name = (m['name'] as String?) ?? '';
       final rawType = m['type'] as int? ?? 1;
+      final lowerName = name.toLowerCase();
 
-      final isAsset = rawType == 0 || code.startsWith('1');
+      // Robust classification: type takes precedence, code/name as fallback.
+      // type: 1=asset, 2=liability/equity heuristic, but some DBs store 0/1/2/3/4 differently.
+      final isAsset = rawType == 1 || code.startsWith('1');
       final isEquity = (rawType == 2 || code.startsWith('2')) &&
           (code.startsWith('22') ||
               code.startsWith('23') ||
               code.startsWith('24') ||
               name.contains('رأس المال') ||
+              lowerName.contains('capital') ||
+              lowerName.contains('equity') ||
               name.contains('أرباح') ||
+              lowerName.contains('retained') ||
               name.contains('ملكية') ||
               name.contains('جاري المالك') ||
               name.contains('حقوق'));

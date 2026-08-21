@@ -4,9 +4,11 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/widgets/barcode_scanner_sheet.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_entity.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
@@ -45,6 +47,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   final List<InventoryLineEntity> _inventoryLines = [];
   bool _isCountMode = false;
   bool _pendingPost = false;
+  late final InventoryCubit _inventoryCubit;
+  late final WarehousesCubit _warehousesCubit;
+  late final ProductsCubit _productsCubit;
 
   final List<Map<String, dynamic>> _inventoryTypes = const [
     {
@@ -76,6 +81,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   @override
   void initState() {
     super.initState();
+    _inventoryCubit = getIt<InventoryCubit>();
+    _warehousesCubit = getIt<WarehousesCubit>()..loadActiveWarehouses();
+    _productsCubit = getIt<ProductsCubit>()..loadProducts();
     _generateInventoryNumber();
   }
 
@@ -87,6 +95,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
   @override
   void dispose() {
+    _inventoryCubit.close();
+    _warehousesCubit.close();
+    _productsCubit.close();
     _inventoryNumberController.dispose();
     _statementController.dispose();
     _searchController.dispose();
@@ -97,19 +108,16 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => getIt<WarehousesCubit>()..loadActiveWarehouses(),
-        ),
-        BlocProvider(
-          create: (context) => getIt<ProductsCubit>()..loadProducts(),
-        ),
-        BlocProvider(create: (context) => getIt<InventoryCubit>()),
+        BlocProvider.value(value: _warehousesCubit),
+        BlocProvider.value(value: _productsCubit),
+        BlocProvider.value(value: _inventoryCubit),
       ],
       child: BlocListener<InventoryCubit, InventoryState>(
+        bloc: _inventoryCubit,
         listener: (context, state) {
           if (state is InventoryCreated) {
             if (_pendingPost) {
-              context.read<InventoryCubit>().postInventory(state.id);
+              _inventoryCubit.postInventory(state.id);
             } else {
               AppToast.showSuccess(context, 'تم حفظ الجرد كمسودة');
               context.pop();
@@ -122,99 +130,99 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
           }
         },
         child: Scaffold(
-        backgroundColor: AppColors.neutral100,
-        appBar: CustomAppBar(
-          title: 'جرد المخزون',
-          actions: [
-            IconButton(
-              icon: Icon(_isCountMode ? Icons.edit : Icons.inventory),
-              onPressed: () {
-                setState(() => _isCountMode = !_isCountMode);
-              },
-              tooltip: _isCountMode ? 'وضع التحرير' : 'وضع الجرد',
-            ),
-            IconButton(
-              icon: const Icon(Icons.print),
-              onPressed: _inventoryLines.isEmpty
-                  ? null
-                  : () => _printInventoryReport(),
-              tooltip: 'طباعة التقرير',
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          padding: AppConstant.defaultPadding,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                InventoryTypeSelector(
-                  selectedType: _inventoryType,
-                  inventoryTypes: _inventoryTypes,
-                  onTypeSelected: (type) {
-                    setState(() => _inventoryType = type);
-                  },
-                ),
-                const SizedBox(height: 16),
-                InventoryDocumentHeaderCard(
-                  inventoryNumberController: _inventoryNumberController,
-                  selectedDate: _selectedDate,
-                  onSelectDate: () => _selectDate(context),
-                ),
-                const SizedBox(height: 16),
-                InventoryWarehouseSelectorCard(
-                  selectedWarehouse: _selectedWarehouse,
-                  onWarehouseChanged: (value) {
-                    setState(() {
-                      _selectedWarehouse = value;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                if (_isCountMode) ...[
-                  InventoryProductCountCard(
-                    searchController: _searchController,
-                    onScanBarcode: _scanBarcode,
-                    onAddProduct: _addProductToInventory,
+          backgroundColor: AppColors.neutral100,
+          appBar: CustomAppBar(
+            title: 'جرد المخزون',
+            actions: [
+              IconButton(
+                icon: Icon(_isCountMode ? Icons.edit : Icons.inventory),
+                onPressed: () {
+                  setState(() => _isCountMode = !_isCountMode);
+                },
+                tooltip: _isCountMode ? 'وضع التحرير' : 'وضع الجرد',
+              ),
+              IconButton(
+                icon: const Icon(Icons.print),
+                onPressed: _inventoryLines.isEmpty
+                    ? null
+                    : () => _printInventoryReport(),
+                tooltip: 'طباعة التقرير',
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: AppConstant.defaultPadding,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  InventoryTypeSelector(
+                    selectedType: _inventoryType,
+                    inventoryTypes: _inventoryTypes,
+                    onTypeSelected: (type) {
+                      setState(() => _inventoryType = type);
+                    },
                   ),
                   const SizedBox(height: 16),
-                ],
-                InventoryLinesCard(
-                  inventoryLines: _inventoryLines,
-                  isCountMode: _isCountMode,
-                  onQuantityChanged: (index, qty) {
-                    final line = _inventoryLines[index];
-                    setState(() {
-                      _inventoryLines[index] = line.copyWith(
-                        actualQuantity: qty,
-                        difference: qty - line.quantity,
-                      );
-                    });
-                  },
-                  onDeleteLine: (index) {
-                    setState(() {
-                      _inventoryLines.removeAt(index);
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                if (_inventoryLines.isNotEmpty) ...[
-                  InventorySummaryCard(inventoryLines: _inventoryLines),
+                  InventoryDocumentHeaderCard(
+                    inventoryNumberController: _inventoryNumberController,
+                    selectedDate: _selectedDate,
+                    onSelectDate: () => _selectDate(context),
+                  ),
                   const SizedBox(height: 16),
+                  InventoryWarehouseSelectorCard(
+                    selectedWarehouse: _selectedWarehouse,
+                    onWarehouseChanged: (value) {
+                      setState(() {
+                        _selectedWarehouse = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  if (_isCountMode) ...[
+                    InventoryProductCountCard(
+                      searchController: _searchController,
+                      onScanBarcode: _scanBarcode,
+                      onAddProduct: _addProductToInventory,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  InventoryLinesCard(
+                    inventoryLines: _inventoryLines,
+                    isCountMode: _isCountMode,
+                    onQuantityChanged: (index, qty) {
+                      final line = _inventoryLines[index];
+                      setState(() {
+                        _inventoryLines[index] = line.copyWith(
+                          actualQuantity: qty,
+                          difference: qty - line.quantity,
+                        );
+                      });
+                    },
+                    onDeleteLine: (index) {
+                      setState(() {
+                        _inventoryLines.removeAt(index);
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  if (_inventoryLines.isNotEmpty) ...[
+                    InventorySummaryCard(inventoryLines: _inventoryLines),
+                    const SizedBox(height: 16),
+                  ],
+                  InventoryNotesCard(statementController: _statementController),
+                  const SizedBox(height: 12),
+                  InventoryActionButtons(
+                    isEmpty: _inventoryLines.isEmpty,
+                    onSaveDraft: _saveInventory,
+                    onPostInventory: _postInventory,
+                  ),
+                  const SizedBox(height: 12),
                 ],
-                InventoryNotesCard(statementController: _statementController),
-                const SizedBox(height: 12),
-                InventoryActionButtons(
-                  isEmpty: _inventoryLines.isEmpty,
-                  onSaveDraft: _saveInventory,
-                  onPostInventory: _postInventory,
-                ),
-                const SizedBox(height: 12),
-              ],
+              ),
             ),
           ),
-        ),
         ),
       ),
     );
@@ -234,8 +242,18 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     }
   }
 
-  void _scanBarcode() {
-    AppToast.showInfo(context, 'سيتم إضافة ماسح الباركود قريباً');
+  Future<void> _scanBarcode() async {
+    if (_selectedWarehouse == null) {
+      AppToast.showWarning(context, 'يرجى اختيار المخزن أولاً');
+      return;
+    }
+
+    final scannedCode = await showBarcodeScannerSheet(context);
+    if (scannedCode == null || scannedCode.trim().isEmpty || !mounted) return;
+
+    final code = scannedCode.trim();
+    _searchController.text = code;
+    _processProductCodeOrSearch(code);
   }
 
   Future<void> _addProductToInventory() async {
@@ -244,26 +262,90 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
       return;
     }
 
-    final product = await showProductPicker(context);
+    final query = _searchController.text.trim();
+    if (query.isNotEmpty) {
+      final handled = _processProductCodeOrSearch(query);
+      if (handled) return;
+    }
+
+    final product = await showProductPicker(context, cubit: _productsCubit);
     if (product == null || !mounted) return;
 
-    setState(() {
-      _inventoryLines.add(
-        InventoryLineEntity(
-          statement: product.name,
-          quantity: product.quantity,
-          actualQuantity: 0,
-          difference: -product.quantity,
-          costAmount: product.costAmount ?? 0,
-          categoryId: product.id,
-          groupId: product.groupId ?? 1,
-          unitId: product.unitId ?? 1,
-          categorySubUnitId: 1,
-          inventoryId: 0,
-        ),
-      );
-    });
+    _addOrIncrementProductInInventory(product);
     _searchController.clear();
+  }
+
+  bool _processProductCodeOrSearch(String query) {
+    final state = _productsCubit.state;
+    final products = state is ProductsLoaded
+        ? state.products
+        : <ProductEntity>[];
+
+    ProductEntity? matchedProduct;
+    final qLower = query.toLowerCase();
+
+    for (final p in products) {
+      if (p.barcodeNo.toLowerCase() == qLower ||
+          p.id.toString() == query ||
+          p.name.toLowerCase() == qLower) {
+        matchedProduct = p;
+        break;
+      }
+    }
+
+    if (matchedProduct != null) {
+      _addOrIncrementProductInInventory(matchedProduct);
+      _searchController.clear();
+      return true;
+    } else {
+      AppToast.showWarning(
+        context,
+        'لم يتم العثور على منتج بالباركود/الاسم: $query',
+      );
+      return false;
+    }
+  }
+
+  void _addOrIncrementProductInInventory(ProductEntity product) {
+    final existingIndex = _inventoryLines.indexWhere(
+      (l) => l.categoryId == product.id,
+    );
+
+    if (existingIndex != -1) {
+      final line = _inventoryLines[existingIndex];
+      final newActualQty = line.actualQuantity + 1;
+      setState(() {
+        _inventoryLines[existingIndex] = line.copyWith(
+          actualQuantity: newActualQty,
+          difference: newActualQty - line.quantity,
+        );
+      });
+      AppToast.showSuccess(
+        context,
+        'تمت زيادة كمية الجرد للمنتج: ${product.name} (+1)',
+      );
+    } else {
+      setState(() {
+        _inventoryLines.add(
+          InventoryLineEntity(
+            statement: product.name,
+            quantity: product.quantity,
+            actualQuantity: 1,
+            difference: 1 - product.quantity,
+            costAmount: product.costAmount ?? 0,
+            categoryId: product.id,
+            groupId: product.groupId ?? 1,
+            unitId: product.unitId ?? 1,
+            categorySubUnitId: 1,
+            inventoryId: 0,
+          ),
+        );
+      });
+      AppToast.showSuccess(
+        context,
+        'تمت إضافة المنتج إلى الجرد: ${product.name}',
+      );
+    }
   }
 
   bool _validateInventory() {
@@ -290,10 +372,10 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
       inventoryType: _inventoryType == 'periodic'
           ? InventoryType.periodic
           : _inventoryType == 'cycle'
-              ? InventoryType.cycle
-              : _inventoryType == 'annual'
-                  ? InventoryType.annual
-                  : InventoryType.spot,
+          ? InventoryType.cycle
+          : _inventoryType == 'annual'
+          ? InventoryType.annual
+          : InventoryType.spot,
       status: TransferStatus.draft,
       stockId: _selectedWarehouse?.id,
       totalDifference: totalDifference,
@@ -306,7 +388,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     if (!_validateInventory()) return;
 
     _pendingPost = false;
-    context.read<InventoryCubit>().createInventory(_buildInventoryEntity());
+    _inventoryCubit.createInventory(_buildInventoryEntity());
   }
 
   void _postInventory() {
@@ -369,7 +451,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
             onPressed: () {
               Navigator.pop(context);
               _pendingPost = true;
-              context.read<InventoryCubit>().createInventory(_buildInventoryEntity());
+              _inventoryCubit.createInventory(_buildInventoryEntity());
             },
             variant: HasibButtonVariant.success,
           ),

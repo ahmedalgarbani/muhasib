@@ -29,7 +29,7 @@ class _IncomeStatementReportPageState extends State<IncomeStatementReportPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<IncomeStatementCubit>()..loadIncomeStatement(),
+      create: (context) => getIt<IncomeStatementCubit>()..loadIncomeStatement(ReportFilter.currentMonth()),
       child: BlocConsumer<IncomeStatementCubit, IncomeStatementState>(
         listener: (context, state) {
           if (state is IncomeStatementLoaded)

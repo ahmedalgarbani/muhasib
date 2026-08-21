@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/enums/approval_status.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 
 class InvoiceReportSummaryCardWidget extends StatelessWidget {
   final String title;
@@ -159,48 +160,33 @@ class InvoiceReportCardWidget extends StatelessWidget {
   });
 
   Color _getStatusColor(int status) {
-    switch (status) {
-      case 1:
-        return Colors.green;
-      case 2:
-        return Colors.orange;
-      case 3:
-        return Colors.red;
-      case 4:
-        return Colors.purple;
-      default:
-        return Colors.grey;
-    }
+    final s = ApprovalStatus.tryFromValue(status);
+    return switch (s) {
+      ApprovalStatus.approved => Colors.green,
+      ApprovalStatus.pendingApproval => Colors.orange,
+      ApprovalStatus.rejected => Colors.red,
+      ApprovalStatus.converted => Colors.purple,
+      ApprovalStatus.expired => Colors.grey,
+      ApprovalStatus.draft => Colors.blueGrey,
+      _ => Colors.grey,
+    };
   }
 
   IconData _getStatusIcon(int status) {
-    switch (status) {
-      case 1:
-        return Icons.check_circle_outline;
-      case 2:
-        return Icons.mode_edit_outline;
-      case 3:
-        return Icons.cancel_outlined;
-      case 4:
-        return Icons.settings_backup_restore;
-      default:
-        return Icons.description_outlined;
-    }
+    final s = ApprovalStatus.tryFromValue(status);
+    return switch (s) {
+      ApprovalStatus.approved => Icons.check_circle_outline,
+      ApprovalStatus.pendingApproval => Icons.timelapse,
+      ApprovalStatus.draft => Icons.mode_edit_outline,
+      ApprovalStatus.rejected => Icons.cancel_outlined,
+      ApprovalStatus.converted => Icons.transform,
+      ApprovalStatus.expired => Icons.timer_off_outlined,
+      _ => Icons.description_outlined,
+    };
   }
 
   String _getStatusLabel(int status) {
-    switch (status) {
-      case 1:
-        return 'مُرحّلة';
-      case 2:
-        return 'مسودة';
-      case 3:
-        return 'ملغاة';
-      case 4:
-        return 'مرتجعة';
-      default:
-        return 'غير محدد';
-    }
+    return ApprovalStatus.tryFromValue(status)?.labelAr ?? 'غير محدد';
   }
 
   @override
@@ -277,8 +263,8 @@ class InvoiceReportCardWidget extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 InvoiceReportBadgeWidget(
-                  label: r.hasJournalEntry ? 'محاسبية' : 'مسودة',
-                  color: r.hasJournalEntry ? Colors.teal : Colors.grey,
+                  label: r.hasJournalEntry ? 'مقيّدة' : 'بدون قيد',
+                  color: r.hasJournalEntry ? Colors.teal : Colors.orange,
                 ),
               ],
             ),

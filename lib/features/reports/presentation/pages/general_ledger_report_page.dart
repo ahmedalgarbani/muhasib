@@ -147,11 +147,13 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
 
         return Column(
           children: [
-            Padding(
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
               padding: AppConstant.defaultPadding,
               child: Row(
                 children: [
-                  Expanded(
+                  SizedBox(
+                    width: 160,
                     child: ReportKpiCard(
                       title: 'إجمالي الحركات المدينة',
                       value: NumberFormatter.formatCurrency(
@@ -164,7 +166,8 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
+                  SizedBox(
+                    width: 160,
                     child: ReportKpiCard(
                       title: 'إجمالي الحركات الدائنة',
                       value: NumberFormatter.formatCurrency(
@@ -177,7 +180,8 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
+                  SizedBox(
+                    width: 160,
                     child: ReportKpiCard(
                       title: 'صافي فرق الأستاذ',
                       value: NumberFormatter.formatCurrency(
@@ -432,8 +436,27 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
       filter: widget.filter,
     );
 
-    double rb = 0;
-    return rows.map((m) {
+    // Seed running balance with opening balance before the period.
+    double rb = await ds.getGeneralLedgerOpeningBalance(
+      accountId: widget.accountId,
+      beforeDate: widget.filter.startDate,
+    );
+    final openingForDisplay = rb;
+    final result = <_LedgerTransaction>[];
+    // Optionally insert an opening row if non-zero and period has filter.
+    if (openingForDisplay.abs() > 0.005 && widget.filter.startDate != null) {
+      result.add(
+        _LedgerTransaction(
+          entryDate: 0,
+          description: 'رصيد أول المدة',
+          debit: 0,
+          credit: 0,
+          runningBalance: openingForDisplay,
+          isOpening: true,
+        ),
+      );
+    }
+    for (final m in rows) {
       final d = (m['d'] as num).toDouble();
       final c = (m['c'] as num).toDouble();
       if (isCreditNormal) {
@@ -441,14 +464,17 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
       } else {
         rb += (d - c);
       }
-      return _LedgerTransaction(
-        entryDate: m['entry_date'] as int,
-        description: m['description'] as String?,
-        debit: d,
-        credit: c,
-        runningBalance: rb,
+      result.add(
+        _LedgerTransaction(
+          entryDate: m['entry_date'] as int,
+          description: m['description'] as String?,
+          debit: d,
+          credit: c,
+          runningBalance: rb,
+        ),
       );
-    }).toList();
+    }
+    return result;
   }
 }
 
@@ -481,14 +507,17 @@ class _LedgerTransaction {
   final int entryDate;
   final String? description;
   final double debit, credit, runningBalance;
+  final bool isOpening;
   _LedgerTransaction({
     required this.entryDate,
     this.description,
     required this.debit,
     required this.credit,
     required this.runningBalance,
+    this.isOpening = false,
   });
   String get dateLabel {
+    if (isOpening || entryDate == 0) return 'افتتاحي';
     final d = dateTimeFromReportTimestamp(entryDate);
     return '${d.day}/${d.month}/${d.year}';
   }

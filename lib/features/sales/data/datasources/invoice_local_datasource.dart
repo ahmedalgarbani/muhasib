@@ -1,3 +1,4 @@
+import 'package:muhasib/core/enums/account_connect_type.dart';
 import 'package:muhasib/core/errors/exceptions.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
 import 'package:sqflite/sqflite.dart';
@@ -64,24 +65,24 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
     int? cId = (connect.isNotEmpty ? connect.first['c_id'] : null) as int?;
 
     // If not configured in account_connects, fallback to seeded default accounts.
-    // This keeps core flows (sales/purchases/convert order->invoice) working out of the box.
-    cId ??= switch (connectType) {
-      AccountConnectTypes.banks => DefaultAccountIds.bank,
-      AccountConnectTypes.cashboxes => DefaultAccountIds.cash,
-      AccountConnectTypes.customers => DefaultAccountIds.customers,
-      AccountConnectTypes.suppliers => DefaultAccountIds.suppliers,
-      AccountConnectTypes.taxes => DefaultAccountIds.tax,
-      AccountConnectTypes.inventory => DefaultAccountIds.inventory,
-      AccountConnectTypes.merchandise => DefaultAccountIds.inventory,
-      AccountConnectTypes.sales => DefaultAccountIds.sales,
-      AccountConnectTypes.discountAllowed => DefaultAccountIds.discountAllowed,
-      AccountConnectTypes.discountEarned => DefaultAccountIds.discountEarned,
-      AccountConnectTypes.purchases => DefaultAccountIds.purchases,
-      AccountConnectTypes.salesReturns => DefaultAccountIds.salesReturns,
-      AccountConnectTypes.purchaseReturns => DefaultAccountIds.purchaseReturns,
-      AccountConnectTypes.costOfGoodsSold => DefaultAccountIds.costOfGoodsSold,
-      AccountConnectTypes.inputVAT => DefaultAccountIds.inputVAT,
-      AccountConnectTypes.outputVAT => DefaultAccountIds.outputVAT,
+    // Migrated to AccountConnectType enum — type-safe
+    cId ??= switch (AccountConnectType.tryFromValue(connectType)) {
+      AccountConnectType.banks => DefaultAccountIds.bank,
+      AccountConnectType.cashboxes => DefaultAccountIds.cash,
+      AccountConnectType.customers => DefaultAccountIds.customers,
+      AccountConnectType.suppliers => DefaultAccountIds.suppliers,
+      AccountConnectType.taxes => DefaultAccountIds.tax,
+      AccountConnectType.inventory => DefaultAccountIds.inventory,
+      AccountConnectType.merchandise => DefaultAccountIds.inventory,
+      AccountConnectType.sales => DefaultAccountIds.sales,
+      AccountConnectType.discountAllowed => DefaultAccountIds.discountAllowed,
+      AccountConnectType.discountEarned => DefaultAccountIds.discountEarned,
+      AccountConnectType.purchases => DefaultAccountIds.purchases,
+      AccountConnectType.salesReturns => DefaultAccountIds.salesReturns,
+      AccountConnectType.purchaseReturns => DefaultAccountIds.purchaseReturns,
+      AccountConnectType.costOfGoodsSold => DefaultAccountIds.costOfGoodsSold,
+      AccountConnectType.inputVAT => DefaultAccountIds.inputVAT,
+      AccountConnectType.outputVAT => DefaultAccountIds.outputVAT,
       _ => null,
     };
     if (cId == null) {
@@ -155,40 +156,41 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
   }
 
   Map<String, dynamic> _getAccountInfo(int cId, String label, int connectType) {
-    // Return account info based on account type
-    switch (connectType) {
-      case AccountConnectTypes.salesReturns:
+    // Return account info based on AccountConnectType enum
+    final type = AccountConnectType.tryFromValue(connectType);
+    switch (type) {
+      case AccountConnectType.salesReturns:
         return {
           'code': '4150',
           'parent_id': 4000,
           'acc_type': 2,
         }; // Revenue contra
-      case AccountConnectTypes.purchaseReturns:
+      case AccountConnectType.purchaseReturns:
         return {
           'code': '502',
           'parent_id': 3000,
           'acc_type': 2,
         }; // Expense contra
-      case AccountConnectTypes.sales:
+      case AccountConnectType.sales:
         return {'code': '4110', 'parent_id': 4000, 'acc_type': 2}; // Revenue
-      case AccountConnectTypes.purchases:
+      case AccountConnectType.purchases:
         return {'code': '3110', 'parent_id': 3000, 'acc_type': 2}; // Expense
-      case AccountConnectTypes.discountAllowed:
+      case AccountConnectType.discountAllowed:
         return {'code': '3150', 'parent_id': 3000, 'acc_type': 2}; // Expense
-      case AccountConnectTypes.discountEarned:
+      case AccountConnectType.discountEarned:
         return {'code': '4140', 'parent_id': 4000, 'acc_type': 2}; // Revenue
-      case AccountConnectTypes.customers:
+      case AccountConnectType.customers:
         return {'code': '1120', 'parent_id': 1000, 'acc_type': 1}; // Asset
-      case AccountConnectTypes.suppliers:
+      case AccountConnectType.suppliers:
         return {'code': '2110', 'parent_id': 2000, 'acc_type': 3}; // Liability
-      case AccountConnectTypes.cashboxes:
-      case AccountConnectTypes.banks:
+      case AccountConnectType.cashboxes:
+      case AccountConnectType.banks:
         return {'code': '1110', 'parent_id': 1000, 'acc_type': 1}; // Asset
-      case AccountConnectTypes.taxes:
+      case AccountConnectType.taxes:
         return {'code': '2140', 'parent_id': 2000, 'acc_type': 3}; // Liability
-      case AccountConnectTypes.inventory:
+      case AccountConnectType.inventory:
         return {'code': '1130', 'parent_id': 1000, 'acc_type': 1}; // Asset
-      case AccountConnectTypes.costOfGoodsSold:
+      case AccountConnectType.costOfGoodsSold:
         return {'code': '3160', 'parent_id': 3000, 'acc_type': 2}; // Expense
       default:
         return {'code': cId.toString(), 'parent_id': null, 'acc_type': 1};
@@ -980,7 +982,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final bankAccountId = bankPortion > 0
         ? await _resolveConnectedAccountId(
             txn,
-            AccountConnectTypes.banks,
+            AccountConnectType.banks.value,
             label: 'البنوك',
           )
         : 0;
@@ -1208,12 +1210,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     if (totalCogs > 0) {
       final cogsAccountId = await _resolveConnectedAccountId(
         txn,
-        AccountConnectTypes.costOfGoodsSold,
+        AccountConnectType.costOfGoodsSold.value,
         label: 'تكلفة البضاعة المباعة',
       );
       final inventoryAccountId = await _resolveConnectedAccountId(
         txn,
-        AccountConnectTypes.inventory,
+        AccountConnectType.inventory.value,
         label: 'المخزون',
       );
       rawLines.add({
@@ -1372,12 +1374,12 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     if (cogsReversal > 0) {
       cogsAccountId = await _resolveConnectedAccountId(
         txn,
-        AccountConnectTypes.costOfGoodsSold,
+        AccountConnectType.costOfGoodsSold.value,
         label: 'تكلفة البضاعة المباعة',
       );
       inventoryAccountId = await _resolveConnectedAccountId(
         txn,
-        AccountConnectTypes.inventory,
+        AccountConnectType.inventory.value,
         label: 'المخزون',
       );
     }
@@ -1431,7 +1433,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       if (bankRefund > 0) {
         final bankAccountId = await _resolveConnectedAccountId(
           txn,
-          AccountConnectTypes.banks,
+          AccountConnectType.banks.value,
           label: 'البنوك',
         );
         rawLines.add({

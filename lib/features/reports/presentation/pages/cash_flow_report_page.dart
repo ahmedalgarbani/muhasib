@@ -130,48 +130,54 @@ class _CashFlowContentState extends State<_CashFlowContent> {
           padding: AppConstant.defaultPadding,
           child: Column(
             children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: ReportKpiCard(
-                      title: 'التدفق التشغيلي',
-                      value:
-                          NumberFormatter.formatCurrency(data.totalOperating, symbol: 'ر.س'),
-                      icon: Icons.business,
-                      color: Colors.blue[700]!,
-                      subtitle: 'حركة المبيعات والمشتريات',
-                      isPositiveTrend: data.totalOperating >= 0,
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 170,
+                      child: ReportKpiCard(
+                        title: 'التدفق التشغيلي',
+                        value:
+                            NumberFormatter.formatCurrency(data.totalOperating, symbol: 'ر.س'),
+                        icon: Icons.business,
+                        color: Colors.blue[700]!,
+                        subtitle: 'حركة المبيعات والمشتريات',
+                        isPositiveTrend: data.totalOperating >= 0,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ReportKpiCard(
-                      title: 'التدفق الاستثماري والتمويلي',
-                      value:
-                          NumberFormatter.formatCurrency(data.totalInvesting + data.totalFinancing, symbol: 'ر.س'),
-                      icon: Icons.account_balance,
-                      color: Colors.purple[700]!,
-                      subtitle: 'الأصول الثابتة والتمويل',
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 170,
+                      child: ReportKpiCard(
+                        title: 'التدفق الاستثماري والتمويلي',
+                        value:
+                            NumberFormatter.formatCurrency(data.totalInvesting + data.totalFinancing, symbol: 'ر.س'),
+                        icon: Icons.account_balance,
+                        color: Colors.purple[700]!,
+                        subtitle: 'الأصول الثابتة والتمويل',
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ReportKpiCard(
-                      title: 'صافي التغير النقدي',
-                      value:
-                          NumberFormatter.formatCurrency(data.netCashFlow, symbol: 'ر.س'),
-                      icon: data.netCashFlow >= 0
-                          ? Icons.water_drop
-                          : Icons.warning,
-                      color: data.netCashFlow >= 0
-                          ? Colors.teal[700]!
-                          : Colors.deepOrange[700]!,
-                      subtitle:
-                          'بداية: ${NumberFormatter.formatNumber(data.openingBalance)} | نهاية: ${NumberFormatter.formatNumber(data.closingBalance)}',
-                      isPositiveTrend: data.netCashFlow >= 0,
+                    const SizedBox(width: 12),
+                    SizedBox(
+                      width: 170,
+                      child: ReportKpiCard(
+                        title: 'صافي التغير النقدي',
+                        value:
+                            NumberFormatter.formatCurrency(data.netCashFlow, symbol: 'ر.س'),
+                        icon: data.netCashFlow >= 0
+                            ? Icons.water_drop
+                            : Icons.warning,
+                        color: data.netCashFlow >= 0
+                            ? Colors.teal[700]!
+                            : Colors.deepOrange[700]!,
+                        subtitle:
+                            'بداية: ${NumberFormatter.formatNumber(data.openingBalance)} | نهاية: ${NumberFormatter.formatNumber(data.closingBalance)}',
+                        isPositiveTrend: data.netCashFlow >= 0,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               const SizedBox(height: 10),
 
@@ -242,18 +248,17 @@ class _CashFlowContentState extends State<_CashFlowContent> {
     double op = 0, inv = 0, fin = 0;
     for (final r in rows) {
       final n = (r['net'] as num).toDouble();
-      final type = r['reference_type'] as String? ?? '';
-      if (type.contains('sale') ||
-          type.contains('purchase') ||
-          type.contains('receipt') ||
-          type.contains('payment')) {
-        op += n;
-      } else if (type.contains('asset') || type.contains('investment'))
+      final type = (r['reference_type'] as String? ?? '').toLowerCase();
+      // Exclude already filtered opening/closing (defence in depth), and reversals are operating.
+      if (type.contains('opening') || type.contains('closing')) continue;
+      if (type.contains('asset') || type.contains('investment')) {
         inv += n;
-      else if (type.contains('loan') || type.contains('capital'))
+      } else if (type.contains('loan') || type.contains('capital') || type.contains('financing')) {
         fin += n;
-      else
+      } else {
+        // Default bucket is operating (sales, purchase, receipt, payment, voucher, etc.)
         op += n;
+      }
     }
 
     return _CashFlowResult(

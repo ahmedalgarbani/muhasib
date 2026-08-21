@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/enums/invoice_payment_status.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
 
 class PurchasesListHeaderWidget extends StatelessWidget {
   final TextEditingController searchController;
@@ -244,22 +245,12 @@ class PurchasesListPaymentStatusChipWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String text;
-    Color color;
-
-    switch (status) {
-      case 1:
-        text = 'مدفوعة';
-        color = Colors.green;
-        break;
-      case 2:
-        text = 'مدفوعة جزئياً';
-        color = Colors.orange;
-        break;
-      default:
-        text = 'غير مدفوعة';
-        color = Colors.red;
-    }
+    final paymentStatus = InvoicePaymentStatus.tryFromValue(status) ?? InvoicePaymentStatus.unpaid;
+    final (String text, Color color) = switch (paymentStatus) {
+      InvoicePaymentStatus.paid => ('مدفوعة', Colors.green),
+      InvoicePaymentStatus.partial => ('مدفوعة جزئياً', Colors.orange),
+      InvoicePaymentStatus.unpaid => ('غير مدفوعة', Colors.red),
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

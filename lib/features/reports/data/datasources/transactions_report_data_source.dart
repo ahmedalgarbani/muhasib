@@ -1,3 +1,4 @@
+import 'package:muhasib/core/enums/sort_options.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/reports/data/models/transaction_model.dart';
 import 'package:muhasib/features/reports/data/report_date_utils.dart';
@@ -64,17 +65,9 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
       whereArgs.addAll([searchPattern, searchPattern, searchPattern]);
     }
 
-    // Sorting
-    String orderBy = 'entry_date';
-    switch (sortBy) {
-      case 'amount':
-        orderBy = 'total_debit';
-        break;
-      case 'date':
-      default:
-        orderBy = 'entry_date';
-    }
-    orderBy += isAscending ? ' ASC' : ' DESC';
+    // Sorting — type-safe via TransactionSortBy
+    final sort = TransactionSortBy.fromCode(sortBy);
+    final orderBy = '${sort.column} ${isAscending ? 'ASC' : 'DESC'}';
 
     final journalEntries = await db.query(
       'journal_entries',
@@ -97,19 +90,15 @@ class TransactionsReportDataSourceImpl implements TransactionsReportDataSource {
 
     // Invoices are represented by their posted journal entries, so adding
     // source invoices here would duplicate every posted transaction.
-    // Sort the journal entries.
+    // Sort the journal entries — via TransactionSortBy
+    final sortForList = TransactionSortBy.fromCode(sortBy);
     transactions.sort((a, b) {
-      switch (sortBy) {
-        case 'amount':
-          return isAscending
-              ? a.totalAmount.compareTo(b.totalAmount)
-              : b.totalAmount.compareTo(a.totalAmount);
-        case 'date':
-        default:
-          return isAscending
-              ? a.date.compareTo(b.date)
-              : b.date.compareTo(a.date);
-      }
+      return switch (sortForList) {
+        TransactionSortBy.amount => isAscending
+            ? a.totalAmount.compareTo(b.totalAmount)
+            : b.totalAmount.compareTo(a.totalAmount),
+        TransactionSortBy.date => isAscending ? a.date.compareTo(b.date) : b.date.compareTo(a.date),
+      };
     });
 
     return transactions;

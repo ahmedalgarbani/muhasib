@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/enums/invoice_payment_status.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
 
 class PurchaseDetailHeader extends StatelessWidget {
   final InvoiceEntity invoice;
@@ -85,26 +86,12 @@ class PurchaseStatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String text;
-    Color color;
-    IconData icon;
-
-    switch (paymentStatus) {
-      case 1:
-        text = 'مدفوعة';
-        color = Colors.green;
-        icon = Icons.check_circle;
-        break;
-      case 2:
-        text = 'مدفوعة جزئياً';
-        color = Colors.orange;
-        icon = Icons.timelapse;
-        break;
-      default:
-        text = 'غير مدفوعة';
-        color = Colors.red;
-        icon = Icons.cancel;
-    }
+    final status = InvoicePaymentStatus.tryFromValue(paymentStatus) ?? InvoicePaymentStatus.unpaid;
+    final (String text, Color color, IconData icon) = switch (status) {
+      InvoicePaymentStatus.paid => ('مدفوعة', Colors.green, Icons.check_circle),
+      InvoicePaymentStatus.partial => ('مدفوعة جزئياً', Colors.orange, Icons.timelapse),
+      InvoicePaymentStatus.unpaid => ('غير مدفوعة', Colors.red, Icons.cancel),
+    };
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),

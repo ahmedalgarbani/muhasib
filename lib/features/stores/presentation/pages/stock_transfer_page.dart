@@ -39,6 +39,9 @@ class _StockTransferPageState extends State<StockTransferPage> {
   final List<StockTransferLineEntity> _transferLines = [];
 
   bool _pendingSubmit = false;
+  late final StockTransfersCubit _stockTransfersCubit;
+  late final WarehousesCubit _warehousesCubit;
+  late final ProductsCubit _productsCubit;
 
   final List<Map<String, dynamic>> _transferTypes = [
     {
@@ -64,6 +67,9 @@ class _StockTransferPageState extends State<StockTransferPage> {
   @override
   void initState() {
     super.initState();
+    _stockTransfersCubit = getIt<StockTransfersCubit>();
+    _warehousesCubit = getIt<WarehousesCubit>()..loadActiveWarehouses();
+    _productsCubit = getIt<ProductsCubit>()..loadProducts();
     _generateTransferNumber();
   }
 
@@ -75,6 +81,9 @@ class _StockTransferPageState extends State<StockTransferPage> {
 
   @override
   void dispose() {
+    _stockTransfersCubit.close();
+    _warehousesCubit.close();
+    _productsCubit.close();
     _transferNumberController.dispose();
     _statementController.dispose();
     super.dispose();
@@ -86,21 +95,19 @@ class _StockTransferPageState extends State<StockTransferPage> {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => getIt<WarehousesCubit>()..loadActiveWarehouses(),
-        ),
-        BlocProvider(
-          create: (context) => getIt<ProductsCubit>()..loadProducts(),
-        ),
-        BlocProvider(create: (context) => getIt<StockTransfersCubit>()),
+        BlocProvider.value(value: _warehousesCubit),
+        BlocProvider.value(value: _productsCubit),
+        BlocProvider.value(value: _stockTransfersCubit),
       ],
       child: BlocListener<StockTransfersCubit, StockTransfersState>(
+        bloc: _stockTransfersCubit,
         listener: (context, state) {
           if (state is TransferCreated) {
             if (_pendingSubmit) {
-              context
-                  .read<StockTransfersCubit>()
-                  .updateTransferStatus(state.id, TransferStatus.completed);
+              _stockTransfersCubit.updateTransferStatus(
+                state.id,
+                TransferStatus.completed,
+              );
             } else {
               AppToast.showSuccess(context, 'تم حفظ التحويل كمسودة');
               context.pop();
@@ -200,8 +207,9 @@ class _StockTransferPageState extends State<StockTransferPage> {
               children: [
                 Text(
                   'الأصناف المنقولة',
-                  style: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 HasibButton(
                   label: 'إضافة صنف',
@@ -216,7 +224,10 @@ class _StockTransferPageState extends State<StockTransferPage> {
               const Padding(
                 padding: EdgeInsets.all(12),
                 child: Center(
-                  child: Text('لا توجد أصناف مضافة', style: TextStyle(color: Colors.grey)),
+                  child: Text(
+                    'لا توجد أصناف مضافة',
+                    style: TextStyle(color: Colors.grey),
+                  ),
                 ),
               )
             else
@@ -236,11 +247,16 @@ class _StockTransferPageState extends State<StockTransferPage> {
                           children: [
                             Text(
                               line.statement,
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                             Text(
                               'التكلفة: ${line.costAmount?.toStringAsFixed(2) ?? '0.00'}',
-                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
                             ),
                           ],
                         ),
@@ -270,7 +286,10 @@ class _StockTransferPageState extends State<StockTransferPage> {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
+                        icon: const Icon(
+                          Icons.delete_outline,
+                          color: Colors.red,
+                        ),
                         onPressed: () {
                           setState(() => _transferLines.removeAt(index));
                         },
@@ -286,7 +305,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
   }
 
   Future<void> _addTransferLine() async {
-    final product = await showProductPicker(context);
+    final product = await showProductPicker(context, cubit: _productsCubit);
     if (product == null) return;
 
     setState(() {
@@ -335,8 +354,8 @@ class _StockTransferPageState extends State<StockTransferPage> {
       transferType: _transferType == 'regular'
           ? TransferType.regular
           : (_transferType == 'return'
-              ? TransferType.returnTransfer
-              : TransferType.adjustment),
+                ? TransferType.returnTransfer
+                : TransferType.adjustment),
       lines: _transferLines,
     );
   }
@@ -345,14 +364,14 @@ class _StockTransferPageState extends State<StockTransferPage> {
     if (!_formKey.currentState!.validate()) return;
     if (!_validateInput()) return;
     _pendingSubmit = false;
-    context.read<StockTransfersCubit>().createTransfer(_buildTransferEntity());
+    _stockTransfersCubit.createTransfer(_buildTransferEntity());
   }
 
   void _submitTransfer() {
     if (!_formKey.currentState!.validate()) return;
     if (!_validateInput()) return;
     _pendingSubmit = true;
-    context.read<StockTransfersCubit>().createTransfer(_buildTransferEntity());
+    _stockTransfersCubit.createTransfer(_buildTransferEntity());
   }
 
   Future<void> _selectDate(BuildContext context) async {

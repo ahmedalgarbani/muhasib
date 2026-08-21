@@ -1,4 +1,6 @@
 import 'package:dartz/dartz.dart';
+import 'package:muhasib/core/enums/document_sequence_type.dart';
+import 'package:muhasib/core/enums/invoice_type.dart';
 import 'package:muhasib/core/errors/exceptions.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/core/services/number_sequence_service.dart';
@@ -238,15 +240,17 @@ class InvoiceRepositoryImpl implements InvoiceRepository {
     }
   }
 
-  /// Get sequence type based on invoice type
+  /// Get sequence type based on InvoiceType enum — type-safe
   String _getSequenceType(int invoiceType) {
-    switch (invoiceType) {
-      case 1: return 'sales_invoice';
-      case 2: return 'purchase_invoice';
-      case 4: return 'quotation';
-      case 5: return 'sales_return';
-      case 6: return 'purchase_return';
-      default: return 'sales_invoice';
-    }
+    final type = InvoiceType.tryFromValue(invoiceType);
+    if (type == null) return DocumentSequenceType.salesInvoice.code;
+    return switch (type) {
+      InvoiceType.salesInvoice => DocumentSequenceType.salesInvoice.code,
+      InvoiceType.purchaseInvoice => DocumentSequenceType.purchaseInvoice.code,
+      InvoiceType.quotation => DocumentSequenceType.quotation.code,
+      InvoiceType.salesReturn => DocumentSequenceType.salesReturn.code,
+      InvoiceType.purchaseReturn => DocumentSequenceType.purchaseReturn.code,
+      InvoiceType.quickInvoice => DocumentSequenceType.salesInvoice.code,
+    };
   }
 }

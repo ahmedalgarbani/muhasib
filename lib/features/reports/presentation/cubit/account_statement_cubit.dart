@@ -13,30 +13,35 @@ class AccountStatementCubit extends Cubit<AccountStatementState> {
 
   Future<void> loadAccounts([int? initialAccountId]) async {
     final result = await repository.getAllAccounts();
-    
+
     result.fold(
       (failure) {
         emit(AccountStatementError(message: failure.message));
       },
       (accounts) {
         _accounts = accounts;
+        if (accounts.isEmpty) {
+          emit(AccountStatementError(message: 'لا توجد حسابات مفعّلة'));
+          return;
+        }
         if (initialAccountId != null && accounts.any((a) => a['id'] == initialAccountId)) {
           _selectedAccountId = initialAccountId;
-        } else if (accounts.isNotEmpty && _selectedAccountId == null) {
+        } else if (_selectedAccountId == null || !accounts.any((a) => a['id'] == _selectedAccountId)) {
           _selectedAccountId = accounts.first['id'] as int;
         }
-        if (_selectedAccountId != null) {
-          loadAccountStatement(_selectedAccountId!);
-        }
+        // Preserve current filter (e.g. currentMonth from ReportBasePage) instead of empty.
+        final filterToUse = _currentFilter ?? ReportFilter.currentMonth();
+        _currentFilter = filterToUse;
+        loadAccountStatement(_selectedAccountId!, filterToUse);
       },
     );
   }
 
   Future<void> loadAccountStatement(int accountId, [ReportFilter? filter]) async {
-    emit(AccountStatementLoading());
+    emit(AccountStatementLoading(accounts: _accounts, selectedAccountId: _selectedAccountId));
 
     _selectedAccountId = accountId;
-    _currentFilter = filter ?? ReportFilter();
+    _currentFilter = filter ?? _currentFilter ?? ReportFilter.currentMonth();
 
     final transactionsResult = await repository.getAccountStatement(
       accountId: accountId,
@@ -77,10 +82,11 @@ class AccountStatementCubit extends Cubit<AccountStatementState> {
   }
 
   void updateDateRange(ReportFilter filter) {
+    _currentFilter = filter;
     if (_selectedAccountId != null) {
-      _currentFilter = filter;
       loadAccountStatement(_selectedAccountId!, filter);
     }
+    // If accounts not yet loaded, the pending filter will be used by loadAccounts().
   }
 
   void refresh() {

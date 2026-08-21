@@ -67,6 +67,11 @@ abstract class ReportsLocalDataSource {
     required ReportFilter filter,
   });
 
+  Future<double> getGeneralLedgerOpeningBalance({
+    required int accountId,
+    required DateTime? beforeDate,
+  });
+
   // ── Cash flow (cash_flow_report_page.dart:211,222,228,234) ──
   Future<List<Map<String, dynamic>>> getCashAccountIds();
 
@@ -365,7 +370,7 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
         COALESCE(i.approval_status, 1) as status,
         COALESCE(i.final_amt, i.total_amount, i.amount, 0) as amount,
         c.name as party_name,
-        CASE WHEN EXISTS (SELECT 1 FROM journal_entries je WHERE je.reference_id = i.id AND je.reference_type IN ('sales', 'purchase', 'sales_return', 'purchase_return')) THEN 1 ELSE 0 END as has_journal_entry
+        CASE WHEN EXISTS (SELECT 1 FROM journal_entries je WHERE je.reference_id = i.id AND je.reference_type IN ('sales_invoice', 'purchase_invoice', 'sales_return', 'purchase_return') AND je.is_posted = 1 AND je.status = 1) THEN 1 ELSE 0 END as has_journal_entry
       FROM invoices i
       LEFT JOIN customers c ON c.id = i.customer_id
       $where
@@ -406,29 +411,48 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
   }
 
   /// Source: lib/features/reports/presentation/pages/general_ledger_report_page.dart:455
+  /// Fixed: use normalizedReportTimestampSql for entry_date (mixed ms/sec).
   @override
   Future<List<Map<String, dynamic>>> getGeneralLedgerDetails({
     required int accountId,
     required ReportFilter filter,
   }) async {
     final db = await _databaseService.database;
-    // Original uses raw epoch without normalized helper; keep verbatim but use reportDateRangeArgs helpers where possible.
-    // We keep plain je.entry_date comparison to stay verbatim, but use helper args for timestamps.
     String df = '';
     final args = <Object?>[accountId];
     if (filter.startDate != null && filter.endDate != null) {
-      df = 'AND je.entry_date >= ? AND je.entry_date <= ?';
-      args.add(reportTimestampSeconds(filter.startDate!));
-      args.add(reportTimestampSeconds(filter.endDate!));
+      final dateColumn = normalizedReportTimestampSql('je.entry_date');
+      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      args.addAll(reportDateRangeArgs(filter));
     }
     final rows = await db.rawQuery('''
       SELECT je.entry_date, je.description, jel.debit_amount as d, jel.credit_amount as c 
       FROM journal_entry_lines jel 
       JOIN journal_entries je ON je.id = jel.journal_entry_id
       WHERE jel.account_id = ? AND je.is_posted = 1 $df
-      ORDER BY je.entry_date ASC, jel.id ASC
+      ORDER BY ${normalizedReportTimestampSql('je.entry_date')} ASC, jel.id ASC
     ''', args);
     return rows;
+  }
+
+  Future<double> getGeneralLedgerOpeningBalance({
+    required int accountId,
+    required DateTime? beforeDate,
+  }) async {
+    if (beforeDate == null) return 0;
+    final db = await _databaseService.database;
+    final accRows = await db.query('accounts', columns: ['type','code'], where: 'id = ?', whereArgs: [accountId], limit: 1);
+    final accType = accRows.isNotEmpty ? (accRows.first['type'] as int? ?? 1) : 1;
+    final accCode = accRows.isNotEmpty ? (accRows.first['code'] as String? ?? '') : '';
+    final isCreditNormal = accType == 2 || accType == 4 || accCode.startsWith('2') || accCode.startsWith('4');
+    final res = await db.rawQuery(
+      'SELECT COALESCE(SUM(jel.debit_amount),0) as d, COALESCE(SUM(jel.credit_amount),0) as c FROM journal_entry_lines jel JOIN journal_entries je ON je.id=jel.journal_entry_id WHERE je.is_posted=1 AND jel.account_id=? AND ${normalizedReportTimestampSql('je.entry_date')} < ?',
+      [accountId, reportTimestampSeconds(beforeDate)],
+    );
+    if (res.isEmpty) return 0;
+    final d = (res.first['d'] as num?)?.toDouble() ?? 0;
+    final c = (res.first['c'] as num?)?.toDouble() ?? 0;
+    return isCreditNormal ? (c - d) : (d - c);
   }
 
   // =========================================================================
@@ -448,7 +472,7 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
     return rows;
   }
 
-  /// Source: cash_flow_report_page.dart:222-226 (opening balance)
+  /// Source: cash_flow_report_page.dart:222-226 (opening balance) — normalized date
   @override
   Future<List<Map<String, dynamic>>> getCashFlowOpeningBalance({
     required int startSeconds,
@@ -459,13 +483,13 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
     final placeholders = List.filled(accountIds.length, '?').join(',');
     final args = <Object?>[...accountIds, startSeconds];
     final rows = await db.rawQuery(
-      'SELECT COALESCE(SUM(debit_amount - credit_amount), 0) as b FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND jel.account_id IN ($placeholders) AND je.entry_date < ?',
+      'SELECT COALESCE(SUM(debit_amount - credit_amount), 0) as b FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND je.status = 1 AND COALESCE(je.reference_type, \'\') NOT IN (\'opening_entry\', \'opening_balance\', \'closing\') AND jel.account_id IN ($placeholders) AND ${normalizedReportTimestampSql('je.entry_date')} < ?',
       args,
     );
     return rows;
   }
 
-  /// Source: cash_flow_report_page.dart:228-231 (actual balance)
+  /// Source: cash_flow_report_page.dart:228-231 (actual balance) — normalized
   @override
   Future<List<Map<String, dynamic>>> getCashFlowActualBalance({
     required int endSeconds,
@@ -476,13 +500,13 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
     final placeholders = List.filled(accountIds.length, '?').join(',');
     final args = <Object?>[...accountIds, endSeconds];
     final rows = await db.rawQuery(
-      'SELECT COALESCE(SUM(debit_amount - credit_amount), 0) as b FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND jel.account_id IN ($placeholders) AND je.entry_date <= ?',
+      'SELECT COALESCE(SUM(debit_amount - credit_amount), 0) as b FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND je.status = 1 AND jel.account_id IN ($placeholders) AND ${normalizedReportTimestampSql('je.entry_date')} <= ?',
       args,
     );
     return rows;
   }
 
-  /// Source: cash_flow_report_page.dart:234-238 (grouped by reference_type)
+  /// Source: cash_flow_report_page.dart:234-238 (grouped by reference_type) — normalized + exclude opening
   @override
   Future<List<Map<String, dynamic>>> getCashFlowGrouped({
     required int startSeconds,
@@ -494,7 +518,7 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
     final placeholders = List.filled(accountIds.length, '?').join(',');
     final args = <Object?>[...accountIds, startSeconds, endSeconds];
     final rows = await db.rawQuery(
-      'SELECT je.reference_type, COALESCE(SUM(jel.debit_amount - jel.credit_amount), 0) as net FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND jel.account_id IN ($placeholders) AND je.entry_date >= ? AND je.entry_date <= ? GROUP BY je.reference_type',
+      'SELECT je.reference_type, COALESCE(SUM(jel.debit_amount - jel.credit_amount), 0) as net FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND je.status = 1 AND COALESCE(je.reference_type, \'\') NOT IN (\'opening_entry\', \'opening_balance\', \'closing\') AND jel.account_id IN ($placeholders) AND ${normalizedReportTimestampSql('je.entry_date')} >= ? AND ${normalizedReportTimestampSql('je.entry_date')} <= ? GROUP BY je.reference_type',
       args,
     );
     return rows;
@@ -537,8 +561,8 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
       SELECT a.id, a.code, a.name, a.type, COALESCE(SUM(jel.debit_amount - jel.credit_amount), 0) as net
       FROM accounts a 
       LEFT JOIN journal_entry_lines jel ON jel.account_id = a.id 
-      LEFT JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND (je.is_posted = 1 OR je.id IS NULL) AND (je.entry_date <= ? OR je.id IS NULL) 
+      LEFT JOIN journal_entries je ON je.id = jel.journal_entry_id AND je.is_posted = 1 AND je.status = 1 AND ${normalizedReportTimestampSql('je.entry_date')} <= ?
+      WHERE a.is_active = 1
         AND (a.type IN (0, 1, 2) OR a.code LIKE '1%' OR a.code LIKE '2%')
       GROUP BY a.id, a.code, a.name, a.type 
       HAVING net != 0 
@@ -567,7 +591,7 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
       FROM accounts a 
       JOIN journal_entry_lines jel ON jel.account_id = a.id 
       JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1 AND je.entry_date <= ? 
+      WHERE a.is_active = 1 AND je.is_posted = 1 AND je.status = 1 AND ${normalizedReportTimestampSql('je.entry_date')} <= ? 
         AND (a.type IN (3, 4) OR a.code LIKE '3%' OR a.code LIKE '4%') 
         AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')
     ''',
@@ -687,10 +711,10 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
     final whereArgs = <Object?>[accountId];
     String dateFilter = '';
     if (startDate != null && endDate != null) {
-      // Use plain entry_date epoch as original page does
-      dateFilter = 'AND je.entry_date >= ? AND je.entry_date <= ?';
-      whereArgs.add(startDate.millisecondsSinceEpoch ~/ 1000);
-      whereArgs.add(endDate.millisecondsSinceEpoch ~/ 1000);
+      final dateColumn = normalizedReportTimestampSql('je.entry_date');
+      dateFilter = 'AND $dateColumn >= ? AND $dateColumn <= ?';
+      whereArgs.add(reportTimestampSeconds(startDate));
+      whereArgs.add(reportTimestampSeconds(endDate));
     }
     final rows = await db.rawQuery('''
         SELECT 
@@ -704,9 +728,9 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
           'journal' as source_type
         FROM journal_entry_lines jel
         JOIN journal_entries je ON je.id = jel.journal_entry_id
-        WHERE jel.account_id = ?
+        WHERE jel.account_id = ? AND je.is_posted = 1 AND je.status = 1
         $dateFilter
-        ORDER BY je.entry_date DESC, je.id DESC
+        ORDER BY ${normalizedReportTimestampSql('je.entry_date')} DESC, je.id DESC
       ''', whereArgs);
     return rows;
   }

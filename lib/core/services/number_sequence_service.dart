@@ -1,3 +1,4 @@
+import 'package:muhasib/core/enums/document_sequence_type.dart';
 import 'package:sqflite/sqflite.dart';
 
 /// Number Sequence Service
@@ -176,32 +177,9 @@ class NumberSequenceService {
   }
 
   String _getDefaultPrefix(String sequenceType) {
-    switch (sequenceType) {
-      case 'sales_invoice':
-        return 'INV';
-      case 'purchase_invoice':
-        return 'PINV';
-      case 'quotation':
-        return 'QT';
-      case 'journal_entry':
-        return 'JE';
-      case 'receipt_voucher':
-        return 'RV';
-      case 'payment_voucher':
-        return 'PV';
-      case 'sales_return':
-        return 'SRT';
-      case 'purchase_return':
-        return 'PRT';
-      case 'opening_balance':
-        return 'OB';
-      case 'stock_transfer':
-        return 'TR';
-      case 'stock_adjustment':
-        return 'ADJ';
-      default:
-        return sequenceType.toUpperCase();
-    }
+    final type = DocumentSequenceType.tryFromCode(sequenceType);
+    if (type != null) return type.defaultPrefix;
+    return sequenceType.toUpperCase();
   }
 
   /// Get next number formatted with an external prefix (e.g. from settings)

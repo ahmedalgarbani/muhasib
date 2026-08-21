@@ -25,7 +25,7 @@ class _SalesSummaryReportPageState extends State<SalesSummaryReportPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<SalesSummaryCubit>()..loadSalesSummary(),
+      create: (context) => getIt<SalesSummaryCubit>()..loadSalesSummary(ReportFilter.currentMonth()),
       child: BlocConsumer<SalesSummaryCubit, SalesSummaryState>(
         listener: (context, state) {
           if (state is SalesSummaryLoaded) setState(() => _lastState = state);
@@ -129,40 +129,46 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: ReportKpiCard(
-                        title: 'صافي المبيعات',
-                        value: _format(s.netSales),
-                        icon: Icons.trending_up,
-                        color: Colors.green[700]!,
-                        subtitle: 'عدد الفواتير: ${s.invoiceCount}',
-                        isPositiveTrend: true,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 170,
+                        child: ReportKpiCard(
+                          title: 'صافي المبيعات',
+                          value: _format(s.netSales),
+                          icon: Icons.trending_up,
+                          color: Colors.green[700]!,
+                          subtitle: 'عدد الفواتير: ${s.invoiceCount}',
+                          isPositiveTrend: true,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ReportKpiCard(
-                        title: 'إجمالي المبيعات قبل الخصم',
-                        value: _format(s.totalSales),
-                        icon: Icons.point_of_sale,
-                        color: Colors.blue[700]!,
-                        subtitle: 'المرتجعات: ${_format(s.totalReturns)}',
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 170,
+                        child: ReportKpiCard(
+                          title: 'إجمالي المبيعات قبل الخصم',
+                          value: _format(s.totalSales),
+                          icon: Icons.point_of_sale,
+                          color: Colors.blue[700]!,
+                          subtitle: 'المرتجعات: ${_format(s.totalReturns)}',
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ReportKpiCard(
-                        title: 'إجمالي الخصومات والضرائب',
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 170,
+                        child: ReportKpiCard(
+                          title: 'إجمالي الخصومات والضرائب',
                         value: _format(s.totalDiscounts + s.totalTaxes),
                         icon: Icons.discount,
                         color: Colors.orange[700]!,
                         subtitle:
                             'خصم: ${_format(s.totalDiscounts)} | ضريبة: ${_format(s.totalTaxes)}',
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 const Text(

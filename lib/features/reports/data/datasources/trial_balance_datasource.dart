@@ -1,5 +1,6 @@
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/reports/data/models/trial_balance_model.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/domain/entities/trial_balance_entity.dart';
 
@@ -24,13 +25,13 @@ class TrialBalanceDataSourceImpl implements TrialBalanceDataSource {
   }) async {
     final db = await databaseService.database;
 
-    // Get start and end dates for the period
-    final startDate = filter.startDate != null 
-        ? filter.startDate!.millisecondsSinceEpoch ~/ 1000 
+    final startDate = filter.startDate != null
+        ? reportTimestampSeconds(filter.startDate!)
         : 0;
-    final endDate = filter.endDate != null 
-        ? filter.endDate!.millisecondsSinceEpoch ~/ 1000 
-        : DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final endDate = filter.endDate != null
+        ? reportTimestampSeconds(filter.endDate!)
+        : reportTimestampSeconds(DateTime.now());
+    final tsCol = normalizedReportTimestampSql('je.entry_date');
 
     // Enhanced query to calculate:
     // 1. Opening balance (all posted entries BEFORE the period start date)
@@ -45,36 +46,36 @@ class TrialBalanceDataSourceImpl implements TrialBalanceDataSource {
         
         -- Opening Balance (before period start)
         COALESCE(SUM(CASE 
-          WHEN je.entry_date < ? 
+          WHEN $tsCol < ? 
           THEN jel.debit_amount 
           ELSE 0 
         END), 0) as opening_debit,
         COALESCE(SUM(CASE 
-          WHEN je.entry_date < ? 
+          WHEN $tsCol < ? 
           THEN jel.credit_amount 
           ELSE 0 
         END), 0) as opening_credit,
         
         -- Period Movements (within date range)
         COALESCE(SUM(CASE 
-          WHEN je.entry_date >= ? AND je.entry_date <= ? 
+          WHEN $tsCol >= ? AND $tsCol <= ? 
           THEN jel.debit_amount 
           ELSE 0 
         END), 0) as period_debit,
         COALESCE(SUM(CASE 
-          WHEN je.entry_date >= ? AND je.entry_date <= ? 
+          WHEN $tsCol >= ? AND $tsCol <= ? 
           THEN jel.credit_amount 
           ELSE 0 
         END), 0) as period_credit,
         
         -- Closing Balance (all entries up to period end)
         COALESCE(SUM(CASE 
-          WHEN je.entry_date <= ? 
+          WHEN $tsCol <= ? 
           THEN jel.debit_amount 
           ELSE 0 
         END), 0) as closing_debit,
         COALESCE(SUM(CASE 
-          WHEN je.entry_date <= ? 
+          WHEN $tsCol <= ? 
           THEN jel.credit_amount 
           ELSE 0 
         END), 0) as closing_credit
@@ -82,7 +83,7 @@ class TrialBalanceDataSourceImpl implements TrialBalanceDataSource {
       FROM accounts a
       INNER JOIN journal_entry_lines jel ON a.id = jel.account_id
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1
+      WHERE a.is_active = 1 AND je.is_posted = 1 AND je.status = 1
       GROUP BY a.id, a.code, a.name, a.type
       HAVING (
         opening_debit > 0 OR opening_credit > 0 OR
@@ -114,31 +115,32 @@ class TrialBalanceDataSourceImpl implements TrialBalanceDataSource {
   }) async {
     final db = await databaseService.database;
 
-    final startDate = filter.startDate != null 
-        ? filter.startDate!.millisecondsSinceEpoch ~/ 1000 
+    final startDate = filter.startDate != null
+        ? reportTimestampSeconds(filter.startDate!)
         : 0;
-    final endDate = filter.endDate != null 
-        ? filter.endDate!.millisecondsSinceEpoch ~/ 1000 
-        : DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final endDate = filter.endDate != null
+        ? reportTimestampSeconds(filter.endDate!)
+        : reportTimestampSeconds(DateTime.now());
+    final tsCol = normalizedReportTimestampSql('je.entry_date');
 
     final query = '''
       SELECT 
         -- Opening totals
-        COALESCE(SUM(CASE WHEN je.entry_date < ? THEN jel.debit_amount ELSE 0 END), 0) as opening_debit,
-        COALESCE(SUM(CASE WHEN je.entry_date < ? THEN jel.credit_amount ELSE 0 END), 0) as opening_credit,
+        COALESCE(SUM(CASE WHEN $tsCol < ? THEN jel.debit_amount ELSE 0 END), 0) as opening_debit,
+        COALESCE(SUM(CASE WHEN $tsCol < ? THEN jel.credit_amount ELSE 0 END), 0) as opening_credit,
         
         -- Period totals
-        COALESCE(SUM(CASE WHEN je.entry_date >= ? AND je.entry_date <= ? THEN jel.debit_amount ELSE 0 END), 0) as period_debit,
-        COALESCE(SUM(CASE WHEN je.entry_date >= ? AND je.entry_date <= ? THEN jel.credit_amount ELSE 0 END), 0) as period_credit,
+        COALESCE(SUM(CASE WHEN $tsCol >= ? AND $tsCol <= ? THEN jel.debit_amount ELSE 0 END), 0) as period_debit,
+        COALESCE(SUM(CASE WHEN $tsCol >= ? AND $tsCol <= ? THEN jel.credit_amount ELSE 0 END), 0) as period_credit,
         
         -- Closing totals
-        COALESCE(SUM(CASE WHEN je.entry_date <= ? THEN jel.debit_amount ELSE 0 END), 0) as closing_debit,
-        COALESCE(SUM(CASE WHEN je.entry_date <= ? THEN jel.credit_amount ELSE 0 END), 0) as closing_credit
+        COALESCE(SUM(CASE WHEN $tsCol <= ? THEN jel.debit_amount ELSE 0 END), 0) as closing_debit,
+        COALESCE(SUM(CASE WHEN $tsCol <= ? THEN jel.credit_amount ELSE 0 END), 0) as closing_credit
         
       FROM journal_entry_lines jel
       INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
       INNER JOIN accounts a ON a.id = jel.account_id
-      WHERE a.is_active = 1 AND je.is_posted = 1
+      WHERE a.is_active = 1 AND je.is_posted = 1 AND je.status = 1
     ''';
 
     final args = [

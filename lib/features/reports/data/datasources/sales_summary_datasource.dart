@@ -39,7 +39,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
         COUNT(DISTINCT i.customer_id) as customer_count
       FROM invoices i
       WHERE (i.invoice_type = 1 OR i.invoice_type = 4)
-        AND COALESCE(i.approval_status, 0) != 3
+        AND COALESCE(i.approval_status, 1) != 3
       $dateFilter
     ''';
 
@@ -77,7 +77,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
       INNER JOIN invoices i ON i.id = il.invoice_id
       LEFT JOIN categories c ON c.id = il.category_id
       WHERE i.invoice_type = 1
-        AND COALESCE(i.approval_status, 0) != 3
+        AND COALESCE(i.approval_status, 1) != 3
       $dateFilter
       GROUP BY c.id, c.name
       ORDER BY total_amount DESC
@@ -108,7 +108,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
       FROM invoices i
       INNER JOIN customers c ON c.id = i.customer_id
       WHERE i.invoice_type = 1
-        AND COALESCE(i.approval_status, 0) != 3
+        AND COALESCE(i.approval_status, 1) != 3
       $dateFilter
       GROUP BY c.id, c.name
       ORDER BY total_purchases DESC
@@ -135,7 +135,7 @@ class SalesSummaryDataSourceImpl implements SalesSummaryDataSource {
         SUM(COALESCE(i.final_amt, i.total_amount, i.amount)) as daily_total
       FROM invoices i
       WHERE i.invoice_type = 1
-        AND COALESCE(i.approval_status, 0) != 3
+        AND COALESCE(i.approval_status, 1) != 3
       $dateFilter
       GROUP BY sale_date
       ORDER BY sale_date

@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/enums/invoice_payment_status.dart';
+import 'package:muhasib/core/enums/sort_options.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
@@ -13,7 +16,6 @@ import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/models/bill_models.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
 
 class SalePageBody extends StatefulWidget {
   const SalePageBody({super.key});
@@ -171,19 +173,14 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
           .toList();
     }
 
+    final sort = InvoiceSortOption.tryFromCode(_sortBy) ?? InvoiceSortOption.dateDesc;
     filtered.sort((a, b) {
-      switch (_sortBy) {
-        case "date-desc":
-          return b.date.compareTo(a.date);
-        case "date-asc":
-          return a.date.compareTo(b.date);
-        case "total-desc":
-          return (b.totalAmount ?? 0).compareTo(a.totalAmount ?? 0);
-        case "total-asc":
-          return (a.totalAmount ?? 0).compareTo(b.totalAmount ?? 0);
-        default:
-          return 0;
-      }
+      return switch (sort) {
+        InvoiceSortOption.dateDesc => b.date.compareTo(a.date),
+        InvoiceSortOption.dateAsc => a.date.compareTo(b.date),
+        InvoiceSortOption.totalDesc => (b.totalAmount ?? 0).compareTo(a.totalAmount ?? 0),
+        InvoiceSortOption.totalAsc => (a.totalAmount ?? 0).compareTo(b.totalAmount ?? 0),
+      };
     });
 
     return filtered;
@@ -196,7 +193,7 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
       (sum, inv) => sum + (inv.totalAmount ?? 0),
     );
     final paidInvoices = invoices
-        .where((inv) => inv.paymentStatus == 1)
+        .where((inv) => InvoicePaymentStatus.tryFromValue(inv.paymentStatus) == InvoicePaymentStatus.paid)
         .toList();
     final paidAmount = paidInvoices.fold(
       0.0,

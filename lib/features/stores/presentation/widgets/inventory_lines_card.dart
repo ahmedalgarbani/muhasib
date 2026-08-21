@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:muhasib/core/constant/app_constant.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
 
 class InventoryLinesCard extends StatelessWidget {
   final List<InventoryLineEntity> inventoryLines;
@@ -97,6 +98,7 @@ class InventoryLinesCard extends StatelessWidget {
                 separatorBuilder: (context, index) => const Divider(),
                 itemBuilder: (context, index) {
                   return InventoryLineItemWidget(
+                    key: ValueKey(inventoryLines[index].categoryId ?? index),
                     index: index,
                     line: inventoryLines[index],
                     isCountMode: isCountMode,
@@ -112,7 +114,7 @@ class InventoryLinesCard extends StatelessWidget {
   }
 }
 
-class InventoryLineItemWidget extends StatelessWidget {
+class InventoryLineItemWidget extends StatefulWidget {
   final int index;
   final InventoryLineEntity line;
   final bool isCountMode;
@@ -129,17 +131,68 @@ class InventoryLineItemWidget extends StatelessWidget {
   });
 
   @override
+  State<InventoryLineItemWidget> createState() => _InventoryLineItemWidgetState();
+}
+
+class _InventoryLineItemWidgetState extends State<InventoryLineItemWidget> {
+  late final TextEditingController _controller;
+  late final FocusNode _focusNode;
+
+  static String _formatQty(double qty) {
+    if (qty == 0) return '';
+    if (qty % 1 == 0) return qty.toInt().toString();
+    return qty.toString();
+  }
+
+  static String _formatDisplayQty(double qty) {
+    if (qty % 1 == 0) return qty.toInt().toString();
+    return qty.toString();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: _formatQty(widget.line.actualQuantity),
+    );
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void didUpdateWidget(covariant InventoryLineItemWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only synchronize text if not focused and the value truly changed externally
+    if (!_focusNode.hasFocus &&
+        oldWidget.line.actualQuantity != widget.line.actualQuantity) {
+      final currentParsed = double.tryParse(_controller.text) ?? 0;
+      if (currentParsed != widget.line.actualQuantity) {
+        _controller.text = _formatQty(widget.line.actualQuantity);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final difference = line.actualQuantity - line.quantity;
+    final difference = widget.line.actualQuantity - widget.line.quantity;
     final isPositive = difference >= 0;
+    final formattedDiff = difference > 0
+        ? '+${_formatDisplayQty(difference)}'
+        : _formatDisplayQty(difference);
 
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: isPositive
-            ? Colors.green.withOpacity(0.1)
-            : Colors.red.withOpacity(0.1),
+            ? Colors.green.withValues(alpha: 0.1)
+            : Colors.red.withValues(alpha: 0.1),
         child: Text(
-          '${index + 1}',
+          '${widget.index + 1}',
           style: TextStyle(
             color: isPositive ? Colors.green : Colors.red,
             fontWeight: FontWeight.bold,
@@ -147,17 +200,19 @@ class InventoryLineItemWidget extends StatelessWidget {
         ),
       ),
       title: Text(
-        line.statement.isNotEmpty ? line.statement : 'صنف ${index + 1}',
+        widget.line.statement.isNotEmpty
+            ? widget.line.statement
+            : 'صنف ${widget.index + 1}',
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'متوقع: ${line.quantity} | فعلي: ${line.actualQuantity}',
+            'متوقع: ${_formatDisplayQty(widget.line.quantity)} | فعلي: ${_formatDisplayQty(widget.line.actualQuantity)}',
             style: const TextStyle(fontSize: 12),
           ),
           Text(
-            'الفرق: ${difference > 0 ? '+' : ''}$difference',
+            'الفرق: $formattedDiff',
             style: TextStyle(
               fontSize: 12,
               color: isPositive ? Colors.green : Colors.red,
@@ -166,14 +221,22 @@ class InventoryLineItemWidget extends StatelessWidget {
           ),
         ],
       ),
-      trailing: isCountMode
+      trailing: widget.isCountMode
           ? SizedBox(
               width: 100,
               child: TextInputField(
-                keyboardType: TextInputType.number,
+                controller: _controller,
+                focusNode: _focusNode,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
                 textAlign: TextAlign.center,
                 hint: '0',
                 decoration: InputDecoration(
+                  isDense: true,
+                  hintText: '0',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
@@ -183,17 +246,14 @@ class InventoryLineItemWidget extends StatelessWidget {
                   ),
                 ),
                 onChanged: (value) {
-                  final qty = double.tryParse(value) ?? 0;
-                  onQuantityChanged(qty);
+                  final qty = double.tryParse(value.trim()) ?? 0.0;
+                  widget.onQuantityChanged(qty);
                 },
-                controller: TextEditingController(
-                  text: line.actualQuantity.toString(),
-                ),
               ),
             )
           : IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
-              onPressed: onDelete,
+              onPressed: widget.onDelete,
             ),
     );
   }

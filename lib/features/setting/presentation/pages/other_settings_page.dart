@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/enums/app_date_format.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/cubit/local_cubit.dart';
 import 'package:muhasib/core/helpers/cubit/theme_cubit.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
-import 'package:muhasib/core/widgets/settings_card.dart';
-import 'package:muhasib/core/widgets/settings_switch_tile.dart';
-import 'package:muhasib/core/widgets/settings_dropdown_tile.dart';
-import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/settings_card.dart';
+import 'package:muhasib/core/widgets/settings_dropdown_tile.dart';
+import 'package:muhasib/core/widgets/settings_switch_tile.dart';
+import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
+import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 import 'package:muhasib/core/constant/app_constant.dart';
@@ -70,63 +71,36 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
   }
 
   String _getDateFormatString(int format) {
-    switch (format) {
-      case 0:
-        return 'dd - MM - yyyy';
-      case 1:
-        return 'yyyy - MM - dd';
-      case 2:
-        return 'MM - dd - yyyy';
-      default:
-        return 'dd - MM - yyyy';
-    }
+    return AppDateFormat.tryFromValue(format)?.pattern ?? AppDateFormat.dayMonthYear.pattern;
   }
 
   int _getDateFormatInt(String format) {
-    switch (format) {
-      case 'dd - MM - yyyy':
-        return 0;
-      case 'yyyy - MM - dd':
-        return 1;
-      case 'MM - dd - yyyy':
-        return 2;
-      default:
-        return 0;
+    for (final e in AppDateFormat.values) {
+      if (e.pattern == format) return e.value;
     }
+    return AppDateFormat.dayMonthYear.value;
   }
 
   String _getTimeFormatString(int format) {
-    return format == 0 ? '12 ساعة' : '24 ساعة';
+    return AppTimeFormat.tryFromValue(format)?.labelAr ?? AppTimeFormat.h12.labelAr;
   }
 
   int _getTimeFormatInt(String format) {
-    return format == '12 ساعة' ? 0 : 1;
+    for (final e in AppTimeFormat.values) {
+      if (e.labelAr == format) return e.value;
+    }
+    return AppTimeFormat.h12.value;
   }
 
   String _getHomeScreenTypeString(int type) {
-    switch (type) {
-      case 1:
-        return 'الأولى';
-      case 2:
-        return 'الثانية';
-      case 3:
-        return 'الثالثة';
-      default:
-        return 'الأولى';
-    }
+    return HomeScreenType.tryFromValue(type)?.labelAr ?? HomeScreenType.first.labelAr;
   }
 
   int _getHomeScreenTypeInt(String type) {
-    switch (type) {
-      case 'الأولى':
-        return 1;
-      case 'الثانية':
-        return 2;
-      case 'الثالثة':
-        return 3;
-      default:
-        return 1;
+    for (final e in HomeScreenType.values) {
+      if (e.labelAr == type) return e.value;
     }
+    return HomeScreenType.first.value;
   }
 
   String _themeModeLabel(ThemeMode mode) {

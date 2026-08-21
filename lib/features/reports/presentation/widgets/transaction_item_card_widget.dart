@@ -1,28 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/features/reports/domain/entities/transaction_entity.dart';
 
 class TransactionItemCardWidget extends StatelessWidget {
-  final dynamic transaction;
+  final TransactionEntity transaction;
 
   const TransactionItemCardWidget({super.key, required this.transaction});
 
   String _getTypeLabel(String type) {
-    switch (type) {
-      case 'sales':
-        return 'مبيعات';
-      case 'purchase':
-        return 'مشتريات';
-      case 'journal':
-        return 'قيد يومية';
-      case 'receipt':
-        return 'قبض';
-      case 'payment':
-        return 'صرف';
-      case 'opening':
-        return 'افتتاحي';
-      default:
-        return 'أخرى';
+    // استخدم TransactionType المركزي — يضمن التسمية الموحدة
+    for (final e in TransactionType.values) {
+      if (e.name == type || e.value == type) return e.label;
     }
+    // توافق مع القيم النصية القديمة من قاعدة البيانات
+    return switch (type) {
+      'sales' => TransactionType.sales.label,
+      'purchase' => TransactionType.purchase.label,
+      'journal' => TransactionType.journal.label,
+      'receipt' => TransactionType.receipt.label,
+      'payment' => TransactionType.payment.label,
+      'opening' => TransactionType.opening.label,
+      'sales_return' => TransactionType.salesReturn.label,
+      'purchase_return' => TransactionType.purchaseReturn.label,
+      _ => 'أخرى',
+    };
   }
 
   @override

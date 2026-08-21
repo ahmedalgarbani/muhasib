@@ -4,7 +4,11 @@ abstract class AccountStatementState {}
 
 class AccountStatementInitial extends AccountStatementState {}
 
-class AccountStatementLoading extends AccountStatementState {}
+class AccountStatementLoading extends AccountStatementState {
+  final List<Map<String, dynamic>> accounts;
+  final int? selectedAccountId;
+  AccountStatementLoading({this.accounts = const [], this.selectedAccountId});
+}
 
 class AccountStatementLoaded extends AccountStatementState {
   final List<AccountStatementEntity> transactions;

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
+import 'package:muhasib/core/enums/account_type.dart';
 import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 
 /// Helper class for account colors based on type and master status
 class AccountColorHelper {
@@ -20,38 +21,16 @@ class AccountColorHelper {
       );
     }
 
-    // Sub accounts get colors based on their type
-    return switch (account.type) {
-      0 => (
-        background: AppColors.green100,
-        border: AppColors.success,
-        icon: AppColors.success,
-      ), // أصول - Green
-      1 => (
-        background: AppColors.red100,
-        border: AppColors.error,
-        icon: AppColors.error,
-      ), // خصوم - Red
-      2 => (
-        background: AppColors.indigo100,
-        border: AppColors.indigo500,
-        icon: AppColors.indigo500,
-      ), // إيرادات - Indigo
-      3 => (
-        background: AppColors.green100,
-        border: AppColors.success,
-        icon: AppColors.success,
-      ), // مصروفات - Green
-      4 => (
-        background: AppColors.red100,
-        border: AppColors.error,
-        icon: AppColors.error,
-      ), // أخرى - Red
-      _ => (
-        background: Colors.grey[100]!,
-        border: Colors.grey[400]!,
-        icon: Colors.grey[600]!,
-      ), // Default
-    };
+    // Sub accounts get colors based on AccountType enum — type-safe
+    final accountType = AccountType.tryFromValue(account.type);
+    if (accountType != null) {
+      final colors = AccountColors.getColors(accountType);
+      return (background: colors.background, border: colors.border, icon: colors.icon);
+    }
+    return (
+      background: Colors.grey[100]!,
+      border: Colors.grey[400]!,
+      icon: Colors.grey[600]!,
+    );
   }
 }

@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/enums/app_date_format.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 
 class NumberFormatter {
@@ -31,18 +32,18 @@ class NumberFormatter {
 
 class DateFormatter {
   static String get _datePattern {
-    switch (SettingsCache.dateFormat) {
-      case 1:
-        return 'yyyy - MM - dd';
-      case 2:
-        return 'MM - dd - yyyy';
-      default:
-        return 'dd - MM - yyyy';
-    }
+    return switch (AppDateFormat.tryFromValue(SettingsCache.dateFormat)) {
+      AppDateFormat.yearMonthDay => 'yyyy - MM - dd',
+      AppDateFormat.monthDayYear => 'MM - dd - yyyy',
+      _ => 'dd - MM - yyyy',
+    };
   }
 
   static String get _timePattern {
-    return SettingsCache.timeFormat == 1 ? 'HH:mm' : 'hh:mm a';
+    return switch (AppTimeFormat.tryFromValue(SettingsCache.timeFormat)) {
+      AppTimeFormat.h24 => 'HH:mm',
+      _ => 'hh:mm a',
+    };
   }
 
   static String get _locale =>

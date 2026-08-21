@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/core/theme/app_color.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
+import 'package:muhasib/features/reports/domain/entities/transaction_entity.dart';
 import 'package:muhasib/features/reports/presentation/cubit/transactions_report_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/transactions_report_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
 import 'package:muhasib/features/reports/presentation/widgets/transaction_item_card_widget.dart';
-import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 
 class TransactionsReportPage extends StatefulWidget {
   const TransactionsReportPage({super.key});
@@ -70,15 +71,20 @@ class _TransactionsReportPageState extends State<TransactionsReportPage> {
   }
 
   String _getTypeLabel(String type) {
-    switch (type) {
-      case 'sales': return 'مبيعات';
-      case 'purchase': return 'مشتريات';
-      case 'journal': return 'قيد يومية';
-      case 'receipt': return 'قبض';
-      case 'payment': return 'صرف';
-      case 'opening': return 'افتتاحي';
-      default: return 'أخرى';
+    for (final e in TransactionType.values) {
+      if (e.name == type || e.value == type) return e.label;
     }
+    return switch (type) {
+      'sales' => TransactionType.sales.label,
+      'purchase' => TransactionType.purchase.label,
+      'journal' => TransactionType.journal.label,
+      'receipt' => TransactionType.receipt.label,
+      'payment' => TransactionType.payment.label,
+      'opening' => TransactionType.opening.label,
+      'sales_return' => TransactionType.salesReturn.label,
+      'purchase_return' => TransactionType.purchaseReturn.label,
+      _ => 'أخرى',
+    };
   }
 }
 

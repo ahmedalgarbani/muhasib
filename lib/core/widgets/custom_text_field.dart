@@ -16,6 +16,7 @@ class CustomTextField extends StatelessWidget {
   final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
+  final void Function(String)? onSubmitted;
   final void Function()? onTap;
   final bool obscureText;
   final TextCapitalization textCapitalization;
@@ -34,6 +35,7 @@ class CustomTextField extends StatelessWidget {
     this.inputFormatters,
     this.validator,
     this.onChanged,
+    this.onSubmitted,
     this.onTap,
     this.obscureText = false,
     this.textCapitalization = TextCapitalization.none,
@@ -52,6 +54,7 @@ class CustomTextField extends StatelessWidget {
       inputFormatters: inputFormatters,
       validator: validator,
       onChanged: onChanged,
+      onFieldSubmitted: onSubmitted,
       onTap: onTap,
       obscureText: obscureText,
       textCapitalization: textCapitalization,

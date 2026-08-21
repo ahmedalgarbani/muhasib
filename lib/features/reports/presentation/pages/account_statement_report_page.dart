@@ -38,6 +38,19 @@ class _AccountStatementReportPageState
           }
         },
         builder: (context, state) {
+          // Keep dropdown always visible — use cached accounts during loading/error.
+          List<Map<String, dynamic>> accounts = const [];
+          int? selectedId;
+          if (state is AccountStatementLoaded) {
+            accounts = state.accounts;
+            selectedId = state.selectedAccountId;
+          } else if (state is AccountStatementLoading) {
+            accounts = state.accounts;
+            selectedId = state.selectedAccountId;
+          }
+          // Also fall back to cubit's cached accounts via loaded state's last snapshot is not needed
+          // because Loading now carries them.
+
           return ReportBasePage(
             title: 'كشف حساب تفصيلي',
             icon: Icons.account_balance_wallet,
@@ -50,13 +63,18 @@ class _AccountStatementReportPageState
                 ? null
                 : () => _exportExcel(context),
             additionalFilters: [
-              if (state is AccountStatementLoaded)
+              if (accounts.isNotEmpty)
                 AccountStatementAccountSelectorWidget(
-                  selectedAccountId: state.selectedAccountId,
-                  accounts: state.accounts,
+                  selectedAccountId: selectedId,
+                  accounts: accounts,
                   onAccountSelected: (id) {
                     context.read<AccountStatementCubit>().selectAccount(id);
                   },
+                )
+              else if (state is AccountStatementLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: LinearProgressIndicator(),
                 ),
             ],
             reportBuilder: (filter) => _AccountStatementContent(filter: filter),
@@ -197,11 +215,13 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
           final summary = state.summary;
           return Column(
             children: [
-              Padding(
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
                 padding: AppConstant.defaultPadding,
                 child: Row(
                   children: [
-                    Expanded(
+                    SizedBox(
+                      width: 170,
                       child: ReportKpiCard(
                         title: 'رصيد أول الفترة',
                         value:
@@ -212,7 +232,8 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
+                    SizedBox(
+                      width: 170,
                       child: ReportKpiCard(
                         title: 'إجمالي الحركات المدينة',
                         value:
@@ -223,7 +244,8 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
+                    SizedBox(
+                      width: 170,
                       child: ReportKpiCard(
                         title: 'إجمالي الحركات الدائنة',
                         value:
@@ -234,7 +256,8 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
+                    SizedBox(
+                      width: 170,
                       child: ReportKpiCard(
                         title: 'الرصيد الختامي الصافي',
                         value:

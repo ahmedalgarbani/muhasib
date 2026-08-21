@@ -39,6 +39,9 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   WarehouseEntity? _selectedWarehouse;
   final List<StockAdjustmentLineEntity> _adjustmentLines = [];
   bool _pendingPost = false;
+  late final StockAdjustmentsCubit _stockAdjustmentsCubit;
+  late final WarehousesCubit _warehousesCubit;
+  late final ProductsCubit _productsCubit;
 
   final List<Map<String, String>> _adjustmentReasons = [
     {'value': 'damage', 'label': 'تلف'},
@@ -55,6 +58,9 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   @override
   void initState() {
     super.initState();
+    _stockAdjustmentsCubit = getIt<StockAdjustmentsCubit>();
+    _warehousesCubit = getIt<WarehousesCubit>()..loadActiveWarehouses();
+    _productsCubit = getIt<ProductsCubit>()..loadProducts();
     _generateDocumentNumber();
   }
 
@@ -66,6 +72,9 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
 
   @override
   void dispose() {
+    _stockAdjustmentsCubit.close();
+    _warehousesCubit.close();
+    _productsCubit.close();
     _documentNumberController.dispose();
     _statementController.dispose();
     super.dispose();
@@ -77,19 +86,16 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (context) => getIt<WarehousesCubit>()..loadActiveWarehouses(),
-        ),
-        BlocProvider(
-          create: (context) => getIt<ProductsCubit>()..loadProducts(),
-        ),
-        BlocProvider(create: (context) => getIt<StockAdjustmentsCubit>()),
+        BlocProvider.value(value: _warehousesCubit),
+        BlocProvider.value(value: _productsCubit),
+        BlocProvider.value(value: _stockAdjustmentsCubit),
       ],
       child: BlocListener<StockAdjustmentsCubit, StockAdjustmentsState>(
+        bloc: _stockAdjustmentsCubit,
         listener: (context, state) {
           if (state is AdjustmentCreated) {
             if (_pendingPost) {
-              context.read<StockAdjustmentsCubit>().postAdjustment(state.id);
+              _stockAdjustmentsCubit.postAdjustment(state.id);
             } else {
               AppToast.showSuccess(context, 'تم حفظ التسوية كمسودة');
               context.pop();
@@ -102,386 +108,394 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
           }
         },
         child: Scaffold(
-        backgroundColor: AppColors.neutral100,
-        appBar: CustomAppBar(
-          title: 'تسوية مخزنية',
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.history),
-              onPressed: () => _showHistoryDialog(context),
-              tooltip: 'سجل التسويات',
-            ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          padding: AppConstant.defaultPadding,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // Document Header Card
-                CustomCardContainer(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Padding(
-                    padding: AppConstant.defaultPadding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.receipt_long,
-                              color: colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'بيانات المستند',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: CustomTextField(
-                                controller: _documentNumberController,
-                                label: 'رقم المستند',
-                                hint: 'رقم المستند',
-                                prefixIcon: Icons.tag,
-                                readOnly: true,
+          backgroundColor: AppColors.neutral100,
+          appBar: CustomAppBar(
+            title: 'تسوية مخزنية',
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.history),
+                onPressed: () => _showHistoryDialog(context),
+                tooltip: 'سجل التسويات',
+              ),
+            ],
+          ),
+          body: SingleChildScrollView(
+            padding: AppConstant.defaultPadding,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Document Header Card
+                  CustomCardContainer(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Padding(
+                      padding: AppConstant.defaultPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.receipt_long,
+                                color: colorScheme.primary,
                               ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: InkWell(
-                                onTap: () => _selectDate(context),
-                                child: InputDecorator(
-                                  decoration: InputDecoration(
-                                    labelText: 'التاريخ',
-                                    prefixIcon: const Icon(
-                                      Icons.calendar_today,
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(
-                                        AppRadius.md,
+                              const SizedBox(width: 8),
+                              Text(
+                                'بيانات المستند',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: CustomTextField(
+                                  controller: _documentNumberController,
+                                  label: 'رقم المستند',
+                                  hint: 'رقم المستند',
+                                  prefixIcon: Icons.tag,
+                                  readOnly: true,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: InkWell(
+                                  onTap: () => _selectDate(context),
+                                  child: InputDecorator(
+                                    decoration: InputDecoration(
+                                      labelText: 'التاريخ',
+                                      prefixIcon: const Icon(
+                                        Icons.calendar_today,
                                       ),
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(
+                                          AppRadius.md,
+                                        ),
+                                      ),
+                                      filled: true,
+                                      fillColor: Colors.grey[50],
                                     ),
-                                    filled: true,
-                                    fillColor: Colors.grey[50],
-                                  ),
-                                  child: Text(
-                                    '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day}',
+                                    child: Text(
+                                      '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day}',
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Adjustment Type Card
-                CustomCardContainer(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Padding(
-                    padding: AppConstant.defaultPadding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.tune, color: colorScheme.primary),
-                            const SizedBox(width: 8),
-                            Text(
-                              'نوع التسوية',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RadioListTile<String>(
-                                title: const Text('نقص'),
-                                subtitle: const Text('خصم من المخزون'),
-                                value: 'decrease',
-                                groupValue: _adjustmentType,
-                                onChanged: (value) {
-                                  setState(() => _adjustmentType = value!);
-                                },
-                                activeColor: Colors.red,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                            Expanded(
-                              child: RadioListTile<String>(
-                                title: const Text('زيادة'),
-                                subtitle: const Text('إضافة للمخزون'),
-                                value: 'increase',
-                                groupValue: _adjustmentType,
-                                onChanged: (value) {
-                                  setState(() => _adjustmentType = value!);
-                                },
-                                activeColor: Colors.green,
-                                contentPadding: EdgeInsets.zero,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child:
-                                  BlocBuilder<WarehousesCubit, WarehousesState>(
-                                    builder: (context, state) {
-                                      List<WarehouseEntity> warehouses = [];
-                                      if (state is WarehousesLoaded) {
-                                        warehouses = state.warehouses;
-                                      }
-
-                                      return CustomDropdownField<
-                                        WarehouseEntity
-                                      >(
-                                        value: _selectedWarehouse,
-                                        label: 'المخزن',
-                                        prefixIcon: const Icon(Icons.warehouse),
-                                        items: warehouses.map((warehouse) {
-                                          return DropdownMenuItem(
-                                            value: warehouse,
-                                            child: Text(warehouse.name),
-                                          );
-                                        }).toList(),
-                                        onChanged: (value) {
-                                          setState(
-                                            () => _selectedWarehouse = value,
-                                          );
-                                        },
-                                        validator: (value) {
-                                          if (value == null) {
-                                            return 'يرجى اختيار المخزن';
-                                          }
-                                          return null;
-                                        },
-                                      );
-                                    },
-                                  ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: CustomDropdownField<String>(
-                                value: _adjustmentReason,
-                                label: 'السبب',
-                                prefixIcon: const Icon(Icons.help_outline),
-                                items: _adjustmentReasons.map((reason) {
-                                  return DropdownMenuItem(
-                                    value: reason['value'],
-                                    child: Text(reason['label']!),
-                                  );
-                                }).toList(),
-                                onChanged: (value) {
-                                  setState(() => _adjustmentReason = value!);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                  // Adjustment Type Card
+                  CustomCardContainer(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 16),
+                    child: Padding(
+                      padding: AppConstant.defaultPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.tune, color: colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                'نوع التسوية',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: const Text('نقص'),
+                                  subtitle: const Text('خصم من المخزون'),
+                                  value: 'decrease',
+                                  groupValue: _adjustmentType,
+                                  onChanged: (value) {
+                                    setState(() => _adjustmentType = value!);
+                                  },
+                                  activeColor: Colors.red,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                              Expanded(
+                                child: RadioListTile<String>(
+                                  title: const Text('زيادة'),
+                                  subtitle: const Text('إضافة للمخزون'),
+                                  value: 'increase',
+                                  groupValue: _adjustmentType,
+                                  onChanged: (value) {
+                                    setState(() => _adjustmentType = value!);
+                                  },
+                                  activeColor: Colors.green,
+                                  contentPadding: EdgeInsets.zero,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Row(
+                            children: [
+                              Expanded(
+                                child:
+                                    BlocBuilder<
+                                      WarehousesCubit,
+                                      WarehousesState
+                                    >(
+                                      builder: (context, state) {
+                                        List<WarehouseEntity> warehouses = [];
+                                        if (state is WarehousesLoaded) {
+                                          warehouses = state.warehouses;
+                                        }
 
-                // Product Lines Card
-                CustomCardContainer(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Padding(
-                    padding: AppConstant.defaultPadding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.inventory,
-                                  color: colorScheme.primary,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'الأصناف',
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.bold),
-                                ),
-                              ],
-                            ),
-                            HasibButton(
-                              label: 'إضافة صنف',
-                              onPressed: () => _addProductLine(context),
-                              leading: const Icon(Icons.add),
-                              variant: HasibButtonVariant.primary,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        if (_adjustmentLines.isEmpty)
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            alignment: Alignment.center,
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.inbox,
-                                  size: 48,
-                                  color: Colors.grey[400],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'لا توجد أصناف',
-                                  style: TextStyle(color: Colors.grey[600]),
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: _adjustmentLines.length,
-                            separatorBuilder: (context, index) =>
-                                const Divider(),
-                            itemBuilder: (context, index) {
-                              final line = _adjustmentLines[index];
-                              return ListTile(
-                                leading: CircleAvatar(
-                                  backgroundColor: _adjustmentType == 'increase'
-                                      ? Colors.green.withOpacity(0.1)
-                                      : Colors.red.withOpacity(0.1),
-                                  child: Icon(
-                                    _adjustmentType == 'increase'
-                                        ? Icons.add
-                                        : Icons.remove,
-                                    color: _adjustmentType == 'increase'
-                                        ? Colors.green
-                                        : Colors.red,
-                                  ),
-                                ),
-                                title: Text(
-                                  line.statement.isEmpty
-                                      ? 'صنف ${index + 1}'
-                                      : line.statement,
-                                ),
-                                subtitle: Text(
-                                  'الكمية: ${line.quantity} | القيمة: ${line.amount.toStringAsFixed(2)}',
-                                ),
-                                trailing: IconButton(
-                                  icon: const Icon(
-                                    Icons.delete_outline,
-                                    color: Colors.red,
-                                  ),
-                                  onPressed: () {
-                                    setState(() {
-                                      _adjustmentLines.removeAt(index);
-                                    });
+                                        return CustomDropdownField<
+                                          WarehouseEntity
+                                        >(
+                                          value: _selectedWarehouse,
+                                          label: 'المخزن',
+                                          prefixIcon: const Icon(
+                                            Icons.warehouse,
+                                          ),
+                                          items: warehouses.map((warehouse) {
+                                            return DropdownMenuItem(
+                                              value: warehouse,
+                                              child: Text(warehouse.name),
+                                            );
+                                          }).toList(),
+                                          onChanged: (value) {
+                                            setState(
+                                              () => _selectedWarehouse = value,
+                                            );
+                                          },
+                                          validator: (value) {
+                                            if (value == null) {
+                                              return 'يرجى اختيار المخزن';
+                                            }
+                                            return null;
+                                          },
+                                        );
+                                      },
+                                    ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: CustomDropdownField<String>(
+                                  value: _adjustmentReason,
+                                  label: 'السبب',
+                                  prefixIcon: const Icon(Icons.help_outline),
+                                  items: _adjustmentReasons.map((reason) {
+                                    return DropdownMenuItem(
+                                      value: reason['value'],
+                                      child: Text(reason['label']!),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() => _adjustmentReason = value!);
                                   },
                                 ),
-                              );
-                            },
+                              ),
+                            ],
                           ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-                // Notes Card
-                CustomCardContainer(
-                  elevation: 2,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(AppRadius.md),
-                  ),
-                  child: Padding(
-                    padding: AppConstant.defaultPadding,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(Icons.note, color: colorScheme.primary),
-                            const SizedBox(width: 8),
-                            Text(
-                              'ملاحظات',
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.bold),
+                  // Product Lines Card
+                  CustomCardContainer(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Padding(
+                      padding: AppConstant.defaultPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.inventory,
+                                    color: colorScheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'الأصناف',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              HasibButton(
+                                label: 'إضافة صنف',
+                                onPressed: () => _addProductLine(context),
+                                leading: const Icon(Icons.add),
+                                variant: HasibButtonVariant.primary,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          if (_adjustmentLines.isEmpty)
+                            Container(
+                              padding: const EdgeInsets.all(16),
+                              alignment: Alignment.center,
+                              child: Column(
+                                children: [
+                                  Icon(
+                                    Icons.inbox,
+                                    size: 48,
+                                    color: Colors.grey[400],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'لا توجد أصناف',
+                                    style: TextStyle(color: Colors.grey[600]),
+                                  ),
+                                ],
+                              ),
+                            )
+                          else
+                            ListView.separated(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemCount: _adjustmentLines.length,
+                              separatorBuilder: (context, index) =>
+                                  const Divider(),
+                              itemBuilder: (context, index) {
+                                final line = _adjustmentLines[index];
+                                return ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor:
+                                        _adjustmentType == 'increase'
+                                        ? Colors.green.withOpacity(0.1)
+                                        : Colors.red.withOpacity(0.1),
+                                    child: Icon(
+                                      _adjustmentType == 'increase'
+                                          ? Icons.add
+                                          : Icons.remove,
+                                      color: _adjustmentType == 'increase'
+                                          ? Colors.green
+                                          : Colors.red,
+                                    ),
+                                  ),
+                                  title: Text(
+                                    line.statement.isEmpty
+                                        ? 'صنف ${index + 1}'
+                                        : line.statement,
+                                  ),
+                                  subtitle: Text(
+                                    'الكمية: ${line.quantity} | القيمة: ${line.amount.toStringAsFixed(2)}',
+                                  ),
+                                  trailing: IconButton(
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red,
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        _adjustmentLines.removeAt(index);
+                                      });
+                                    },
+                                  ),
+                                );
+                              },
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        CustomTextField(
-                          controller: _statementController,
-                          label: 'الملاحظات',
-                          hint: 'أدخل أي ملاحظات إضافية',
-                          prefixIcon: Icons.comment,
-                          maxLines: 3,
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
+                  const SizedBox(height: 16),
 
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: HasibButton(
-                        label: 'حفظ كمسودة',
-                        onPressed: _adjustmentLines.isEmpty
-                            ? null
-                            : () => _saveAdjustment('draft'),
-                        leading: const Icon(Icons.save),
-                        variant: HasibButtonVariant.secondary,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                  // Notes Card
+                  CustomCardContainer(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                    ),
+                    child: Padding(
+                      padding: AppConstant.defaultPadding,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.note, color: colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                'ملاحظات',
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          CustomTextField(
+                            controller: _statementController,
+                            label: 'الملاحظات',
+                            hint: 'أدخل أي ملاحظات إضافية',
+                            prefixIcon: Icons.comment,
+                            maxLines: 3,
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: HasibButton(
-                        label: 'ترحيل',
-                        onPressed: _adjustmentLines.isEmpty
-                            ? null
-                            : () => _postAdjustment(),
-                        leading: const Icon(Icons.check),
-                        variant: HasibButtonVariant.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Action Buttons
+                  Row(
+                    children: [
+                      Expanded(
+                        child: HasibButton(
+                          label: 'حفظ كمسودة',
+                          onPressed: _adjustmentLines.isEmpty
+                              ? null
+                              : () => _saveAdjustment('draft'),
+                          leading: const Icon(Icons.save),
+                          variant: HasibButtonVariant.secondary,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: HasibButton(
+                          label: 'ترحيل',
+                          onPressed: _adjustmentLines.isEmpty
+                              ? null
+                              : () => _postAdjustment(),
+                          leading: const Icon(Icons.check),
+                          variant: HasibButtonVariant.primary,
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                ],
+              ),
             ),
           ),
-        ),
         ),
       ),
     );
@@ -507,7 +521,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
       return;
     }
 
-    final product = await showProductPicker(context);
+    final product = await showProductPicker(context, cubit: _productsCubit);
     if (product == null) return;
 
     final input = await _showLineInputDialog(product);
@@ -619,9 +633,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
     if (!_validateAdjustment()) return;
 
     _pendingPost = false;
-    context
-        .read<StockAdjustmentsCubit>()
-        .createAdjustment(_buildAdjustmentEntity());
+    _stockAdjustmentsCubit.createAdjustment(_buildAdjustmentEntity());
   }
 
   void _postAdjustment() {
@@ -681,9 +693,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
             onPressed: () {
               Navigator.pop(context);
               _pendingPost = true;
-              context
-                  .read<StockAdjustmentsCubit>()
-                  .createAdjustment(_buildAdjustmentEntity());
+              _stockAdjustmentsCubit.createAdjustment(_buildAdjustmentEntity());
             },
             variant: HasibButtonVariant.success,
           ),

@@ -26,7 +26,7 @@ class _TrialBalanceReportPageState extends State<TrialBalanceReportPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => getIt<TrialBalanceCubit>()..loadTrialBalance(),
+      create: (context) => getIt<TrialBalanceCubit>()..loadTrialBalance(ReportFilter.currentMonth()),
       child: BlocConsumer<TrialBalanceCubit, TrialBalanceState>(
         listener: (context, state) {
           if (state is TrialBalanceLoaded) setState(() => _lastState = state);
@@ -125,14 +125,14 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<TrialBalanceCubit>().updateDateRange(widget.filter);
+      if (mounted) context.read<TrialBalanceCubit>().updateDateRange(widget.filter);
     });
   }
 
   @override
   void didUpdateWidget(_TrialBalanceContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.filter != widget.filter) {
+    if (oldWidget.filter != widget.filter && mounted) {
       context.read<TrialBalanceCubit>().updateDateRange(widget.filter);
     }
   }
@@ -172,52 +172,58 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
             padding: AppConstant.defaultPadding,
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: ReportKpiCard(
-                        title: 'الرصيد الافتتاحي',
-                        value:
-                            '${state.summary.openingDebit.toStringAsFixed(0)} ر.س',
-                        icon: Icons.account_balance_wallet,
-                        color: Colors.blue[700]!,
-                        subtitle: state.summary.openingDifference.abs() < 0.01
-                            ? 'متوازن ✓'
-                            : 'فرق: ${state.summary.openingDifference.abs().toStringAsFixed(1)}',
-                        isPositiveTrend:
-                            state.summary.openingDifference.abs() < 0.01,
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 170,
+                        child: ReportKpiCard(
+                          title: 'الرصيد الافتتاحي',
+                          value:
+                              '${state.summary.openingDebit.toStringAsFixed(0)} ر.س',
+                          icon: Icons.account_balance_wallet,
+                          color: Colors.blue[700]!,
+                          subtitle: state.summary.openingDifference.abs() < 0.01
+                              ? 'متوازن ✓'
+                              : 'فرق: ${state.summary.openingDifference.abs().toStringAsFixed(1)}',
+                          isPositiveTrend:
+                              state.summary.openingDifference.abs() < 0.01,
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ReportKpiCard(
-                        title: 'حركات الفترة',
-                        value:
-                            '${state.summary.periodDebit.toStringAsFixed(0)} ر.س',
-                        icon: Icons.swap_vert,
-                        color: Colors.purple[700]!,
-                        subtitle: 'إجمالي مدين/دائن',
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 170,
+                        child: ReportKpiCard(
+                          title: 'حركات الفترة',
+                          value:
+                              '${state.summary.periodDebit.toStringAsFixed(0)} ر.س',
+                          icon: Icons.swap_vert,
+                          color: Colors.purple[700]!,
+                          subtitle: 'إجمالي مدين/دائن',
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ReportKpiCard(
-                        title: 'الرصيد الختامي',
-                        value:
-                            '${state.summary.closingDebit.toStringAsFixed(0)} ر.س',
-                        icon: isClosingBalanced
-                            ? Icons.check_circle
-                            : Icons.warning,
-                        color: isClosingBalanced
-                            ? Colors.green[700]!
-                            : Colors.red[700]!,
-                        subtitle: isClosingBalanced
-                            ? 'ميزان متوازن ✓'
-                            : 'فرق: ${state.summary.closingDifference.abs().toStringAsFixed(1)} ⚠',
-                        isPositiveTrend: isClosingBalanced,
+                      const SizedBox(width: 12),
+                      SizedBox(
+                        width: 170,
+                        child: ReportKpiCard(
+                          title: 'الرصيد الختامي',
+                          value:
+                              '${state.summary.closingDebit.toStringAsFixed(0)} ر.س',
+                          icon: isClosingBalanced
+                              ? Icons.check_circle
+                              : Icons.warning,
+                          color: isClosingBalanced
+                              ? Colors.green[700]!
+                              : Colors.red[700]!,
+                          subtitle: isClosingBalanced
+                              ? 'ميزان متوازن ✓'
+                              : 'فرق: ${state.summary.closingDifference.abs().toStringAsFixed(1)} ⚠',
+                          isPositiveTrend: isClosingBalanced,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 10),
                 ReportDataTable<TrialBalanceEntity>(

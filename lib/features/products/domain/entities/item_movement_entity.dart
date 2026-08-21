@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:muhasib/core/enums/item_movement_doc_type.dart';
 
 class ItemMovementEntity extends Equatable {
   final int docNo;
@@ -71,25 +72,10 @@ class ItemMovementEntity extends Equatable {
 
   double get netQuantity => quantityIn - quantityOut;
   
+  ItemMovementDocType? get docTypeEnum => ItemMovementDocType.tryFromValue(transDocType);
+
   String get movementTypeString {
-    switch (transDocType) {
-      case 1:
-        return 'فاتورة مبيعات';
-      case 2:
-        return 'فاتورة مشتريات';
-      case 3:
-        return 'عرض سعر';
-      case 4:
-        return 'مرتجع مبيعات';
-      case 5:
-        return 'مرتجع مشتريات';
-      case 6:
-        return 'تحويل مخزني';
-      case 7:
-        return 'جرد مخزني';
-      default:
-        return 'حركة أخرى';
-    }
+    return docTypeEnum?.labelAr ?? 'حركة أخرى';
   }
 
   @override

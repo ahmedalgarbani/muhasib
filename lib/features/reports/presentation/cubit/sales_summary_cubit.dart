@@ -12,7 +12,7 @@ class SalesSummaryCubit extends Cubit<SalesSummaryState> {
   Future<void> loadSalesSummary([ReportFilter? filter]) async {
     emit(SalesSummaryLoading());
 
-    _currentFilter = filter ?? ReportFilter();
+    _currentFilter = filter ?? _currentFilter ?? ReportFilter.currentMonth();
 
     final result = await repository.getSalesSummary(filter: _currentFilter!);
 

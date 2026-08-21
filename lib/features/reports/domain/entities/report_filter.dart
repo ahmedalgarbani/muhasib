@@ -28,18 +28,47 @@ class ReportFilter {
     int? productId,
     int? warehouseId,
     String? searchQuery,
+    bool clearStartDate = false,
+    bool clearEndDate = false,
+    bool clearSearchQuery = false,
   }) {
     return ReportFilter(
-      startDate: startDate ?? this.startDate,
-      endDate: endDate ?? this.endDate,
+      startDate: clearStartDate ? null : (startDate ?? this.startDate),
+      endDate: clearEndDate ? null : (endDate ?? this.endDate),
       accountId: accountId ?? this.accountId,
       customerId: customerId ?? this.customerId,
       supplierId: supplierId ?? this.supplierId,
       productId: productId ?? this.productId,
       warehouseId: warehouseId ?? this.warehouseId,
-      searchQuery: searchQuery ?? this.searchQuery,
+      searchQuery: clearSearchQuery ? null : (searchQuery ?? this.searchQuery),
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ReportFilter &&
+          runtimeType == other.runtimeType &&
+          startDate == other.startDate &&
+          endDate == other.endDate &&
+          accountId == other.accountId &&
+          customerId == other.customerId &&
+          supplierId == other.supplierId &&
+          productId == other.productId &&
+          warehouseId == other.warehouseId &&
+          searchQuery == other.searchQuery;
+
+  @override
+  int get hashCode => Object.hash(
+        startDate,
+        endDate,
+        accountId,
+        customerId,
+        supplierId,
+        productId,
+        warehouseId,
+        searchQuery,
+      );
 
   // Default filter for current month
   factory ReportFilter.currentMonth() {

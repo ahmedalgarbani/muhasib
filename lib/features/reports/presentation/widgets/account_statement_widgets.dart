@@ -18,11 +18,18 @@ class AccountStatementAccountSelectorWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Guard: DropdownButtonFormField throws if value is not in items.
+    final ids = accounts.map((a) => a['id'] as int).toSet();
+    final safeValue = (selectedAccountId != null && ids.contains(selectedAccountId))
+        ? selectedAccountId
+        : null;
+
     return Container(
       padding: const EdgeInsets.only(bottom: 16),
       child: CustomDropdownField<int>(
         label: 'اختر الحساب المطلوب',
-        value: selectedAccountId,
+        value: safeValue,
+        hint: accounts.isEmpty ? 'لا توجد حسابات' : 'اختر حساباً',
         prefixIcon: const Icon(Icons.account_tree),
         items: accounts
             .map(

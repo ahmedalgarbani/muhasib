@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/enums/quick_date_range.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -45,6 +46,22 @@ class _ReportBasePageState extends State<ReportBasePage> {
   void initState() {
     super.initState();
     _filter = ReportFilter.currentMonth();
+    // If the page provides an always-required filter (e.g. account selector),
+    // show the filter panel by default so the control is immediately visible.
+    if (widget.additionalFilters != null && widget.additionalFilters!.isNotEmpty) {
+      _showFilters = true;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ReportBasePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.additionalFilters != null &&
+        widget.additionalFilters!.isNotEmpty &&
+        (oldWidget.additionalFilters == null ||
+            oldWidget.additionalFilters!.isEmpty)) {
+      setState(() => _showFilters = true);
+    }
   }
 
   @override
@@ -93,33 +110,24 @@ class _ReportBasePageState extends State<ReportBasePage> {
   }
 
   void _applyQuickFilter(String type) {
+    final range = QuickDateRange.tryFromCode(type);
     final now = DateTime.now();
     setState(() {
-      switch (type) {
-        case 'today':
-          _filter = _filter.copyWith(
-            startDate: DateTime(now.year, now.month, now.day),
-            endDate: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
-          );
-          break;
-        case 'week':
+      _filter = switch (range) {
+        QuickDateRange.today => _filter.copyWith(
+          startDate: DateTime(now.year, now.month, now.day),
+          endDate: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
+        ),
+        QuickDateRange.week => () {
           final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-          _filter = _filter.copyWith(
-            startDate: DateTime(
-              startOfWeek.year,
-              startOfWeek.month,
-              startOfWeek.day,
-            ),
+          return _filter.copyWith(
+            startDate: DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day),
             endDate: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
           );
-          break;
-        case 'month':
-          _filter = ReportFilter.currentMonth();
-          break;
-        case 'year':
-          _filter = ReportFilter.currentYear();
-          break;
-      }
+        }(),
+        QuickDateRange.year => ReportFilter.currentYear(),
+        _ => ReportFilter.currentMonth(),
+      };
     });
   }
 
@@ -130,6 +138,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep RTL context but allow inner scrollables to behave naturally.
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Scaffold(
@@ -240,8 +249,11 @@ class _ReportBasePageState extends State<ReportBasePage> {
               ),
             ),
 
-            // Search bar & Quick filters
-            if (widget.showSearch || (_showFilters && widget.showDateFilter))
+            // Search bar & Quick filters — required additionalFilters are ALWAYS visible
+            if (widget.showSearch ||
+                (_showFilters && widget.showDateFilter) ||
+                (widget.additionalFilters != null &&
+                    widget.additionalFilters!.isNotEmpty))
               Container(
                 color: Theme.of(context).colorScheme.surface,
                 padding: const EdgeInsets.symmetric(
@@ -341,10 +353,15 @@ class _ReportBasePageState extends State<ReportBasePage> {
                           ],
                         ),
                       ),
-                      if (widget.additionalFilters != null) ...[
-                        const Divider(height: 16),
-                        ...widget.additionalFilters!,
-                      ],
+                    ],
+                    // Mandatory filters (e.g. account selector) — always visible
+                    if (widget.additionalFilters != null &&
+                        widget.additionalFilters!.isNotEmpty) ...[
+                      if (_showFilters && widget.showDateFilter)
+                        const Divider(height: 16)
+                      else if (widget.showSearch)
+                        const SizedBox(height: 8),
+                      ...widget.additionalFilters!,
                     ],
                   ],
                 ),

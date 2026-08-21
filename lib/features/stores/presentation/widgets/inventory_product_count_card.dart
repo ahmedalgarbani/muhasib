@@ -52,6 +52,7 @@ class InventoryProductCountCard extends StatelessWidget {
                     label: 'البحث عن منتج',
                     hint: 'اسم المنتج أو الباركود',
                     prefixIcon: Icons.search,
+                    onSubmitted: (_) => onAddProduct(),
                     suffixIcon: IconButton(
                       icon: const Icon(Icons.qr_code_scanner),
                       onPressed: onScanBarcode,

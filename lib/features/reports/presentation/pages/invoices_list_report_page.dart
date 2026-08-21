@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/enums/approval_status.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
-import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
-import 'package:muhasib/core/helpers/buildsnackbar.dart';
-import 'package:muhasib/core/helpers/formatters.dart';
-import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/reports/presentation/widgets/invoice_report_components.dart';
+import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 
 class InvoicesListReportPage extends StatefulWidget {
   final String title;
@@ -107,18 +108,7 @@ class _InvoicesListReportPageState extends State<InvoicesListReportPage> {
   }
 
   String _getStatusLabel(int status) {
-    switch (status) {
-      case 1:
-        return 'مُرحّلة';
-      case 2:
-        return 'مسودة';
-      case 3:
-        return 'ملغاة';
-      case 4:
-        return 'مرتجعة';
-      default:
-        return 'غير محدد';
-    }
+    return ApprovalStatus.tryFromValue(status)?.labelAr ?? 'غير محدد';
   }
 }
 

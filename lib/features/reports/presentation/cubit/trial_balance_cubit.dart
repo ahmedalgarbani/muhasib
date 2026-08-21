@@ -12,7 +12,7 @@ class TrialBalanceCubit extends Cubit<TrialBalanceState> {
   Future<void> loadTrialBalance([ReportFilter? filter]) async {
     emit(TrialBalanceLoading());
 
-    _currentFilter = filter ?? ReportFilter();
+    _currentFilter = filter ?? _currentFilter ?? ReportFilter.currentMonth();
 
     final accountsResult = await repository.getTrialBalance(filter: _currentFilter!);
     final summaryResult = await repository.getTrialBalanceSummary(filter: _currentFilter!);
