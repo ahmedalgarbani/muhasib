@@ -1,4 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:muhasib/core/enums/voucher_status.dart';
+
+export 'package:muhasib/core/enums/voucher_status.dart';
 
 enum VoucherType {
   receipt,
@@ -99,6 +102,10 @@ class VoucherEntity extends Equatable {
   final int? parentId;
   final int status;
   final List<VoucherLineEntity> lines;
+
+  /// Type-safe accessor — use instead of raw `status` int
+  VoucherStatus get statusEnum => VoucherStatus.fromValue(status);
+  bool get isCancelled => statusEnum == VoucherStatus.cancelled;
 
   const VoucherEntity({
     this.id,

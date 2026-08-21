@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/constant/app_db_constants.dart';
 import 'package:muhasib/core/enums/account_type.dart';
 import 'package:muhasib/core/enums/journal_entry_type.dart' as core_journal;
 import 'package:muhasib/core/errors/failure.dart';
@@ -39,7 +40,7 @@ class ClosingEntriesService {
   Future<String> _generateJournalNumberTxn(Transaction txn, String prefix) async {
     final result = await txn.rawQuery("SELECT COALESCE(MAX(CAST(SUBSTR(number, ${prefix.length + 2}) AS INTEGER)), 0) + 1 as next FROM journal_entries WHERE number LIKE '$prefix-%'");
     final next = (result.first['next'] as int?) ?? 1;
-    return '$prefix-${next.toString().padLeft(6, '0')}';
+    return '$prefix-${next.toString().padLeft(AppDbConstants.defaultNumberPadding, '0')}';
   }
 
   /// Legacy non-txn version (kept for compatibility)

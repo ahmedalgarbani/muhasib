@@ -1,3 +1,4 @@
+import 'package:muhasib/core/constant/app_db_constants.dart';
 import 'table_schema.dart';
 
 class VouchersTable implements TableSchema {
@@ -16,8 +17,8 @@ class VouchersTable implements TableSchema {
       last_modifier_id INTEGER NULL DEFAULT 1,
       concurrency_stamp TEXT NULL,
       extra_properties TEXT NULL,
-      creation_time INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK(creation_time > 946674000),
-      last_modification_time INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK(last_modification_time > 946674000),
+      creation_time INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK(creation_time > ${AppDbConstants.minValidTimestamp}),
+      last_modification_time INTEGER NOT NULL DEFAULT (CAST(strftime('%s', CURRENT_TIMESTAMP) AS INTEGER)) CHECK(last_modification_time > ${AppDbConstants.minValidTimestamp}),
       type INTEGER NOT NULL,
       number INTEGER NOT NULL,
       date INTEGER NOT NULL,

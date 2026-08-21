@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dartz/dartz.dart';
+import 'package:muhasib/core/enums/commission_type.dart';
 import 'package:muhasib/core/enums/invoice_trans_type.dart';
 import 'package:muhasib/core/enums/stock_movement_type.dart';
 import 'package:muhasib/core/errors/exceptions.dart';
@@ -806,17 +807,15 @@ class SalesInvoiceAccountingService {
     
     final agent = agentResult.first;
     final commissionRate = (agent['commission_rate'] as num?)?.toDouble() ?? 0.0;
-    final commissionType = agent['commission_type'] as int? ?? 0;
+    final commissionType = CommissionType.tryFromValue(agent['commission_type'] as int?) ?? CommissionType.percentage;
     final commissionAccountId = agent['commission_account_id'] as int?;
     
     if (commissionRate == 0) return null;
     
     double commissionAmount;
-    if (commissionType == 0) {
-      // Percentage
+    if (commissionType == CommissionType.percentage) {
       commissionAmount = invoiceAmount * (commissionRate / 100);
     } else {
-      // Fixed per invoice
       commissionAmount = commissionRate;
     }
     
@@ -827,7 +826,7 @@ class SalesInvoiceAccountingService {
       'invoice_amount': invoiceAmount,
       'commission_rate': commissionRate,
       'commission_amount': commissionAmount,
-      'status': 0, // Pending
+      'status': CommissionStatus.pending.value,
       'creation_time': now,
     });
     

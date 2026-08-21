@@ -1,4 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:muhasib/core/enums/price_level.dart';
+
+export 'package:muhasib/core/enums/price_level.dart';
 
 class ProductPriceEntity extends Equatable {
   final int? id;
@@ -16,6 +19,8 @@ class ProductPriceEntity extends Equatable {
   final String? extraProperties;
   final int? creationTime;
   final int? lastModificationTime;
+
+  PriceLevel get priceLevelEnum => PriceLevel.tryFromValue(priceLevel) ?? PriceLevel.retail;
 
   const ProductPriceEntity({
     this.id,
