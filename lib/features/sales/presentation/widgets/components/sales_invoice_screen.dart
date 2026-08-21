@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/number_sequence_service.dart';
+import 'package:muhasib/core/services/precision_helper.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
@@ -134,12 +135,12 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
               : 1);
     final derivedTransType = isQuotation
         ? 0
-        : (_invoice.remaining > 0 ? 1 : 0); // 0=cash, 1=deferred
+        : (_invoice.remaining.abs() < 0.01 ? 0 : (_invoice.remaining > 0 ? 1 : 0)); // 0=cash, 1=deferred مع تسامح
     final derivedPaymentStatus = isQuotation
         ? 0
-        : (_invoice.paid >= _invoice.total
+        : (_invoice.remaining.abs() < 0.01
             ? 2 // fully paid
-            : (_invoice.paid > 0 ? 1 : 0)); // 1=partial, 0=unpaid
+            : (_invoice.paid > 0.01 ? 1 : 0)); // 1=partial, 0=unpaid
 
     // Cash portion actually paid now; bank portion goes to its own account;
     // remainder (deferred) becomes customer receivable.
@@ -186,10 +187,15 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
         final lineDiscountAmt = 0.0; // No line discount for now
         final lineTaxAmt = 0.0; // No line tax for now
         final lineTotalAmt = item.price * item.quantity;
-
+        final baseQty = PrecisionHelper.calcBaseQuantity(
+          quantity: item.quantity.toDouble(),
+          packaging: item.packaging,
+          conversionRate: item.conversionRate,
+        );
+        final baseCost = item.costPrice ?? 0;
         return InvoiceLineEntity(
           invoiceType: widget.invoiceType.value,
-          amount: item.price,
+          amount: lineTotalAmt,
           totalAmount: lineTotalAmt,
           taxAmt: lineTaxAmt,
           taxRatio: 0,
@@ -199,19 +205,26 @@ class _SalesInvoiceScreenState extends State<SalesInvoiceScreen> {
           otherFeeNetRatio: 0,
           netRevenueAmt: lineTotalAmt,
           quantity: item.quantity.toDouble(),
-          groupId: 1, // TODO: Get from product
-          unitId: 1, // TODO: Get from product
-          categorySubUnitId: 1, // Required field - using default
+          groupId: item.groupId ?? 1,
+          unitId: item.unitId ?? 1,
+          categorySubUnitId: item.subUnitId ?? 1,
           stockId: SettingsCache.defaultWarehouse,
-          categoryId: int.tryParse(item.id) ?? 1, // Use item ID as category ID
-          invoiceId: 0, // Will be set by database
+          categoryId: int.tryParse(item.id) ?? 1,
+          invoiceId: 0,
           customerId: derivedCustomerId ?? 1,
           invoiceTransType: derivedTransType,
-          date: _invoice.date.millisecondsSinceEpoch,
+          date: _invoice.date.millisecondsSinceEpoch ~/ 1000,
           creatorId: 1,
           lastModifierId: 1,
           creationTime: DateTime.now().millisecondsSinceEpoch,
           lastModificationTime: DateTime.now().millisecondsSinceEpoch,
+          baseQuantity: baseQty,
+          conversionRate: item.conversionRate,
+          packaging: item.packaging,
+          costPrice: baseCost,
+          costTotal: PrecisionHelper.roundCurrency(baseCost * baseQty),
+          price: item.price,
+          sellingPrice: item.price,
         );
       }).toList(),
     );

@@ -336,8 +336,8 @@ class Invoice {
     required this.number,
     this.customer,
     required this.date,
-    this.currency = 'ريال سعودي',
-    this.warehouse = 'المخزن الرئيسي',
+    this.currency = 'SAR', // dynamic: overridden by CurrenciesCubit / local currency at runtime, was 'ريال سعودي'
+    this.warehouse = '', // dynamic: overridden by WarehousesCubit / stocks table, was 'المخزن الرئيسي'
     this.warehouseId,
     this.items = const [],
     required this.discount,
@@ -366,9 +366,10 @@ class Invoice {
   double get remaining => total - paid;
 
   bool get isValid => customer != null && items.isNotEmpty;
-  bool get isFullyPaid => remaining == 0;
-  bool get isPartiallyPaid => paid > 0 && remaining > 0;
-  bool get isUnpaid => paid == 0;
+  // استخدم تسامح 0.01 لتجنب أخطاء الفاصلة العائمة عند مقارنة الباقي بصفر
+  bool get isFullyPaid => remaining.abs() < 0.01;
+  bool get isPartiallyPaid => paid > 0.01 && remaining > 0.01;
+  bool get isUnpaid => paid.abs() < 0.01;
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
     return Invoice(
@@ -377,8 +378,8 @@ class Invoice {
           ? Customer.fromJson(json['customer'])
           : null,
       date: DateTime.parse(json['date']),
-      currency: json['currency'] ?? 'ريال سعودي',
-      warehouse: json['warehouse'] ?? 'المخزن الرئيسي',
+      currency: json['currency'] ?? 'SAR',
+      warehouse: json['warehouse'] ?? '',
       warehouseId: json['warehouse_id'] as int?,
       items:
           (json['items'] as List?)

@@ -61,6 +61,10 @@ class _PosPageState extends State<PosPage> {
   bool _isSplitPayment = false;
   DiscountType _discountType = DiscountType.amount;
   bool _saving = false;
+  // pending invoice for success dialog after Bloc confirm
+  String? _pendingNumber;
+  double? _pendingFinalAmount;
+  double? _pendingChange;
 
   // Banks & Funds (Cashboxes)
   List<BankEntity> _banks = [];
@@ -708,16 +712,23 @@ class _PosPageState extends State<PosPage> {
       );
 
       if (!mounted) return;
+      // خزن بيانات النجاح مؤقتاً واعتمد على BlocListener للتأكيد (يظهر النجاح فقط إذا نجح القيد فعلاً)
+      setState(() {
+        _pendingNumber = number;
+        _pendingFinalAmount = finalAmount;
+        _pendingChange = _isSplitPayment ? 0.0 : _changeAmount;
+      });
       await context.read<SalesCubit>().addInvoice(invoice);
-
-      _showSuccessDialog(
-        number,
-        finalAmount,
-        _isSplitPayment ? 0.0 : _changeAmount,
-      );
+      // لا نظهر النجاح هنا مباشرة؛ الـ listener سيظهره عند InvoiceCreated
+      // في حال فشل الحفظ سيظهر SalesError ويعيد _saving=false
     } catch (error) {
       if (mounted) {
-        setState(() => _saving = false);
+        setState(() {
+          _saving = false;
+          _pendingNumber = null;
+          _pendingFinalAmount = null;
+          _pendingChange = null;
+        });
         AppToast.showError(context, 'تعذر إنشاء الفاتورة: $error');
       }
     }
@@ -950,9 +961,23 @@ class _PosPageState extends State<PosPage> {
         BlocListener<SalesCubit, SalesState>(
           listener: (context, state) {
             if (state is InvoiceCreated) {
-              setState(() => _saving = false);
+              final number = _pendingNumber ?? state.id.toString();
+              final amount = _pendingFinalAmount ?? _grandTotal;
+              final change = _pendingChange ?? 0.0;
+              setState(() {
+                _saving = false;
+                _pendingNumber = null;
+                _pendingFinalAmount = null;
+                _pendingChange = null;
+              });
+              _showSuccessDialog(number, amount, change);
             } else if (state is SalesError) {
-              setState(() => _saving = false);
+              setState(() {
+                _saving = false;
+                _pendingNumber = null;
+                _pendingFinalAmount = null;
+                _pendingChange = null;
+              });
               AppToast.showError(context, state.message);
             }
           },

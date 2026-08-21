@@ -33,8 +33,10 @@ import 'package:muhasib/core/database/seeders/payment_methods_seeder.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/reports/data/datasources/account_statement_datasource.dart';
 import 'package:muhasib/features/reports/data/datasources/income_statement_datasource.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/data/datasources/trial_balance_datasource.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
+import 'package:muhasib/features/reports/presentation/pages/balance_sheet_report_page.dart';
 import 'package:muhasib/features/sales/data/datasources/invoice_local_datasource.dart';
 import 'package:muhasib/features/sales/data/models/invoice_line_model.dart';
 import 'package:muhasib/features/sales/data/models/invoice_model.dart';
@@ -289,6 +291,148 @@ void main() {
           filter: ReportFilter(),
         );
         expect(suppSummary.accountName, isNotEmpty);
+      },
+    );
+
+    test(
+      'Balance Sheet: liability accounts appear under liabilities (not assets)',
+      () async {
+        final reportsDs = ReportsLocalDataSourceImpl(databaseService: dbService);
+
+        // Pick one asset (type 0) and one liability (type 1) account.
+        final assetRow = await db.query(
+          'accounts',
+          columns: ['id', 'code', 'name'],
+          where: 'type = ? AND is_active = 1 AND is_master = 0 AND code LIKE ?',
+          whereArgs: [0, '1%'],
+          limit: 1,
+        );
+        final liabRow = await db.query(
+          'accounts',
+          columns: ['id', 'code', 'name'],
+          where: 'type = ? AND is_active = 1 AND is_master = 0',
+          whereArgs: [1],
+          limit: 1,
+        );
+        expect(assetRow, isNotEmpty);
+        expect(liabRow, isNotEmpty);
+        final assetId = assetRow.first['id'] as int;
+        final liabId = liabRow.first['id'] as int;
+
+        final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final jeId = await db.insert('journal_entries', {
+          'entry_date': nowSec,
+          'description': 'BS classification test',
+          'reference_type': 'test',
+          'status': 1,
+          'is_posted': 1,
+          'total_debit': 240.0,
+          'total_credit': 240.0,
+          'difference': 0.0,
+          'creation_time': nowSec,
+          'last_modification_time': nowSec,
+        });
+        await db.insert('journal_entry_lines', {
+          'journal_entry_id': jeId,
+          'account_id': assetId,
+          'debit_amount': 240.0,
+          'credit_amount': 0.0,
+          'description': 'asset',
+        });
+        await db.insert('journal_entry_lines', {
+          'journal_entry_id': jeId,
+          'account_id': liabId,
+          'debit_amount': 0.0,
+          'credit_amount': 240.0,
+          'description': 'liability',
+        });
+
+        final accounts = await reportsDs.getBalanceSheetAccounts(
+          asOfSeconds: nowSec,
+        );
+        final niRows = await reportsDs.getBalanceSheetNetIncome(
+          asOfSeconds: nowSec,
+        );
+        final ni = (niRows.first['ni'] as num).toDouble();
+        final result = computeBalanceSheet(accounts, ni);
+
+        expect(result.isBalanced, isTrue);
+
+        final liabIds = <int>{
+          ...result.currentLiabilities.map((e) => e.id),
+          ...result.longTermLiabilities.map((e) => e.id),
+        };
+        final assetIds = <int>{
+          ...result.currentAssets.map((e) => e.id),
+          ...result.fixedAssets.map((e) => e.id),
+          ...result.otherAssets.map((e) => e.id),
+        };
+        // The type-1 liability must NOT be swallowed into assets.
+        expect(liabIds, contains(liabId));
+        expect(assetIds, isNot(contains(liabId)));
+        expect(result.totalLiabilities, closeTo(240.0, 0.01));
+      },
+    );
+
+    test(
+      'Balance Sheet: equation balances after a cash sales invoice',
+      () async {
+        final invoiceDs = InvoiceLocalDataSourceImpl(database: db);
+        final reportsDs = ReportsLocalDataSourceImpl(databaseService: dbService);
+
+        final salesLine = InvoiceLineModel(
+          id: null,
+          invoiceId: 0,
+          invoiceType: 1,
+          categoryId: 1,
+          groupId: 1,
+          unitId: 1,
+          categorySubUnitId: 1,
+          stockId: 1,
+          customerId: 1,
+          date: 1700000000,
+          invoiceTransType: 0,
+          amount: 240.0,
+          totalAmount: 240.0,
+          discountAmt: 0.0,
+          taxAmt: 0.0,
+          netRevenueAmt: 240.0,
+          quantity: 1.0,
+          price: 240.0,
+          costPrice: 0.0,
+          costTotal: 0.0,
+        );
+
+        final salesInvoice = InvoiceModel(
+          id: null,
+          number: 'INV-BS-001',
+          date: 1700000000,
+          customerId: 1,
+          stockId: 1,
+          amount: 240.0,
+          discountAmt: 0.0,
+          taxAmt: 0.0,
+          taxRatio: 0.0,
+          finalAmt: 240.0,
+          invoiceType: 1,
+          invoiceTransType: 0,
+          paymentStatus: 1,
+          lines: [salesLine],
+        );
+
+        await invoiceDs.insertInvoice(salesInvoice);
+
+        final nowSec = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        final accounts = await reportsDs.getBalanceSheetAccounts(
+          asOfSeconds: nowSec,
+        );
+        final niRows = await reportsDs.getBalanceSheetNetIncome(
+          asOfSeconds: nowSec,
+        );
+        final ni = (niRows.first['ni'] as num).toDouble();
+        final result = computeBalanceSheet(accounts, ni);
+
+        expect(result.isBalanced, isTrue);
       },
     );
   });

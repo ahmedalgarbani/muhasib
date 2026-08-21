@@ -266,90 +266,98 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
     final niRes = await ds.getBalanceSheetNetIncome(asOfSeconds: asOf);
     final ni = (niRes.first['ni'] as num).toDouble();
 
-    final curA = <_AccountBalanceRow>[],
-        fixA = <_AccountBalanceRow>[],
-        othA = <_AccountBalanceRow>[],
-        curL = <_AccountBalanceRow>[],
-        ltrL = <_AccountBalanceRow>[],
-        equ = <_AccountBalanceRow>[];
-    double tA = 0, tL = 0, tE = 0;
-
-    for (final m in accounts) {
-      final code = (m['code'] as String?) ?? '';
-      final name = (m['name'] as String?) ?? '';
-      final rawType = m['type'] as int? ?? 1;
-      final lowerName = name.toLowerCase();
-
-      // Robust classification: type takes precedence, code/name as fallback.
-      // type: 1=asset, 2=liability/equity heuristic, but some DBs store 0/1/2/3/4 differently.
-      final isAsset = rawType == 1 || code.startsWith('1');
-      final isEquity = (rawType == 2 || code.startsWith('2')) &&
-          (code.startsWith('22') ||
-              code.startsWith('23') ||
-              code.startsWith('24') ||
-              name.contains('رأس المال') ||
-              lowerName.contains('capital') ||
-              lowerName.contains('equity') ||
-              name.contains('أرباح') ||
-              lowerName.contains('retained') ||
-              name.contains('ملكية') ||
-              name.contains('جاري المالك') ||
-              name.contains('حقوق'));
-
-      final r = _AccountBalanceRow(
-        id: m['id'] as int,
-        code: code,
-        name: name,
-        type: isAsset ? 0 : (isEquity ? 2 : 1),
-        net: (m['net'] as num).toDouble(),
-      );
-
-      if (isAsset) {
-        if (code.startsWith('12') || code.startsWith('13') || name.contains('ثابت')) {
-          fixA.add(r);
-        } else {
-          curA.add(r);
-        }
-        tA += r.displayAmount;
-      } else if (isEquity) {
-        equ.add(r);
-        tE += r.displayAmount;
-      } else {
-        if (code.startsWith('23') || name.contains('طويلة الأجل')) {
-          ltrL.add(r);
-        } else {
-          curL.add(r);
-        }
-        tL += r.displayAmount;
-      }
-    }
-
-    if (ni.abs() > 0.01) {
-      equ.add(
-        _AccountBalanceRow(
-          id: -1,
-          code: 'NI',
-          name: 'صافي دخل الفترة التراكمي',
-          type: 2,
-          net: -ni,
-        ),
-      );
-      tE += ni;
-    }
-
-    return _BalanceSheetResult(
-      currentAssets: curA,
-      fixedAssets: fixA,
-      otherAssets: othA,
-      currentLiabilities: curL,
-      longTermLiabilities: ltrL,
-      equityRows: equ,
-      totalAssets: tA,
-      totalLiabilities: tL,
-      totalEquity: tE,
-      netIncome: ni,
-    );
+    return computeBalanceSheet(accounts, ni);
   }
+}
+
+/// تصنيف وتجميع الميزانية العمومية بشكل نقي وقابل للاختبار.
+/// AccountType: 0=assets, 1=liabilities, 2=equity.
+// ignore: library_private_types_in_public_api
+_BalanceSheetResult computeBalanceSheet(
+  List<Map<String, dynamic>> accounts,
+  double netIncome,
+) {
+  final curA = <_AccountBalanceRow>[],
+      fixA = <_AccountBalanceRow>[],
+      othA = <_AccountBalanceRow>[],
+      curL = <_AccountBalanceRow>[],
+      ltrL = <_AccountBalanceRow>[],
+      equ = <_AccountBalanceRow>[];
+  double tA = 0, tL = 0, tE = 0;
+
+  for (final m in accounts) {
+    final code = (m['code'] as String?) ?? '';
+    final name = (m['name'] as String?) ?? '';
+    final rawType = m['type'] as int? ?? 0;
+    final lowerName = name.toLowerCase();
+
+    final isAsset = rawType == 0 || code.startsWith('1');
+    final isEquity = (rawType == 2 || code.startsWith('2')) &&
+        (code.startsWith('22') ||
+            code.startsWith('23') ||
+            code.startsWith('24') ||
+            name.contains('رأس المال') ||
+            lowerName.contains('capital') ||
+            lowerName.contains('equity') ||
+            name.contains('أرباح') ||
+            lowerName.contains('retained') ||
+            name.contains('ملكية') ||
+            name.contains('جاري المالك') ||
+            name.contains('حقوق'));
+
+    final r = _AccountBalanceRow(
+      id: m['id'] as int,
+      code: code,
+      name: name,
+      type: isAsset ? 0 : (isEquity ? 2 : 1),
+      net: (m['net'] as num).toDouble(),
+    );
+
+    if (isAsset) {
+      if (code.startsWith('12') || code.startsWith('13') || name.contains('ثابت')) {
+        fixA.add(r);
+      } else {
+        curA.add(r);
+      }
+      tA += r.displayAmount;
+    } else if (isEquity) {
+      equ.add(r);
+      tE += r.displayAmount;
+    } else {
+      if (code.startsWith('23') || name.contains('طويلة الأجل')) {
+        ltrL.add(r);
+      } else {
+        curL.add(r);
+      }
+      tL += r.displayAmount;
+    }
+  }
+
+  if (netIncome.abs() > 0.01) {
+    equ.add(
+      _AccountBalanceRow(
+        id: -1,
+        code: 'NI',
+        name: 'صافي دخل الفترة التراكمي',
+        type: 2,
+        net: -netIncome,
+      ),
+    );
+    tE += netIncome;
+  }
+
+  return _BalanceSheetResult(
+    currentAssets: curA,
+    fixedAssets: fixA,
+    otherAssets: othA,
+    currentLiabilities: curL,
+    longTermLiabilities: ltrL,
+    equityRows: equ,
+    totalAssets: tA,
+    totalLiabilities: tL,
+    totalEquity: tE,
+    netIncome: netIncome,
+  );
 }
 
 class _BalanceSheetResult {

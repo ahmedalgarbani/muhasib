@@ -146,7 +146,9 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
             conversionRate: conv,
           );
           final unitPrice = _unitPriceForLine(item);
-          final lineAmount = PrecisionHelper.roundCurrency(unitPrice * returnQty);
+          final lineAmount = PrecisionHelper.roundCurrency(
+            unitPrice * returnQty,
+          );
           // تكلفة الوحدة الأساسية -> إجمالي التكلفة للمرتجع
           final baseCostPerUnit = item.costPrice ?? item.price ?? unitPrice;
           final costTotal = PrecisionHelper.roundCurrency(
@@ -178,7 +180,9 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
               invoiceTransType: item.invoiceTransType,
               quantity: PrecisionHelper.roundQuantity(returnQty),
               amount: lineAmount,
-              totalAmount: PrecisionHelper.roundCurrency(lineAmount - lineDiscount + lineTax),
+              totalAmount: PrecisionHelper.roundCurrency(
+                lineAmount - lineDiscount + lineTax,
+              ),
               netRevenueAmt: lineAmount,
               taxAmt: lineTax,
               discountAmt: lineDiscount,
@@ -565,9 +569,11 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                               prodMap[item.categoryId]?.name ??
                               'صنف #${item.categoryId ?? item.groupId}';
                           final unitPrice = _unitPriceForLine(item);
-                          final factor = (item.packaging ?? 1) *
+                          final factor =
+                              (item.packaging ?? 1) *
                               (item.conversionRate ?? 1.0);
-                          final baseOrig = item.baseQuantity ??
+                          final baseOrig =
+                              item.baseQuantity ??
                               PrecisionHelper.calcBaseQuantity(
                                 quantity: item.quantity,
                                 packaging: item.packaging ?? 1,
@@ -615,7 +621,8 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                                 'الوحدة: ${item.packaging} × ${item.conversionRate} = ${factor.toStringAsFixed(factor % 1 == 0 ? 0 : 2)} حبة/وحدة',
                                                 style: TextStyle(
                                                   fontSize: 11,
-                                                  color: Colors.blueGrey.shade600,
+                                                  color:
+                                                      Colors.blueGrey.shade600,
                                                 ),
                                               ),
                                             Text(

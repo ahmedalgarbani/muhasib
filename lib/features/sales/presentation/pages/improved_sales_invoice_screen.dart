@@ -20,7 +20,10 @@ import 'package:muhasib/features/sales/presentation/widgets/components/improved_
 import 'package:muhasib/features/sales/presentation/widgets/components/improved_step4_payment.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_dialog.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/core/services/number_sequence_service.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/services/precision_helper.dart';
 import 'package:muhasib/features/sales/presentation/pages/payment_editor_page.dart';
@@ -54,34 +57,141 @@ class _ImprovedSalesInvoiceScreenState
     _selectedWarehouseId = SettingsCache.defaultWarehouse;
     if (_selectedWarehouseId == 0) _selectedWarehouseId = 1;
     _invoice = Invoice(
-      number: 'INV-${DateTime.now().millisecondsSinceEpoch}',
+      number: '',
       date: DateTime.now(),
       items: [],
       discount: Discount(type: DiscountType.amount, value: 0),
       payments: [],
-      currency: 'ريال يمني',
-      warehouse: 'المخزن الرئيسي',
+      currency:
+          'SAR', // will be replaced dynamically in _ensureCurrencyAndWarehouse()
+      warehouse:
+          '', // will be replaced dynamically in _ensureCurrencyAndWarehouse()
       warehouseId: _selectedWarehouseId ?? 1,
     );
+    _generateNumber();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _ensureWarehouseName();
+      _ensureCurrencyAndWarehouse();
     });
   }
 
-  Future<void> _ensureWarehouseName() async {
-    if (_selectedWarehouseId == null) return;
+  Future<void> _generateNumber() async {
+    try {
+      final isQuotation = widget.invoiceType.isQuotation;
+      final sequenceType = isQuotation ? 'quotation' : 'sales_invoice';
+      final service = getIt<NumberSequenceService>();
+      if (!isQuotation) {
+        final starting = SettingsCache.invoiceStartingNumber;
+        final current = await service.getCurrentValue(sequenceType);
+        if (current < starting - 1) {
+          await service.resetSequence(sequenceType, starting - 1);
+        }
+      }
+      final number = await service.getNextNumberWithPrefix(
+        sequenceType,
+        isQuotation
+            ? SettingsCache.quotationPrefix
+            : SettingsCache.invoicePrefix,
+      );
+      if (mounted) {
+        setState(() => _invoice = _invoice.copyWith(number: number));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _ensureCurrencyAndWarehouse() async {
+    String? dynamicCurrency;
+    String? dynamicWarehouseName;
+    int? dynamicWarehouseId = _selectedWarehouseId;
+
+    // 1. Dynamic currency from CurrenciesCubit (isLocalCurrency) - replaces hard-coded 'ريال يمني'
+    try {
+      final currCubit = context.read<CurrenciesCubit>();
+      final currState = currCubit.state;
+      if (currState is CurrenciesLoaded && currState.currencies.isNotEmpty) {
+        final local =
+            currState.currencies.where((c) => c.isLocalCurrency).firstOrNull ??
+            currState.currencies.first;
+        dynamicCurrency = local.code.isNotEmpty ? local.code : local.name;
+      }
+    } catch (_) {}
+    // Fallback to DB query if cubit not ready
+    if (dynamicCurrency == null) {
+      try {
+        final db = await getIt<DatabaseService>().database;
+        final rows = await db.query(
+          'currencies',
+          where: 'is_local_currency = ?',
+          whereArgs: [1],
+          limit: 1,
+        );
+        if (rows.isNotEmpty) {
+          dynamicCurrency =
+              (rows.first['code'] as String?) ??
+              (rows.first['name'] as String?);
+        }
+      } catch (_) {}
+    }
+    dynamicCurrency ??= 'SAR';
+
+    // 2. Dynamic warehouse name from WarehousesCubit - replaces hard-coded 'المخزن الرئيسي'
     try {
       final whCubit = context.read<WarehousesCubit>();
-      if (whCubit.state is WarehousesLoaded) {
-        final warehouses = (whCubit.state as WarehousesLoaded).warehouses;
-        final match = warehouses.where((w) => w.id == _selectedWarehouseId).firstOrNull;
-        if (match != null && mounted) {
-          setState(() {
-            _invoice = _invoice.copyWith(warehouse: match.name, warehouseId: match.id);
-          });
+      final whState = whCubit.state;
+      if (whState is WarehousesLoaded && whState.warehouses.isNotEmpty) {
+        final warehouses = whState.warehouses;
+        final match = warehouses
+            .where((w) => w.id == dynamicWarehouseId)
+            .firstOrNull;
+        if (match != null) {
+          dynamicWarehouseName = match.name;
+          dynamicWarehouseId = match.id;
+        } else {
+          // fallback to main stock or first warehouse
+          final main =
+              warehouses.where((w) => w.isMainStock == true).firstOrNull ??
+              warehouses.first;
+          dynamicWarehouseName = main.name;
+          dynamicWarehouseId = main.id;
+          _selectedWarehouseId = main.id;
         }
       }
     } catch (_) {}
+    // Fallback to DB if cubit empty
+    if (dynamicWarehouseName == null) {
+      try {
+        final db = await getIt<DatabaseService>().database;
+        final rows = await db.query(
+          'stocks',
+          where: 'id = ?',
+          whereArgs: [dynamicWarehouseId],
+          limit: 1,
+        );
+        if (rows.isNotEmpty)
+          dynamicWarehouseName = rows.first['name'] as String?;
+        if (dynamicWarehouseName == null) {
+          final mainRows = await db.query(
+            'stocks',
+            where: 'is_main_stock = ?',
+            whereArgs: [1],
+            limit: 1,
+          );
+          if (mainRows.isNotEmpty) {
+            dynamicWarehouseName = mainRows.first['name'] as String?;
+            dynamicWarehouseId = mainRows.first['id'] as int?;
+            _selectedWarehouseId = dynamicWarehouseId;
+          }
+        }
+      } catch (_) {}
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _invoice = _invoice.copyWith(
+        currency: dynamicCurrency,
+        warehouse: dynamicWarehouseName ?? _invoice.warehouse,
+        warehouseId: dynamicWarehouseId ?? _invoice.warehouseId,
+      );
+    });
   }
 
   void _updateInvoice(Invoice invoice) {
@@ -128,33 +238,48 @@ class _ImprovedSalesInvoiceScreenState
       return;
     }
 
+    setState(() => _isSaving = true);
+    if (_invoice.number.isEmpty) {
+      await _generateNumber();
+    }
     final invoiceEntity = _buildInvoiceEntity();
     context.read<SalesCubit>().addInvoice(invoiceEntity);
   }
 
   InvoiceEntity _buildInvoiceEntity() {
-    final discountAmount = _invoice.discount.type == DiscountType.percent
-        ? _invoice.subtotal * _invoice.discount.value / 100
-        : _invoice.discount.value;
-    final taxAmount = _invoice.subtotal * 0.15;
-    final totalAfterDiscount = _invoice.subtotal - discountAmount;
-    final finalAmount = totalAfterDiscount + taxAmount;
+    // استخدم نفس منطق Invoice لتجنب اختلاف الإجمالي بين الواجهة والقيد المحاسبي
+    final discountAmount = _invoice.discountAmount;
+    final taxAmount = _invoice.taxAmount;
+    final finalAmount = _invoice.total; // يشمل otherCharges + tax بشكل دقيق
 
     final isQuotation = widget.invoiceType.isQuotation;
     final hasDeferred = _payments.any(
       (p) => p.method == PaymentMethod.deferred,
     );
     final totalPaid = _payments.fold(0.0, (sum, p) => sum + p.amount);
-    final isFullyPaid = totalPaid >= finalAmount;
+    final remainingForPay = finalAmount - totalPaid;
+    final isFullyPaid = remainingForPay.abs() < 0.01 || remainingForPay <= 0.01;
     final transType = isQuotation ? 0 : (hasDeferred || !isFullyPaid ? 1 : 0);
 
-    final headerWarehouseId = _selectedWarehouseId ?? _invoice.warehouseId ?? SettingsCache.defaultWarehouse ?? 1;
+    final cashPaid = _payments
+        .where((p) => p.method == PaymentMethod.cash)
+        .fold(0.0, (sum, p) => sum + p.amount);
+    final bankPaid = _payments
+        .where((p) => p.method == PaymentMethod.bank)
+        .fold(0.0, (sum, p) => sum + p.amount);
+
+    final headerWarehouseId =
+        _selectedWarehouseId ??
+        _invoice.warehouseId ??
+        SettingsCache.defaultWarehouse ??
+        1;
     final invoiceLines = _invoice.items.map((item) {
       return InvoiceLineEntity(
         invoiceType: isQuotation ? 3 : 1,
         amount: item.price * item.quantity,
         totalAmount: item.total,
         quantity: item.quantity.toDouble(),
+        categoryId: int.tryParse(item.id),
         groupId: item.groupId ?? 1,
         unitId: item.unitId ?? 1,
         categorySubUnitId: item.subUnitId ?? 1,
@@ -165,11 +290,25 @@ class _ImprovedSalesInvoiceScreenState
         netRevenueAmt: item.total,
         invoiceId: 0,
         // Multi-unit: الكمية الأساسية دقيقة
-        baseQuantity: item.baseQuantity ?? PrecisionHelper.calcBaseQuantity(quantity: item.quantity.toDouble(), packaging: item.packaging, conversionRate: item.conversionRate),
+        baseQuantity:
+            item.baseQuantity ??
+            PrecisionHelper.calcBaseQuantity(
+              quantity: item.quantity.toDouble(),
+              packaging: item.packaging,
+              conversionRate: item.conversionRate,
+            ),
         conversionRate: item.conversionRate,
         packaging: item.packaging,
         costPrice: item.costPrice,
-        costTotal: PrecisionHelper.roundCurrency((item.costPrice ?? 0) * (item.baseQuantity ?? PrecisionHelper.calcBaseQuantity(quantity: item.quantity.toDouble(), packaging: item.packaging, conversionRate: item.conversionRate))),
+        costTotal: PrecisionHelper.roundCurrency(
+          (item.costPrice ?? 0) *
+              (item.baseQuantity ??
+                  PrecisionHelper.calcBaseQuantity(
+                    quantity: item.quantity.toDouble(),
+                    packaging: item.packaging,
+                    conversionRate: item.conversionRate,
+                  )),
+        ),
         price: item.price,
         sellingPrice: item.price,
       );
@@ -188,6 +327,8 @@ class _ImprovedSalesInvoiceScreenState
       invoiceType: isQuotation ? 3 : 1,
       invoiceTransType: transType,
       paymentStatus: isQuotation ? 0 : (isFullyPaid ? 1 : 0),
+      paidAmount: cashPaid > 0 ? cashPaid : null,
+      bankPaidAmount: bankPaid > 0 ? bankPaid : null,
       lines: invoiceLines,
       statement: _invoice.notes,
     );
@@ -201,6 +342,14 @@ class _ImprovedSalesInvoiceScreenState
       _showSuccessSnackBar(
         isQuotation ? 'تم حفظ عرض السعر بنجاح' : 'تم حفظ الفاتورة بنجاح',
       );
+
+      if (mounted) {
+        try {
+          context.read<ProductsCubit>().loadProducts();
+          context.read<CustomersCubit>().loadCustomers();
+          context.read<WarehousesCubit>().loadWarehouses();
+        } catch (_) {}
+      }
 
       if (mounted) {
         context.pop();
@@ -241,198 +390,191 @@ class _ImprovedSalesInvoiceScreenState
     final isQuotation = widget.invoiceType.isQuotation;
     final maxStep = isQuotation ? 3 : 4;
 
-    return MultiBlocProvider(
-      providers: [
-        BlocProvider(create: (_) => getIt<SalesCubit>()),
-        BlocProvider(create: (_) => getIt<CustomersCubit>()),
-        BlocProvider(create: (_) => getIt<WarehousesCubit>()),
-        BlocProvider(create: (_) => getIt<ProductsCubit>()),
-      ],
-      child: BlocListener<SalesCubit, SalesState>(
-        listener: (context, state) {
-          if (state is SalesLoading) {
-            setState(() => _isSaving = true);
-          } else if (state is InvoiceCreated) {
-            _handleInvoiceCreated(state.id);
-          } else if (state is InvoiceUpdated) {
-            setState(() => _isSaving = false);
-            _showSuccessSnackBar('تم تحديث الفاتورة بنجاح');
-            if (mounted) context.pop();
-          } else if (state is SalesError) {
-            setState(() => _isSaving = false);
-            _showErrorSnackBar(state.message);
-          }
-        },
-        child: Scaffold(
-          key: _scaffoldKey,
-          backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-          appBar: CustomAppBar(
-            title: isQuotation ? 'عرض سعر جديد' : 'فاتورة مبيعات جديدة',
-          ),
-          body: Column(
-            children: [
-              // Progress Indicator
-              Container(
-                color: Theme.of(context).colorScheme.surface,
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(maxStep, (index) {
-                    final stepNumber = index + 1;
-                    final isActive = stepNumber <= _currentStep;
-                    final isCompleted = stepNumber < _currentStep;
-
-                    return Row(
-                      children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: isActive
-                                ? AppColors.success
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Center(
-                            child: isCompleted
-                                ? const Icon(
-                                    Icons.check,
-                                    color: Colors.white,
-                                    size: 20,
-                                  )
-                                : Text(
-                                    stepNumber.toString(),
-                                    style: TextStyle(
-                                      color: isActive
-                                          ? Colors.white
-                                          : AppColors.gray500,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        if (index < maxStep - 1)
-                          Container(
-                            width: 60,
-                            height: 2,
-                            color: isCompleted
-                                ? AppColors.success
-                                : Theme.of(
-                                    context,
-                                  ).colorScheme.surfaceContainerHighest,
-                          ),
-                      ],
+    return BlocListener<SalesCubit, SalesState>(
+      listener: (context, state) {
+        if (state is SalesLoading) {
+          setState(() => _isSaving = true);
+        } else if (state is InvoiceCreated) {
+          _handleInvoiceCreated(state.id);
+        } else if (state is InvoiceUpdated) {
+          setState(() => _isSaving = false);
+          _showSuccessSnackBar('تم تحديث الفاتورة بنجاح');
+          if (mounted) context.pop();
+        } else if (state is SalesError) {
+          setState(() => _isSaving = false);
+          _showErrorSnackBar(state.message);
+        }
+      },
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        appBar: CustomAppBar(
+          title: isQuotation ? 'عرض سعر جديد' : 'فاتورة مبيعات جديدة',
+        ),
+        body: Column(
+          children: [
+            // Progress Indicator
+            Container(
+              color: Theme.of(context).colorScheme.surface,
+              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              child: Row(
+                children: List.generate(maxStep * 2 - 1, (index) {
+                  if (index.isOdd) {
+                    final stepBefore = index ~/ 2;
+                    final isLineCompleted = stepBefore < _currentStep - 1;
+                    return Expanded(
+                      child: Container(
+                        height: 2,
+                        color: isLineCompleted
+                            ? AppColors.success
+                            : Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                      ),
                     );
-                  }).toList(),
-                ),
-              ),
+                  }
+                  final stepIndex = index ~/ 2;
+                  final stepNumber = stepIndex + 1;
+                  final isActive = stepNumber <= _currentStep;
+                  final isCompleted = stepNumber < _currentStep;
 
-              // Step Title
-              Container(
-                width: double.infinity,
-                padding: AppConstant.defaultPadding,
-                color: Theme.of(context).colorScheme.surface,
-                child: Column(
-                  children: [
-                    Text(
-                      _getStepTitle(),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.gray900,
-                      ),
+                  return Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? AppColors.success
+                          : Theme.of(
+                              context,
+                            ).colorScheme.surfaceContainerHighest,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _getStepSubtitle(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: AppColors.gray500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Step Content
-              Expanded(
-                child: ImprovedStepContentWidget(
-                  currentStep: _currentStep,
-                  invoice: _invoice,
-                  payments: _payments,
-                  onInvoiceUpdate: _updateInvoice,
-                  onNext: _nextStep,
-                  onAddPayment: _showPaymentDialog,
-                ),
-              ),
-
-              // Navigation Buttons
-              Container(
-                padding: AppConstant.defaultPadding,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surface,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, -4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    if (_currentStep > 1)
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: _previousStep,
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(AppRadius.sm),
+                    child: Center(
+                      child: isCompleted
+                          ? const Icon(
+                              Icons.check,
+                              color: Colors.white,
+                              size: 18,
+                            )
+                          : Text(
+                              stepNumber.toString(),
+                              style: TextStyle(
+                                color: isActive
+                                    ? Colors.white
+                                    : AppColors.gray500,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.arrow_back, size: 20),
-                              SizedBox(width: 8),
-                              Text('السابق', style: TextStyle(fontSize: 16)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    if (_currentStep > 1) const SizedBox(width: 12),
+                    ),
+                  );
+                }),
+              ),
+            ),
+
+            // Step Title
+            Container(
+              width: double.infinity,
+              padding: AppConstant.defaultPadding,
+              color: Theme.of(context).colorScheme.surface,
+              child: Column(
+                children: [
+                  Text(
+                    _getStepTitle(),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.gray900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _getStepSubtitle(),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: AppColors.gray500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Step Content
+            Expanded(
+              child: ImprovedStepContentWidget(
+                currentStep: _currentStep,
+                invoice: _invoice,
+                payments: _payments,
+                onInvoiceUpdate: _updateInvoice,
+                onNext: _nextStep,
+                onAddPayment: _showPaymentDialog,
+              ),
+            ),
+
+            // Navigation Buttons
+            Container(
+              padding: AppConstant.defaultPadding,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, -4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  if (_currentStep > 1)
                     Expanded(
-                      child: HasibButton(
-                        label: _currentStep == maxStep
-                            ? 'حفظ الفاتورة'
-                            : 'التالي',
-                        onPressed: _isSaving
-                            ? null
-                            : (_currentStep == maxStep
-                                  ? _saveInvoice
-                                  : _handleNext),
-                        loading: _isSaving,
-                        leading: Icon(
-                          _currentStep == maxStep
-                              ? Icons.check
-                              : Icons.arrow_forward,
-                          size: 20,
+                      child: OutlinedButton(
+                        onPressed: _previousStep,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.sm),
+                          ),
                         ),
-                        variant: _currentStep == maxStep
-                            ? HasibButtonVariant.success
-                            : HasibButtonVariant.primary,
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        fontSize: 16,
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.arrow_back, size: 20),
+                            SizedBox(width: 8),
+                            Text('السابق', style: TextStyle(fontSize: 16)),
+                          ],
+                        ),
                       ),
                     ),
-                  ],
-                ),
+                  if (_currentStep > 1) const SizedBox(width: 12),
+                  Expanded(
+                    child: HasibButton(
+                      label: _currentStep == maxStep
+                          ? 'حفظ الفاتورة'
+                          : 'التالي',
+                      onPressed: _isSaving
+                          ? null
+                          : (_currentStep == maxStep
+                                ? _saveInvoice
+                                : _handleNext),
+                      loading: _isSaving,
+                      leading: Icon(
+                        _currentStep == maxStep
+                            ? Icons.check
+                            : Icons.arrow_forward,
+                        size: 20,
+                      ),
+                      variant: _currentStep == maxStep
+                          ? HasibButtonVariant.success
+                          : HasibButtonVariant.primary,
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

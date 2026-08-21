@@ -501,12 +501,22 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                 // تحويل المخزن الحالي إلى id إن كان null (تراجع للرئيسي)
                 int? effectiveWarehouseId = widget.invoice.warehouseId;
                 if (effectiveWarehouseId == null) {
-                  final byName = state.warehouses.where((w) => w.name == widget.invoice.warehouse).firstOrNull;
-                  effectiveWarehouseId = byName?.id ?? state.warehouses.firstWhere((w) => w.isMainStock == true, orElse: () => state.warehouses.first).id;
+                  final byName = state.warehouses
+                      .where((w) => w.name == widget.invoice.warehouse)
+                      .firstOrNull;
+                  effectiveWarehouseId =
+                      byName?.id ??
+                      state.warehouses
+                          .firstWhere(
+                            (w) => w.isMainStock == true,
+                            orElse: () => state.warehouses.first,
+                          )
+                          .id;
                 }
                 // تأكد من أن القيمة موجودة في القائمة
                 final validIds = state.warehouses.map((w) => w.id).toSet();
-                if (effectiveWarehouseId != null && !validIds.contains(effectiveWarehouseId)) {
+                if (effectiveWarehouseId != null &&
+                    !validIds.contains(effectiveWarehouseId)) {
                   effectiveWarehouseId = state.warehouses.first.id;
                 }
                 return Column(
@@ -515,7 +525,10 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                     CustomDropdownField<int>(
                       value: effectiveWarehouseId,
                       label: 'المخزن',
-                      prefixIcon: const Icon(Icons.warehouse_outlined, size: 18),
+                      prefixIcon: const Icon(
+                        Icons.warehouse_outlined,
+                        size: 18,
+                      ),
                       items: state.warehouses.map((warehouse) {
                         return DropdownMenuItem<int>(
                           value: warehouse.id,
@@ -527,7 +540,9 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       }).toList(),
                       onChanged: (value) {
                         if (value != null) {
-                          final selected = state.warehouses.firstWhere((w) => w.id == value);
+                          final selected = state.warehouses.firstWhere(
+                            (w) => w.id == value,
+                          );
                           widget.onInvoiceUpdate(
                             widget.invoice.copyWith(
                               warehouse: selected.name,
@@ -539,7 +554,13 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       validator: (v) => v == null ? 'يرجى اختيار المخزن' : null,
                     ),
                     const SizedBox(height: 4),
-                    Text('سيتم خصم/إضافة المخزون لهذا المستودع', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                    Text(
+                      'سيتم خصم/إضافة المخزون لهذا المستودع',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
                     const SizedBox(height: 12),
                   ],
                 );
@@ -570,20 +591,20 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          // const SizedBox(height: 16),
 
           // Next Button
-          SizedBox(
-            width: double.infinity,
-            child: HasibButton(
-              label: 'التالي: إضافة الأصناف',
-              onPressed: widget.invoice.customer != null ? widget.onNext : null,
-              leading: const Icon(Icons.arrow_forward, size: 20),
-              variant: HasibButtonVariant.success,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              fontSize: 16,
-            ),
-          ),
+          // SizedBox(
+          //   width: double.infinity,
+          //   child: HasibButton(
+          //     label: 'التالي: إضافة الأصناف',
+          //     onPressed: widget.invoice.customer != null ? widget.onNext : null,
+          //     leading: const Icon(Icons.arrow_forward, size: 20),
+          //     variant: HasibButtonVariant.success,
+          //     padding: const EdgeInsets.symmetric(vertical: 8),
+          //     fontSize: 16,
+          //   ),
+          // ),
         ],
       ),
     );

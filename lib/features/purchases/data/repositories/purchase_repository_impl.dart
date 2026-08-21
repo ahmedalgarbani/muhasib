@@ -160,19 +160,27 @@ class PurchaseRepositoryImpl implements PurchaseRepository {
         parentInvoiceNumber: order.number,
       );
 
-      final newId = await localDataSource.insertInvoice(
-        InvoiceModel.fromEntity(purchaseInvoice),
-      );
-
-      final updatedOrder = order.copyWith(
-        nextInvoiceId: newId,
-        nextInvoiceNumber: invoice.number,
-      );
-      await localDataSource.updateInvoice(
-        InvoiceModel.fromEntity(updatedOrder),
-      );
-
-      return Right(newId);
+      // استخدام التحويل الذري الجديد الذي يضمن الترحيل المحاسبي والمخزني والقفل
+      try {
+        final newId = await localDataSource.convertPurchaseOrderToInvoice(
+          orderId,
+          InvoiceModel.fromEntity(purchaseInvoice),
+        );
+        return Right(newId);
+      } on NoSuchMethodError {
+        // Fallback للتوافق الخلفي إذا لم يتوفر convertPurchaseOrderToInvoice بعد
+        final newId = await localDataSource.insertInvoice(
+          InvoiceModel.fromEntity(purchaseInvoice),
+        );
+        final updatedOrder = order.copyWith(
+          nextInvoiceId: newId,
+          nextInvoiceNumber: invoice.number,
+        );
+        await localDataSource.updateInvoice(
+          InvoiceModel.fromEntity(updatedOrder),
+        );
+        return Right(newId);
+      }
     } on LocalStorageException catch (e) {
       return Left(
         CacheFailure('Failed to convert order to invoice: ${e.message}'),

@@ -1,0 +1,123 @@
+# ahmed 
+# workflows:
+#   ios-appetize:
+#     name: Flutter iOS Simulator to Appetize
+
+#     environment:
+#       flutter: stable
+#       xcode: latest
+
+#     scripts:
+#       - name: Get Packages
+#         script: |
+#           flutter pub get
+
+#       - name: Build iOS Simulator
+#         script: |
+#           flutter build ios --simulator --debug
+
+#       - name: Zip App Bundle
+#         script: |
+#           APP_PATH=$(find build/ios/iphonesimulator -name "*.app" | head -1)
+
+#           if [ -z "$APP_PATH" ]; then
+#             echo "لم يتم العثور على ملف .app"
+#             exit 1
+#           fi
+
+#           cd "$(dirname "$APP_PATH")"
+#           zip -r ios_app.zip "$(basename "$APP_PATH")"
+
+#           mkdir -p $CM_BUILD_DIR/artifacts
+#           mv ios_app.zip $CM_BUILD_DIR/artifacts/
+
+#       - name: Upload to Appetize
+#         script: |
+#           curl -X POST \
+#             "https://${tok_ihxxiny2yq6foe4ire7ufecmpy}@api.appetize.io/v1/apps/${APPETIZE_APP_PUBLIC_KEY}" \
+#             -F "file=@artifacts/ios_app.zip"
+
+#     artifacts:
+#       - artifacts/ios_app.zip
+# workflows:
+#   ios-simulator:
+#     name: iOS Simulator
+
+#     environment:
+#       flutter: stable
+#       xcode: latest
+
+#     scripts:
+#       - flutter pub get
+
+#       - name: Build iOS Simulator
+#         script: |
+#           flutter build ios --simulator --debug
+
+#       - name: Zip Runner.app
+#         script: |
+#           cd build/ios/iphonesimulator
+#           zip -r Runner.zip Runner.app
+
+#     artifacts:
+#       - build/ios/iphonesimulator/Runner.zip
+
+
+workflows:
+  ios-workflow:
+    name: iOS Workflow
+    instance_type: mac_mini_m1
+    max_build_duration: 120
+
+    environment:
+      xcode: latest
+      flutter: 3.44.2
+
+    scripts:
+      - name: Install CocoaPods
+        script: |
+          sudo gem install cocoapods --no-document
+          pod repo update 
+
+      - name: Install Flutter dependencies
+        script: flutter pub get
+
+      # - name: Add Swift files to Xcode project
+      #   script: |
+      #     cd ios
+      #     gem install xcodeproj --no-document
+
+      #     ruby -e "
+      #     require 'xcodeproj'
+
+      #     project = Xcodeproj::Project.open('Runner.xcodeproj')
+      #     target = project.targets.find { |t| t.name == 'Runner' }
+      #     group = project.main_group['Runner']
+
+      #     [
+      #       'NativeTabBar.swift',
+      #       'NativePlusButton.swift',
+      #       'NativeGlassCard.swift',
+      #       'NativeGlassListCard.swift',
+      #       'NativeSheetBackground.swift',
+      #       'SessionZoomTransition.swift'
+      #     ].each do |filename|
+      #       file_ref = group.new_file(filename)
+      #       target.source_build_phase.add_file_reference(file_ref)
+      #     end
+
+      #     project.save
+      #     "
+
+      - name: Build iOS
+        script: |
+          flutter build ios --no-codesign
+
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/Runner.app
+
+          zip -r ../../../app.ipa Payload
+
+    artifacts:
+      - app.ipa

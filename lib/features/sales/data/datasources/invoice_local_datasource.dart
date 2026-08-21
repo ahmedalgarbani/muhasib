@@ -1,6 +1,7 @@
 import 'package:muhasib/core/enums/account_connect_type.dart';
 import 'package:muhasib/core/errors/exceptions.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../models/invoice_line_model.dart';
@@ -24,6 +25,12 @@ abstract class InvoiceLocalDataSource {
   Future<int> convertQuotationToInvoice(
     int quotationId,
     InvoiceModel salesInvoice,
+  );
+
+  // Purchase Orders (مخزنة كنوع 3 transType 1)
+  Future<int> convertPurchaseOrderToInvoice(
+    int orderId,
+    InvoiceModel purchaseInvoice,
   );
 
   // Returns
@@ -760,6 +767,20 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
       if (productId == null || qty <= 0) continue;
 
+      // Skip stock movement for non-tracked (service) products
+      try {
+        final catRows = await txn.query(
+          'categories',
+          columns: ['track_inventory'],
+          where: 'id = ?',
+          whereArgs: [productId],
+          limit: 1,
+        );
+        if (catRows.isNotEmpty && (catRows.first['track_inventory'] as int? ?? 1) == 0) {
+          continue;
+        }
+      } catch (_) {}
+
       final stockResult = await txn.query(
         'warehouse_stocks',
         where: 'product_id = ? AND warehouse_id = ?',
@@ -777,8 +798,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
       final newQty = currentQty - qty;
 
-      // C3 Fix: prevent negative stock (no oversell)
-      if (newQty < -0.001) {
+      // Prevent negative stock only if not allowed in settings
+      if (newQty < -0.001 && !SettingsCache.allowNegativeStock) {
         throw LocalStorageException(
           'الكمية غير كافية: المتاح $currentQty، المطلوب $qty',
         );
@@ -792,8 +813,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           whereArgs: [productId, warehouseId],
         );
       } else {
-        // No stock row exists -> cannot sell if qty > 0
-        if (qty > 0.001) {
+        // No stock row exists -> create even if negative when allowed
+        if (qty > 0.001 && !SettingsCache.allowNegativeStock) {
           throw LocalStorageException(
             'الكمية غير كافية: لا يوجد مخزون للمنتج $productId',
           );
@@ -981,13 +1002,15 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     }
   }
 
+  bool _isSalesInvoiceType(int? t) => t == 1 || t == 6;
+
   Future<void> _postSalesInvoiceToJournal({
     required Transaction txn,
     required int invoiceId,
     required Map<String, dynamic> invoiceData,
   }) async {
     final invoiceType = (invoiceData['invoice_type'] as int?) ?? 0;
-    if (invoiceType != 1) return; // sales only
+    if (!_isSalesInvoiceType(invoiceType)) return; // sales only (1=عادية، 6=سريعة)
 
     final invoiceNumber = (invoiceData['number'] as String?) ?? '';
     final rawDate =
@@ -1246,6 +1269,11 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       final warehouseId =
           (line['stock_id'] as int?) ?? (invoiceData['stock_id'] as int?);
       if (productId == null) continue;
+      // Skip COGS for service / non-tracked products
+      try {
+        final cat = await txn.query('categories', columns: ['track_inventory'], where: 'id = ?', whereArgs: [productId], limit: 1);
+        if (cat.isNotEmpty && (cat.first['track_inventory'] as int? ?? 1) == 0) continue;
+      } catch (_) {}
 
       final quantity =
           ((line['base_quantity'] as num?) ?? (line['quantity'] as num?) ?? 0)
@@ -2506,8 +2534,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
         // ========== UPDATE INVENTORY ==========
         final invoiceType = (invoiceData['invoice_type'] as int?) ?? 0;
-        if (invoiceType == 1) {
-          // Sales invoice only: reduce stock
+        if (_isSalesInvoiceType(invoiceType)) {
+          // Sales invoice only (including quick): reduce stock
           await _reduceStockForSalesLines(
             txn,
             invoiceId: invoiceId,
@@ -2537,6 +2565,88 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             headerStockId: invoiceData['stock_id'] as int?,
           );
         } else if (invoiceType == 5) {
+          // ========== VALIDATION: مرتجع المشتريات لا يتجاوز الفاتورة الأصلية ==========
+          final parentIdForPurchase = invoiceData['parent_invoice_id'] as int?;
+          if (parentIdForPurchase != null && parentIdForPurchase > 0) {
+            final parentHeader = await txn.query(
+              _invoicesTable,
+              columns: ['id', 'invoice_type'],
+              where: 'id = ?',
+              whereArgs: [parentIdForPurchase],
+              limit: 1,
+            );
+            if (parentHeader.isEmpty) {
+              throw LocalStorageException('فاتورة المشتريات الأصلية غير موجودة');
+            }
+            final pType = parentHeader.first['invoice_type'] as int?;
+            if (pType != 2) {
+              throw LocalStorageException('مرتجع المشتريات يجب أن يرتبط بفاتورة مشتريات');
+            }
+            final origLines = await txn.query(
+              _linesTable,
+              columns: ['category_id', 'quantity', 'base_quantity', 'packaging', 'conversion_rate'],
+              where: 'invoice_id = ?',
+              whereArgs: [parentIdForPurchase],
+            );
+            final Map<int, double> origBaseSum = {};
+            for (final l in origLines) {
+              final pid = l['category_id'] as int?;
+              if (pid == null) continue;
+              final q = (l['quantity'] as num?)?.toDouble() ?? 0;
+              final b = (l['base_quantity'] as num?)?.toDouble();
+              final pk = (l['packaging'] as int?) ?? 1;
+              final cr = (l['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+              final base = b ?? (q * pk * cr);
+              origBaseSum[pid] = (origBaseSum[pid] ?? 0) + base;
+            }
+            final existingReturnIds = await txn.query(
+              _invoicesTable,
+              columns: ['id'],
+              where: 'parent_invoice_id = ? AND invoice_type = ?',
+              whereArgs: [parentIdForPurchase, 5],
+            );
+            final Map<int, double> returnedBaseSum = {};
+            if (existingReturnIds.isNotEmpty) {
+              final ids = existingReturnIds.map((e) => e['id'] as int).toList();
+              // استبعد الفاتورة الحالية إن كانت تحديثاً (لن تحدث هنا لكن للاحتياط)
+              ids.remove(invoiceId);
+              if (ids.isNotEmpty) {
+                final ph = List.filled(ids.length, '?').join(',');
+                final retLines = await txn.rawQuery(
+                  'SELECT category_id, quantity, base_quantity, packaging, conversion_rate FROM $_linesTable WHERE invoice_id IN ($ph)',
+                  ids,
+                );
+                for (final l in retLines) {
+                  final pid = l['category_id'] as int?;
+                  if (pid == null) continue;
+                  final q = (l['quantity'] as num?)?.toDouble() ?? 0;
+                  final b = (l['base_quantity'] as num?)?.toDouble();
+                  final pk = (l['packaging'] as int?) ?? 1;
+                  final cr = (l['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+                  final base = b ?? (q * pk * cr);
+                  returnedBaseSum[pid] = (returnedBaseSum[pid] ?? 0) + base;
+                }
+              }
+            }
+            for (final lm in invoice.lines.map((l) => l is InvoiceLineModel ? l : InvoiceLineModel.fromEntity(l))) {
+              final pid = lm.categoryId;
+              if (pid == null) continue;
+              final baseQty = lm.baseQuantity ?? (lm.quantity * (lm.packaging ?? 1) * (lm.conversionRate ?? 1.0));
+              final already = returnedBaseSum[pid] ?? 0;
+              final orig = origBaseSum[pid] ?? 0;
+              if (orig <= 0) throw LocalStorageException('الصنف $pid غير موجود في فاتورة المشتريات الأصلية');
+              if (already + baseQty - orig > 0.000001) {
+                final remaining = orig - already;
+                final factor = (lm.packaging ?? 1) * (lm.conversionRate ?? 1.0);
+                final remainingDisplay = factor > 0 ? (remaining / factor) : remaining;
+                throw LocalStorageException(
+                  'كمية مرتجع المشتريات للصنف $pid تتجاوز المتبقي: المتبقي ${remainingDisplay.toStringAsFixed(remainingDisplay % 1 == 0 ? 0 : 2)} وحدة (${remaining.toStringAsFixed(remaining % 1 == 0 ? 0 : 2)} أساس)، المطلوب ${lm.quantity} (${baseQty.toStringAsFixed(baseQty % 1 == 0 ? 0 : 2)} أساس)',
+                );
+              }
+              returnedBaseSum[pid] = already + baseQty;
+            }
+          }
+          // ========== END VALIDATION ==========
           // Purchase return: reduce stock
           await _reduceStockForPurchaseReturnLines(
             txn,
@@ -2613,9 +2723,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             }
           }
 
-          // For sales invoices (type = 1): reverse old journal + restore
+          // For sales invoices (type = 1 & 6): reverse old journal + restore
           // old stock before overwriting, then re-post with new values.
-          if (invoiceType == 1) {
+          if (_isSalesInvoiceType(invoiceType)) {
             final oldHeader = await txn.query(
               _invoicesTable,
               columns: ['number', 'stock_id'],
@@ -2741,7 +2851,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         }
 
         // Re-post accounting + stock effects
-        if (invoice.invoiceType == 1) {
+        if (_isSalesInvoiceType(invoice.invoiceType)) {
           await _postSalesInvoiceToJournal(
             txn: txn,
             invoiceId: invoice.id!,
@@ -2856,9 +2966,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           }
         }
 
-        // For sales invoices (type = 1): full reversal (journal + stock),
+        // For sales invoices (type = 1 & 6): full reversal (journal + stock),
         // blocked only if returns are linked to it.
-        if (invoiceType == 1) {
+        if (_isSalesInvoiceType(invoiceType)) {
           final childReturns = await database.rawQuery(
             "SELECT COUNT(*) as count FROM invoices WHERE parent_invoice_id = ? AND invoice_type = 4",
             [id],
@@ -3030,7 +3140,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       // 1. Reverse the journal entry for this return (balances + limits)
       await _reverseJournalEntryEffects(txn, 'sales_return', id);
 
-      // 2. Decrease stock by the returned quantities
+      // 2. Decrease stock by the returned quantities (باستخدام الكمية الأساسية)
       final returnLines = await txn.query(
         _linesTable,
         where: 'invoice_id = ?',
@@ -3038,8 +3148,13 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       );
       for (final line in returnLines) {
         final productId = line['category_id'] as int?;
-        final returnQty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
-        if (productId == null || returnQty <= 0) continue;
+        final displayQty = (line['quantity'] as num?)?.toDouble() ?? 0.0;
+        final baseQtyRaw = (line['base_quantity'] as num?)?.toDouble();
+        final convRate = (line['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+        final packagingVal = (line['packaging'] as int?) ?? 1;
+        final returnQtyBase = baseQtyRaw ?? (displayQty * packagingVal * convRate);
+        final unitId = line['unit_id'] as int?;
+        if (productId == null || returnQtyBase <= 0) continue;
 
         final warehouseId = (line['stock_id'] as int?) ?? 1;
         final stockResult = await txn.query(
@@ -3054,7 +3169,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
         final avgCost =
             (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
-        final newQty = currentQty - returnQty;
+        final newQty = currentQty - returnQtyBase;
         await txn.update(
           'warehouse_stocks',
           {'quantity': newQty, 'last_modification_time': now},
@@ -3067,14 +3182,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             'product_id': productId,
             'warehouse_id': warehouseId,
             'movement_type': 'delete_return',
-            'quantity': -returnQty,
+            'quantity': -returnQtyBase,
             'unit_cost': avgCost,
-            'total_cost': -(returnQty * avgCost),
+            'total_cost': -(returnQtyBase * avgCost),
             'balance_after': newQty,
             'reference_type': 'sales_return_deleted',
             'reference_id': id,
             'reference_number': invoiceData['number'] as String? ?? '',
             'creation_time': now,
+            'unit_id': unitId,
+            'conversion_rate': convRate,
+            'packaging': packagingVal,
+            'original_quantity': displayQty,
           });
         } catch (_) {
           // Ignore if stock_movements table doesn't exist
@@ -3374,6 +3493,120 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
   }
 
   @override
+  Future<int> convertPurchaseOrderToInvoice(
+    int orderId,
+    InvoiceModel purchaseInvoice,
+  ) async {
+    try {
+      return await database.transaction((txn) async {
+        final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+
+        final existing = await txn.query(
+          _invoicesTable,
+          columns: [
+            'invoice_type',
+            'invoice_trans_type',
+            'next_invoice_id',
+            'is_locked',
+            'number',
+          ],
+          where: 'id = ?',
+          whereArgs: [orderId],
+          limit: 1,
+        );
+        if (existing.isEmpty) throw LocalStorageException('طلب الشراء غير موجود');
+        final orderData = existing.first;
+        if ((orderData['invoice_type'] as int?) != 3 || (orderData['invoice_trans_type'] as int?) != 1) {
+          throw LocalStorageException('هذا المستند ليس طلب شراء');
+        }
+        final existingNextId = orderData['next_invoice_id'] as int?;
+        if (existingNextId != null && existingNextId > 0) {
+          throw LocalStorageException('طلب الشراء ${orderData['number']} محول مسبقاً');
+        }
+        if ((orderData['is_locked'] as int?) == 1) {
+          throw LocalStorageException('طلب الشراء مقفل ولا يمكن تحويله');
+        }
+
+        // Ensure stock & supplier exist (reuse logic from insertInvoice - simplified)
+        final invData = purchaseInvoice.toJson();
+        invData.remove('id');
+        // ensure stock exists
+        final stockId = invData['stock_id'] as int?;
+        if (stockId != null) {
+          final s = await txn.query('stocks', where: 'id = ?', whereArgs: [stockId], limit: 1);
+          if (s.isEmpty) {
+            final any = await txn.query('stocks', limit: 1);
+            if (any.isNotEmpty) invData['stock_id'] = any.first['id'];
+          }
+        }
+
+        final invoiceId = await txn.insert(
+          _invoicesTable,
+          invData,
+          conflictAlgorithm: ConflictAlgorithm.abort,
+        );
+        for (final line in purchaseInvoice.lines) {
+          final lm = line is InvoiceLineModel ? line : InvoiceLineModel.fromEntity(line);
+          final ld = lm.toJson(invoiceId: invoiceId);
+          ld.remove('id');
+          await txn.insert(_linesTable, ld, conflictAlgorithm: ConflictAlgorithm.abort);
+        }
+
+        await txn.update(
+          _invoicesTable,
+          {
+            'next_invoice_id': invoiceId,
+            'next_invoice_type': 2,
+            'next_invoice_number': purchaseInvoice.number,
+            'payment_status': 4,
+            'approval_status': 5,
+            'is_locked': 1,
+            'locked_at': now,
+            'locked_reason': 'تم التحويل لفاتورة مشتريات رقم ${purchaseInvoice.number}',
+            'last_modification_time': now,
+          },
+          where: 'id = ?',
+          whereArgs: [orderId],
+        );
+
+        try {
+          await txn.insert('audit_logs', {
+            'table_name': 'invoices',
+            'entity_type': 'purchase_order',
+            'record_id': orderId,
+            'entity_id': orderId,
+            'action_type': 'CONVERT',
+            'action': 'CONVERT',
+            'user_id': 1,
+            'description': 'تم تحويل طلب الشراء ${orderData['number']} إلى فاتورة ${purchaseInvoice.number}',
+            'creation_time': now,
+            'created_at': now,
+          });
+        } catch (_) {}
+
+        await _postPurchaseInvoiceToJournal(
+          txn: txn,
+          invoiceId: invoiceId,
+          invoiceData: {...invData, 'id': invoiceId},
+        );
+
+        await _increaseStockForPurchaseLines(
+          txn,
+          invoiceId: invoiceId,
+          invoiceNumber: purchaseInvoice.number,
+          lines: purchaseInvoice.lines.map((l) => l is InvoiceLineModel ? l : InvoiceLineModel.fromEntity(l)).toList(),
+          headerStockId: invData['stock_id'] as int?,
+        );
+
+        return invoiceId;
+      });
+    } catch (e) {
+      if (e is LocalStorageException) throw LocalStorageException(e.message);
+      throw LocalStorageException('Failed to convert purchase order: ${e.toString()}');
+    }
+  }
+
+  @override
   Future<List<InvoiceModel>> getReturnInvoices() async {
     return await getInvoicesByType(4); // InvoiceType.salesReturn = 4
   }
@@ -3430,6 +3663,98 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           }, conflictAlgorithm: ConflictAlgorithm.ignore);
         }
 
+        // ========== VALIDATION: cumulative returned quantity must not exceed original ==========
+        if (parentInvoiceId > 0) {
+          // تأكد وجود الفاتورة الأصلية وأنها فعلاً فاتورة مبيعات (1 أو 6)
+          final parentHeader = await txn.query(
+            _invoicesTable,
+            columns: ['id', 'invoice_type'],
+            where: 'id = ?',
+            whereArgs: [parentInvoiceId],
+            limit: 1,
+          );
+          if (parentHeader.isEmpty) {
+            throw LocalStorageException('الفاتورة الأصلية غير موجودة (id=$parentInvoiceId)');
+          }
+          final pType = parentHeader.first['invoice_type'] as int?;
+          if (!_isSalesInvoiceType(pType)) {
+            throw LocalStorageException('المرتجع يجب أن يرتبط بفاتورة مبيعات');
+          }
+
+          // مجموع الكميات الأساسية الأصلية لكل منتج
+          final origLines = await txn.query(
+            _linesTable,
+            columns: ['category_id', 'quantity', 'base_quantity', 'packaging', 'conversion_rate'],
+            where: 'invoice_id = ?',
+            whereArgs: [parentInvoiceId],
+          );
+          final Map<int, double> origBaseSum = {};
+          for (final l in origLines) {
+            final pid = l['category_id'] as int?;
+            if (pid == null) continue;
+            final q = (l['quantity'] as num?)?.toDouble() ?? 0;
+            final b = (l['base_quantity'] as num?)?.toDouble();
+            final pk = (l['packaging'] as int?) ?? 1;
+            final cr = (l['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+            final base = b ?? (q * pk * cr);
+            origBaseSum[pid] = (origBaseSum[pid] ?? 0) + base;
+          }
+          if (origLines.isEmpty) {
+            throw LocalStorageException('الفاتورة الأصلية لا تحتوي على أصناف');
+          }
+
+          // مجموع المرتجعات السابقة لنفس الفاتورة الأصلية
+          final existingReturnIds = await txn.query(
+            _invoicesTable,
+            columns: ['id'],
+            where: 'parent_invoice_id = ? AND invoice_type = ?',
+            whereArgs: [parentInvoiceId, 4],
+          );
+          final Map<int, double> returnedBaseSum = {};
+          if (existingReturnIds.isNotEmpty) {
+            final ids = existingReturnIds.map((e) => e['id'] as int).toList();
+            final ph = List.filled(ids.length, '?').join(',');
+            final retLines = await txn.rawQuery(
+              'SELECT category_id, quantity, base_quantity, packaging, conversion_rate FROM $_linesTable WHERE invoice_id IN ($ph)',
+              ids,
+            );
+            for (final l in retLines) {
+              final pid = l['category_id'] as int?;
+              if (pid == null) continue;
+              final q = (l['quantity'] as num?)?.toDouble() ?? 0;
+              final b = (l['base_quantity'] as num?)?.toDouble();
+              final pk = (l['packaging'] as int?) ?? 1;
+              final cr = (l['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+              final base = b ?? (q * pk * cr);
+              returnedBaseSum[pid] = (returnedBaseSum[pid] ?? 0) + base;
+            }
+          }
+
+          // تحقق لكل بند جديد
+          for (final line in returnInvoice.lines) {
+            final pid = line.categoryId;
+            if (pid == null) continue;
+            final displayQty = line.quantity;
+            final baseQty = line.baseQuantity ?? (displayQty * (line.packaging ?? 1) * (line.conversionRate ?? 1.0));
+            final already = returnedBaseSum[pid] ?? 0;
+            final orig = origBaseSum[pid] ?? 0;
+            if (orig <= 0) {
+              throw LocalStorageException('الصنف $pid غير موجود في الفاتورة الأصلية');
+            }
+            if (already + baseQty - orig > 0.000001) {
+              final remaining = orig - already;
+              final factor = (line.packaging ?? 1) * (line.conversionRate ?? 1.0);
+              final remainingDisplay = factor > 0 ? (remaining / factor) : remaining;
+              throw LocalStorageException(
+                'كمية المرتجع للصنف $pid تتجاوز المتبقي: المتبقي ${remainingDisplay.toStringAsFixed(remainingDisplay % 1 == 0 ? 0 : 2)} وحدة (${remaining.toStringAsFixed(remaining % 1 == 0 ? 0 : 2)} أساس)، المطلوب $displayQty وحدة (${baseQty.toStringAsFixed(baseQty % 1 == 0 ? 0 : 2)} أساس)',
+              );
+            }
+            // تراكم للفحص التراكمي داخل نفس المرتجع (إن تكرر الصنف أكثر من مرة)
+            returnedBaseSum[pid] = already + baseQty;
+          }
+        }
+        // ========== END VALIDATION ==========
+
         // 1. Insert the return invoice (remove ID to get new auto-generated ID)
         final returnData = returnInvoice.toJson();
         returnData.remove('id'); // Remove ID to avoid UNIQUE constraint error
@@ -3457,15 +3782,21 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             conflictAlgorithm: ConflictAlgorithm.abort,
           );
 
-          // 3. Update inventory - increase stock quantity for returns
+          // 3. Update inventory - increase stock quantity for returns (باستخدام الكمية الأساسية)
           final productId = lineData['category_id'] as int?;
           final warehouseId =
               lineData['stock_id'] as int? ??
               (returnData['stock_id'] as int?) ??
               1;
-          final returnQty = (lineData['quantity'] as num?)?.toDouble() ?? 0.0;
+          final displayQty = (lineData['quantity'] as num?)?.toDouble() ?? 0.0;
+          final baseQtyRaw = (lineData['base_quantity'] as num?)?.toDouble();
+          final convRate = (lineData['conversion_rate'] as num?)?.toDouble() ?? 1.0;
+          final packagingVal = (lineData['packaging'] as int?) ?? 1;
+          // الكمية الأساسية الحقيقية التي تؤثر على المخزون
+          final returnQtyBase = baseQtyRaw ?? (displayQty * packagingVal * convRate);
+          final unitIdForMove = lineData['unit_id'] as int?;
 
-          if (productId != null && returnQty > 0) {
+          if (productId != null && returnQtyBase > 0) {
             // Get current stock and average cost
             final stockResult = await txn.query(
               'warehouse_stocks',
@@ -3486,10 +3817,13 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                   avgCost;
             }
 
-            final newQty = currentQty + returnQty;
+            final newQty = currentQty + returnQtyBase;
 
-            // Calculate COGS reversal for this line
-            totalCOGSReversal += returnQty * avgCost;
+            // Calculate COGS reversal for this line (التكلفة على أساس الكمية الأساسية)
+            // إذا كانت cost_price محفوظة كتكلفة وحدة أساس، نضرب في base؛ وإلا نستخدم المتوسط
+            final costPerBase = (lineData['cost_price'] as num?)?.toDouble() ?? avgCost;
+            final effectiveCost = (costPerBase > 0 ? costPerBase : avgCost);
+            totalCOGSReversal += returnQtyBase * effectiveCost;
 
             // Update or insert warehouse stock
             if (stockResult.isNotEmpty) {
@@ -3504,8 +3838,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                 'product_id': productId,
                 'warehouse_id': warehouseId,
                 'quantity': newQty,
-                'avg_cost': avgCost,
-                'last_cost': avgCost,
+                'avg_cost': effectiveCost,
+                'last_cost': effectiveCost,
                 'creation_time': now,
                 'last_modification_time': now,
               }, conflictAlgorithm: ConflictAlgorithm.replace);
@@ -3517,14 +3851,18 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                 'product_id': productId,
                 'warehouse_id': warehouseId,
                 'movement_type': 'return_sale',
-                'quantity': returnQty, // Positive for return (add to stock)
-                'unit_cost': avgCost,
-                'total_cost': returnQty * avgCost,
+                'quantity': returnQtyBase, // الأساسية موجبة
+                'unit_cost': effectiveCost,
+                'total_cost': returnQtyBase * effectiveCost,
                 'balance_after': newQty,
                 'reference_type': 'sales_return',
                 'reference_id': returnId,
                 'reference_number': returnInvoice.number,
                 'creation_time': now,
+                'unit_id': unitIdForMove,
+                'conversion_rate': convRate,
+                'packaging': packagingVal,
+                'original_quantity': displayQty,
               });
             } catch (_) {
               // Ignore if stock_movements table doesn't exist
