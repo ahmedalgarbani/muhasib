@@ -88,6 +88,7 @@ class InvoicesTable implements TableSchema {
   @override
   List<String> get indexes => [
     'CREATE INDEX idx_invoices_number ON invoices(number);',
+    'CREATE UNIQUE INDEX idx_invoices_number_type_unique ON invoices(number, invoice_type);',
     'CREATE INDEX idx_invoices_date ON invoices(date);',
     'CREATE INDEX idx_invoices_customer ON invoices(customer_id);',
   ];

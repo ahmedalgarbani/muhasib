@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
@@ -276,25 +276,8 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
   }
 
   Future<_LedgerResult> _load(ReportFilter filter) async {
-    final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[];
-    String df = '';
-    if (filter.startDate != null && filter.endDate != null) {
-      final dateColumn = normalizedReportTimestampSql('je.entry_date');
-      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
-      args.addAll(reportDateRangeArgs(filter));
-    }
-    final rows = await db.rawQuery('''
-      SELECT a.id, a.code, a.name, a.type, 
-             COALESCE(SUM(jel.debit_amount), 0) as td, 
-             COALESCE(SUM(jel.credit_amount), 0) as tc
-      FROM accounts a 
-      INNER JOIN journal_entry_lines jel ON jel.account_id = a.id 
-      INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1 $df 
-      GROUP BY a.id 
-      ORDER BY a.code
-    ''', args);
+    final ds = getIt<ReportsLocalDataSource>();
+    final rows = await ds.getGeneralLedgerSummary(filter: filter);
 
     final list = rows.map((m) {
       final code = (m['code'] as String?) ?? '';
@@ -437,28 +420,17 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
   }
 
   Future<List<_LedgerTransaction>> _loadTxns() async {
-    final db = await getIt<DatabaseService>().database;
+    final ds = getIt<ReportsLocalDataSource>();
     final isCreditNormal =
         widget.accountType == 2 ||
         widget.accountType == 4 ||
         widget.accountCode.startsWith('2') ||
         widget.accountCode.startsWith('4');
 
-    String df = '';
-    final args = <Object?>[widget.accountId];
-    if (widget.filter.startDate != null && widget.filter.endDate != null) {
-      df = 'AND je.entry_date >= ? AND je.entry_date <= ?';
-      args.add(widget.filter.startDate!.millisecondsSinceEpoch ~/ 1000);
-      args.add(widget.filter.endDate!.millisecondsSinceEpoch ~/ 1000);
-    }
-
-    final rows = await db.rawQuery('''
-      SELECT je.entry_date, je.description, jel.debit_amount as d, jel.credit_amount as c 
-      FROM journal_entry_lines jel 
-      JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE jel.account_id = ? AND je.is_posted = 1 $df
-      ORDER BY je.entry_date ASC, jel.id ASC
-    ''', args);
+    final rows = await ds.getGeneralLedgerDetails(
+      accountId: widget.accountId,
+      filter: widget.filter,
+    );
 
     double rb = 0;
     return rows.map((m) {

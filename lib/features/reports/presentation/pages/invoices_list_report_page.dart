@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
@@ -259,39 +259,11 @@ class _InvoicesListContentState extends State<_InvoicesListContent> {
   }
 
   Future<_InvoicesListResult> _load(ReportFilter filter) async {
-    final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[];
-    final whereParts = <String>[];
-
-    if (filter.startDate != null && filter.endDate != null) {
-      final dateColumn = normalizedReportTimestampSql('i.date');
-      whereParts.add('$dateColumn >= ? AND $dateColumn <= ?');
-      args.addAll(reportDateRangeArgs(filter));
-    }
-    if (widget.invoiceTypes.isNotEmpty) {
-      whereParts.add(
-        'i.invoice_type IN (${widget.invoiceTypes.map((_) => '?').join(',')})',
-      );
-      args.addAll(widget.invoiceTypes);
-    }
-    final where = whereParts.isEmpty ? '' : 'WHERE ${whereParts.join(' AND ')}';
-
-    final rows = await db.rawQuery('''
-      SELECT
-        i.id,
-        i.number,
-        i.date,
-        i.statement,
-        i.invoice_type,
-        COALESCE(i.approval_status, 1) as status,
-        COALESCE(i.final_amt, i.total_amount, i.amount, 0) as amount,
-        c.name as party_name,
-        CASE WHEN EXISTS (SELECT 1 FROM journal_entries je WHERE je.reference_id = i.id AND je.reference_type IN ('sales', 'purchase', 'sales_return', 'purchase_return')) THEN 1 ELSE 0 END as has_journal_entry
-      FROM invoices i
-      LEFT JOIN customers c ON c.id = i.customer_id
-      $where
-      ORDER BY i.date DESC, i.id DESC
-    ''', args);
+    final ds = getIt<ReportsLocalDataSource>();
+    final rows = await ds.getInvoiceList(
+      filter: filter,
+      invoiceTypes: widget.invoiceTypes,
+    );
 
     final parsed = rows
         .map(

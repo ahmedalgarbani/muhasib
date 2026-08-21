@@ -91,6 +91,9 @@ class AccountingService {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
     for (final payment in invoice.payments) {
+      if (payment.amount <= 0) {
+        throw Exception('مبلغ الدفعة يجب أن يكون أكبر من صفر');
+      }
       await txn.insert('payments', {
         'invoice_id': invoiceId,
         'payment_method': _getPaymentMethodString(payment.method),
@@ -105,16 +108,11 @@ class AccountingService {
       } else if (payment.method == PaymentMethod.bank) {
         await _updateBankAccount(txn, payment);
       }
+      // deferred payments are not applied to cash/bank here; they remain as receivable
     }
-    
-    if (invoice.paid > invoice.total) {
-      final overpayment = invoice.paid - invoice.total;
-      await _addCustomerCredit(txn, invoice.customer!, overpayment);
-    }
-    
-    if (invoice.remaining > 0) {
-      await _addCustomerDebt(txn, invoice.customer!, invoice.remaining);
-    }
+    // CRITICAL FIX: Removed duplicate _addCustomerDebt/_addCustomerCredit.
+    // Customer balance is now updated only once in _updateCustomerBalance
+    // to prevent double-counting.
   }
 
   Future<void> _updateCustomerBalance(
@@ -185,7 +183,13 @@ class AccountingService {
       
       if (productData.isNotEmpty) {
         final currentStock = (productData.first['quantity'] as num?)?.toDouble() ?? 0.0;
-        final newStock = currentStock - item.quantity;
+        if (item.trackInventory) {
+          final requiredQty = item.inventoryQuantity;
+          if (currentStock < requiredQty) {
+            throw Exception('الكمية غير كافية للصنف ${item.name}: المتاح $currentStock، المطلوب $requiredQty');
+          }
+        }
+        final newStock = currentStock - item.inventoryQuantity;
         
         await txn.update(
           'products',
@@ -200,7 +204,7 @@ class AccountingService {
         await txn.insert('inventory_transactions', {
           'product_id': productId,
           'transaction_type': 'sale',
-          'quantity': -item.quantity,
+          'quantity': -item.inventoryQuantity,
           'unit_price': item.price,
           'total_amount': item.total,
           'balance_after': newStock,
@@ -219,16 +223,13 @@ class AccountingService {
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
-    final journalId = await txn.insert('journal_entries', {
-      'entry_date': invoice.date.millisecondsSinceEpoch ~/ 1000,
-      'description': 'فاتورة مبيعات رقم ${invoice.number}',
-      'reference_type': 'sales_invoice',
-      'reference_id': invoiceId,
-      'total_debit': invoice.total,
-      'total_credit': invoice.total,
-      'creation_time': now,
-    });
+    // Validate fiscal period is open
+    await _validateFiscalPeriod(txn, invoice.date);
+
+    // Build balanced journal lines first, then insert header with correct totals
+    final lines = <Map<String, dynamic>>[];
     
+    // Debit: cash/bank payments
     if (invoice.paid > 0) {
       for (final payment in invoice.payments) {
         int accountId;
@@ -239,62 +240,160 @@ class AccountingService {
         } else {
           continue;
         }
-        
-        await txn.insert('journal_entry_lines', {
-          'journal_entry_id': journalId,
+        lines.add({
           'account_id': accountId,
           'debit_amount': payment.amount,
-          'credit_amount': 0,
+          'credit_amount': 0.0,
           'description': 'دفعة ${_getPaymentMethodString(payment.method)}',
         });
       }
     }
     
+    // Debit: receivable for remaining
     if (invoice.remaining > 0 && invoice.customer != null) {
       final customerAccountId = await _getCustomerAccountId(txn, invoice.customer!);
-      await txn.insert('journal_entry_lines', {
-        'journal_entry_id': journalId,
+      lines.add({
         'account_id': customerAccountId,
         'debit_amount': invoice.remaining,
-        'credit_amount': 0,
+        'credit_amount': 0.0,
         'description': 'ذمم مدينة - ${invoice.customer!.name}',
       });
     }
+
+    // Debit: overpayment -> will be credited as customer advance (liability) below, keep debit side for cash already added
+    double overpayment = 0;
+    if (invoice.paid > invoice.total) {
+      overpayment = invoice.paid - invoice.total;
+    }
     
+    // Credit: sales revenue (gross subtotal)
     final salesAccountId = await _getSalesAccountId(txn);
-    await txn.insert('journal_entry_lines', {
-      'journal_entry_id': journalId,
+    lines.add({
       'account_id': salesAccountId,
-      'debit_amount': 0,
+      'debit_amount': 0.0,
       'credit_amount': invoice.subtotal,
       'description': 'إيرادات المبيعات',
     });
     
+    // Debit: discount allowed (contra-revenue)
     if (invoice.discountAmount > 0) {
       final discountAccountId = await _getDiscountAccountId(txn);
-      await txn.insert('journal_entry_lines', {
-        'journal_entry_id': journalId,
+      lines.add({
         'account_id': discountAccountId,
         'debit_amount': invoice.discountAmount,
-        'credit_amount': 0,
+        'credit_amount': 0.0,
         'description': 'خصومات ممنوحة',
       });
     }
     
+    // Credit: other charges
     if (invoice.otherCharges > 0) {
       final otherChargesAccountId = await _getOtherChargesAccountId(txn);
-      await txn.insert('journal_entry_lines', {
-        'journal_entry_id': journalId,
+      lines.add({
         'account_id': otherChargesAccountId,
-        'debit_amount': 0,
+        'debit_amount': 0.0,
         'credit_amount': invoice.otherCharges,
         'description': 'رسوم إضافية',
       });
     }
+
+    // Credit: VAT (output tax)
+    if (invoice.taxAmount > 0.005) {
+      final vatAccountId = await _getVatAccountId(txn);
+      lines.add({
+        'account_id': vatAccountId,
+        'debit_amount': 0.0,
+        'credit_amount': invoice.taxAmount,
+        'description': 'ضريبة قيمة مضافة - مخرجات',
+      });
+    }
+
+    // Credit: customer advance for overpayment
+    if (overpayment > 0.005 && invoice.customer != null) {
+      final advancesAccountId = await _getCustomerAdvancesAccountId(txn);
+      lines.add({
+        'account_id': advancesAccountId,
+        'debit_amount': 0.0,
+        'credit_amount': overpayment,
+        'description': 'دفعات مقدمة عملاء - ${invoice.customer!.name}',
+      });
+    }
+
+    // COGS: Dr COGS / Cr Inventory for tracked items
+    double totalCOGS = 0;
+    for (final item in invoice.items) {
+      if (item.trackInventory && item.costPrice != null) {
+        totalCOGS += (item.costPrice! * item.inventoryQuantity);
+      }
+    }
+    if (totalCOGS > 0.005) {
+      final cogsAccountId = await _getCogsAccountId(txn);
+      final inventoryAccountId = await _getInventoryAccountId(txn);
+      lines.add({
+        'account_id': cogsAccountId,
+        'debit_amount': totalCOGS,
+        'credit_amount': 0.0,
+        'description': 'تكلفة البضاعة المباعة - ${invoice.number}',
+      });
+      lines.add({
+        'account_id': inventoryAccountId,
+        'debit_amount': 0.0,
+        'credit_amount': totalCOGS,
+        'description': 'صرف مخزون - ${invoice.number}',
+      });
+    }
+
+    // Validate balance: Dr == Cr
+    final totalDebit = lines.fold<double>(0, (s, l) => s + ((l['debit_amount'] as num).toDouble()));
+    final totalCredit = lines.fold<double>(0, (s, l) => s + ((l['credit_amount'] as num).toDouble()));
+    if ((totalDebit - totalCredit).abs() > 0.01) {
+      throw Exception('قيد غير متوازن: مدين=$totalDebit دائن=$totalCredit - تحقق من الضريبة والخصم');
+    }
+
+    final journalId = await txn.insert('journal_entries', {
+      'entry_date': invoice.date.millisecondsSinceEpoch ~/ 1000,
+      'description': 'فاتورة مبيعات رقم ${invoice.number}',
+      'reference_type': 'sales_invoice',
+      'reference_id': invoiceId,
+      'total_debit': totalDebit,
+      'total_credit': totalCredit,
+      'difference': 0.0,
+      'status': 1,
+      'is_posted': 1,
+      'creation_time': now,
+      'last_modification_time': now,
+    });
+    
+    for (int i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      await txn.insert('journal_entry_lines', {
+        'journal_entry_id': journalId,
+        'line_number': i + 1,
+        'account_id': line['account_id'],
+        'debit_amount': line['debit_amount'],
+        'credit_amount': line['credit_amount'],
+        'description': line['description'],
+      });
+      final debit = (line['debit_amount'] as num).toDouble();
+      final credit = (line['credit_amount'] as num).toDouble();
+      await _applyBalanceDelta(txn, line['account_id'] as int, debit - credit);
+    }
+  }
+
+  Future<void> _validateFiscalPeriod(Transaction txn, DateTime date) async {
+    final ts = date.millisecondsSinceEpoch ~/ 1000;
+    final result = await txn.rawQuery('SELECT is_closed FROM fiscal_periods WHERE start_date <= ? AND end_date >= ? LIMIT 1', [ts, ts]);
+    if (result.isNotEmpty && (result.first['is_closed'] as int?) == 1) {
+      throw Exception('الفترة المالية مقفلة - لا يمكن الترحيل');
+    }
+  }
+
+  Future<void> _applyBalanceDelta(Transaction txn, int accountId, double delta) async {
+    await txn.rawUpdate('UPDATE accounts SET balance = COALESCE(balance,0) + ?, local_balance = COALESCE(local_balance,0) + ?, last_modification_time = ? WHERE id = ?', [delta, delta, DateTime.now().millisecondsSinceEpoch ~/ 1000, accountId]);
   }
 
   Future<void> _updateCashBox(Transaction txn, Payment payment) async {
-    final cashBoxName = payment.details?['cashBox'] ?? 'الصندوق الرئيسي';
+    final cashBoxName = payment.details?['cashBox'] as String?;
     final accountId = await _getCashAccountId(txn, cashBoxName);
     
     await txn.rawUpdate('''
@@ -307,7 +406,7 @@ class AccountingService {
   }
 
   Future<void> _updateBankAccount(Transaction txn, Payment payment) async {
-    final bankName = payment.details?['bank'] ?? 'الراجحي';
+    final bankName = payment.details?['bank'] as String?;
     final accountId = await _getBankAccountId(txn, bankName);
     
     await txn.rawUpdate('''
@@ -342,54 +441,68 @@ class AccountingService {
   }
 
   Future<int> _getCashAccountId(Transaction txn, String? cashBoxName) async {
-    final name = cashBoxName ?? 'الصندوق الرئيسي';
-    final accounts = await txn.query(
-      'accounts',
-      where: 'name = ?',
-      whereArgs: [name],
-      limit: 1,
-    );
-    
-    if (accounts.isNotEmpty) {
-      return accounts.first['id'] as int;
+    // If name supplied, try by name first
+    if (cashBoxName != null && cashBoxName.trim().isNotEmpty) {
+      final byName = await txn.query('accounts', where: 'name = ?', whereArgs: [cashBoxName.trim()], limit: 1);
+      if (byName.isNotEmpty) return byName.first['id'] as int;
     }
-    
+    // Live lookup: default cashbox from funds.is_main_fund or account_connects.cashboxes
+    try {
+      final fund = await txn.query('funds', where: 'is_main_fund = ? AND is_active = ?', whereArgs: [1, 1], limit: 1);
+      if (fund.isNotEmpty && fund.first['account_id'] != null) {
+        final accId = fund.first['account_id'] as int;
+        final check = await txn.query('accounts', where: 'id = ?', whereArgs: [accId], limit: 1);
+        if (check.isNotEmpty) return accId;
+      }
+    } catch (_) {}
+    // Fallback via account_connects
+    try {
+      final conn = await txn.query('account_connects', where: 'account_connect_type = ?', whereArgs: [1], limit: 1);
+      if (conn.isNotEmpty && conn.first['c_id'] != null) {
+        final cId = conn.first['c_id'] as int;
+        final acc = await txn.query('accounts', where: 'c_id = ?', whereArgs: [cId], limit: 1);
+        if (acc.isNotEmpty) return acc.first['id'] as int;
+      }
+    } catch (_) {}
+    throw Exception('الصندوق غير مهيأ — يرجى ضبط الصندوق الافتراضي من الإعدادات وربط الحسابات');
+  }
+
+  Future<int> _getBankAccountId(Transaction txn, String? bankName) async {
+    if (bankName != null && bankName.trim().isNotEmpty) {
+      final byName = await txn.query('accounts', where: 'name = ?', whereArgs: [bankName.trim()], limit: 1);
+      if (byName.isNotEmpty) return byName.first['id'] as int;
+    }
+    // Live lookup: default bank from banks.is_main or account_connects.banks
+    try {
+      final bank = await txn.query('banks', where: 'is_active = ?', whereArgs: [1], limit: 1, orderBy: 'id ASC');
+      if (bank.isNotEmpty && bank.first['account_id'] != null) {
+        final accId = bank.first['account_id'] as int;
+        final check = await txn.query('accounts', where: 'id = ?', whereArgs: [accId], limit: 1);
+        if (check.isNotEmpty) return accId;
+      }
+    } catch (_) {}
+    try {
+      final conn = await txn.query('account_connects', where: 'account_connect_type = ?', whereArgs: [0], limit: 1);
+      if (conn.isNotEmpty && conn.first['c_id'] != null) {
+        final cId = conn.first['c_id'] as int;
+        final acc = await txn.query('accounts', where: 'c_id = ?', whereArgs: [cId], limit: 1);
+        if (acc.isNotEmpty) return acc.first['id'] as int;
+      }
+    } catch (_) {}
+    throw Exception('الحساب البنكي غير مهيأ — يرجى ضبط البنك الافتراضي وربط الحسابات');
+  }
+
+  // Legacy helper kept private for internal fallback — not used after migration
+  Future<int> _getCashAccountIdLegacy(Transaction txn, String name) async {
+    final accounts = await txn.query('accounts', where: 'name = ?', whereArgs: [name], limit: 1);
+    if (accounts.isNotEmpty) return accounts.first['id'] as int;
     return await txn.insert('accounts', {
       'c_id': 111,
       'code': '111',
       'name': name,
       'is_master': 0,
       'master_id': 11,
-      'type': 1,
-      'national': 1,
-      'is_active': 1,
-      'balance': 0.0,
-      'local_balance': 0.0,
-      'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-      'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-    });
-  }
-
-  Future<int> _getBankAccountId(Transaction txn, String? bankName) async {
-    final name = bankName ?? 'الراجحي';
-    final accounts = await txn.query(
-      'accounts',
-      where: 'name = ?',
-      whereArgs: [name],
-      limit: 1,
-    );
-    
-    if (accounts.isNotEmpty) {
-      return accounts.first['id'] as int;
-    }
-    
-    return await txn.insert('accounts', {
-      'c_id': 112,
-      'code': '112',
-      'name': name,
-      'is_master': 0,
-      'master_id': 11,
-      'type': 1,
+      'type': 0,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,
@@ -433,7 +546,7 @@ class AccountingService {
       'name': 'إيرادات المبيعات',
       'is_master': 0,
       'master_id': 41,
-      'type': 4,
+      'type': 3,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,
@@ -461,7 +574,7 @@ class AccountingService {
       'name': 'خصومات ممنوحة',
       'is_master': 0,
       'master_id': 41,
-      'type': 4,
+      'type': 3,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,
@@ -489,7 +602,7 @@ class AccountingService {
       'name': 'إيرادات أخرى',
       'is_master': 0,
       'master_id': 41,
-      'type': 4,
+      'type': 3,
       'national': 1,
       'is_active': 1,
       'balance': 0.0,
@@ -497,6 +610,39 @@ class AccountingService {
       'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
     });
+  }
+
+  Future<int> _getVatAccountId(Transaction txn) async {
+    final accounts = await txn.query('accounts', where: 'name = ?', whereArgs: ['ضريبة القيمة المضافة - مخرجات'], limit: 1);
+    if (accounts.isNotEmpty) return accounts.first['id'] as int;
+    // Try VAT payable general
+    final vat = await txn.query('accounts', where: 'c_id = ?', whereArgs: [2140], limit: 1);
+    if (vat.isNotEmpty) return vat.first['id'] as int;
+    return await txn.insert('accounts', {'c_id': 2141, 'code': '2141', 'name': 'ضريبة القيمة المضافة - مخرجات', 'is_master': 0, 'master_id': 21, 'type': 1, 'national': 1, 'is_active': 1, 'balance': 0.0, 'local_balance': 0.0, 'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000, 'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000});
+  }
+
+  Future<int> _getCustomerAdvancesAccountId(Transaction txn) async {
+    final acc = await txn.query('accounts', where: 'name = ?', whereArgs: ['دفعات مقدمة عملاء'], limit: 1);
+    if (acc.isNotEmpty) return acc.first['id'] as int;
+    final byCId = await txn.query('accounts', where: 'c_id = ?', whereArgs: [2120], limit: 1);
+    if (byCId.isNotEmpty) return byCId.first['id'] as int;
+    return await txn.insert('accounts', {'c_id': 2120, 'code': '2120', 'name': 'دفعات مقدمة عملاء', 'is_master': 0, 'master_id': 21, 'type': 1, 'national': 1, 'is_active': 1, 'balance': 0.0, 'local_balance': 0.0, 'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000, 'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000});
+  }
+
+  Future<int> _getInventoryAccountId(Transaction txn) async {
+    final acc = await txn.query('accounts', where: 'name LIKE ?', whereArgs: ['%المخزون%'], limit: 1);
+    if (acc.isNotEmpty) return acc.first['id'] as int;
+    final byCId = await txn.query('accounts', where: 'c_id = ?', whereArgs: [1130], limit: 1);
+    if (byCId.isNotEmpty) return byCId.first['id'] as int;
+    return await txn.insert('accounts', {'c_id': 1130, 'code': '1130', 'name': 'المخزون', 'is_master': 0, 'master_id': 11, 'type': 0, 'national': 1, 'is_active': 1, 'balance': 0.0, 'local_balance': 0.0, 'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000, 'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000});
+  }
+
+  Future<int> _getCogsAccountId(Transaction txn) async {
+    final acc = await txn.query('accounts', where: 'name LIKE ?', whereArgs: ['%تكلفة البضاعة%'], limit: 1);
+    if (acc.isNotEmpty) return acc.first['id'] as int;
+    final byCId = await txn.query('accounts', where: 'c_id = ?', whereArgs: [5110], limit: 1);
+    if (byCId.isNotEmpty) return byCId.first['id'] as int;
+    return await txn.insert('accounts', {'c_id': 5110, 'code': '5110', 'name': 'تكلفة البضاعة المباعة', 'is_master': 0, 'master_id': 51, 'type': 4, 'national': 1, 'is_active': 1, 'balance': 0.0, 'local_balance': 0.0, 'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000, 'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000});
   }
 
   String _getPaymentMethodString(PaymentMethod method) {

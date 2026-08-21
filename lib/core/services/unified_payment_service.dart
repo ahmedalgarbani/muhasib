@@ -177,15 +177,19 @@ class UnifiedPaymentService {
         }
         
         final paymentData = payment.first;
-        final unallocated = (paymentData['amount'] as num).toDouble() - 
-                           (paymentData['allocated_amount'] as num).toDouble();
-        
+        final exchangeRate = (paymentData['exchange_rate'] as num?)?.toDouble() ?? 1.0;
+        // FIX MEDIUM-30: compare local_amount when currencies differ
+        final localUnallocated = ((paymentData['local_amount'] as num?)?.toDouble() ?? (paymentData['amount'] as num).toDouble() * exchangeRate) - ((paymentData['allocated_amount'] as num?)?.toDouble() ?? 0) * exchangeRate;
+        final unallocated = (paymentData['amount'] as num).toDouble() - (paymentData['allocated_amount'] as num).toDouble();
+        final requestedLocal = amount * exchangeRate;
+        if (requestedLocal > localUnallocated + 0.01) {
+          return Left(ValidationFailure(message: 'المبلغ المطلوب تخصيصه أكبر من المتاح (عملة)'));
+        }
         if (amount > unallocated + 0.01) {
           return Left(ValidationFailure(message: 'المبلغ المطلوب تخصيصه أكبر من المتاح'));
         }
         
         final currencyId = paymentData['currency_id'] as int?;
-        final exchangeRate = (paymentData['exchange_rate'] as num?)?.toDouble() ?? 1.0;
         final localAmount = amount * exchangeRate;
         
         final allocationId = await _allocatePayment(
@@ -293,7 +297,21 @@ class UnifiedPaymentService {
           whereArgs: [paymentId],
         );
         
-        // Delete allocations
+        // Delete allocations and reverse customer balance
+        final allocated = (paymentData['allocated_amount'] as num?)?.toDouble() ?? 0.0;
+        final partyType = paymentData['party_type'] as String?;
+        final partyId = paymentData['party_id'] as int?;
+        // Reverse party balance if was customer/supplier
+        if (partyId != null && partyType != null) {
+          final partyTable = partyType == 'customer' ? 'customers' : (partyType == 'supplier' ? 'customers' : null);
+          if (partyTable != null) {
+            // Reverse the +amount that was added on allocation (simplified: subtract allocated)
+            await txn.rawUpdate('UPDATE $partyTable SET current_balance = COALESCE(current_balance,0) - ? WHERE id = ?', [allocated > 0 ? allocated : (paymentData['amount'] as num).toDouble(), partyId]);
+          }
+          // Reverse account_limits usage (decrement)
+          await txn.rawUpdate('UPDATE account_limits SET current_debit = MAX(0, COALESCE(current_debit,0) - ?), current_credit = MAX(0, COALESCE(current_credit,0) - ?) WHERE account_id IN (SELECT from_account_id FROM unified_payments WHERE id=?) OR account_id IN (SELECT to_account_id FROM unified_payments WHERE id=?)', [(paymentData['amount'] as num).toDouble(), (paymentData['amount'] as num).toDouble(), paymentId, paymentId]);
+        }
+
         await txn.delete(
           _allocationsTable,
           where: 'payment_id = ?',
@@ -351,10 +369,39 @@ class UnifiedPaymentService {
           whereArgs: [paymentId],
         );
         
-        // Create reversing entry and bounce fee entry
+        // Create reversing entry
         final journalEntryId = payment.first['journal_entry_id'] as int?;
         if (journalEntryId != null) {
           await _createReversingJournalEntry(txn, journalEntryId, now);
+        }
+
+        // FIX HIGH-27: Handle bounce fee if provided
+        if (bounceFee != null && bounceFee > 0.01 && bounceAccountId != null) {
+          final feeJournalNumber = await _nextJournalNumber(txn, 'BOUNCE');
+          final feeJournalId = await txn.insert(_journalEntriesTable, {
+            'number': feeJournalNumber,
+            'entry_date': now,
+            'description': 'رسوم شيك مرتجع - دفعة $paymentId',
+            'reference_type': 'bounce_fee',
+            'reference_id': paymentId,
+            'status': 1,
+            'is_posted': 1,
+            'total_debit': bounceFee,
+            'total_credit': bounceFee,
+            'difference': 0.0,
+            'creation_time': now,
+            'last_modification_time': now,
+          });
+          // Debit: bounce fee expense, Credit: bounceAccountId (bank)
+          final feeFromMeta = await _getAccountMeta(txn, bounceAccountId);
+          await txn.insert(_journalLinesTable, {'journal_entry_id': feeJournalId, 'line_number': 1, 'account_id': bounceAccountId, 'account_code': feeFromMeta['code'], 'account_name': feeFromMeta['name'], 'debit_amount': bounceFee, 'credit_amount': 0.0, 'description': 'رسوم شيك مرتجع'});
+          final partyAccountId = payment.first['from_account_id'] as int? ?? payment.first['to_account_id'] as int?;
+          if (partyAccountId != null) {
+            final partyMeta = await _getAccountMeta(txn, partyAccountId);
+            await txn.insert(_journalLinesTable, {'journal_entry_id': feeJournalId, 'line_number': 2, 'account_id': partyAccountId, 'account_code': partyMeta['code'], 'account_name': partyMeta['name'], 'debit_amount': 0.0, 'credit_amount': bounceFee, 'description': 'رسوم شيك مرتجع مستحقة'});
+            await txn.rawUpdate('UPDATE $_accountsTable SET balance = COALESCE(balance,0) + ? WHERE id = ?', [bounceFee, bounceAccountId]);
+            await txn.rawUpdate('UPDATE $_accountsTable SET balance = COALESCE(balance,0) - ? WHERE id = ?', [bounceFee, partyAccountId]);
+          }
         }
         
         return const Right(null);
@@ -408,8 +455,10 @@ class UnifiedPaymentService {
         prefix = 'PMT';
     }
     
+    // FIX MEDIUM-29: SUBSTR index should be prefix.length+2 (e.g., REC- -> 5, PAY- ->5, PMT- ->5) - was hardcoded 5 which truncated 6-digit numbers
+    final substrIndex = prefix.length + 2;
     final result = await txn.rawQuery(
-      "SELECT COALESCE(MAX(CAST(SUBSTR(payment_number, 5) AS INTEGER)), 0) + 1 as next "
+      "SELECT COALESCE(MAX(CAST(SUBSTR(payment_number, $substrIndex) AS INTEGER)), 0) + 1 as next "
       "FROM unified_payments WHERE payment_number LIKE '$prefix-%'",
     );
     
@@ -434,6 +483,18 @@ class UnifiedPaymentService {
         ? 'سند قبض - ${request.documentNumber ?? paymentNumber}'
         : 'سند صرف - ${request.documentNumber ?? paymentNumber}';
     
+    // FIX CRITICAL-26: Handle commission correctly balanced
+    // If commission exists, net To amount = localAmount - commission, To debit net + commission debit = From credit
+    final hasCommission = request.commissionAmount != null && request.commissionAmount! > 0 && request.commissionAccountId != null;
+    final commissionAmt = hasCommission ? request.commissionAmount! : 0.0;
+    final netToAmount = hasCommission ? (localAmount - commissionAmt) : localAmount;
+    if (hasCommission && netToAmount < -0.01) {
+      throw Exception('العمولة أكبر من مبلغ الدفعة');
+    }
+    final journalTotal = hasCommission ? localAmount : localAmount; // Gross total (both sides)
+    // For balanced entry with commission: Dr To (net) + Dr Commission = Cr From (gross)
+    // total_debit = net + commission = localAmount, total_credit = localAmount
+
     // Generate journal number
     final journalNumber = await _nextJournalNumber(txn, 'PMT');
     
@@ -447,14 +508,14 @@ class UnifiedPaymentService {
       'reference_number': paymentNumber,
       'status': 1,
       'is_posted': 1,
-      'total_debit': localAmount,
-      'total_credit': localAmount,
+      'total_debit': journalTotal,
+      'total_credit': journalTotal,
       'difference': 0.0,
       'creation_time': now,
       'last_modification_time': now,
     });
     
-    // Debit line
+    // Debit line - net to account
     await txn.insert(_journalLinesTable, {
       'journal_entry_id': journalEntryId,
       'line_number': 1,
@@ -462,12 +523,12 @@ class UnifiedPaymentService {
       'account_code': toMeta['code'],
       'account_name': toMeta['name'],
       'currency_id': request.currencyId,
-      'debit_amount': localAmount,
+      'debit_amount': netToAmount,
       'credit_amount': 0.0,
-      'description': description,
+      'description': hasCommission ? '$description (صافي بعد العمولة)' : description,
     });
     
-    // Credit line
+    // Credit line - gross from account
     await txn.insert(_journalLinesTable, {
       'journal_entry_id': journalEntryId,
       'line_number': 2,
@@ -480,26 +541,30 @@ class UnifiedPaymentService {
       'description': description,
     });
     
-    // Update account balances
+    // Update account balances - use net for To
     await txn.rawUpdate(
       'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) + ? WHERE id = ?',
-      [localAmount, request.toAccountId],
+      [netToAmount, request.toAccountId],
     );
     await txn.rawUpdate(
       'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) - ? WHERE id = ?',
       [localAmount, request.fromAccountId],
     );
     
-    // Handle commission if any
-    if (request.commissionAmount != null && request.commissionAmount! > 0 && request.commissionAccountId != null) {
+    // Handle commission if any - balanced
+    if (hasCommission) {
       await txn.insert(_journalLinesTable, {
         'journal_entry_id': journalEntryId,
         'line_number': 3,
         'account_id': request.commissionAccountId,
-        'debit_amount': request.commissionAmount,
+        'debit_amount': commissionAmt,
         'credit_amount': 0.0,
-        'description': 'رسوم تحويل/عمولة',
+        'description': 'رسوم تحويل/عمولة - $paymentNumber',
       });
+      await txn.rawUpdate(
+        'UPDATE $_accountsTable SET balance = COALESCE(balance, 0) + ? WHERE id = ?',
+        [commissionAmt, request.commissionAccountId],
+      );
     }
     
     return journalEntryId;

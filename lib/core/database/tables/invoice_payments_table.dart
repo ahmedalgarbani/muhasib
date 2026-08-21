@@ -1,3 +1,4 @@
+import 'package:muhasib/core/enums/payment_method.dart' as core_payment;
 import 'table_schema.dart';
 
 /// Table for tracking multiple payment methods per invoice
@@ -60,7 +61,8 @@ class InvoicePaymentsTable implements TableSchema {
   ];
 }
 
-/// Payment method enum values
+/// @Deprecated — use [core_payment.PaymentMethod] from lib/core/enums/payment_method.dart
+/// Kept for backward compatibility — delegates to central enum.
 class PaymentMethod {
   static const int cash = 0;
   static const int credit = 1;      // Accounts Receivable
@@ -68,14 +70,6 @@ class PaymentMethod {
   static const int check = 3;
   static const int card = 4;
   
-  static String getName(int method) {
-    switch (method) {
-      case cash: return 'نقدي';
-      case credit: return 'آجل';
-      case bankTransfer: return 'حوالة بنكية';
-      case check: return 'شيك';
-      case card: return 'بطاقة';
-      default: return 'غير محدد';
-    }
-  }
+  static String getName(int method) =>
+      core_payment.PaymentMethod.tryFromValue(method)?.labelAr ?? 'غير محدد';
 }

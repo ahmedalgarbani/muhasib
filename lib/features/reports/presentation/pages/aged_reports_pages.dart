@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
@@ -237,28 +237,13 @@ class _AgedInvoicesContentState extends State<_AgedInvoicesContent> {
   }
 
   Future<_AgedResult> _load() async {
-    final db = await getIt<DatabaseService>().database;
+    final ds = getIt<ReportsLocalDataSource>();
     final now = DateTime.now();
-    final asOf = (widget.filter.endDate ?? now).millisecondsSinceEpoch ~/ 1000;
-    final args = <Object?>[asOf, widget.customerType];
-    final typeClause = widget.invoiceTypes.isEmpty
-        ? ''
-        : 'AND i.invoice_type IN (${widget.invoiceTypes.map((_) => '?').join(',')})';
-    if (widget.invoiceTypes.isNotEmpty) args.addAll(widget.invoiceTypes);
-
-    final rows = await db.rawQuery('''
-      SELECT i.id, i.date, i.due_date,
-        COALESCE(i.final_amt, i.total_amount, i.amount, 0) as amount,
-        COALESCE(i.paid_amount, 0) as paid_amount,
-        COALESCE(i.bank_paid_amount, 0) as bank_paid_amount,
-        i.customer_id
-      FROM invoices i INNER JOIN customers c ON c.id = i.customer_id
-      WHERE ${normalizedReportTimestampSql('COALESCE(i.due_date, i.date)')} <= ?
-        AND c.type = ?
-        AND i.payment_status != 2
-        AND COALESCE(i.approval_status, 1) != 3
-        $typeClause
-    ''', args);
+    final rows = await ds.getAgedReceivables(
+      filter: widget.filter,
+      customerType: widget.customerType,
+      invoiceTypes: widget.invoiceTypes,
+    );
 
     final buckets = {
       '0-30': _AgedBucket(label: '0 - 30 يوم', amount: 0, count: 0),

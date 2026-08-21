@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/balance_sheet_components.dart';
@@ -111,7 +111,7 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
 
   void _fetchData() {
     _notifiedResult = null;
-    _future = _load(getIt<DatabaseService>(), widget.filter);
+    _future = _load(widget.filter);
   }
 
   String _format(double v) => NumberFormatter.formatCurrency(v, symbol: 'ر.س');
@@ -228,43 +228,13 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
     );
   }
 
-  Future<_BalanceSheetResult> _load(DatabaseService dbs, ReportFilter f) async {
-    final db = await dbs.database;
+  Future<_BalanceSheetResult> _load(ReportFilter f) async {
+    final ds = getIt<ReportsLocalDataSource>();
     final asOf = (f.endDate ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
 
-    final accounts = await db.rawQuery(
-      '''
-      SELECT a.id, a.code, a.name, a.type, COALESCE(SUM(jel.debit_amount - jel.credit_amount), 0) as net
-      FROM accounts a 
-      LEFT JOIN journal_entry_lines jel ON jel.account_id = a.id 
-      LEFT JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND (je.is_posted = 1 OR je.id IS NULL) AND (je.entry_date <= ? OR je.id IS NULL) 
-        AND (a.type IN (0, 1, 2) OR a.code LIKE '1%' OR a.code LIKE '2%')
-      GROUP BY a.id, a.code, a.name, a.type 
-      HAVING net != 0 
-      ORDER BY a.code
-    ''',
-      [asOf],
-    );
+    final accounts = await ds.getBalanceSheetAccounts(asOfSeconds: asOf);
 
-    final niRes = await db.rawQuery(
-      '''
-      SELECT COALESCE(SUM(
-        CASE 
-          WHEN (a.type = 4 OR a.code LIKE '4%') THEN jel.credit_amount - jel.debit_amount
-          WHEN (a.type = 3 OR a.code LIKE '3%') THEN -(jel.debit_amount - jel.credit_amount)
-          ELSE 0
-        END
-      ), 0) as ni
-      FROM accounts a 
-      JOIN journal_entry_lines jel ON jel.account_id = a.id 
-      JOIN journal_entries je ON je.id = jel.journal_entry_id
-      WHERE a.is_active = 1 AND je.is_posted = 1 AND je.entry_date <= ? 
-        AND (a.type IN (3, 4) OR a.code LIKE '3%' OR a.code LIKE '4%') 
-        AND COALESCE(je.reference_type, '') NOT IN ('opening_entry', 'opening_balance', 'closing')
-    ''',
-      [asOf],
-    );
+    final niRes = await ds.getBalanceSheetNetIncome(asOfSeconds: asOf);
     final ni = (niRes.first['ni'] as num).toDouble();
 
     final curA = <_AccountBalanceRow>[],

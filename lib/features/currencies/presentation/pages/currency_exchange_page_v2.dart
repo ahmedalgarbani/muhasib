@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/currency_exchange_service.dart';
-import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/empty_state_widget.dart';
@@ -35,19 +35,14 @@ class _CurrencyExchangePageV2State extends State<CurrencyExchangePageV2> {
   @override
   void initState() {
     super.initState();
-    _exchangeService = CurrencyExchangeService(getIt<DatabaseService>());
+    _exchangeService = getIt<CurrencyExchangeService>();
     context.read<CurrenciesCubit>().loadAllCurrencies();
     _loadAccounts();
   }
 
   Future<void> _loadAccounts() async {
-    final db = await getIt<DatabaseService>().database;
-    final result = await db.query(
-      'accounts',
-      columns: ['id', 'code', 'name', 'type'],
-      where: 'is_active = 1 AND is_master = 0',
-      orderBy: 'code',
-    );
+    final ds = getIt<ReportsLocalDataSource>();
+    final result = await ds.getAccountsForExchange();
     setState(() => accounts = result);
   }
 

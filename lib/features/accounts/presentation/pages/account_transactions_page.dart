@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
@@ -40,32 +40,13 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
     setState(() => isLoading = true);
 
     try {
-      final databaseService = getIt<DatabaseService>();
-      final db = await databaseService.database;
+      final ds = getIt<ReportsLocalDataSource>();
 
-      List<dynamic> whereArgs = [widget.account.id];
-
-      if (selectedPeriod != 'الكل') {
-        whereArgs.add(startDate.millisecondsSinceEpoch ~/ 1000);
-        whereArgs.add(endDate.millisecondsSinceEpoch ~/ 1000);
-      }
-
-      final journalEntries = await db.rawQuery('''
-        SELECT 
-          je.id,
-          je.number as entry_number,
-          je.entry_date as date,
-          je.description,
-          jel.debit_amount,
-          jel.credit_amount,
-          jel.notes,
-          'journal' as source_type
-        FROM journal_entry_lines jel
-        JOIN journal_entries je ON je.id = jel.journal_entry_id
-        WHERE jel.account_id = ?
-        ${selectedPeriod != 'الكل' ? 'AND je.entry_date >= ? AND je.entry_date <= ?' : ''}
-        ORDER BY je.entry_date DESC, je.id DESC
-      ''', whereArgs);
+      final journalEntries = await ds.getAccountTransactions(
+        accountId: widget.account.id!,
+        startDate: selectedPeriod != 'الكل' ? startDate : null,
+        endDate: selectedPeriod != 'الكل' ? endDate : null,
+      );
 
       final allTransactions = journalEntries
           .map((entry) => Map<String, dynamic>.from(entry))

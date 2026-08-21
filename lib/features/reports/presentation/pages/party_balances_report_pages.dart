@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
@@ -310,10 +310,10 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
   }
 
   Future<List<_PartyBalanceRow>> _load() async {
-    final db = await getIt<DatabaseService>().database;
-    final rows = await db.rawQuery(
-      'SELECT c.id, c.name, COALESCE(a.balance, 0) as balance FROM customers c LEFT JOIN accounts a ON a.id = c.account_id WHERE c.is_active = 1 AND c.type = ? ORDER BY ABS(balance) DESC',
-      [widget.customerType],
+    final ds = getIt<ReportsLocalDataSource>();
+    final rows = await ds.getPartyBalances(
+      customerType: widget.customerType,
+      filter: widget.filter,
     );
     return rows
         .map(

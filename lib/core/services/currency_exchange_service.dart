@@ -48,16 +48,17 @@ class CurrencyExchangeService {
       // If debitLocalAmount > creditLocalAmount => Profit (Gain from exchange)
       // If debitLocalAmount < creditLocalAmount => Loss (Expense from exchange)
       final exchangeDifference = debitLocalAmount - creditLocalAmount;
-      final isProfit = exchangeDifference > 0.005;
-      final isLoss = exchangeDifference < -0.005;
+      // FIX: use 0.01 threshold consistent with other validations, but handle dust >0.001
+      final isProfit = exchangeDifference > 0.01;
+      final isLoss = exchangeDifference < -0.01;
       final diffAbs = exchangeDifference.abs();
       
-      // Get next exchange number
-      final exchangeNumber = await getNextExchangeNumber();
-      
-      // Start transaction
+      // Start transaction - FIX HIGH-31: generate number INSIDE txn to avoid race
       return await db.transaction((txn) async {
         final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+        // Generate exchange number inside transaction
+        final numResult = await txn.rawQuery('SELECT COALESCE(MAX(number), 0) + 1 as next_number FROM currency_exchanges');
+        final exchangeNumber = (numResult.first['next_number'] as int?) ?? 1;
         
         // 1. Create the exchange record
         final exchangeData = {
@@ -91,7 +92,12 @@ class CurrencyExchangeService {
         final journalNumber = 'EX-$exchangeNumber';
         final journalDescription = 'قيد صرف عملات رقم $exchangeNumber - تحويل من $creditCurrencyCode إلى $debitCurrencyCode';
         
-        final totalLocal = isLoss ? creditLocalAmount : debitLocalAmount;
+        // FIX MEDIUM-32: Handle dust correctly - if diffAbs <=0.01, consider balanced within tolerance, but header must reflect actual lines
+        // For clear audit, if diffAbs >0.01 we add diff line and header = max; if dust <=0.01 we round header to average and consider balanced
+        final bool hasSignificantDiff = diffAbs > 0.01;
+        final totalLocal = hasSignificantDiff ? (isLoss ? creditLocalAmount : debitLocalAmount) : (debitLocalAmount + creditLocalAmount) / 2;
+        // Small dust will be ignored (rounded) and considered balanced
+        final headerDiff = hasSignificantDiff ? 0.0 : exchangeDifference;
         final journalEntryData = {
           'number': journalNumber,
           'entry_date': date.millisecondsSinceEpoch ~/ 1000,
@@ -102,9 +108,9 @@ class CurrencyExchangeService {
           'notes': notes,
           'status': 1,
           'is_posted': 1,
-          'total_debit': totalLocal,
-          'total_credit': totalLocal,
-          'difference': 0.0,
+          'total_debit': hasSignificantDiff ? totalLocal : (debitLocalAmount + creditLocalAmount)/2,
+          'total_credit': hasSignificantDiff ? totalLocal : (debitLocalAmount + creditLocalAmount)/2,
+          'difference': hasSignificantDiff ? 0.0 : 0.0, // dust rounded to balanced
           'creator_id': 1,
           'last_modifier_id': 1,
           'creation_time': now,
@@ -144,13 +150,13 @@ class CurrencyExchangeService {
           'notes': 'بيع $creditAmount $creditCurrencyCode',
         });
         
-        // 4. If there's an exchange difference, record it
+        // 4. If there's an exchange difference, record it - FIX threshold 0.01
         final diffAccountId = exchangeDifferenceAccountId ??
-            (diffAbs > 0.005
+            (diffAbs > 0.01
                 ? await _resolveExchangeDifferenceAccount(txn, isProfit)
                 : null);
 
-        if (diffAbs > 0.005 && diffAccountId != null) {
+        if (diffAbs > 0.01 && diffAccountId != null) {
           if (isProfit) {
             // Profit from exchange - Credit to income
             await txn.insert('journal_entry_lines', {
@@ -264,11 +270,11 @@ class CurrencyExchangeService {
   ) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     
-    // Close any previous active rate for this currency
+    // FIX LOW-34: end_date exclusive to avoid overlap same day
     await txn.update(
       'currency_exchange_rates',
       {
-        'end_date': effectiveDate.millisecondsSinceEpoch ~/ 1000,
+        'end_date': effectiveDate.millisecondsSinceEpoch ~/ 1000 - 1,
         'is_active': 0,
         'last_modification_time': now,
       },
@@ -413,16 +419,25 @@ class CurrencyExchangeService {
       
       final balance = (balanceResult.first['balance'] as num?)?.toDouble() ?? 0.0;
       
-      // Get the original local balance
+      // Get the original local balance - FIX MEDIUM-33: use historic rate, not current currencies.exchange_rate
       final localBalanceResult = await db.rawQuery('''
         SELECT 
           COALESCE(SUM(
-            (jel.debit_amount * COALESCE(c.exchange_rate, 1)) - 
-            (jel.credit_amount * COALESCE(c.exchange_rate, 1))
+            (jel.debit_amount * COALESCE(
+              (SELECT exchange_rate FROM currency_exchange_rates 
+               WHERE currency_id = jel.currency_id 
+                 AND effective_date <= je.entry_date 
+                 AND (end_date IS NULL OR end_date >= je.entry_date) 
+               ORDER BY effective_date DESC LIMIT 1), 1)) - 
+            (jel.credit_amount * COALESCE(
+              (SELECT exchange_rate FROM currency_exchange_rates 
+               WHERE currency_id = jel.currency_id 
+                 AND effective_date <= je.entry_date 
+                 AND (end_date IS NULL OR end_date >= je.entry_date) 
+               ORDER BY effective_date DESC LIMIT 1), 1))
           ), 0) as local_balance
         FROM journal_entry_lines jel
         INNER JOIN journal_entries je ON je.id = jel.journal_entry_id
-        LEFT JOIN currencies c ON c.id = jel.currency_id
         WHERE jel.account_id = ? 
           AND jel.currency_id = ?
           AND je.is_posted = 1

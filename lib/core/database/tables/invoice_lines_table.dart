@@ -51,7 +51,10 @@ class InvoiceLinesTable implements TableSchema {
       
       -- Price tracking
       price REAL NULL,
-      selling_price REAL NULL
+      selling_price REAL NULL,
+      CHECK(quantity > 0),
+      CHECK(amount >= 0),
+      CHECK(total_amount >= 0)
     );
   ''';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
@@ -275,21 +275,11 @@ class _StockMovementsContentState extends State<_StockMovementsContent> {
   }
 
   Future<_MovResult> _load() async {
-    final db = await getIt<DatabaseService>().database;
+    final ds = getIt<ReportsLocalDataSource>();
     final List<_MovRow> list = [];
 
     try {
-      // 1. Query stock_movements table
-      final smRows = await db.rawQuery('''
-        SELECT sm.creation_time as trans_date, 
-               CASE WHEN sm.quantity > 0 THEN sm.quantity ELSE 0 END as quantity_in,
-               CASE WHEN sm.quantity < 0 THEN -sm.quantity ELSE 0 END as quantity_out,
-               COALESCE(sm.reference_number, sm.reference_type, '') as refrenc_no,
-               c.name 
-        FROM stock_movements sm 
-        JOIN categories c ON c.id = sm.product_id 
-        ORDER BY sm.creation_time DESC LIMIT 100
-      ''');
+      final smRows = await ds.getStockMovements();
 
       for (final m in smRows) {
         list.add(
@@ -307,9 +297,7 @@ class _StockMovementsContentState extends State<_StockMovementsContent> {
     // 2. Query legacy category_movs table if stock_movements has few or no records
     if (list.isEmpty) {
       try {
-        final rows = await db.rawQuery(
-          'SELECT cm.trans_date, cm.quantity_in, cm.quantity_out, cm.refrenc_no, c.name FROM category_movs cm JOIN categories c ON c.id = cm.category_id ORDER BY cm.trans_date DESC LIMIT 100',
-        );
+        final rows = await ds.getCategoryMovs();
         for (final m in rows) {
           list.add(
             _MovRow(
@@ -407,10 +395,8 @@ class _LowStockContentState extends State<_LowStockContent> {
   }
 
   Future<List<_LowStockRow>> _load() async {
-    final db = await getIt<DatabaseService>().database;
-    final rows = await db.rawQuery(
-      'SELECT name, quantity, COALESCE(min_stock_level, 0) as ms FROM categories WHERE is_active = 1 AND quantity <= COALESCE(min_stock_level, 0)',
-    );
+    final ds = getIt<ReportsLocalDataSource>();
+    final rows = await ds.getLowStock();
     return rows
         .map(
           (m) => _LowStockRow(
@@ -516,17 +502,8 @@ class _StockValuationContentState extends State<_StockValuationContent> {
   }
 
   Future<List<_ValuationRow>> _load() async {
-    final db = await getIt<DatabaseService>().database;
-    final rows = await db.rawQuery('''
-      SELECT c.id, c.name, 
-             COALESCE((SELECT SUM(ws.quantity) FROM warehouse_stocks ws WHERE ws.product_id = c.id), c.quantity, 0) as total_qty,
-             COALESCE((SELECT SUM(ws.quantity * CASE WHEN ws.avg_cost > 0 THEN ws.avg_cost ELSE COALESCE(c.cost_amount, 0) END) FROM warehouse_stocks ws WHERE ws.product_id = c.id), COALESCE(c.cost_amount, 0) * COALESCE(c.quantity, 0), 0) as val 
-      FROM categories c 
-      WHERE c.is_active = 1 
-      GROUP BY c.id 
-      HAVING total_qty > 0 OR val > 0 
-      ORDER BY val DESC
-    ''');
+    final ds = getIt<ReportsLocalDataSource>();
+    final rows = await ds.getInventoryValuation();
     return rows
         .map(
           (m) => _ValuationRow(

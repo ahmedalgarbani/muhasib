@@ -23,9 +23,10 @@ class JournalEntriesTable implements TableSchema {
       notes TEXT NULL,
       status INTEGER NOT NULL DEFAULT 0,
       is_posted INTEGER NOT NULL DEFAULT 0 CHECK (is_posted IN (0, 1)),
-      total_debit REAL NOT NULL DEFAULT 0.0,
-      total_credit REAL NOT NULL DEFAULT 0.0,
-      difference REAL NOT NULL DEFAULT 0.0
+      total_debit REAL NOT NULL DEFAULT 0.0 CHECK(total_debit >= 0),
+      total_credit REAL NOT NULL DEFAULT 0.0 CHECK(total_credit >= 0),
+      difference REAL NOT NULL DEFAULT 0.0 CHECK(ABS(difference) < 0.02),
+      CHECK(ABS(total_debit - total_credit - difference) < 0.02)
     );
   ''';
 

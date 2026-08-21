@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:dartz/dartz.dart';
+import 'package:muhasib/core/enums/approval_status.dart' as core_approval;
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:sqflite/sqflite.dart';
@@ -552,7 +553,7 @@ class QuotationConversionCheck {
   bool get hasWarnings => warnings.isNotEmpty;
 }
 
-/// Approval status enum for display
+/// @Deprecated — use [core_approval.ApprovalStatus] from lib/core/enums/approval_status.dart
 class QuotationApprovalStatus {
   static const int draft = 0;
   static const int pendingApproval = 1;
@@ -561,41 +562,9 @@ class QuotationApprovalStatus {
   static const int expired = 4;
   static const int converted = 5;
 
-  static String getName(int status) {
-    switch (status) {
-      case draft:
-        return 'مسودة';
-      case pendingApproval:
-        return 'قيد الاعتماد';
-      case approved:
-        return 'معتمد';
-      case rejected:
-        return 'مرفوض';
-      case expired:
-        return 'منتهي الصلاحية';
-      case converted:
-        return 'محول لفاتورة';
-      default:
-        return 'غير محدد';
-    }
-  }
+  static String getName(int status) =>
+      core_approval.ApprovalStatus.tryFromValue(status)?.labelAr ?? 'غير محدد';
 
-  static String getColor(int status) {
-    switch (status) {
-      case draft:
-        return '#6B7280';
-      case pendingApproval:
-        return '#F59E0B';
-      case approved:
-        return '#10B981';
-      case rejected:
-        return '#EF4444';
-      case expired:
-        return '#9CA3AF';
-      case converted:
-        return '#8B5CF6';
-      default:
-        return '#6B7280';
-    }
-  }
+  static String getColor(int status) =>
+      core_approval.ApprovalStatus.tryFromValue(status)?.colorHex ?? '#6B7280';
 }

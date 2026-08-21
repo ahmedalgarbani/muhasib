@@ -65,8 +65,9 @@ class VoucherLocalDataSourceImpl implements VoucherLocalDataSource {
   Future<void> _applyAccountBalanceDelta(
     Transaction txn,
     int accountId,
-    double delta,
-  ) async {
+    double delta, {
+    double exchangeRate = 1.0,
+  }) async {
     final rows = await txn.query(
       _accountsTable,
       columns: ['balance', 'local_balance'],
@@ -78,12 +79,14 @@ class VoucherLocalDataSourceImpl implements VoucherLocalDataSource {
       throw LocalStorageException('Account not found: id=$accountId');
     }
     final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
+    final currentLocal = (rows.first['local_balance'] as num?)?.toDouble() ?? current;
     final newBalance = current + delta;
+    final newLocal = currentLocal + delta * exchangeRate;
     await txn.update(
       _accountsTable,
       {
         'balance': newBalance,
-        'local_balance': newBalance,
+        'local_balance': newLocal,
         'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
       },
       where: 'id = ?',

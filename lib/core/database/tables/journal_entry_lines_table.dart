@@ -15,10 +15,12 @@ class JournalEntryLinesTable implements TableSchema {
       account_name TEXT NULL,
       currency_id INTEGER NULL REFERENCES currencies (id),
       currency_code TEXT NULL,
-      debit_amount REAL NOT NULL DEFAULT 0.0,
-      credit_amount REAL NOT NULL DEFAULT 0.0,
+      debit_amount REAL NOT NULL DEFAULT 0.0 CHECK(debit_amount >= 0),
+      credit_amount REAL NOT NULL DEFAULT 0.0 CHECK(credit_amount >= 0),
       description TEXT NULL,
-      notes TEXT NULL
+      notes TEXT NULL,
+      CHECK((debit_amount > 0 AND credit_amount = 0) OR (credit_amount > 0 AND debit_amount = 0)),
+      CHECK((debit_amount + credit_amount) > 0)
     );
   ''';
 

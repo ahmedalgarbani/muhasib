@@ -3,6 +3,7 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
 import 'package:muhasib/core/services/account_validation_service.dart';
 import 'package:muhasib/core/services/accounting_setup_validator.dart';
+import 'package:muhasib/core/services/app_lookup_service.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_connect_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_local_datasource.dart';
 import 'package:muhasib/features/accounts/data/datasources/journal_local_datasource.dart';
@@ -175,6 +176,12 @@ import 'package:muhasib/features/reports/data/datasources/account_statement_data
 import 'package:muhasib/features/reports/data/repositories/account_statement_repository_impl.dart';
 import 'package:muhasib/features/reports/domain/repositories/account_statement_repository.dart';
 import 'package:muhasib/features/reports/presentation/cubit/account_statement_cubit.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
+import 'package:muhasib/features/reports/data/repositories/reports_repository_impl.dart';
+import 'package:muhasib/features/reports/domain/repositories/reports_repository.dart';
+import 'package:muhasib/features/reports/domain/usecases/get_report_data.dart';
+import 'package:muhasib/features/reports/presentation/cubit/reports_cubit.dart';
+import 'package:muhasib/core/services/currency_exchange_service.dart';
 import 'package:muhasib/features/accounts/data/datasources/fiscal_period_datasource.dart';
 import 'package:muhasib/core/services/number_sequence_service.dart';
 import 'package:muhasib/features/accounts/data/datasources/account_movements_local_datasource.dart';
@@ -196,9 +203,10 @@ class GetItHelper {
     getIt.registerLazySingleton<IDatabaseService>(() => databaseService);
     getIt.registerLazySingleton<DatabaseService>(() => databaseService);
     
-    // Account Config Service (dynamic account ID lookup)
+    // Account Config Service — now via repository (Clean Architecture), live DB only
+    // Lazy so AccountConnectRepository can be registered afterwards; resolved on first use
     getIt.registerLazySingleton<AccountConfigService>(
-      () => AccountConfigService(database: database),
+      () => AccountConfigService(repository: getIt<AccountConnectRepository>()),
     );
     
     // Account Validation Service (prevent deletion of accounts used in journal entries)
@@ -226,6 +234,11 @@ class GetItHelper {
     // Number Sequence Service
     getIt.registerLazySingleton<NumberSequenceService>(
       () => NumberSequenceService(database),
+    );
+
+    // Currency Exchange Service (for revaluation & exchange pages)
+    getIt.registerLazySingleton<CurrencyExchangeService>(
+      () => CurrencyExchangeService(getIt<DatabaseService>()),
     );
 
     // ==================== Initial Feature ====================
@@ -759,6 +772,19 @@ class GetItHelper {
       () => RegionsCubit(getIt<RegionRepository>()),
     );
 
+    // ==================== App Lookup Service (Smart Central Lookups) ====================
+    // Central, cached, live-DB lookups respecting Clean Architecture (via Repositories/DataSources)
+    getIt.registerLazySingleton<AppLookupService>(
+      () => AppLookupService(
+        currencyRepository: getIt<CurrencyRepository>(),
+        accountConnectRepository: getIt<AccountConnectRepository>(),
+        warehouseDataSource: getIt<WarehouseLocalDataSource>(),
+        cashboxDataSource: getIt<CashboxLocalDataSource>(),
+        settingsRepository: getIt<new_settings_repo.ISettingsRepository>(),
+        fiscalPeriodDataSource: getIt<FiscalPeriodDataSource>(),
+      ),
+    );
+
     // Transactions Report
     getIt.registerLazySingleton<TransactionsReportDataSource>(
       () => TransactionsReportDataSourceImpl(getIt<DatabaseService>()),
@@ -824,6 +850,22 @@ class GetItHelper {
     getIt.registerFactory(
       () => AccountStatementCubit(repository: getIt<AccountStatementRepository>()),
     );
+
+    // Reports Local DataSource — centralized SQL for 13 pages (Clean Architecture)
+    getIt.registerLazySingleton<ReportsLocalDataSource>(
+      () => ReportsLocalDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    getIt.registerLazySingleton<ReportsRepository>(
+      () => ReportsRepositoryImpl(dataSource: getIt<ReportsLocalDataSource>()),
+    );
+    getIt.registerLazySingleton(() => GetReportData(getIt<ReportsRepository>()));
+    getIt.registerLazySingleton(() => GetSalesAggregatesUseCase(getIt<ReportsRepository>()));
+    getIt.registerLazySingleton(() => GetPurchaseSummaryUseCase(getIt<ReportsRepository>()));
+    getIt.registerLazySingleton(() => GetPartyBalancesUseCase(getIt<ReportsRepository>()));
+    getIt.registerLazySingleton(() => GetJournalEntriesUseCase(getIt<ReportsRepository>()));
+    getIt.registerLazySingleton(() => GetGeneralLedgerUseCase(getIt<ReportsRepository>()));
+    getIt.registerLazySingleton(() => GetAgedReceivablesUseCase(getIt<ReportsRepository>()));
+    getIt.registerFactory(() => ReportsCubit(getReportData: getIt<GetReportData>()));
 
     // Account Movements Feature
     getIt.registerLazySingleton<AccountMovementsLocalDataSource>(

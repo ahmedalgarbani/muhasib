@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
-import 'package:muhasib/features/reports/data/report_date_utils.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_summary_card.dart';
@@ -393,22 +392,11 @@ class _AggregateByPartyContentState extends State<_AggregateByPartyContent> {
   }
 
   Future<List<_PartyRow>> _load() async {
-    final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[widget.invoiceType];
-    String dateFilter = '';
-    if (widget.filter.startDate != null && widget.filter.endDate != null) {
-      final dateColumn = normalizedReportTimestampSql('i.date');
-      dateFilter = 'AND $dateColumn >= ? AND $dateColumn <= ?';
-      args.addAll(reportDateRangeArgs(widget.filter));
-    }
-
-    final rows = await db.rawQuery('''
-      SELECT c.id as party_id, c.name as party_name, COUNT(i.id) as doc_count, COALESCE(SUM(COALESCE(i.final_amt, i.total_amount, i.amount, 0)), 0) as total
-      FROM invoices i
-      INNER JOIN customers c ON c.id = i.customer_id
-      WHERE i.invoice_type = ? AND COALESCE(i.approval_status, 1) != 3 $dateFilter
-      GROUP BY c.id, c.name ORDER BY total DESC
-    ''', args);
+    final ds = getIt<ReportsLocalDataSource>();
+    final rows = await ds.getSalesAggregatesByParty(
+      invoiceType: widget.invoiceType,
+      filter: widget.filter,
+    );
 
     return rows
         .map(
@@ -551,20 +539,11 @@ class _AggregateByProductContentState
   }
 
   Future<List<_ProductRow>> _load() async {
-    final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[widget.invoiceType];
-    String df = '';
-    if (widget.filter.startDate != null && widget.filter.endDate != null) {
-      final dateColumn = normalizedReportTimestampSql('i.date');
-      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
-      args.addAll(reportDateRangeArgs(widget.filter));
-    }
-    final rows = await db.rawQuery('''
-      SELECT c.id as pid, c.name as pname, COALESCE(SUM(il.quantity), 0) as qty, COALESCE(SUM(il.total_amount), 0) as total
-      FROM invoice_lines il INNER JOIN invoices i ON i.id = il.invoice_id LEFT JOIN categories c ON c.id = il.category_id
-      WHERE i.invoice_type = ? AND COALESCE(i.approval_status, 1) != 3 $df
-      GROUP BY c.id, c.name ORDER BY total DESC
-    ''', args);
+    final ds = getIt<ReportsLocalDataSource>();
+    final rows = await ds.getSalesAggregatesByProduct(
+      invoiceType: widget.invoiceType,
+      filter: widget.filter,
+    );
     return rows
         .map(
           (m) => _ProductRow(
@@ -702,19 +681,11 @@ class _DailyTotalsContentState extends State<_DailyTotalsContent> {
   }
 
   Future<List<_DailyRow>> _load() async {
-    final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[widget.invoiceType];
-    String df = '';
-    if (widget.filter.startDate != null && widget.filter.endDate != null) {
-      final dateColumn = normalizedReportTimestampSql('i.date');
-      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
-      args.addAll(reportDateRangeArgs(widget.filter));
-    }
-    final rows = await db.rawQuery('''
-      SELECT date(${normalizedReportTimestampSql('i.date')}, 'unixepoch') as day, COUNT(i.id) as cnt, COALESCE(SUM(COALESCE(i.final_amt, i.total_amount, i.amount, 0)), 0) as total
-      FROM invoices i WHERE i.invoice_type = ? AND COALESCE(i.approval_status, 1) != 3 $df
-      GROUP BY day ORDER BY day
-    ''', args);
+    final ds = getIt<ReportsLocalDataSource>();
+    final rows = await ds.getSalesAggregatesDaily(
+      invoiceType: widget.invoiceType,
+      filter: widget.filter,
+    );
     return rows
         .map(
           (m) => _DailyRow(

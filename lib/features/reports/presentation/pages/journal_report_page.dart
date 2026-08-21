@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
@@ -216,35 +216,15 @@ class _JournalReportContentState extends State<_JournalReportContent> {
   }
 
   Future<_JournalReportResult> _load(ReportFilter filter) async {
-    final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[];
-    String where = '1=1';
-    if (filter.startDate != null && filter.endDate != null) {
-      final dateColumn = normalizedReportTimestampSql('entry_date');
-      where += ' AND $dateColumn >= ? AND $dateColumn <= ?';
-      args.addAll(reportDateRangeArgs(filter));
-    }
-
-    final entriesRows = await db.query(
-      'journal_entries',
-      where: where,
-      whereArgs: args.isEmpty ? null : args,
-      orderBy: 'entry_date ASC, id ASC',
-    );
+    final ds = getIt<ReportsLocalDataSource>();
+    final entriesRows = await ds.getJournalEntries(filter: filter);
     final List<_JournalEntryRow> entries = [];
     double tDebit = 0, tCredit = 0;
     int posted = 0, unbalanced = 0;
 
     for (final e in entriesRows) {
-      final linesRows = await db.rawQuery(
-        '''
-        SELECT jel.*, a.code as acode, a.name as aname 
-        FROM journal_entry_lines jel 
-        LEFT JOIN accounts a ON a.id = jel.account_id 
-        WHERE jel.journal_entry_id = ? 
-        ORDER BY jel.line_number, jel.id
-      ''',
-        [e['id']],
+      final linesRows = await ds.getJournalEntryLines(
+        journalEntryId: e['id'] as int,
       );
 
       final entry = _JournalEntryRow.fromDb(e, linesRows);

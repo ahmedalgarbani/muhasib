@@ -80,7 +80,7 @@ void main() async {
             voucherRepository: getIt(),
           ),
         ),
-        BlocProvider(create: (context) => ReportsCubit()),
+        BlocProvider(create: (context) => getIt<ReportsCubit>()),
         BlocProvider(create: (context) => SettingCubit()),
         BlocProvider(create: (context) => StoresCubit()),
         BlocProvider(create: (context) => ThemeCubit()),

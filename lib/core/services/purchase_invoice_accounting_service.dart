@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:dartz/dartz.dart';
+import 'package:muhasib/core/enums/stock_movement_type.dart';
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:sqflite/sqflite.dart';
@@ -33,17 +35,38 @@ class PurchaseInvoiceAccountingService {
         
         // Extract invoice data
         final invoiceNumber = invoiceData['number'] as String? ?? 'PI-$now';
-        final supplierId = invoiceData['customer_id'] as int? ?? 1;
-        final warehouseId = invoiceData['stock_id'] as int? ?? 1;
+        final supplierId = invoiceData['customer_id'] as int? ?? (throw Exception('معرّف المورد مطلوب'));
+        final warehouseId = invoiceData['stock_id'] as int? ?? await _getDefaultWarehouseId(txn);
         final isCredit = ((invoiceData['invoice_trans_type'] as int?) ?? 0) == 1;
         
-        // Calculate totals
+        // Calculate totals with validation
         final subtotal = (invoiceData['amount'] as num?)?.toDouble() ?? 0.0;
         final discount = (invoiceData['discount_amt'] as num?)?.toDouble() ?? 0.0;
         final tax = (invoiceData['tax_amt'] as num?)?.toDouble() ?? 0.0;
         final otherFees = (invoiceData['other_fee_amt'] as num?)?.toDouble() ?? 0.0;
         final total = (invoiceData['final_amt'] as num?)?.toDouble() ?? 
                       (subtotal - discount + tax + otherFees);
+
+        if (subtotal < 0 || discount < 0 || tax < 0 || otherFees < 0) {
+          throw Exception('مبالغ الفاتورة لا يمكن أن تكون سالبة');
+        }
+        if (discount > subtotal + 0.01) throw Exception('الخصم أكبر من الإجمالي');
+        // Validate invoice lines
+        for (final l in invoiceLines) {
+          final q = (l['quantity'] as num?)?.toDouble() ?? 0;
+          final p = (l['price'] as num?)?.toDouble() ?? 0;
+          if (q <= 0) throw Exception('كمية الصنف يجب أن تكون أكبر من صفر');
+          if (p < 0) throw Exception('سعر الصنف لا يمكن أن يكون سالباً');
+        }
+        // Check duplicate number per type
+        final dupCheck = await txn.query(_invoicesTable, where: 'number = ? AND invoice_type = ?', whereArgs: [invoiceNumber, invoiceData['invoice_type'] ?? 2], limit: 1);
+        if (dupCheck.isNotEmpty) throw Exception('رقم الفاتورة مكرر: $invoiceNumber');
+        // Fiscal period check
+        final invDateTs = invoiceData['date'] is int ? invoiceData['date'] as int : now;
+        final periodClosed = await txn.rawQuery('SELECT is_closed FROM fiscal_periods WHERE start_date <= ? AND end_date >= ? LIMIT 1', [invDateTs, invDateTs]);
+        if (periodClosed.isNotEmpty && (periodClosed.first['is_closed'] as int?) == 1) {
+          throw Exception('الفترة المالية مقفلة');
+        }
 
         // 1. Insert the purchase invoice
         invoiceData['creation_time'] = now;
@@ -78,9 +101,21 @@ class PurchaseInvoiceAccountingService {
           // This is critical: Inventory tracks base units, so we need the cost of 1 base unit
           final baseUnitCost = baseQty > 0 ? lineTotalCost / baseQty : 0.0;
           
-          // Insert invoice line
+          // Insert invoice line - ensure required fields
           line['invoice_id'] = invoiceId;
           line.remove('id');
+          line['total_amount'] ??= (line['amount'] as num?)?.toDouble() ?? qty * price;
+          line['net_revenue_amt'] ??= line['total_amount'];
+          line['amount'] ??= line['total_amount'];
+          line['quantity'] ??= qty;
+          line['group_id'] ??= 1;
+          line['unit_id'] ??= 1;
+          line['category_sub_unit_id'] ??= 1;
+          line['customer_id'] ??= supplierId;
+          line['date'] ??= now;
+          line['invoice_trans_type'] ??= 0;
+          line['creation_time'] ??= now;
+          line['last_modification_time'] ??= now;
           await txn.insert(_invoiceLinesTable, line);
           
           if (productId != null && baseQty > 0) {
@@ -220,7 +255,7 @@ class PurchaseInvoiceAccountingService {
         {
           'product_id': productId,
           'warehouse_id': warehouseId,
-          'movement_type': 'purchase',
+          'movement_type': StockMovementType.purchase.code,
           'quantity': quantity, // Positive for purchase
           'unit_cost': unitCost,
           'total_cost': totalCost,
@@ -260,10 +295,30 @@ class PurchaseInvoiceAccountingService {
     final cashAccountId = await _resolveAccountId(txn, 'الصناديق', 1110);
     final supplierAccountId = await _resolveSupplierAccountId(txn, supplierId);
 
+    // VALIDATION FIX: prevent negative amounts
+    if (inventoryValue < -0.01) throw Exception('قيمة المخزون غير صحيحة');
+    if (discount < -0.01 || tax < -0.01 || otherFees < -0.01) throw Exception('مبلغ الخصم/الضريبة/الرسوم غير صحيح');
+    if (total <= 0) throw Exception('إجمالي الفاتورة يجب أن يكون أكبر من صفر');
+
     final lines = <Map<String, dynamic>>[];
 
-    // Debit: Inventory (at cost, excluding VAT)
-    if (inventoryValue > 0) {
+    // FIX HIGH-11: Inventory net of discount (IAS2) - was gross overstated
+    // If discount exists, reduce inventory value proportionally instead of crediting discount as income
+    // For conservatism, keep discount as income but debit inventory at NET = gross - discount allocation
+    // Here we apply net method: inventory debit = inventoryValue - discount (capped)
+    final netInventoryValue = ((inventoryValue - discount).clamp(0, double.infinity) as num).toDouble();
+    final effectiveDiscountForInventory = inventoryValue > discount ? discount : inventoryValue;
+    final remainingDiscountAsIncome = discount - effectiveDiscountForInventory;
+
+    // Debit: Inventory at NET cost (FIX)
+    if (netInventoryValue > 0.005) {
+      lines.add({
+        'account_id': inventoryAccountId,
+        'debit_amount': _round(netInventoryValue),
+        'credit_amount': 0.0,
+        'description': 'شراء مخزون - صافي بعد الخصم - $invoiceNumber',
+      });
+    } else if (inventoryValue > 0.005) {
       lines.add({
         'account_id': inventoryAccountId,
         'debit_amount': _round(inventoryValue),
@@ -272,14 +327,13 @@ class PurchaseInvoiceAccountingService {
       });
     }
 
-    // Debit: Other fees (if any)
+    // Debit: Other fees - FIX allocate proportionally note, but still debit inventory (will be allocated per line via avg_cost)
     if (otherFees > 0) {
-      // Add to inventory cost or expense
       lines.add({
         'account_id': inventoryAccountId,
         'debit_amount': _round(otherFees),
         'credit_amount': 0.0,
-        'description': 'مصاريف شحن/إضافية - $invoiceNumber',
+        'description': 'مصاريف شحن/إضافية - $invoiceNumber (موزعة وزنياً على الأصناف)',
       });
     }
 
@@ -293,12 +347,12 @@ class PurchaseInvoiceAccountingService {
       });
     }
 
-    // Credit: Discount earned
-    if (discount > 0) {
+    // Credit: Discount earned only for remaining part not netted (FIX)
+    if (remainingDiscountAsIncome > 0.005) {
       lines.add({
         'account_id': discountEarnedAccountId,
         'debit_amount': 0.0,
-        'credit_amount': _round(discount),
+        'credit_amount': _round(remainingDiscountAsIncome),
         'description': 'خصم مكتسب - $invoiceNumber',
       });
     }
@@ -311,21 +365,15 @@ class PurchaseInvoiceAccountingService {
       'description': isCredit ? 'ذمم موردين - $invoiceNumber' : 'دفع نقدي - $invoiceNumber',
     });
 
-    // Calculate totals and verify balance
+    // Calculate totals and verify balance - FIX CRITICAL-09: throw instead of silent adjust
     final totalDebit = lines.fold<double>(
       0.0, (sum, l) => sum + ((l['debit_amount'] as num?)?.toDouble() ?? 0.0));
     final totalCredit = lines.fold<double>(
       0.0, (sum, l) => sum + ((l['credit_amount'] as num?)?.toDouble() ?? 0.0));
 
-    // Balance adjustment if needed (due to rounding)
     final diff = totalDebit - totalCredit;
     if (diff.abs() > 0.01) {
-      // Add adjustment line
-      if (diff > 0) {
-        lines.last['credit_amount'] = (lines.last['credit_amount'] as double) + diff;
-      } else {
-        lines.first['debit_amount'] = (lines.first['debit_amount'] as double) - diff;
-      }
+      throw Exception('قيد المشتريات غير متوازن: مدين=$totalDebit دائن=$totalCredit فرق=$diff - تحقق من الخصم والرسوم');
     }
 
     // Generate journal number
@@ -456,6 +504,35 @@ class PurchaseInvoiceAccountingService {
     );
     final next = (result.first['next'] as int?) ?? 1;
     return '$prefix-${next.toString().padLeft(6, '0')}';
+  }
+
+  Future<int> _getDefaultWarehouseId(Transaction txn) async {
+    try {
+      final res = await txn.query('settings', where: 'setting_key = ?', whereArgs: ['stock_setting'], limit: 1);
+      if (res.isNotEmpty) {
+        final rawVal = res.first['setting_value'] as String?;
+        if (rawVal != null) {
+          final decoded = json.decode(rawVal);
+          if (decoded is Map) {
+            final v = decoded['default_warehouse'];
+            int? id;
+            if (v is int) id = v;
+            if (v is String) id = int.tryParse(v);
+            if (id != null && id > 0) {
+              final check = await txn.query('stocks', where: 'id = ?', whereArgs: [id], limit: 1);
+              if (check.isNotEmpty) return id;
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    try {
+      final main = await txn.query('stocks', where: 'is_main_stock = ? AND is_active = ?', whereArgs: [1, 1], limit: 1);
+      if (main.isNotEmpty) return main.first['id'] as int;
+      final any = await txn.query('stocks', where: 'is_active = ?', whereArgs: [1], limit: 1, orderBy: 'id ASC');
+      if (any.isNotEmpty) return any.first['id'] as int;
+    } catch (_) {}
+    throw Exception('لا يوجد مستودع افتراضي مهيأ');
   }
 }
 

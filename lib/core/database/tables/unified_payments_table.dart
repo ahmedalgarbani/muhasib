@@ -1,3 +1,6 @@
+import 'package:muhasib/core/enums/payment_status.dart' as core_status;
+import 'package:muhasib/core/enums/journal_entry_type.dart' as core_doc;
+import 'package:muhasib/core/enums/party_type.dart' as core_party;
 import 'table_schema.dart';
 
 /// Reference/Lookup table for payment method types
@@ -211,7 +214,7 @@ class PaymentAllocationsTable implements TableSchema {
   ];
 }
 
-/// Payment status enum
+/// @Deprecated — use [core_status.PaymentStatus] from lib/core/enums/payment_status.dart
 class PaymentStatus {
   static const int draft = 0;
   static const int completed = 1;
@@ -220,20 +223,11 @@ class PaymentStatus {
   static const int cancelled = 4;
   static const int refunded = 5;
   
-  static String getName(int status) {
-    switch (status) {
-      case draft: return 'مسودة';
-      case completed: return 'مكتمل';
-      case pending: return 'قيد الانتظار';
-      case bounced: return 'مرتجع';
-      case cancelled: return 'ملغي';
-      case refunded: return 'مسترد';
-      default: return 'غير محدد';
-    }
-  }
+  static String getName(int status) =>
+      core_status.PaymentStatus.tryFromValue(status)?.labelAr ?? 'غير محدد';
 }
 
-/// Document types for payments
+/// @Deprecated — use [core_doc.PaymentDocumentType] from lib/core/enums/journal_entry_type.dart
 class PaymentDocumentType {
   static const String salesInvoice = 'sales_invoice';
   static const String purchaseInvoice = 'purchase_invoice';
@@ -245,12 +239,18 @@ class PaymentDocumentType {
   static const String refund = 'refund';
   static const String advancePayment = 'advance_payment';
   static const String openingBalance = 'opening_balance';
+
+  static String getName(String code) =>
+      core_doc.PaymentDocumentType.tryFromCode(code)?.labelAr ?? code;
 }
 
-/// Party types
+/// @Deprecated — use [core_party.PartyType] from lib/core/enums/party_type.dart
 class PartyType {
   static const String customer = 'customer';
   static const String supplier = 'supplier';
   static const String employee = 'employee';
   static const String other = 'other';
+
+  static String getName(String code) =>
+      core_party.PartyType.tryFromCode(code)?.labelAr ?? code;
 }

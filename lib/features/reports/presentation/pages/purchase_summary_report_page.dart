@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/features/reports/data/report_date_utils.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
@@ -247,22 +246,9 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
   }
 
   Future<_PurchaseSummaryResult> _load(ReportFilter filter) async {
-    final db = await getIt<DatabaseService>().database;
-    final args = <Object?>[];
-    String df = '';
-    if (filter.startDate != null && filter.endDate != null) {
-      final dateColumn = normalizedReportTimestampSql('i.date');
-      df = 'AND $dateColumn >= ? AND $dateColumn <= ?';
-      args.addAll(reportDateRangeArgs(filter));
-    }
-    final totals = await db.rawQuery(
-      'SELECT COUNT(CASE WHEN i.invoice_type = 2 THEN 1 END) as ic, COUNT(CASE WHEN i.invoice_type = 5 THEN 1 END) as rc, COALESCE(SUM(CASE WHEN i.invoice_type = 2 THEN COALESCE(i.final_amt, i.total_amount, i.amount, 0) END), 0) as tp, COALESCE(SUM(CASE WHEN i.invoice_type = 5 THEN COALESCE(i.final_amt, i.total_amount, i.amount, 0) END), 0) as tr, COALESCE(SUM(CASE WHEN i.invoice_type = 2 THEN COALESCE(i.tax_amt, 0) END), 0) as tx, COALESCE(SUM(CASE WHEN i.invoice_type = 2 THEN COALESCE(i.discount_amt, 0) END), 0) as td FROM invoices i WHERE (i.invoice_type = 2 OR i.invoice_type = 5) AND COALESCE(i.approval_status, 1) != 3 $df',
-      args,
-    );
-    final top = await db.rawQuery(
-      'SELECT c.name, COALESCE(SUM(COALESCE(i.final_amt, i.total_amount, i.amount, 0)), 0) as total FROM invoices i JOIN customers c ON c.id = i.customer_id WHERE i.invoice_type = 2 AND COALESCE(i.approval_status, 1) != 3 $df GROUP BY c.id ORDER BY total DESC',
-      args,
-    );
+    final ds = getIt<ReportsLocalDataSource>();
+    final totals = await ds.getPurchaseSummaryTotals(filter: filter);
+    final top = await ds.getPurchaseTopSuppliers(filter: filter);
     return _PurchaseSummaryResult(
       totalPurchases: (totals.first['tp'] as num).toDouble(),
       totalReturns: (totals.first['tr'] as num).toDouble(),

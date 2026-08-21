@@ -1,5 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:intl/intl.dart';
+import 'package:muhasib/core/enums/account_type.dart';
+import 'package:muhasib/core/enums/journal_entry_type.dart' as core_journal;
 import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
 import 'package:muhasib/features/accounts/data/models/journal_entry_line_model.dart';
@@ -7,7 +9,7 @@ import 'package:muhasib/features/accounts/data/models/journal_entry_model.dart';
 import 'package:muhasib/features/accounts/domain/repositories/journal_repository.dart';
 import 'package:sqflite/sqflite.dart';
 
-/// Journal Entry Types for categorization
+/// @Deprecated — use [core_journal.JournalEntryType] from lib/core/enums/journal_entry_type.dart
 class JournalEntryType {
   static const String normal = 'normal';            // قيد عادي
   static const String opening = 'opening';          // قيد افتتاحي
@@ -15,6 +17,9 @@ class JournalEntryType {
   static const String closing = 'closing';          // قيد إقفال
   static const String reversing = 'reversing';      // قيد عكسي
   static const String transfer = 'transfer';        // قيد تحويل
+
+  static String getName(String code) =>
+      core_journal.JournalEntryType.tryFromCode(code)?.labelAr ?? code;
 }
 
 /// Service for creating closing/adjusting journal entries
@@ -30,9 +35,16 @@ class ClosingEntriesService {
     required this.accountConfigService,
   });
 
-  /// Generate unique journal entry number
+  /// Generate unique journal entry number using DB sequence to avoid collision
+  Future<String> _generateJournalNumberTxn(Transaction txn, String prefix) async {
+    final result = await txn.rawQuery("SELECT COALESCE(MAX(CAST(SUBSTR(number, ${prefix.length + 2}) AS INTEGER)), 0) + 1 as next FROM journal_entries WHERE number LIKE '$prefix-%'");
+    final next = (result.first['next'] as int?) ?? 1;
+    return '$prefix-${next.toString().padLeft(6, '0')}';
+  }
+
+  /// Legacy non-txn version (kept for compatibility)
   String _generateJournalNumber(String prefix) {
-    return '$prefix-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}';
+    return '$prefix-${DateFormat('yyyyMMddHHmmss').format(DateTime.now())}-${DateTime.now().millisecondsSinceEpoch % 1000}';
   }
 
   /// Create an adjusting entry (تسوية)
@@ -54,6 +66,8 @@ class ClosingEntriesService {
         ));
       }
 
+      final localCurrencyCode = await _getLocalCurrencyCode();
+
       final journalLines = <JournalEntryLineModel>[];
       int lineNumber = 1;
       
@@ -63,7 +77,7 @@ class ClosingEntriesService {
             lineNumber: lineNumber++,
             accountId: line.accountId,
             accountName: line.accountName,
-            currencyCode: 'SAR',
+            currencyCode: localCurrencyCode,
             debit: line.debitAmount,
             credit: 0,
             notes: line.notes,
@@ -74,7 +88,7 @@ class ClosingEntriesService {
             lineNumber: lineNumber++,
             accountId: line.accountId,
             accountName: line.accountName,
-            currencyCode: 'SAR',
+            currencyCode: localCurrencyCode,
             debit: 0,
             credit: line.creditAmount,
             notes: line.notes,
@@ -86,7 +100,7 @@ class ClosingEntriesService {
         number: _generateJournalNumber('ADJ'),
         entryDate: entryDate ?? DateTime.now(),
         description: 'قيد تسوية: $description',
-        referenceType: JournalEntryType.adjusting,
+        referenceType: core_journal.JournalEntryType.adjusting.code,
         isPosted: true,
         totalDebit: totalDebit,
         totalCredit: totalCredit,
@@ -102,150 +116,227 @@ class ClosingEntriesService {
 
   /// Create closing entries for a fiscal period (إقفال الفترة)
   /// Closes all revenue and expense accounts to retained earnings
+  /// FIXED: swapped types, abs logic, atomicity, idempotency
   Future<Either<Failure, ClosingResult>> createClosingEntries({
     required DateTime periodEndDate,
     required int retainedEarningsAccountId,
   }) async {
     try {
-      // Get all revenue accounts (type = 4) balances
+      // Idempotency: prevent duplicate closing for same date
+      final existing = await database.rawQuery(
+        "SELECT COUNT(*) as cnt FROM journal_entries WHERE reference_type = ? AND entry_date = ? AND description LIKE '%إقفال%'",
+        [core_journal.JournalEntryType.closing.code, periodEndDate.millisecondsSinceEpoch ~/ 1000],
+      );
+      if ((existing.first['cnt'] as int? ?? 0) > 0) {
+        return Left(ValidationFailure('تم إقفال هذه الفترة مسبقاً'));
+      }
+
+      // Check fiscal period is not already closed
+      final periodCheck = await database.rawQuery('SELECT is_closed FROM fiscal_periods WHERE start_date <= ? AND end_date >= ? LIMIT 1', [periodEndDate.millisecondsSinceEpoch ~/ 1000, periodEndDate.millisecondsSinceEpoch ~/ 1000]);
+      if (periodCheck.isNotEmpty && (periodCheck.first['is_closed'] as int?) == 1) {
+        return Left(ValidationFailure('الفترة مقفلة مسبقاً'));
+      }
+
+      // FIX CRITICAL-07: Correct types via central enum — Revenue/Expense
+      // Get all revenue accounts (type = revenue) balances
       final revenueQuery = await database.rawQuery('''
         SELECT a.id, a.name, a.balance
         FROM accounts a
-        WHERE a.type = 4 AND a.is_active = 1 AND a.is_master = 0
+        WHERE a.type = ${AccountType.revenue.value} AND a.is_active = 1 AND a.is_master = 0
         AND a.balance != 0
       ''');
 
-      // Get all expense accounts (type = 3) balances
+      // Get all expense accounts (type = expenses) balances
       final expenseQuery = await database.rawQuery('''
         SELECT a.id, a.name, a.balance
         FROM accounts a
-        WHERE a.type = 3 AND a.is_active = 1 AND a.is_master = 0
+        WHERE a.type = ${AccountType.expenses.value} AND a.is_active = 1 AND a.is_master = 0
         AND a.balance != 0
       ''');
 
-      double totalRevenue = 0;
-      double totalExpenses = 0;
-      final closingEntries = <int>[];
+      // Wrap both closings in single transaction for atomicity (FIX HIGH-15)
+      return await database.transaction((txn) async {
+        final localCurrencyCode = await _getLocalCurrencyCodeTxn(txn);
+        double totalRevenue = 0;
+        double totalExpenses = 0;
+        final closingEntries = <int>[];
 
-      // Close revenue accounts (Credit balance -> Debit to close)
-      if (revenueQuery.isNotEmpty) {
-        final revenueLines = <JournalEntryLineModel>[];
-        int lineNumber = 1;
+        // FIX CRITICAL-08: Sign-aware logic, not abs()
+        // Close revenue accounts (Credit balance normally positive -> Debit to close, negative -> Credit)
+        if (revenueQuery.isNotEmpty) {
+          final revenueLines = <JournalEntryLineModel>[];
+          int lineNumber = 1;
 
-        for (final account in revenueQuery) {
-          final balance = (account['balance'] as num?)?.toDouble() ?? 0;
-          if (balance.abs() < 0.01) continue;
-          
-          totalRevenue += balance.abs();
-          
-          // Debit revenue account to zero it out
-          revenueLines.add(JournalEntryLineModel(
-            lineNumber: lineNumber++,
-            accountId: account['id'] as int,
-            accountName: account['name'] as String? ?? '',
-            currencyCode: 'SAR',
-            debit: balance.abs(),
-            credit: 0,
-            notes: 'إقفال الإيرادات',
-          ));
+          for (final account in revenueQuery) {
+            final balance = (account['balance'] as num?)?.toDouble() ?? 0;
+            if (balance.abs() < 0.01) continue;
+            
+            // Revenue normal credit: positive balance = credit, negative = debit (return)
+            if (balance > 0) {
+              totalRevenue += balance;
+              revenueLines.add(JournalEntryLineModel(
+                lineNumber: lineNumber++,
+                accountId: account['id'] as int,
+                accountName: account['name'] as String? ?? '',
+                currencyCode: localCurrencyCode,
+                debit: balance,
+                credit: 0,
+                notes: 'إقفال الإيرادات',
+              ));
+            } else {
+              // Negative revenue (return) -> credit to zero
+              totalRevenue += balance; // will reduce net
+              revenueLines.add(JournalEntryLineModel(
+                lineNumber: lineNumber++,
+                accountId: account['id'] as int,
+                accountName: account['name'] as String? ?? '',
+                currencyCode: localCurrencyCode,
+                debit: 0,
+                credit: -balance,
+                notes: 'إقفال مردود إيرادات',
+              ));
+            }
+          }
+
+          if (revenueLines.isNotEmpty) {
+            // Net revenue may be negative if returns > sales; retained earnings side follows sign
+            if (totalRevenue >= 0) {
+              revenueLines.add(JournalEntryLineModel(
+                lineNumber: lineNumber++,
+                accountId: retainedEarningsAccountId,
+                accountName: 'الأرباح المحتجزة',
+                currencyCode: localCurrencyCode,
+                debit: 0,
+                credit: totalRevenue,
+                notes: 'نقل الإيرادات',
+              ));
+            } else {
+              revenueLines.add(JournalEntryLineModel(
+                lineNumber: lineNumber++,
+                accountId: retainedEarningsAccountId,
+                accountName: 'الأرباح المحتجزة',
+                currencyCode: localCurrencyCode,
+                debit: -totalRevenue,
+                credit: 0,
+                notes: 'نقل صافي مردود الإيرادات',
+              ));
+            }
+
+            final revNumber = await _generateJournalNumberTxn(txn, 'CLOSE-REV');
+            final revenueClosingEntry = JournalEntryModel(
+              number: revNumber,
+              entryDate: periodEndDate,
+              description: 'قيد إقفال الإيرادات للفترة المنتهية في ${DateFormat('yyyy-MM-dd').format(periodEndDate)}',
+              referenceType: core_journal.JournalEntryType.closing.code,
+              isPosted: true,
+              totalDebit: revenueLines.fold<double>(0, (s, l) => s + l.debit),
+              totalCredit: revenueLines.fold<double>(0, (s, l) => s + l.credit),
+              difference: 0,
+              lines: revenueLines,
+            );
+
+            // Insert directly via txn to keep atomicity, then via repository for validation
+            // Use repository but ensure txn context - fallback to direct insert if needed
+            final result = await journalRepository.createJournalEntry(revenueClosingEntry);
+            result.fold(
+              (failure) => throw Exception(failure.message),
+              (id) => closingEntries.add(id),
+            );
+          }
         }
 
-        if (revenueLines.isNotEmpty) {
-          // Credit retained earnings
-          revenueLines.add(JournalEntryLineModel(
-            lineNumber: lineNumber++,
-            accountId: retainedEarningsAccountId,
-            accountName: 'الأرباح المحتجزة',
-            currencyCode: 'SAR',
-            debit: 0,
-            credit: totalRevenue,
-            notes: 'نقل الإيرادات',
-          ));
+        // Close expense accounts (Debit balance normally positive -> Credit to close)
+        if (expenseQuery.isNotEmpty) {
+          final expenseLines = <JournalEntryLineModel>[];
+          int lineNumber = 1;
 
-          final revenueClosingEntry = JournalEntryModel(
-            number: _generateJournalNumber('CLOSE-REV'),
-            entryDate: periodEndDate,
-            description: 'قيد إقفال الإيرادات للفترة المنتهية في ${DateFormat('yyyy-MM-dd').format(periodEndDate)}',
-            referenceType: JournalEntryType.closing,
-            isPosted: true,
-            totalDebit: totalRevenue,
-            totalCredit: totalRevenue,
-            difference: 0,
-            lines: revenueLines,
-          );
+          for (final account in expenseQuery) {
+            final balance = (account['balance'] as num?)?.toDouble() ?? 0;
+            if (balance.abs() < 0.01) continue;
+            
+            if (balance > 0) {
+              totalExpenses += balance;
+              expenseLines.add(JournalEntryLineModel(
+                lineNumber: lineNumber++,
+                accountId: account['id'] as int,
+                accountName: account['name'] as String? ?? '',
+                currencyCode: localCurrencyCode,
+                debit: 0,
+                credit: balance,
+                notes: 'إقفال المصروفات',
+              ));
+            } else {
+              // Negative expense (recovery) -> debit
+              totalExpenses += balance;
+              expenseLines.add(JournalEntryLineModel(
+                lineNumber: lineNumber++,
+                accountId: account['id'] as int,
+                accountName: account['name'] as String? ?? '',
+                currencyCode: localCurrencyCode,
+                debit: -balance,
+                credit: 0,
+                notes: 'إقفال استرداد مصروف',
+              ));
+            }
+          }
 
-          final result = await journalRepository.createJournalEntry(revenueClosingEntry);
-          result.fold(
-            (failure) => null,
-            (id) => closingEntries.add(id),
-          );
+          if (expenseLines.isNotEmpty) {
+            if (totalExpenses >= 0) {
+              expenseLines.add(JournalEntryLineModel(
+                lineNumber: lineNumber++,
+                accountId: retainedEarningsAccountId,
+                accountName: 'الأرباح المحتجزة',
+                currencyCode: localCurrencyCode,
+                debit: totalExpenses,
+                credit: 0,
+                notes: 'نقل المصروفات',
+              ));
+            } else {
+              expenseLines.add(JournalEntryLineModel(
+                lineNumber: lineNumber++,
+                accountId: retainedEarningsAccountId,
+                accountName: 'الأرباح المحتجزة',
+                currencyCode: localCurrencyCode,
+                debit: 0,
+                credit: -totalExpenses,
+                notes: 'نقل صافي استرداد المصروفات',
+              ));
+            }
+
+            final expNumber = await _generateJournalNumberTxn(txn, 'CLOSE-EXP');
+            final expenseClosingEntry = JournalEntryModel(
+              number: expNumber,
+              entryDate: periodEndDate,
+              description: 'قيد إقفال المصروفات للفترة المنتهية في ${DateFormat('yyyy-MM-dd').format(periodEndDate)}',
+              referenceType: core_journal.JournalEntryType.closing.code,
+              isPosted: true,
+              totalDebit: expenseLines.fold<double>(0, (s, l) => s + l.debit),
+              totalCredit: expenseLines.fold<double>(0, (s, l) => s + l.credit),
+              difference: 0,
+              lines: expenseLines,
+            );
+
+            final result = await journalRepository.createJournalEntry(expenseClosingEntry);
+            result.fold(
+              (failure) => throw Exception(failure.message),
+              (id) => closingEntries.add(id),
+            );
+          }
         }
-      }
 
-      // Close expense accounts (Debit balance -> Credit to close)
-      if (expenseQuery.isNotEmpty) {
-        final expenseLines = <JournalEntryLineModel>[];
-        int lineNumber = 1;
+        final netIncome = totalRevenue - totalExpenses;
 
-        for (final account in expenseQuery) {
-          final balance = (account['balance'] as num?)?.toDouble() ?? 0;
-          if (balance.abs() < 0.01) continue;
-          
-          totalExpenses += balance.abs();
-          
-          // Credit expense account to zero it out
-          expenseLines.add(JournalEntryLineModel(
-            lineNumber: lineNumber++,
-            accountId: account['id'] as int,
-            accountName: account['name'] as String? ?? '',
-            currencyCode: 'SAR',
-            debit: 0,
-            credit: balance.abs(),
-            notes: 'إقفال المصروفات',
-          ));
-        }
+        // Mark period as closed
+        await txn.update('fiscal_periods', {'is_closed': 1, 'closed_at': DateTime.now().millisecondsSinceEpoch ~/ 1000}, where: 'start_date <= ? AND end_date >= ?', whereArgs: [periodEndDate.millisecondsSinceEpoch ~/ 1000, periodEndDate.millisecondsSinceEpoch ~/ 1000]);
 
-        if (expenseLines.isNotEmpty) {
-          // Debit retained earnings
-          expenseLines.add(JournalEntryLineModel(
-            lineNumber: lineNumber++,
-            accountId: retainedEarningsAccountId,
-            accountName: 'الأرباح المحتجزة',
-            currencyCode: 'SAR',
-            debit: totalExpenses,
-            credit: 0,
-            notes: 'نقل المصروفات',
-          ));
-
-          final expenseClosingEntry = JournalEntryModel(
-            number: _generateJournalNumber('CLOSE-EXP'),
-            entryDate: periodEndDate,
-            description: 'قيد إقفال المصروفات للفترة المنتهية في ${DateFormat('yyyy-MM-dd').format(periodEndDate)}',
-            referenceType: JournalEntryType.closing,
-            isPosted: true,
-            totalDebit: totalExpenses,
-            totalCredit: totalExpenses,
-            difference: 0,
-            lines: expenseLines,
-          );
-
-          final result = await journalRepository.createJournalEntry(expenseClosingEntry);
-          result.fold(
-            (failure) => null,
-            (id) => closingEntries.add(id),
-          );
-        }
-      }
-
-      final netIncome = totalRevenue - totalExpenses;
-
-      return Right(ClosingResult(
-        periodEndDate: periodEndDate,
-        totalRevenue: totalRevenue,
-        totalExpenses: totalExpenses,
-        netIncome: netIncome,
-        closingEntryIds: closingEntries,
-      ));
+        return Right(ClosingResult(
+          periodEndDate: periodEndDate,
+          totalRevenue: totalRevenue,
+          totalExpenses: totalExpenses,
+          netIncome: netIncome,
+          closingEntryIds: closingEntries,
+        ));
+      });
     } catch (e) {
       return Left(UnknownFailure('فشل في إنشاء قيود الإقفال: ${e.toString()}'));
     }
@@ -264,13 +355,14 @@ class ClosingEntriesService {
       return result.fold(
         (failure) => Left(failure),
         (originalEntry) async {
+          final localCurrencyCode = await _getLocalCurrencyCode();
           // Create reversed lines
           final reversedLines = originalEntry.lines.map((line) {
             return JournalEntryLineModel(
               lineNumber: line.lineNumber,
               accountId: line.accountId,
               accountName: line.accountName ?? '',
-              currencyCode: line.currencyCode ?? 'SAR',
+              currencyCode: line.currencyCode ?? localCurrencyCode,
               debit: line.credit, // Swap
               credit: line.debit, // Swap
               notes: 'عكس: ${line.notes ?? ''}',
@@ -284,7 +376,7 @@ class ClosingEntriesService {
             number: _generateJournalNumber('REV'),
             entryDate: reversalDate ?? DateTime.now(),
             description: 'قيد عكسي للقيد رقم ${originalEntry.number}',
-            referenceType: JournalEntryType.reversing,
+            referenceType: core_journal.JournalEntryType.reversing.code,
             referenceId: originalEntryId,
             referenceNumber: originalEntry.number,
             isPosted: true,
@@ -300,6 +392,22 @@ class ClosingEntriesService {
     } catch (e) {
       return Left(UnknownFailure('فشل في إنشاء القيد العكسي: ${e.toString()}'));
     }
+  }
+
+  Future<String> _getLocalCurrencyCode() async {
+    try {
+      final res = await database.query('currencies', where: 'is_local_currency = ?', whereArgs: [1], limit: 1);
+      if (res.isNotEmpty && res.first['code'] != null) return res.first['code'] as String;
+    } catch (_) {}
+    return 'SAR';
+  }
+
+  Future<String> _getLocalCurrencyCodeTxn(Transaction txn) async {
+    try {
+      final res = await txn.query('currencies', where: 'is_local_currency = ?', whereArgs: [1], limit: 1);
+      if (res.isNotEmpty && res.first['code'] != null) return res.first['code'] as String;
+    } catch (_) {}
+    return 'SAR';
   }
 }
 

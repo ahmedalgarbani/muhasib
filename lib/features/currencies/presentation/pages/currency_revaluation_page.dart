@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/currency_exchange_service.dart';
-import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import '../widgets/currency_revaluation_widgets.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
@@ -27,22 +27,14 @@ class _CurrencyRevaluationPageState extends State<CurrencyRevaluationPage> {
   @override
   void initState() {
     super.initState();
-    _exchangeService = CurrencyExchangeService(getIt<DatabaseService>());
+    _exchangeService = getIt<CurrencyExchangeService>();
     _loadData();
   }
 
   Future<void> _loadData() async {
-    final db = await getIt<DatabaseService>().database;
-    final currencyResult = await db.query(
-      'currencies',
-      where: 'is_local_currency = 0',
-      orderBy: 'name',
-    );
-    final accountResult = await db.query(
-      'accounts',
-      where: 'is_active = 1 AND is_master = 0',
-      orderBy: 'code',
-    );
+    final ds = getIt<ReportsLocalDataSource>();
+    final currencyResult = await ds.getCurrenciesForRevaluation();
+    final accountResult = await ds.getAccountsForRevaluation();
     setState(() {
       currencies = currencyResult;
       accounts = accountResult;

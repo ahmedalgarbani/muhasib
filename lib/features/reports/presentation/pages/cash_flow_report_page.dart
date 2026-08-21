@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
-import 'package:muhasib/core/services/database_service.dart';
+import 'package:muhasib/features/reports/data/datasources/reports_local_datasource.dart';
+import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
@@ -207,33 +208,34 @@ class _CashFlowContentState extends State<_CashFlowContent> {
 
 
   Future<_CashFlowResult> _load(ReportFilter filter) async {
-    final db = await getIt<DatabaseService>().database;
-    final connects = await db.rawQuery(
-      'SELECT a.id FROM account_connects ac JOIN accounts a ON a.c_id = ac.c_id WHERE ac.account_connect_type IN (0, 1)',
-    );
+    final ds = getIt<ReportsLocalDataSource>();
+    final connects = await ds.getCashAccountIds();
     final ids = connects.map((m) => m['id'] as int).toList();
     if (ids.isEmpty) return _CashFlowResult.empty();
 
-    final start =
-        (filter.startDate ?? DateTime(2020)).millisecondsSinceEpoch ~/ 1000;
-    final end =
-        (filter.endDate ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
+    final start = filter.startDate != null
+        ? reportTimestampSeconds(filter.startDate!)
+        : reportTimestampSeconds(DateTime(2020));
+    final end = filter.endDate != null
+        ? reportTimestampSeconds(filter.endDate!)
+        : reportTimestampSeconds(DateTime.now());
 
-    final openRes = await db.rawQuery(
-      'SELECT COALESCE(SUM(debit_amount - credit_amount), 0) as b FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND jel.account_id IN (${ids.join(',')}) AND je.entry_date < ?',
-      [start],
+    final openRes = await ds.getCashFlowOpeningBalance(
+      startSeconds: start,
+      accountIds: ids,
     );
     final open = (openRes.first['b'] as num).toDouble();
 
-    final actualRes = await db.rawQuery(
-      'SELECT COALESCE(SUM(debit_amount - credit_amount), 0) as b FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND jel.account_id IN (${ids.join(',')}) AND je.entry_date <= ?',
-      [end],
+    final actualRes = await ds.getCashFlowActualBalance(
+      endSeconds: end,
+      accountIds: ids,
     );
     final actual = (actualRes.first['b'] as num).toDouble();
 
-    final rows = await db.rawQuery(
-      'SELECT je.reference_type, COALESCE(SUM(jel.debit_amount - jel.credit_amount), 0) as net FROM journal_entry_lines jel JOIN journal_entries je ON je.id = jel.journal_entry_id WHERE je.is_posted = 1 AND jel.account_id IN (${ids.join(',')}) AND je.entry_date >= ? AND je.entry_date <= ? GROUP BY je.reference_type',
-      [start, end],
+    final rows = await ds.getCashFlowGrouped(
+      startSeconds: start,
+      endSeconds: end,
+      accountIds: ids,
     );
 
     double op = 0, inv = 0, fin = 0;

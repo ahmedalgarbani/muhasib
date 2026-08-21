@@ -160,11 +160,14 @@ class AccountValidationService {
   }
 
   /// Validate a journal entry is balanced
-  /// التحقق من توازن القيد المحاسبي
+  /// التحقق من توازن القيد المحاسبي - FIX MEDIUM-39: negative/zero checks
   Either<Failure, bool> validateJournalEntryBalance(JournalEntryEntity entry) {
     final totalDebit = entry.lines.fold<double>(0, (sum, line) => sum + line.debit);
     final totalCredit = entry.lines.fold<double>(0, (sum, line) => sum + line.credit);
 
+    if (totalDebit <= 0.01 && totalCredit <= 0.01) {
+      return Left(ValidationFailure(message: 'مبلغ القيد يجب أن يكون أكبر من صفر'));
+    }
     // Allow for small floating-point differences
     if ((totalDebit - totalCredit).abs() > 0.01) {
       return Left(ValidationFailure(message:
@@ -176,8 +179,11 @@ class AccountValidationService {
       return Left(ValidationFailure(message:'القيد يجب أن يحتوي على سطر واحد على الأقل'));
     }
 
-    // Check that each line has either debit OR credit, not both
+    // Check that each line has either debit OR credit, not both, and no negatives
     for (final line in entry.lines) {
+      if (line.debit < -0.01 || line.credit < -0.01) {
+        return Left(ValidationFailure(message: 'السطر رقم ${line.lineNumber}: المبلغ لا يمكن أن يكون سالباً'));
+      }
       if (line.debit > 0 && line.credit > 0) {
         return Left(ValidationFailure(message:
           'السطر رقم ${line.lineNumber}: لا يمكن أن يحتوي على مدين ودائن في نفس الوقت',
