@@ -112,11 +112,11 @@ class _StockTransferPageState extends State<StockTransferPage> {
               );
             } else {
               AppToast.showSuccess(context, 'تم حفظ التحويل كمسودة');
-              context.pop();
+              context.pop(true);
             }
           } else if (state is TransferStatusUpdated) {
             AppToast.showSuccess(context, 'تم ترحيل التحويل بنجاح');
-            context.pop();
+            context.pop(true);
           } else if (state is StockTransfersError) {
             AppToast.showError(context, state.message);
           }

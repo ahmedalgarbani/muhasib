@@ -66,7 +66,7 @@ class StockAdjustmentLineModel extends StockAdjustmentLineEntity {
       amount: (map['amount'] as num).toDouble(),
       totalAmount: (map['total_amount'] as num).toDouble(),
       currencyCode: map['currency_code'] as String?,
-      exchangeRate: map['exchange_rate'] as double?,
+      exchangeRate: (map['exchange_rate'] as num?)?.toDouble(),
       currencyId: map['currency_id'] as int,
       stockId: map['stock_id'] as int,
       stockSettlementId: map['stock_settlement_id'] as int?,

@@ -275,6 +275,21 @@ class AppNavigator {
           route: AppRoutes.reportsAccountStatement,
         ),
         NavItem(
+          title: 'حركة الأصناف',
+          icon: Icons.compare_arrows,
+          route: AppRoutes.reportsItemMovement,
+        ),
+        NavItem(
+          title: 'الأصناف في المخازن',
+          icon: Icons.inventory,
+          route: AppRoutes.reportsItemsBalance,
+        ),
+        NavItem(
+          title: 'اسعار الاصناف',
+          icon: Icons.price_check,
+          route: AppRoutes.reportsProductPrices,
+        ),
+        NavItem(
           title: 'المزيد من التقارير',
           icon: Icons.more_horiz,
           route: AppRoutes.reports,

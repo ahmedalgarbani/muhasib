@@ -11,6 +11,8 @@ import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
+import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 
 class StockReportPage extends StatefulWidget {
   const StockReportPage({super.key});
@@ -23,8 +25,12 @@ class _StockReportPageState extends State<StockReportPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<StockCubit>()..loadStock(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (context) => getIt<StockCubit>()..loadStock()),
+        BlocProvider(
+            create: (context) => getIt<WarehousesCubit>()..loadActiveWarehouses()),
+      ],
       child: BlocConsumer<StockCubit, StockState>(
         listener: (context, state) {
           if (state is StockLoaded) setState(() => _lastState = state);
@@ -103,6 +109,8 @@ class _StockReportContent extends StatefulWidget {
 }
 
 class _StockReportContentState extends State<_StockReportContent> {
+  int? _selectedWarehouseId;
+
   @override
   void initState() {
     super.initState();
@@ -119,24 +127,116 @@ class _StockReportContentState extends State<_StockReportContent> {
     }
   }
 
+  Widget _buildWarehouseFilter() {
+    return BlocBuilder<WarehousesCubit, WarehousesState>(
+      builder: (context, wState) {
+        List<WarehouseEntity> warehouses = [];
+        final isLoading = wState is WarehousesLoading;
+        if (wState is WarehousesLoaded) warehouses = wState.warehouses;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            border: Border.all(color: Colors.grey[200]!),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.warehouse, size: 20, color: AppColors.blueGrey600),
+              const SizedBox(width: 8),
+              const Text('المخزن:',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+              const SizedBox(width: 12),
+              if (isLoading)
+                const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2))
+              else
+                Expanded(
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int?>(
+                      value: _selectedWarehouseId,
+                      isExpanded: true,
+                      isDense: true,
+                      hint: const Text('كل المخازن',
+                          style: TextStyle(fontSize: 13)),
+                      items: [
+                        const DropdownMenuItem<int?>(
+                            value: null, child: Text('كل المخازن')),
+                        ...warehouses.map((w) => DropdownMenuItem<int?>(
+                            value: w.id, child: Text(w.name))),
+                      ],
+                      onChanged: (val) {
+                        setState(() => _selectedWarehouseId = val);
+                        context.read<StockCubit>().filterByWarehouse(val);
+                      },
+                    ),
+                  ),
+                ),
+              if (_selectedWarehouseId != null) ...[
+                const SizedBox(width: 8),
+                InkWell(
+                  onTap: () {
+                    setState(() => _selectedWarehouseId = null);
+                    context.read<StockCubit>().filterByWarehouse(null);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        Icon(Icons.clear, size: 14, color: Colors.grey),
+                        SizedBox(width: 4),
+                        Text('مسح',
+                            style:
+                                TextStyle(fontSize: 11, color: Colors.grey)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<StockCubit, StockState>(
-      builder: (context, state) {
-        if (state is StockLoading)
-          return const Center(child: CircularProgressIndicator());
-        if (state is StockError)
-          return Center(child: Text('خطأ: ${state.message}'));
-        if (state is StockLoaded) {
-          final stocks = state.filteredStocks;
-          final s = state.summary;
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: _buildWarehouseFilter(),
+        ),
+        Expanded(
+          child: BlocBuilder<StockCubit, StockState>(
+            builder: (context, state) {
+              if (state is StockLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state is StockError) {
+                return Center(child: Text('خطأ: ${state.message}'));
+              }
+              if (state is StockLoaded) {
+                final stocks = state.filteredStocks;
+                final s = state.summary;
 
-          return SingleChildScrollView(
-            padding: AppConstant.defaultPadding,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+                return SingleChildScrollView(
+                  padding: AppConstant.defaultPadding,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
                   children: [
                     Expanded(
                       child: ReportKpiCard(
@@ -339,9 +439,12 @@ class _StockReportContentState extends State<_StockReportContent> {
               ],
             ),
           );
-        }
+          }
         return const SizedBox.shrink();
       },
+        ),
+      ),
+      ],
     );
   }
 }

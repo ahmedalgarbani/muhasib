@@ -67,6 +67,7 @@ class AppRoutes {
   static const String warehousesInventory = '/warehouses/inventory';
   static const String warehousesAdjustment = '/warehouses/adjustment';
   static const String warehousesTransfer = '/warehouses/transfer';
+  static const String warehousesTransferForm = '/warehouses/transfer/form';
 
   // ======= التهيئات =======
   static const String settingsCategories = '/settings/categories';
@@ -120,6 +121,10 @@ class AppRoutes {
   static const String reportsStockMovement = '/reports/stock-movement';
   static const String reportsLowStock = '/reports/low-stock';
   static const String reportsStockValuation = '/reports/stock-valuation';
+  // التقارير المخزنية الاحترافية الجديدة
+  static const String reportsItemMovement = '/reports/item-movement';
+  static const String reportsItemsBalance = '/reports/items-balance';
+  static const String reportsProductPrices = '/reports/product-prices';
 
   // تقارير العملاء والموردين
   static const String reportsCustomerStatement = '/reports/customer-statement';

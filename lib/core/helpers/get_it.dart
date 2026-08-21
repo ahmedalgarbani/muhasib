@@ -112,8 +112,10 @@ import 'package:muhasib/features/initial/domain/usecases/mark_initial_setup_comp
 import 'package:muhasib/features/initial/domain/usecases/save_opening_balances.dart';
 import 'package:muhasib/features/initial/domain/usecases/get_opening_balances.dart';
 import 'package:muhasib/features/initial/presentation/cubit/initial_cubit.dart';
-import 'package:muhasib/features/setting/data/repositories/settings_repository.dart' as new_settings_repo;
-import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart' as new_settings_cubit;
+import 'package:muhasib/features/setting/data/repositories/settings_repository.dart'
+    as new_settings_repo;
+import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
+    as new_settings_cubit;
 import 'package:muhasib/features/stores/data/datasources/warehouse_local_datasource.dart';
 import 'package:muhasib/features/stores/data/datasources/stock_transfer_local_datasource.dart';
 import 'package:muhasib/features/stores/data/datasources/inventory_local_datasource.dart';
@@ -181,6 +183,21 @@ import 'package:muhasib/features/reports/data/repositories/reports_repository_im
 import 'package:muhasib/features/reports/domain/repositories/reports_repository.dart';
 import 'package:muhasib/features/reports/domain/usecases/get_report_data.dart';
 import 'package:muhasib/features/reports/presentation/cubit/reports_cubit.dart';
+import 'package:muhasib/features/inventory_reports/data/datasources/item_movement_datasource.dart';
+import 'package:muhasib/features/inventory_reports/data/datasources/items_balance_datasource.dart';
+import 'package:muhasib/features/inventory_reports/data/datasources/product_price_report_datasource.dart';
+import 'package:muhasib/features/inventory_reports/data/repositories/item_movement_repository_impl.dart'
+    as inv_item_movement_impl;
+import 'package:muhasib/features/inventory_reports/data/repositories/items_balance_repository_impl.dart';
+import 'package:muhasib/features/inventory_reports/data/repositories/product_price_report_repository_impl.dart';
+import 'package:muhasib/features/inventory_reports/domain/repositories/item_movement_repository.dart'
+    as inv_item_movement_repo;
+import 'package:muhasib/features/inventory_reports/domain/repositories/items_balance_repository.dart';
+import 'package:muhasib/features/inventory_reports/domain/repositories/product_price_report_repository.dart';
+import 'package:muhasib/features/inventory_reports/presentation/cubit/item_movement_cubit.dart'
+    as inv_item_movement_cubit;
+import 'package:muhasib/features/inventory_reports/presentation/cubit/items_balance_cubit.dart';
+import 'package:muhasib/features/inventory_reports/presentation/cubit/product_price_report_cubit.dart';
 import 'package:muhasib/core/services/currency_exchange_service.dart';
 import 'package:muhasib/features/accounts/data/datasources/fiscal_period_datasource.dart';
 import 'package:muhasib/core/services/number_sequence_service.dart';
@@ -202,21 +219,22 @@ class GetItHelper {
 
     getIt.registerLazySingleton<IDatabaseService>(() => databaseService);
     getIt.registerLazySingleton<DatabaseService>(() => databaseService);
-    
+
     // Account Config Service — now via repository (Clean Architecture), live DB only
     // Lazy so AccountConnectRepository can be registered afterwards; resolved on first use
     getIt.registerLazySingleton<AccountConfigService>(
       () => AccountConfigService(repository: getIt<AccountConnectRepository>()),
     );
-    
+
     // Account Validation Service (prevent deletion of accounts used in journal entries)
     getIt.registerLazySingleton<AccountValidationService>(
       () => AccountValidationService(
         database: database,
-        journalRepository: null, // Will be set after JournalRepository is registered
+        journalRepository:
+            null, // Will be set after JournalRepository is registered
       ),
     );
-    
+
     // Accounting Setup Validator (validate default accounts at startup)
     getIt.registerLazySingleton<AccountingSetupValidator>(
       () => AccountingSetupValidator(
@@ -400,9 +418,7 @@ class GetItHelper {
       () => GetVoucherByIdUseCase(getIt<VoucherRepository>()),
     );
     getIt.registerLazySingleton(
-      () => AddVoucherUseCase(
-        getIt<VoucherRepository>(),
-      ),
+      () => AddVoucherUseCase(getIt<VoucherRepository>()),
     );
     getIt.registerLazySingleton(
       () => UpdateVoucherUseCase(getIt<VoucherRepository>()),
@@ -422,17 +438,21 @@ class GetItHelper {
       () => AccountLimitLocalDataSourceImpl(databaseService: databaseService),
     );
     getIt.registerLazySingleton<AccountLimitService>(
-      () => AccountLimitServiceImpl(localDataSource: getIt<AccountLimitLocalDataSource>()),
+      () => AccountLimitServiceImpl(
+        localDataSource: getIt<AccountLimitLocalDataSource>(),
+      ),
     );
-    
+
     // Register Account Limit Interceptor
     getIt.registerLazySingleton<AccountLimitInterceptor>(
       () => AccountLimitInterceptor(limitService: getIt<AccountLimitService>()),
     );
-    
+
     // Register Account Connect Validator
     getIt.registerLazySingleton<AccountConnectValidator>(
-      () => AccountConnectValidator(repository: getIt<AccountConnectRepository>()),
+      () => AccountConnectValidator(
+        repository: getIt<AccountConnectRepository>(),
+      ),
     );
 
     // ==================== Sales Feature ====================
@@ -475,9 +495,7 @@ class GetItHelper {
       () => GetReturnInvoices(getIt<InvoiceRepository>()),
     );
     getIt.registerLazySingleton(
-      () => CreateReturnInvoice(
-        getIt<InvoiceRepository>(),
-      ),
+      () => CreateReturnInvoice(getIt<InvoiceRepository>()),
     );
     getIt.registerLazySingleton(
       () => GetReturnsByParentInvoice(getIt<InvoiceRepository>()),
@@ -504,9 +522,7 @@ class GetItHelper {
       ),
     );
     getIt.registerFactory(
-      () => AccountLimitsCubit(
-        limitService: getIt<AccountLimitService>(),
-      ),
+      () => AccountLimitsCubit(limitService: getIt<AccountLimitService>()),
     );
     getIt.registerFactory(
       () => JournalEntryCubit(
@@ -569,14 +585,12 @@ class GetItHelper {
         accountConfigService: getIt<AccountConfigService>(),
       ),
     );
-    
+
     // Use Cases
     getIt.registerLazySingleton(
-      () => CreatePurchase(
-        getIt<PurchaseRepository>(),
-      ),
+      () => CreatePurchase(getIt<PurchaseRepository>()),
     );
-    
+
     // Cubit
     getIt.registerFactory(
       () => PurchasesCubit(
@@ -585,7 +599,7 @@ class GetItHelper {
         limitInterceptor: getIt<AccountLimitInterceptor>(),
       ),
     );
-    
+
     // ==================== Products Feature ====================
     // Data Sources
     getIt.registerLazySingleton<ProductLocalDataSource>(
@@ -603,7 +617,7 @@ class GetItHelper {
     getIt.registerLazySingleton<ItemMovementLocalDataSource>(
       () => ItemMovementLocalDataSourceImpl(database: database),
     );
-    
+
     // Repositories
     getIt.registerLazySingleton<ProductRepository>(
       () => ProductRepositoryImpl(getIt<ProductLocalDataSource>()),
@@ -615,16 +629,15 @@ class GetItHelper {
       () => ProductUnitRepositoryImpl(getIt<ProductUnitLocalDataSource>()),
     );
     getIt.registerLazySingleton<ProductSubUnitRepository>(
-      () => ProductSubUnitRepositoryImpl(getIt<ProductSubUnitLocalDataSource>()),
+      () =>
+          ProductSubUnitRepositoryImpl(getIt<ProductSubUnitLocalDataSource>()),
     );
     getIt.registerLazySingleton<ItemMovementRepository>(
       () => ItemMovementRepositoryImpl(getIt<ItemMovementLocalDataSource>()),
     );
-    
+
     // Cubits
-    getIt.registerFactory(
-      () => ProductsCubit(getIt<ProductRepository>()),
-    );
+    getIt.registerFactory(() => ProductsCubit(getIt<ProductRepository>()));
     getIt.registerFactory(
       () => ProductGroupsCubit(getIt<ProductGroupRepository>()),
     );
@@ -637,7 +650,7 @@ class GetItHelper {
     getIt.registerFactory(
       () => ItemMovementsCubit(getIt<ItemMovementRepository>()),
     );
-    
+
     // Product Prices
     getIt.registerLazySingleton<ProductPriceLocalDataSource>(
       () => ProductPriceLocalDataSourceImpl(database: database),
@@ -648,7 +661,7 @@ class GetItHelper {
     getIt.registerFactory(
       () => ProductPricesCubit(getIt<ProductPriceRepository>()),
     );
-    
+
     // ==================== Stores/Warehouses Feature ====================
     // Data Sources
     getIt.registerLazySingleton<WarehouseLocalDataSource>(
@@ -661,14 +674,18 @@ class GetItHelper {
       () => InventoryLocalDataSourceImpl(database: database),
     );
     getIt.registerLazySingleton<StockAdjustmentLocalDataSource>(
-      () => StockAdjustmentLocalDataSourceImpl(databaseService: getIt<DatabaseService>()),
+      () => StockAdjustmentLocalDataSourceImpl(
+        databaseService: getIt<DatabaseService>(),
+      ),
     );
-    
+
     // Services
     getIt.registerLazySingleton<WarehouseValidationService>(
-      () => WarehouseValidationServiceImpl(databaseService: getIt<DatabaseService>()),
+      () => WarehouseValidationServiceImpl(
+        databaseService: getIt<DatabaseService>(),
+      ),
     );
-    
+
     // Repositories
     getIt.registerLazySingleton<WarehouseRepository>(
       () => WarehouseRepositoryImpl(
@@ -683,45 +700,41 @@ class GetItHelper {
       () => InventoryRepositoryImpl(getIt<InventoryLocalDataSource>()),
     );
     getIt.registerLazySingleton<StockAdjustmentRepository>(
-      () => StockAdjustmentRepositoryImpl(getIt<StockAdjustmentLocalDataSource>()),
+      () => StockAdjustmentRepositoryImpl(
+        getIt<StockAdjustmentLocalDataSource>(),
+      ),
     );
-    
+
     // Cubits
-    getIt.registerFactory(
-      () => WarehousesCubit(getIt<WarehouseRepository>()),
-    );
+    getIt.registerFactory(() => WarehousesCubit(getIt<WarehouseRepository>()));
     getIt.registerFactory(
       () => StockTransfersCubit(getIt<StockTransferRepository>()),
     );
-    getIt.registerFactory(
-      () => InventoryCubit(getIt<InventoryRepository>()),
-    );
+    getIt.registerFactory(() => InventoryCubit(getIt<InventoryRepository>()));
     getIt.registerFactory(
       () => StockAdjustmentsCubit(getIt<StockAdjustmentRepository>()),
     );
-    
+
     // ==================== Customers Feature ====================
     // Data Source
     getIt.registerLazySingleton<CustomerDataSource>(
       () => CustomerDataSourceImpl(databaseService: getIt<DatabaseService>()),
     );
-    
+
     // Repository
     getIt.registerLazySingleton<CustomerRepository>(
       () => CustomerRepositoryImpl(dataSource: getIt<CustomerDataSource>()),
     );
-    
+
     // Cubit
-    getIt.registerFactory(
-      () => CustomersCubit(getIt<CustomerRepository>()),
-    );
-    
+    getIt.registerFactory(() => CustomersCubit(getIt<CustomerRepository>()));
+
     // ==================== Settings Feature ====================
     // Repository
     getIt.registerLazySingleton<new_settings_repo.ISettingsRepository>(
       () => new_settings_repo.SettingsRepository(database: database),
     );
-    
+
     // Cubit
     getIt.registerLazySingleton(
       () => new_settings_cubit.SettingsCubit(
@@ -759,18 +772,10 @@ class GetItHelper {
     );
 
     // Cubits
-    getIt.registerFactory(
-      () => BanksCubit(getIt<BankRepository>()),
-    );
-    getIt.registerFactory(
-      () => CashboxesCubit(getIt<CashboxRepository>()),
-    );
-    getIt.registerFactory(
-      () => OtherFeesCubit(getIt<OtherFeeRepository>()),
-    );
-    getIt.registerFactory(
-      () => RegionsCubit(getIt<RegionRepository>()),
-    );
+    getIt.registerFactory(() => BanksCubit(getIt<BankRepository>()));
+    getIt.registerFactory(() => CashboxesCubit(getIt<CashboxRepository>()));
+    getIt.registerFactory(() => OtherFeesCubit(getIt<OtherFeeRepository>()));
+    getIt.registerFactory(() => RegionsCubit(getIt<RegionRepository>()));
 
     // ==================== App Lookup Service (Smart Central Lookups) ====================
     // Central, cached, live-DB lookups respecting Clean Architecture (via Repositories/DataSources)
@@ -790,7 +795,9 @@ class GetItHelper {
       () => TransactionsReportDataSourceImpl(getIt<DatabaseService>()),
     );
     getIt.registerLazySingleton<TransactionsReportRepository>(
-      () => TransactionsReportRepositoryImpl(getIt<TransactionsReportDataSource>()),
+      () => TransactionsReportRepositoryImpl(
+        getIt<TransactionsReportDataSource>(),
+      ),
     );
     getIt.registerFactory(
       () => TransactionsReportCubit(getIt<TransactionsReportRepository>()),
@@ -798,10 +805,13 @@ class GetItHelper {
 
     // Trial Balance Report
     getIt.registerLazySingleton<TrialBalanceDataSource>(
-      () => TrialBalanceDataSourceImpl(databaseService: getIt<DatabaseService>()),
+      () =>
+          TrialBalanceDataSourceImpl(databaseService: getIt<DatabaseService>()),
     );
     getIt.registerLazySingleton<TrialBalanceRepository>(
-      () => TrialBalanceRepositoryImpl(dataSource: getIt<TrialBalanceDataSource>()),
+      () => TrialBalanceRepositoryImpl(
+        dataSource: getIt<TrialBalanceDataSource>(),
+      ),
     );
     getIt.registerFactory(
       () => TrialBalanceCubit(repository: getIt<TrialBalanceRepository>()),
@@ -809,21 +819,29 @@ class GetItHelper {
 
     // Income Statement Report
     getIt.registerLazySingleton<IncomeStatementDataSource>(
-      () => IncomeStatementDataSourceImpl(databaseService: getIt<DatabaseService>()),
+      () => IncomeStatementDataSourceImpl(
+        databaseService: getIt<DatabaseService>(),
+      ),
     );
     getIt.registerLazySingleton<IncomeStatementRepository>(
-      () => IncomeStatementRepositoryImpl(dataSource: getIt<IncomeStatementDataSource>()),
+      () => IncomeStatementRepositoryImpl(
+        dataSource: getIt<IncomeStatementDataSource>(),
+      ),
     );
     getIt.registerFactory(
-      () => IncomeStatementCubit(repository: getIt<IncomeStatementRepository>()),
+      () =>
+          IncomeStatementCubit(repository: getIt<IncomeStatementRepository>()),
     );
 
     // Sales Summary Report
     getIt.registerLazySingleton<SalesSummaryDataSource>(
-      () => SalesSummaryDataSourceImpl(databaseService: getIt<DatabaseService>()),
+      () =>
+          SalesSummaryDataSourceImpl(databaseService: getIt<DatabaseService>()),
     );
     getIt.registerLazySingleton<SalesSummaryRepository>(
-      () => SalesSummaryRepositoryImpl(dataSource: getIt<SalesSummaryDataSource>()),
+      () => SalesSummaryRepositoryImpl(
+        dataSource: getIt<SalesSummaryDataSource>(),
+      ),
     );
     getIt.registerFactory(
       () => SalesSummaryCubit(repository: getIt<SalesSummaryRepository>()),
@@ -840,39 +858,103 @@ class GetItHelper {
       () => StockCubit(repository: getIt<StockRepository>()),
     );
 
-    // Account Statement Report
-    getIt.registerLazySingleton<AccountStatementDataSource>(
-      () => AccountStatementDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    // ── Inventory Reports (3 professional reports) ──
+    getIt.registerLazySingleton<ItemMovementDataSource>(
+      () =>
+          ItemMovementDataSourceImpl(databaseService: getIt<DatabaseService>()),
     );
-    getIt.registerLazySingleton<AccountStatementRepository>(
-      () => AccountStatementRepositoryImpl(dataSource: getIt<AccountStatementDataSource>()),
+    getIt.registerLazySingleton<ItemsBalanceDataSource>(
+      () =>
+          ItemsBalanceDataSourceImpl(databaseService: getIt<DatabaseService>()),
+    );
+    getIt.registerLazySingleton<ProductPriceReportDataSource>(
+      () => ProductPriceReportDataSourceImpl(
+        databaseService: getIt<DatabaseService>(),
+      ),
+    );
+    getIt.registerLazySingleton<inv_item_movement_repo.ItemMovementRepository>(
+      () => inv_item_movement_impl.ItemMovementRepositoryImpl(
+        getIt<ItemMovementDataSource>(),
+      ),
+    );
+    getIt.registerLazySingleton<ItemsBalanceRepository>(
+      () => ItemsBalanceRepositoryImpl(getIt<ItemsBalanceDataSource>()),
+    );
+    getIt.registerLazySingleton<ProductPriceReportRepository>(
+      () => ProductPriceReportRepositoryImpl(
+        getIt<ProductPriceReportDataSource>(),
+      ),
     );
     getIt.registerFactory(
-      () => AccountStatementCubit(repository: getIt<AccountStatementRepository>()),
+      () => inv_item_movement_cubit.ItemMovementCubit(
+        getIt<inv_item_movement_repo.ItemMovementRepository>(),
+      ),
+    );
+    getIt.registerFactory(
+      () => ItemsBalanceCubit(getIt<ItemsBalanceRepository>()),
+    );
+    getIt.registerFactory(
+      () => ProductPriceReportCubit(getIt<ProductPriceReportRepository>()),
+    );
+
+    // Account Statement Report
+    getIt.registerLazySingleton<AccountStatementDataSource>(
+      () => AccountStatementDataSourceImpl(
+        databaseService: getIt<DatabaseService>(),
+      ),
+    );
+    getIt.registerLazySingleton<AccountStatementRepository>(
+      () => AccountStatementRepositoryImpl(
+        dataSource: getIt<AccountStatementDataSource>(),
+      ),
+    );
+    getIt.registerFactory(
+      () => AccountStatementCubit(
+        repository: getIt<AccountStatementRepository>(),
+      ),
     );
 
     // Reports Local DataSource — centralized SQL for 13 pages (Clean Architecture)
     getIt.registerLazySingleton<ReportsLocalDataSource>(
-      () => ReportsLocalDataSourceImpl(databaseService: getIt<DatabaseService>()),
+      () =>
+          ReportsLocalDataSourceImpl(databaseService: getIt<DatabaseService>()),
     );
     getIt.registerLazySingleton<ReportsRepository>(
       () => ReportsRepositoryImpl(dataSource: getIt<ReportsLocalDataSource>()),
     );
-    getIt.registerLazySingleton(() => GetReportData(getIt<ReportsRepository>()));
-    getIt.registerLazySingleton(() => GetSalesAggregatesUseCase(getIt<ReportsRepository>()));
-    getIt.registerLazySingleton(() => GetPurchaseSummaryUseCase(getIt<ReportsRepository>()));
-    getIt.registerLazySingleton(() => GetPartyBalancesUseCase(getIt<ReportsRepository>()));
-    getIt.registerLazySingleton(() => GetJournalEntriesUseCase(getIt<ReportsRepository>()));
-    getIt.registerLazySingleton(() => GetGeneralLedgerUseCase(getIt<ReportsRepository>()));
-    getIt.registerLazySingleton(() => GetAgedReceivablesUseCase(getIt<ReportsRepository>()));
-    getIt.registerFactory(() => ReportsCubit(getReportData: getIt<GetReportData>()));
+    getIt.registerLazySingleton(
+      () => GetReportData(getIt<ReportsRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetSalesAggregatesUseCase(getIt<ReportsRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetPurchaseSummaryUseCase(getIt<ReportsRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetPartyBalancesUseCase(getIt<ReportsRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetJournalEntriesUseCase(getIt<ReportsRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetGeneralLedgerUseCase(getIt<ReportsRepository>()),
+    );
+    getIt.registerLazySingleton(
+      () => GetAgedReceivablesUseCase(getIt<ReportsRepository>()),
+    );
+    getIt.registerFactory(
+      () => ReportsCubit(getReportData: getIt<GetReportData>()),
+    );
 
     // Account Movements Feature
     getIt.registerLazySingleton<AccountMovementsLocalDataSource>(
       () => AccountMovementsLocalDataSourceImpl(database: database),
     );
     getIt.registerLazySingleton<AccountMovementsRepository>(
-      () => AccountMovementsRepositoryImpl(localDataSource: getIt<AccountMovementsLocalDataSource>()),
+      () => AccountMovementsRepositoryImpl(
+        localDataSource: getIt<AccountMovementsLocalDataSource>(),
+      ),
     );
     getIt.registerLazySingleton(
       () => GetAccountMovements(getIt<AccountMovementsRepository>()),

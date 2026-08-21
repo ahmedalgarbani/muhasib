@@ -25,6 +25,9 @@ import 'package:muhasib/features/reports/presentation/pages/income_statement_rep
 import 'package:muhasib/features/reports/presentation/pages/sales_summary_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/stock_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/transactions_report_page.dart';
+import 'package:muhasib/features/inventory_reports/presentation/pages/item_movement_report_page.dart';
+import 'package:muhasib/features/inventory_reports/presentation/pages/items_balance_report_page.dart';
+import 'package:muhasib/features/inventory_reports/presentation/pages/product_prices_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/generic_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/balance_sheet_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/journal_report_page.dart';
@@ -67,6 +70,7 @@ import 'package:muhasib/features/setting/presentation/cubit/setting_cubit.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/pages/stock_adjustment_page.dart';
 import 'package:muhasib/features/stores/presentation/pages/stock_transfer_page.dart';
+import 'package:muhasib/features/stores/presentation/pages/stock_transfers_list_page.dart';
 import 'package:muhasib/features/stores/presentation/pages/warehouses_inventory_page.dart';
 import 'package:muhasib/features/stores/presentation/pages/warehouses_main_page.dart';
 import 'package:muhasib/features/stores/presentation/pages/warehouses_list_page.dart';
@@ -117,11 +121,6 @@ final router = GoRouter(
         create: (_) => getIt<InitialCubit>(),
         child: const InitialGatePage(),
       ),
-    ),
-    GoRoute(
-      path: AppRoutes.home,
-      name: AppRoutes.home,
-      builder: (context, state) => const HomePageView(),
     ),
     GoRoute(
       path: AppRoutes.initialSetup,
@@ -180,8 +179,8 @@ final router = GoRouter(
             GoRoute(
               path: AppRoutes.settings,
               name: AppRoutes.settings,
-              builder: (context, state) => BlocProvider(
-                create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
+              builder: (context, state) => BlocProvider.value(
+                value: getIt<new_settings_cubit.SettingsCubit>(),
                 child: const new_settings.SettingsPage(),
               ),
             ),
@@ -485,6 +484,11 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.warehousesTransfer,
       name: AppRoutes.warehousesTransfer,
+      builder: (context, state) => const StockTransfersListPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.warehousesTransferForm,
+      name: AppRoutes.warehousesTransferForm,
       builder: (context, state) => const StockTransferPage(),
     ),
 
@@ -519,48 +523,48 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.settingsPersonal,
       name: AppRoutes.settingsPersonal,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
+      builder: (context, state) => BlocProvider.value(
+        value: getIt<new_settings_cubit.SettingsCubit>(),
         child: const PersonalInfoPage(),
       ),
     ),
     GoRoute(
       path: AppRoutes.settingsPrint,
       name: AppRoutes.settingsPrint,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
+      builder: (context, state) => BlocProvider.value(
+        value: getIt<new_settings_cubit.SettingsCubit>(),
         child: const PrintSettingsPage(),
       ),
     ),
     GoRoute(
       path: AppRoutes.settingsSecurity,
       name: AppRoutes.settingsSecurity,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
+      builder: (context, state) => BlocProvider.value(
+        value: getIt<new_settings_cubit.SettingsCubit>(),
         child: const SecuritySettingsPage(),
       ),
     ),
     GoRoute(
       path: AppRoutes.settingsVoucher,
       name: AppRoutes.settingsVoucher,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
+      builder: (context, state) => BlocProvider.value(
+        value: getIt<new_settings_cubit.SettingsCubit>(),
         child: const VoucherSettingsPage(),
       ),
     ),
     GoRoute(
       path: AppRoutes.settingsStock,
       name: AppRoutes.settingsStock,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
+      builder: (context, state) => BlocProvider.value(
+        value: getIt<new_settings_cubit.SettingsCubit>(),
         child: const StockSettingsPage(),
       ),
     ),
     GoRoute(
       path: AppRoutes.settingsOther,
       name: AppRoutes.settingsOther,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<new_settings_cubit.SettingsCubit>(),
+      builder: (context, state) => BlocProvider.value(
+        value: getIt<new_settings_cubit.SettingsCubit>(),
         child: const OtherSettingsPage(),
       ),
     ),
@@ -740,6 +744,22 @@ final router = GoRouter(
       path: AppRoutes.reportsStockValuation,
       name: AppRoutes.reportsStockValuation,
       builder: (context, state) => const StockValuationReportPage(),
+    ),
+    // التقارير المخزنية الاحترافية الجديدة
+    GoRoute(
+      path: AppRoutes.reportsItemMovement,
+      name: AppRoutes.reportsItemMovement,
+      builder: (context, state) => const ItemMovementReportPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.reportsItemsBalance,
+      name: AppRoutes.reportsItemsBalance,
+      builder: (context, state) => const ItemsBalanceReportPage(),
+    ),
+    GoRoute(
+      path: AppRoutes.reportsProductPrices,
+      name: AppRoutes.reportsProductPrices,
+      builder: (context, state) => const ProductPricesReportPage(),
     ),
 
     // تقارير العملاء والموردين

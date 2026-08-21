@@ -195,6 +195,7 @@ class StockTransferLocalDataSourceImpl implements StockTransferLocalDataSource {
     return maps.map((map) => StockTransferLineModel.fromMap(map)).toList();
   }
 
+  // ignore: unused_element
   /// Legacy non-transactional wrapper (kept for compatibility, delegates to txn version)
   Future<void> _processTransferCompletion(int transferId) async {
     await database.transaction((txn) async {

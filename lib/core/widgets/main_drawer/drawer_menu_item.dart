@@ -74,9 +74,7 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.symmetric(
-            vertical: 2,
-          ).copyWith(right: isChild ? 16 : 0),
+          padding: const EdgeInsets.symmetric(vertical: 2),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -87,10 +85,12 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
               child: Container(
                 padding: EdgeInsets.symmetric(
                   horizontal: 12,
-                  vertical: isChild ? 10 : 12,
+                  vertical: isChild ? 8 : 12,
                 ),
                 decoration: BoxDecoration(
-                  color: _isExpanded ? AppColors.saudiMint : Colors.transparent,
+                  color: _isExpanded
+                      ? AppColors.saudiMint.withValues(alpha: 0.7)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                 ),
                 child: Row(
@@ -102,7 +102,9 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
                         item.title,
                         style: TextStyle(
                           fontSize: isChild ? 13 : 14.5,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: isChild
+                              ? FontWeight.w500
+                              : FontWeight.w600,
                           color: isChild
                               ? colorScheme.onSurfaceVariant
                               : colorScheme.onSurface,
@@ -130,10 +132,27 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
         ),
         AnimatedCrossFade(
           firstChild: const SizedBox.shrink(),
-          secondChild: Column(
-            children: item.children
-                .map((child) => DrawerMenuItem(item: child, isChild: true))
-                .toList(),
+          secondChild: Container(
+            margin: const EdgeInsets.only(
+              right: 27,
+              left: 4,
+              top: 2,
+              bottom: 4,
+            ),
+            padding: const EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(
+              border: Border(
+                right: BorderSide(
+                  color: colorScheme.primary.withValues(alpha: 0.28),
+                  width: 2.0,
+                ),
+              ),
+            ),
+            child: Column(
+              children: item.children
+                  .map((child) => DrawerMenuItem(item: child, isChild: true))
+                  .toList(),
+            ),
           ),
           crossFadeState: _isExpanded
               ? CrossFadeState.showSecond

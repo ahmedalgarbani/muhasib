@@ -705,7 +705,6 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
   }
 
   @override
-  @override
   Future<double> getProductQuantityInWarehouse(
       int productId, int warehouseId) async {
     final result = await database.query(
@@ -733,6 +732,7 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
     };
   }
 
+  @override
   Future<List<InventoryLineEntity>> getCurrentStockLines(int warehouseId) async {
     // Join warehouse_stocks with categories to get product metadata
     final rows = await database.rawQuery('''

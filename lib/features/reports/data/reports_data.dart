@@ -235,6 +235,37 @@ class ReportsData {
       route: AppRoutes.reportsStockValuation,
       category: ReportCategory.inventory,
     ),
+    // التقارير المخزنية الاحترافية الجديدة
+    ReportItem(
+      id: 'item_movement_pro',
+      titleAr: 'حركة الأصناف',
+      titleEn: 'Item Movement',
+      descriptionAr: 'تتبع جميع الحركات الواردة والمنصرفة لكل مخزن',
+      icon: Icons.compare_arrows,
+      color: AppColors.materialCyan700,
+      route: AppRoutes.reportsItemMovement,
+      category: ReportCategory.inventory,
+    ),
+    ReportItem(
+      id: 'items_balance',
+      titleAr: 'الأصناف في المخازن',
+      titleEn: 'Items Balance',
+      descriptionAr: 'أرصدة الأصناف وإجمالي الوارد والمنصرف',
+      icon: Icons.inventory,
+      color: AppColors.materialDeepOrange500,
+      route: AppRoutes.reportsItemsBalance,
+      category: ReportCategory.inventory,
+    ),
+    ReportItem(
+      id: 'product_prices',
+      titleAr: 'اسعار الاصناف الحالية',
+      titleEn: 'Current Product Prices',
+      descriptionAr: 'قائمة أسعار البيع الرسمية مع الطباعة',
+      icon: Icons.price_check,
+      color: AppColors.materialTeal600,
+      route: AppRoutes.reportsProductPrices,
+      category: ReportCategory.inventory,
+    ),
   ];
 
   static const List<ReportItem> customerReports = [

@@ -11,6 +11,13 @@ class SettingsCubit extends Cubit<SettingsState> {
 
   Map<String, dynamic> get settings => _settings;
 
+  @override
+  void emit(SettingsState state) {
+    if (!isClosed) {
+      super.emit(state);
+    }
+  }
+
   Future<void> loadSettings() async {
     try {
       emit(SettingsLoading());
