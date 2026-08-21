@@ -90,7 +90,8 @@ class StockAdjustmentRepositoryImpl implements StockAdjustmentRepository {
   @override
   Future<Either<Failure, void>> approveAdjustment(int id) async {
     try {
-      await localDataSource.postAdjustment(id);
+      // Approve should only change status, not post journal/stock
+      await localDataSource.updateAdjustmentStatus(id, TransferStatus.approved);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(LocalStorageFailure(e.message));

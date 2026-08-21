@@ -100,9 +100,8 @@ class InventoryRepositoryImpl implements InventoryRepository {
   @override
   Future<Either<Failure, List<InventoryLineEntity>>> getCurrentStock(int warehouseId) async {
     try {
-      // This would query current stock levels for a warehouse
-      // For now, return empty list as this requires complex query
-      return const Right([]);
+      final lines = await localDataSource.getCurrentStockLines(warehouseId);
+      return Right(lines);
     } on ServerException catch (e) {
       return Left(LocalStorageFailure(e.message));
     } catch (e) {

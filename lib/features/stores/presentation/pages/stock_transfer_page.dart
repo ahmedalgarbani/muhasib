@@ -18,6 +18,7 @@ import 'package:muhasib/features/stores/presentation/cubit/stock_transfers_cubit
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/features/stores/presentation/widgets/product_picker_sheet.dart';
 import 'package:muhasib/features/stores/presentation/widgets/warehouse_page_sections.dart';
+import 'package:muhasib/features/stores/data/datasources/inventory_local_datasource.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
 
 class StockTransferPage extends StatefulWidget {
@@ -74,9 +75,10 @@ class _StockTransferPageState extends State<StockTransferPage> {
   }
 
   void _generateTransferNumber() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    _transferNumberController.text =
-        'TRF-${timestamp.substring(timestamp.length - 8)}';
+    // Use full timestamp (13 digits) to avoid collisions — 8-digit substring cycles ~27h
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final micro = DateTime.now().microsecond % 1000;
+    _transferNumberController.text = 'TRF-$ts${micro.toString().padLeft(3, '0')}';
   }
 
   @override
@@ -160,12 +162,18 @@ class _StockTransferPageState extends State<StockTransferPage> {
                     destination: _destinationWarehouse,
                     onSourceChanged: (value) => setState(() {
                       _sourceWarehouse = value;
-                      if (_destinationWarehouse == value) {
+                      if (_destinationWarehouse?.id == value?.id) {
                         _destinationWarehouse = null;
                       }
                     }),
-                    onDestinationChanged: (value) =>
-                        setState(() => _destinationWarehouse = value),
+                    onDestinationChanged: (value) {
+                      if (value?.id == _sourceWarehouse?.id) {
+                        AppToast.showWarning(
+                            context, 'لا يمكن اختيار نفس المخزن للوجهة');
+                        return;
+                      }
+                      setState(() => _destinationWarehouse = value);
+                    },
                   ),
                   const SizedBox(height: 16),
                   _buildTransferLinesCard(colorScheme),
@@ -305,8 +313,54 @@ class _StockTransferPageState extends State<StockTransferPage> {
   }
 
   Future<void> _addTransferLine() async {
+    if (_sourceWarehouse == null) {
+      AppToast.showWarning(context, 'يرجى اختيار مخزن المصدر أولاً');
+      return;
+    }
     final product = await showProductPicker(context, cubit: _productsCubit);
-    if (product == null) return;
+    if (product == null || !mounted) return;
+
+    // Fetch authoritative available qty for feedback (per-warehouse)
+    double available = 0;
+    try {
+      final ds = getIt<InventoryLocalDataSource>();
+      available = await ds.getProductQuantityInWarehouse(
+          product.id!, _sourceWarehouse!.id!);
+    } catch (_) {}
+
+    // If already added, just increment if stock allows
+    final existingIdx =
+        _transferLines.indexWhere((l) => l.categoryId == product.id);
+    if (existingIdx != -1) {
+      final currentQty = _transferLines[existingIdx].quantity;
+      if (available > 0 && currentQty + 1 > available) {
+        AppToast.showWarning(context,
+            'الكمية المطلوبة (${currentQty + 1}) أكبر من المتاح ($available)');
+        return;
+      }
+      setState(() {
+        final line = _transferLines[existingIdx];
+        _transferLines[existingIdx] = StockTransferLineEntity(
+          id: line.id,
+          quantity: line.quantity + 1,
+          statement: line.statement,
+          costAmount: line.costAmount,
+          categoryId: line.categoryId,
+          groupId: line.groupId,
+          unitId: line.unitId,
+          categorySubUnitId: line.categorySubUnitId,
+          stockTransferId: line.stockTransferId,
+        );
+      });
+      AppToast.showSuccess(context, 'تمت زيادة الكمية (المتاح: $available)');
+      return;
+    }
+
+    if (available == 0) {
+      AppToast.showWarning(context,
+          'لا يوجد رصيد لهذا المنتج في المخزن المصدر (المتاح: 0)');
+      // still allow adding but warn
+    }
 
     setState(() {
       _transferLines.add(
@@ -321,6 +375,9 @@ class _StockTransferPageState extends State<StockTransferPage> {
         ),
       );
     });
+    if (available > 0) {
+      AppToast.showSuccess(context, 'تمت الإضافة (المتاح: $available)');
+    }
   }
 
   bool _validateInput() {

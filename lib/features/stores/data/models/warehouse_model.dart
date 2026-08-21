@@ -52,7 +52,7 @@ class WarehouseModel extends WarehouseEntity {
       isActive: (map['is_active'] as int?) == 1,
       accountId: map['account_id'] as int?,
       managerName: map['manager_name'] as String?,
-      capacity: map['capacity'] as double?,
+      capacity: (map['capacity'] as num?)?.toDouble(),
       creatorId: map['creator_id'] as int?,
       lastModifierId: map['last_modifier_id'] as int?,
       concurrencyStamp: map['concurrency_stamp'] as String?,

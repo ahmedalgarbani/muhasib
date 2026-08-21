@@ -1,6 +1,11 @@
 import 'package:equatable/equatable.dart';
 
-class StockTransferLineEntity extends Equatable {
+// DEPRECATED: This file previously defined a duplicate `StockTransferLineEntity`
+// with an incompatible shape (cost/totalAmount). The canonical entity is now
+// `lib/features/stores/domain/entities/stock_transfer_entity.dart`.
+// This file is kept for backward compatibility and will be removed.
+// Use `StockTransferLineEntity` from `stock_transfer_entity.dart` instead.
+class LegacyStockTransferLineEntity extends Equatable {
   final int? id;
   final int stockTransferId;
   final int categoryId;
@@ -16,7 +21,7 @@ class StockTransferLineEntity extends Equatable {
   final double totalAmount;
   final String? statement;
 
-  const StockTransferLineEntity({
+  const LegacyStockTransferLineEntity({
     this.id,
     required this.stockTransferId,
     required this.categoryId,
@@ -51,7 +56,7 @@ class StockTransferLineEntity extends Equatable {
         statement,
       ];
 
-  StockTransferLineEntity copyWith({
+  LegacyStockTransferLineEntity copyWith({
     int? id,
     int? stockTransferId,
     int? categoryId,
@@ -67,7 +72,7 @@ class StockTransferLineEntity extends Equatable {
     double? totalAmount,
     String? statement,
   }) {
-    return StockTransferLineEntity(
+    return LegacyStockTransferLineEntity(
       id: id ?? this.id,
       stockTransferId: stockTransferId ?? this.stockTransferId,
       categoryId: categoryId ?? this.categoryId,

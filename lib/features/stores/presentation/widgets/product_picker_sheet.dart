@@ -53,15 +53,19 @@ class _ProductPickerSheetState extends State<ProductPickerSheet> {
               p.barcodeNo.toLowerCase().contains(q);
         }).toList();
 
-        return Container(
-          height: MediaQuery.of(context).size.height * 0.75,
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(AppRadius.xl30),
-            ),
-          ),
-          child: Column(
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context).viewInsets.bottom),
+            child: Container(
+              height: MediaQuery.of(context).size.height * 0.75,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.xl30),
+                ),
+              ),
+              child: Column(
             children: [
               const SizedBox(height: 12),
               Container(
@@ -104,6 +108,8 @@ class _ProductPickerSheetState extends State<ProductPickerSheet> {
                 ),
               ),
             ],
+          ),
+        ),
           ),
         );
       },

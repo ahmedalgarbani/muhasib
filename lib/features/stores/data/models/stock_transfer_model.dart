@@ -45,7 +45,7 @@ class StockTransferLineModel extends StockTransferLineEntity {
       id: map['id'] as int?,
       quantity: (map['quantity'] as num).toDouble(),
       statement: map['statement'] as String,
-      costAmount: map['cost_amount'] as double?,
+      costAmount: (map['cost_amount'] as num?)?.toDouble(),
       categoryId: map['category_id'] as int?,
       groupId: map['group_id'] as int,
       unitId: map['unit_id'] as int,

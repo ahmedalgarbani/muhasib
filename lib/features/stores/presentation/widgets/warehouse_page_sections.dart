@@ -302,9 +302,24 @@ class TransferWarehouseSelection extends StatelessWidget {
           const SizedBox(height: 16),
           BlocBuilder<WarehousesCubit, WarehousesState>(
             builder: (context, state) {
+              if (state is WarehousesLoading) {
+                return const Center(
+                    child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: CircularProgressIndicator()));
+              }
+              if (state is WarehousesError) {
+                return Text('خطأ في تحميل المخازن: ${state.message}',
+                    style: TextStyle(color: Colors.red[700]));
+              }
               final warehouses = state is WarehousesLoaded
                   ? state.warehouses
                   : <WarehouseEntity>[];
+              if (warehouses.isEmpty) {
+                return const Text(
+                    'لا توجد مخازن — أنشئ مخزناً أولاً من الإعدادات',
+                    style: TextStyle(color: Colors.grey));
+              }
               return Row(
                 children: [
                   Expanded(
@@ -328,7 +343,7 @@ class TransferWarehouseSelection extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Icon(
-                      Icons.arrow_forward,
+                      Icons.swap_horiz,
                       color: colorScheme.primary,
                       size: 32,
                     ),
@@ -339,7 +354,7 @@ class TransferWarehouseSelection extends StatelessWidget {
                       hint: 'اختر المخزن الوجهة',
                       prefixIcon: const Icon(Icons.input),
                       items: warehouses
-                          .where((warehouse) => warehouse != source)
+                          .where((warehouse) => warehouse.id != source?.id)
                           .map(
                             (warehouse) => DropdownMenuItem(
                               value: warehouse,
@@ -399,7 +414,7 @@ class WarehouseActionButtons extends StatelessWidget {
   );
 }
 
-class InventoryLineItem extends StatelessWidget {
+class InventoryLineItem extends StatefulWidget {
   const InventoryLineItem({
     super.key,
     required this.line,
@@ -415,8 +430,42 @@ class InventoryLineItem extends StatelessWidget {
   final VoidCallback onDelete;
 
   @override
+  State<InventoryLineItem> createState() => _InventoryLineItemState();
+}
+
+class _InventoryLineItemState extends State<InventoryLineItem> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.line.actualQuantity.toString(),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant InventoryLineItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Keep controller in sync when quantity changed externally (e.g., +1 increment)
+    if (oldWidget.line.actualQuantity != widget.line.actualQuantity) {
+      final newText = widget.line.actualQuantity.toString();
+      if (_controller.text != newText) {
+        _controller.text = newText;
+        _controller.selection = TextSelection.collapsed(offset: newText.length);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final difference = line.actualQuantity - line.quantity;
+    final difference = widget.line.actualQuantity - widget.line.quantity;
     final positive = difference >= 0;
     return ListTile(
       leading: CircleAvatar(
@@ -424,7 +473,7 @@ class InventoryLineItem extends StatelessWidget {
             ? Colors.green.withOpacity(0.1)
             : Colors.red.withOpacity(0.1),
         child: Text(
-          '${index + 1}',
+          '${widget.index + 1}',
           style: TextStyle(
             color: positive ? Colors.green : Colors.red,
             fontWeight: FontWeight.bold,
@@ -432,13 +481,15 @@ class InventoryLineItem extends StatelessWidget {
         ),
       ),
       title: Text(
-        line.statement.isNotEmpty ? line.statement : 'صنف ${index + 1}',
+        widget.line.statement.isNotEmpty
+            ? widget.line.statement
+            : 'صنف ${widget.index + 1}',
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'متوقع: ${line.quantity} | فعلي: ${line.actualQuantity}',
+            'متوقع: ${widget.line.quantity} | فعلي: ${widget.line.actualQuantity}',
             style: const TextStyle(fontSize: 12),
           ),
           Text(
@@ -451,7 +502,7 @@ class InventoryLineItem extends StatelessWidget {
           ),
         ],
       ),
-      trailing: countMode
+      trailing: widget.countMode
           ? SizedBox(
               width: 100,
               child: TextInputField(
@@ -467,15 +518,14 @@ class InventoryLineItem extends StatelessWidget {
                     vertical: 8,
                   ),
                 ),
-                onChanged: (value) => onChanged(double.tryParse(value) ?? 0),
-                controller: TextEditingController(
-                  text: line.actualQuantity.toString(),
-                ),
+                onChanged: (value) =>
+                    widget.onChanged(double.tryParse(value) ?? 0),
+                controller: _controller,
               ),
             )
           : IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
-              onPressed: onDelete,
+              onPressed: widget.onDelete,
             ),
     );
   }

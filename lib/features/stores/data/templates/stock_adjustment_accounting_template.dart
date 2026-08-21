@@ -37,6 +37,8 @@ class StockAdjustmentAccountingTemplate {
         // Create journal entry
         final journalNumber = 'SA-${DateFormat('yyyyMMddHHmmss').format(adjustmentDate)}';
         
+        // Unified chart: use 4200/5200 same as live settlements (not 4900/5900)
+        // status 2 / is_posted 1 so reports include these journals
         final entryId = await txn.insert('journal_entries', {
           'number': journalNumber,
           'entry_date': adjustmentDate.millisecondsSinceEpoch ~/ 1000,
@@ -47,8 +49,8 @@ class StockAdjustmentAccountingTemplate {
           'total_debit': adjustmentValue.abs(),
           'total_credit': adjustmentValue.abs(),
           'difference': 0.0,
-          'status': 0,
-          'is_posted': 0,
+          'status': 2,
+          'is_posted': 1,
           'creation_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
           'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         });
@@ -121,26 +123,31 @@ class StockAdjustmentAccountingTemplate {
     }
   }
 
-  /// Get or create Inventory Adjustment Income account (4900)
+  /// Get or create Inventory Adjustment Income account — unified to 4200 (not 4900)
   Future<int> _getOrCreateAdjustmentIncomeAccount(dynamic txn) async {
-    final existing = await txn.query(
+    // Prefer unified code 4200
+    var existing = await txn.query(
+      'accounts',
+      where: 'code = ?',
+      whereArgs: ['4200'],
+      limit: 1,
+    );
+    if (existing.isNotEmpty) return existing.first['id'] as int;
+    // Fallback: legacy 4900 if already seeded
+    existing = await txn.query(
       'accounts',
       where: 'code = ?',
       whereArgs: ['4900'],
       limit: 1,
     );
+    if (existing.isNotEmpty) return existing.first['id'] as int;
 
-    if (existing.isNotEmpty) {
-      return existing.first['id'] as int;
-    }
-
-    // Create the account
     return await txn.insert('accounts', {
-      'c_id': 4900,
-      'code': '4900',
+      'c_id': 4200,
+      'code': '4200',
       'name': 'إيرادات تسوية المخزون',
       'is_master': 0,
-      'type': 4, // Revenue
+      'type': 4,
       'national': 1,
       'is_active': 1,
       'allow_update_delete': 1,
@@ -151,26 +158,29 @@ class StockAdjustmentAccountingTemplate {
     });
   }
 
-  /// Get or create Inventory Loss account (5900)
+  /// Get or create Inventory Loss account — unified to 5200 (not 5900)
   Future<int> _getOrCreateInventoryLossAccount(dynamic txn) async {
-    final existing = await txn.query(
+    var existing = await txn.query(
+      'accounts',
+      where: 'code = ?',
+      whereArgs: ['5200'],
+      limit: 1,
+    );
+    if (existing.isNotEmpty) return existing.first['id'] as int;
+    existing = await txn.query(
       'accounts',
       where: 'code = ?',
       whereArgs: ['5900'],
       limit: 1,
     );
+    if (existing.isNotEmpty) return existing.first['id'] as int;
 
-    if (existing.isNotEmpty) {
-      return existing.first['id'] as int;
-    }
-
-    // Create the account
     return await txn.insert('accounts', {
-      'c_id': 5900,
-      'code': '5900',
-      'name': 'خسائر المخزون',
+      'c_id': 5200,
+      'code': '5200',
+      'name': 'خسائر تسوية المخزون',
       'is_master': 0,
-      'type': 5, // Expense
+      'type': 5,
       'national': 1,
       'is_active': 1,
       'allow_update_delete': 1,

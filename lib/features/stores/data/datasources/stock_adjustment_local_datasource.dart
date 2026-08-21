@@ -145,23 +145,40 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
 
   @override
   Future<void> postAdjustment(int id) async {
-    final adjustment = await getAdjustment(id);
     final db = await databaseService.database;
     
     await db.transaction((txn) async {
-      // Double-posting guard
-      if (adjustment.status == TransferStatus.completed) {
+      // Re-fetch inside transaction for atomicity
+      final headerMaps = await txn.query(
+        'stock_settlements',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (headerMaps.isEmpty) throw Exception('Adjustment not found');
+      final status = TransferStatus.fromValue(
+          headerMaps.first['status'] as int? ?? 0);
+      if (status == TransferStatus.completed) {
         throw Exception('تم ترحيل هذه التسوية مسبقاً');
       }
-      if (adjustment.lines.isEmpty) {
+      final lineMaps = await txn.query(
+        'stock_settlement_lines',
+        where: 'stock_settlement_id = ?',
+        whereArgs: [id],
+      );
+      final lines = lineMaps.map((m) => StockAdjustmentLineModel.fromMap(m)).toList();
+      if (lines.isEmpty) {
         throw Exception('لا توجد أصناف في التسوية للترحيل');
       }
+      final adjustmentHeader = StockAdjustmentModel.fromMap(
+          headerMaps.first, lines: lines.cast<StockAdjustmentLineEntity>());
+      final adjustment = adjustmentHeader;
 
       // 1. Update adjustment status to posted
       await txn.update(
         'stock_settlements',
         {
-          'status': 4, // TransferStatus.completed
+          'status': TransferStatus.completed.value,
           'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
         },
         where: 'id = ?',
@@ -193,6 +210,14 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
             ? (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0
             : 0.0;
         final newQty = currentQty + quantity;
+        if (!isIncrease && stockResult.isEmpty) {
+          throw Exception(
+              'لا يمكن تسجيل نقص لمنتج غير موجود في هذا المخزن: ${line.categoryId}');
+        }
+        if (newQty < -0.0001) {
+          throw Exception(
+              'كمية النقص للمنتج ${line.statement} أكبر من المتاح ($currentQty)');
+        }
 
         // Movement cost and line value:
         // - Increase: at the user-entered unit cost; blend avg cost.
@@ -438,7 +463,7 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
     return any.first['id'] as int;
   }
 
-  /// Applies a debit-normal delta to an account balance (+local_balance)
+  /// Applies delta respecting normal balance (debit vs credit).
   Future<void> _applyAccountBalanceDelta(
     Transaction txn,
     int accountId,
@@ -446,14 +471,16 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
   ) async {
     final rows = await txn.query(
       'accounts',
-      columns: ['balance'],
+      columns: ['balance', 'type'],
       where: 'id = ?',
       whereArgs: [accountId],
       limit: 1,
     );
     if (rows.isEmpty) return;
     final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
-    final newBalance = current + delta;
+    final type = (rows.first['type'] as int?) ?? 1;
+    final isCreditNormal = type == 2 || type == 3 || type == 4;
+    final newBalance = isCreditNormal ? current - delta : current + delta;
     await txn.update(
       'accounts',
       {
@@ -483,9 +510,10 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
   Future<String> _nextJournalNumber(Transaction txn, String prefix) async {
     final result = await txn.rawQuery(
       "SELECT COALESCE(MAX(CAST(SUBSTR(number, ${prefix.length + 2}) AS INTEGER)), 0) + 1 as next "
-      "FROM journal_entries WHERE number LIKE '$prefix-%'",
+      "FROM journal_entries WHERE number LIKE ?",
+      ['$prefix-%'],
     );
-    final next = (result.first['next'] as int?) ?? 1;
+    final next = (result.first['next'] as num?)?.toInt() ?? 1;
     return '$prefix-${next.toString().padLeft(6, '0')}';
   }
 }

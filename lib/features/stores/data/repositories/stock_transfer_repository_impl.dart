@@ -64,9 +64,11 @@ class StockTransferRepositoryImpl implements StockTransferRepository {
   @override
   Future<Either<Failure, void>> updateTransfer(StockTransferEntity transfer) async {
     try {
+      if (transfer.id == null) {
+        return Left(LocalStorageFailure('معرّف التحويل مطلوب للتحديث'));
+      }
       final model = StockTransferModel.fromEntity(transfer);
-      // Note: datasource doesn't have updateTransfer, using createTransfer for now
-      await localDataSource.createTransfer(model);
+      await localDataSource.updateTransfer(model);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(LocalStorageFailure(e.message));
@@ -78,24 +80,9 @@ class StockTransferRepositoryImpl implements StockTransferRepository {
   @override
   Future<Either<Failure, int>> createTransfer(StockTransferEntity transfer) async {
     try {
-      // Validate stock availability before transfer
-      // for (final line in transfer.lines) {
-      //   final availableQty = await _getAvailableQuantity(
-      //     transfer.fromStockId ?? 0,
-      //     line.categoryId ?? 0,
-      //   );
-        
-      //   if (line.quantity > availableQty) {
-      //     return Left(LocalStorageFailure(
-      //       'الكمية المطلوبة (${line.quantity}) أكبر من المتاح ($availableQty) '
-      //       'للمنتج في المخزن المصدر'
-      //     ));
-      //   }
-      // }
-      
-      // final model = StockTransferModel.fromEntity(transfer);
-      // final id = await localDataSource.createTransfer(model);
-      return Right(1);
+      final model = StockTransferModel.fromEntity(transfer);
+      final id = await localDataSource.createTransfer(model);
+      return Right(id);
     } on ServerException catch (e) {
       return Left(LocalStorageFailure(e.message));
     } catch (e) {

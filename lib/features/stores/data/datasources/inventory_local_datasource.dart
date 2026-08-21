@@ -12,6 +12,9 @@ abstract class InventoryLocalDataSource {
   Future<void> updateInventory(InventoryModel inventory);
   Future<void> postInventory(int id);
   Future<void> deleteInventory(int id);
+  Future<double> getProductQuantityInWarehouse(int productId, int warehouseId);
+  Future<Map<int, double>> getWarehouseStockMap(int warehouseId);
+  Future<List<InventoryLineEntity>> getCurrentStockLines(int warehouseId);
 }
 
 class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
@@ -129,13 +132,34 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
 
   @override
   Future<void> postInventory(int id) async {
-    final inventory = await getInventory(id);
-    
     await database.transaction((txn) async {
-      // Double-posting guard
-      if (inventory.status == TransferStatus.completed) {
+      // Re-fetch inventory inside transaction (snapshot consistency + double-post guard)
+      final headerMaps = await txn.query(
+        'inventories',
+        where: 'id = ?',
+        whereArgs: [id],
+        limit: 1,
+      );
+      if (headerMaps.isEmpty) throw Exception('Inventory not found');
+      final status = TransferStatus.fromValue(
+          headerMaps.first['status'] as int? ?? 0);
+      if (status == TransferStatus.completed) {
         throw Exception('تم ترحيل هذا الجرد مسبقاً');
       }
+      // Fetch lines inside txn for consistency
+      final lineMaps = await txn.query(
+        'inventory_lines',
+        where: 'inventory_id = ?',
+        whereArgs: [id],
+      );
+      final lines = lineMaps
+          .map((m) => InventoryLineModel.fromMap(m))
+          .toList()
+          .cast<InventoryLineEntity>();
+      final inventoryHeader = InventoryModel.fromMap(
+          headerMaps.first, lines: lines);
+      // Use inventoryHeader for number/stockId, but lines already fetched
+      final inventory = inventoryHeader;
 
       // Update inventory status to posted
       await txn.update(
@@ -173,7 +197,21 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
         if (difference.abs() < 0.0001) continue;
 
         final adjType = difference > 0 ? 0 : 1; // increase/decrease
-        final unitCost = (line.costAmount ?? 0) > 0 ? line.costAmount! : currentAvg;
+        // Accounting correctness: shortage must be valued at book avg, not counted cost
+        double unitCost;
+        if (difference > 0) {
+          // Increase: use counted cost if provided, else book avg
+          unitCost = (line.costAmount != null && line.costAmount! > 0)
+              ? line.costAmount!
+              : (currentAvg > 0 ? currentAvg : 0);
+        } else {
+          // Decrease: always at book average cost (if available)
+          unitCost = currentAvg > 0
+              ? currentAvg
+              : ((line.costAmount != null && line.costAmount! > 0)
+                  ? line.costAmount!
+                  : 0);
+        }
         final differenceValue = unitCost * difference.abs();
         
         if (difference > 0) {
@@ -218,6 +256,15 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
         });
 
         final newQty = systemQty + difference;
+        if (newQty < -0.0001) {
+          throw Exception(
+              'كمية النقص للمنتج ${line.statement} أكبر من المتاح ($systemQty)');
+        }
+        // Prevent inserting negative quantity for new product
+        if (stockRow.isEmpty && difference < -0.0001) {
+          throw Exception(
+              'لا يمكن تسجيل نقص لمنتج غير موجود في هذا المخزن: ${line.statement}');
+        }
 
         // Update stock in warehouse_stocks (+ blend avg cost on increase)
         if (stockRow.isNotEmpty) {
@@ -236,6 +283,7 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
             whereArgs: [line.categoryId ?? 0, inventory.stockId],
           );
         } else {
+          // Only increases can create new stock rows; validated above
           await txn.insert('warehouse_stocks', {
             'product_id': line.categoryId ?? 0,
             'warehouse_id': inventory.stockId,
@@ -479,7 +527,9 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
     return any.first['id'] as int;
   }
 
-  /// Applies a debit-normal delta to an account balance (+local_balance)
+  /// Applies delta to account balance respecting normal balance (debit vs credit).
+  /// delta = +amount for debit, -amount for credit (debit-normal convention).
+  /// For credit-normal accounts (liability/equity/revenue type 2,3,4) we invert.
   Future<void> _applyAccountBalanceDelta(
     Transaction txn,
     int accountId,
@@ -487,14 +537,16 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
   ) async {
     final rows = await txn.query(
       'accounts',
-      columns: ['balance'],
+      columns: ['balance', 'type'],
       where: 'id = ?',
       whereArgs: [accountId],
       limit: 1,
     );
     if (rows.isEmpty) return;
     final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
-    final newBalance = current + delta;
+    final type = (rows.first['type'] as int?) ?? 1;
+    final isCreditNormal = type == 2 || type == 3 || type == 4;
+    final newBalance = isCreditNormal ? current - delta : current + delta;
     await txn.update(
       'accounts',
       {
@@ -524,9 +576,10 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
   Future<String> _nextJournalNumber(Transaction txn, String prefix) async {
     final result = await txn.rawQuery(
       "SELECT COALESCE(MAX(CAST(SUBSTR(number, ${prefix.length + 2}) AS INTEGER)), 0) + 1 as next "
-      "FROM journal_entries WHERE number LIKE '$prefix-%'",
+      "FROM journal_entries WHERE number LIKE ?",
+      ['$prefix-%'],
     );
-    final next = (result.first['next'] as int?) ?? 1;
+    final next = (result.first['next'] as num?)?.toInt() ?? 1;
     return '$prefix-${next.toString().padLeft(6, '0')}';
   }
 
@@ -649,5 +702,58 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
     );
 
     return maps.map((map) => InventoryLineModel.fromMap(map)).toList();
+  }
+
+  @override
+  @override
+  Future<double> getProductQuantityInWarehouse(
+      int productId, int warehouseId) async {
+    final result = await database.query(
+      'warehouse_stocks',
+      columns: ['quantity'],
+      where: 'product_id = ? AND warehouse_id = ?',
+      whereArgs: [productId, warehouseId],
+      limit: 1,
+    );
+    if (result.isEmpty) return 0.0;
+    return (result.first['quantity'] as num?)?.toDouble() ?? 0.0;
+  }
+
+  @override
+  Future<Map<int, double>> getWarehouseStockMap(int warehouseId) async {
+    final result = await database.query(
+      'warehouse_stocks',
+      columns: ['product_id', 'quantity'],
+      where: 'warehouse_id = ?',
+      whereArgs: [warehouseId],
+    );
+    return {
+      for (var row in result)
+        (row['product_id'] as int): (row['quantity'] as num).toDouble()
+    };
+  }
+
+  Future<List<InventoryLineEntity>> getCurrentStockLines(int warehouseId) async {
+    // Join warehouse_stocks with categories to get product metadata
+    final rows = await database.rawQuery('''
+      SELECT ws.product_id, ws.quantity, ws.avg_cost,
+             c.name as product_name, c.group_id, c.unit_id, c.category_sub_unit_id
+      FROM warehouse_stocks ws
+      LEFT JOIN categories c ON c.id = ws.product_id
+      WHERE ws.warehouse_id = ?
+    ''', [warehouseId]);
+    return rows.map((row) {
+      return InventoryLineEntity(
+        categoryId: row['product_id'] as int?,
+        groupId: (row['group_id'] as int?) ?? 1,
+        unitId: (row['unit_id'] as int?) ?? 1,
+        categorySubUnitId: (row['category_sub_unit_id'] as int?) ?? 1,
+        statement: (row['product_name'] as String?) ?? 'منتج ${row['product_id']}',
+        quantity: (row['quantity'] as num).toDouble(),
+        actualQuantity: (row['quantity'] as num).toDouble(),
+        difference: 0,
+        costAmount: (row['avg_cost'] as num?)?.toDouble(),
+      );
+    }).toList();
   }
 }

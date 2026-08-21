@@ -119,6 +119,11 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
+      path: AppRoutes.home,
+      name: AppRoutes.home,
+      builder: (context, state) => const HomePageView(),
+    ),
+    GoRoute(
       path: AppRoutes.initialSetup,
       name: AppRoutes.initialSetup,
       builder: (context, state) => MultiBlocProvider(

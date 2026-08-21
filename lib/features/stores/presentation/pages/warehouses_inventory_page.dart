@@ -25,6 +25,7 @@ import 'package:muhasib/features/stores/presentation/widgets/inventory_summary_c
 import 'package:muhasib/features/stores/presentation/widgets/inventory_type_selector.dart';
 import 'package:muhasib/features/stores/presentation/widgets/inventory_warehouse_selector_card.dart';
 import 'package:muhasib/features/stores/presentation/widgets/product_picker_sheet.dart';
+import 'package:muhasib/features/stores/data/datasources/inventory_local_datasource.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
 
 class WarehousesInventoryPage extends StatefulWidget {
@@ -88,9 +89,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
   }
 
   void _generateInventoryNumber() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    _inventoryNumberController.text =
-        'INV-${timestamp.substring(timestamp.length - 8)}';
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final micro = DateTime.now().microsecond % 1000;
+    _inventoryNumberController.text = 'INV-$ts${micro.toString().padLeft(3, '0')}';
   }
 
   @override
@@ -253,7 +254,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
     final code = scannedCode.trim();
     _searchController.text = code;
-    _processProductCodeOrSearch(code);
+    await _processProductCodeOrSearch(code);
   }
 
   Future<void> _addProductToInventory() async {
@@ -264,18 +265,18 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
 
     final query = _searchController.text.trim();
     if (query.isNotEmpty) {
-      final handled = _processProductCodeOrSearch(query);
+      final handled = await _processProductCodeOrSearch(query);
       if (handled) return;
     }
 
     final product = await showProductPicker(context, cubit: _productsCubit);
     if (product == null || !mounted) return;
 
-    _addOrIncrementProductInInventory(product);
+    await _addOrIncrementProductInInventory(product);
     _searchController.clear();
   }
 
-  bool _processProductCodeOrSearch(String query) {
+  Future<bool> _processProductCodeOrSearch(String query) async {
     final state = _productsCubit.state;
     final products = state is ProductsLoaded
         ? state.products
@@ -294,7 +295,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     }
 
     if (matchedProduct != null) {
-      _addOrIncrementProductInInventory(matchedProduct);
+      await _addOrIncrementProductInInventory(matchedProduct);
       _searchController.clear();
       return true;
     } else {
@@ -306,7 +307,20 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
     }
   }
 
-  void _addOrIncrementProductInInventory(ProductEntity product) {
+  Future<void> _addOrIncrementProductInInventory(ProductEntity product) async {
+    // Authoritative quantity is per-warehouse (warehouse_stocks), not global product.quantity
+    double systemQty = product.quantity;
+    if (_selectedWarehouse != null && product.id != null) {
+      try {
+        final ds = getIt<InventoryLocalDataSource>();
+        systemQty = await ds.getProductQuantityInWarehouse(
+            product.id!, _selectedWarehouse!.id!);
+      } catch (_) {
+        // Fallback to global quantity if datasource unavailable
+        systemQty = product.quantity;
+      }
+    }
+
     final existingIndex = _inventoryLines.indexWhere(
       (l) => l.categoryId == product.id,
     );
@@ -329,9 +343,9 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
         _inventoryLines.add(
           InventoryLineEntity(
             statement: product.name,
-            quantity: product.quantity,
+            quantity: systemQty,
             actualQuantity: 1,
-            difference: 1 - product.quantity,
+            difference: 1 - systemQty,
             costAmount: product.costAmount ?? 0,
             categoryId: product.id,
             groupId: product.groupId ?? 1,
@@ -343,7 +357,7 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
       });
       AppToast.showSuccess(
         context,
-        'تمت إضافة المنتج إلى الجرد: ${product.name}',
+        'تمت إضافة المنتج إلى الجرد: ${product.name} (النظام: $systemQty)',
       );
     }
   }

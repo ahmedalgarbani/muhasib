@@ -75,9 +75,8 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
       children: [
         Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: isChild ? 28 : 8,
             vertical: 2,
-          ),
+          ).copyWith(right: isChild ? 16 : 0),
           child: Material(
             color: Colors.transparent,
             child: InkWell(
@@ -118,7 +117,7 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
                           child: child,
                         ),
                         child: const Icon(
-                          Icons.chevron_left,
+                          Icons.chevron_right,
                           size: 18,
                           color: AppColors.gray400,
                         ),
@@ -169,4 +168,3 @@ class _DrawerItemIcon extends StatelessWidget {
     );
   }
 }
-

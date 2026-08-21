@@ -9,9 +9,13 @@ class AppNavigator {
       title: 'الصفحه الرئيسية',
       icon: Icons.home,
       route: AppRoutes.home,
-      position: DrawerSection.header,
+      // position: DrawerSection.header,
     ),
-
+    NavItem(
+      title: 'نقطة البيع',
+      icon: Icons.point_of_sale_rounded,
+      route: AppRoutes.pos,
+    ),
     // ======= الحسابات =======
     NavItem(
       title: 'الحسابات',
@@ -102,12 +106,6 @@ class AppNavigator {
           route: AppRoutes.salesReturns,
         ),
       ],
-    ),
-
-    NavItem(
-      title: 'نقطة البيع',
-      icon: Icons.point_of_sale_rounded,
-      route: AppRoutes.pos,
     ),
 
     // ======= المشتريات =======

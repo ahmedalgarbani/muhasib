@@ -46,9 +46,23 @@ class InventoryWarehouseSelectorCard extends StatelessWidget {
             const SizedBox(height: 16),
             BlocBuilder<WarehousesCubit, WarehousesState>(
               builder: (context, state) {
+                if (state is WarehousesLoading) {
+                  return const Center(
+                      child: Padding(
+                          padding: EdgeInsets.all(12),
+                          child: CircularProgressIndicator()));
+                }
+                if (state is WarehousesError) {
+                  return Text('خطأ في تحميل المخازن: ${state.message}',
+                      style: TextStyle(color: Colors.red[700]));
+                }
                 List<WarehouseEntity> warehouses = [];
                 if (state is WarehousesLoaded) {
                   warehouses = state.warehouses;
+                }
+                if (warehouses.isEmpty) {
+                  return const Text('لا توجد مخازن نشطة — قم بإنشاء مخزن أولاً',
+                      style: TextStyle(color: Colors.grey));
                 }
 
                 return CustomDropdownField<WarehouseEntity>(

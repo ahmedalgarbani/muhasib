@@ -83,10 +83,10 @@ class WarehouseValidationServiceImpl implements WarehouseValidationService {
     final productsCount = (productsResult.first['count'] as int?) ?? 0;
     final totalValue = (productsResult.first['total_value'] as num?)?.toDouble() ?? 0.0;
 
-    // Check for pending/open transfers
+    // Check for pending/open transfers (from_stock_id / to_stock_id are the real columns)
     final transfersResult = await db.rawQuery('''
       SELECT COUNT(*) as count FROM stock_transfers 
-      WHERE (from_warehouse_id = ? OR to_warehouse_id = ?) 
+      WHERE (from_stock_id = ? OR to_stock_id = ?) 
       AND status IN (0, 1, 2)
     ''', [warehouseId, warehouseId]);
     final hasOpenTransfers = ((transfersResult.first['count'] as int?) ?? 0) > 0;

@@ -65,9 +65,9 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
   }
 
   void _generateDocumentNumber() {
-    final timestamp = DateTime.now().millisecondsSinceEpoch.toString();
-    _documentNumberController.text =
-        'ADJ-${timestamp.substring(timestamp.length - 8)}';
+    final ts = DateTime.now().millisecondsSinceEpoch;
+    final micro = DateTime.now().microsecond % 1000;
+    _documentNumberController.text = 'ADJ-$ts${micro.toString().padLeft(3, '0')}';
   }
 
   @override
@@ -258,9 +258,29 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                       WarehousesState
                                     >(
                                       builder: (context, state) {
+                                        if (state is WarehousesLoading) {
+                                          return const Center(
+                                              child: Padding(
+                                                  padding:
+                                                      EdgeInsets.all(8),
+                                                  child:
+                                                      CircularProgressIndicator()));
+                                        }
+                                        if (state is WarehousesError) {
+                                          return Text(
+                                              'خطأ في تحميل المخازن: ${state.message}',
+                                              style: TextStyle(
+                                                  color: Colors.red[700]));
+                                        }
                                         List<WarehouseEntity> warehouses = [];
                                         if (state is WarehousesLoaded) {
                                           warehouses = state.warehouses;
+                                        }
+                                        if (warehouses.isEmpty) {
+                                          return const Text(
+                                              'لا توجد مخازن نشطة',
+                                              style: TextStyle(
+                                                  color: Colors.grey));
                                         }
 
                                         return CustomDropdownField<
