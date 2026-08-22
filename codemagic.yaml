@@ -117,7 +117,8 @@ workflows:
           mkdir -p Payload
           cp -r Runner.app Payload/Runner.app
 
-          zip -r ../../../app.ipa Payload
+          zip -r "$CM_BUILD_DIR/app.ipa" Payload
 
     artifacts:
       - app.ipa
+      - "*.ipa"
