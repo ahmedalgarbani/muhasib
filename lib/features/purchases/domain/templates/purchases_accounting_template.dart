@@ -7,52 +7,60 @@ import 'package:muhasib/core/services/account_config_service.dart';
 /// يحتوي على القواعد المحاسبية لتسجيل عمليات الشراء
 class PurchasesAccountingTemplate {
   
-  /// إنشاء قيد محاسبي لفاتورة مشتريات نقدية
+  /// إنشاء قيد محاسبي لفاتورة مشتريات نقدية (Perpetual IAS2: صافي)
   static JournalEntryEntity createCashPurchaseEntry(
     InvoiceEntity invoice, {
     required PurchaseAccountConfig config,
   }) {
     final lines = <JournalLineEntity>[];
+    // IAS2 صافي: المخزون يُسجّل بعد خصم الخصم التجاري وتحميل الرسوم القابلة للرسملة
+    final discount = invoice.discountAmt ?? 0;
+    final otherFee = invoice.otherFeeAmt ?? 0;
+    final isFeeForInventory = invoice.otherFeeAccountId == null;
+    final netInventory = (invoice.amount - discount + (isFeeForInventory ? otherFee : 0)).clamp(0, double.infinity) as double;
     
-    // 1. مدين: حساب المشتريات أو المخزون
-    lines.add(JournalLineEntity(
-      accountId: config.inventoryAccountId,
-      debit: invoice.amount,
-      credit: 0,
-      description: 'مشتريات نقدية - فاتورة رقم ${invoice.number}',
-      referenceType: 'purchase_invoice',
-      referenceId: invoice.id,
-    ));
+    // 1. مدين: المخزون بالصافي
+    if (netInventory > 0.005) {
+      lines.add(JournalLineEntity(
+        accountId: config.inventoryAccountId,
+        debit: netInventory,
+        credit: 0,
+        description: 'مخزون - مشتريات نقدية صافي - فاتورة رقم ${invoice.number}',
+        referenceType: 'purchase_invoice',
+        referenceId: invoice.id,
+      ));
+    }
+    // رسوم منفصلة لحساب مستقل
+    if (otherFee > 0 && !isFeeForInventory) {
+      lines.add(JournalLineEntity(
+        accountId: invoice.otherFeeAccountId!,
+        debit: otherFee,
+        credit: 0,
+        description: 'رسوم شراء - ${invoice.number}',
+        referenceType: 'purchase_invoice',
+        referenceId: invoice.id,
+      ));
+    }
     
-    // 2. مدين: حساب ضريبة المشتريات (إن وجدت)
+    // 2. مدين: ضريبة مدخلات قابلة للاسترداد (إن وجدت)
     if (invoice.taxAmt != null && invoice.taxAmt! > 0) {
       lines.add(JournalLineEntity(
         accountId: config.taxAccountId,
         debit: invoice.taxAmt!,
         credit: 0,
-        description: 'ضريبة مشتريات ${invoice.taxRatio ?? 15}%',
+        description: 'ضريبة مدخلات ${invoice.taxRatio ?? 15}%',
         referenceType: 'purchase_invoice',
         referenceId: invoice.id,
       ));
     }
     
-    // 3. دائن: حساب الخصم المكتسب (إن وجد)
-    if (invoice.discountAmt != null && invoice.discountAmt! > 0) {
-      lines.add(JournalLineEntity(
-        accountId: config.discountEarnedAccountId,
-        debit: 0,
-        credit: invoice.discountAmt!,
-        description: 'خصم مكتسب على المشتريات',
-        referenceType: 'purchase_invoice',
-        referenceId: invoice.id,
-      ));
-    }
+    // لا نسجّل الخصم كإيراد منفصل – تم تنتيه من المخزون (IAS2)
     
-    // 4. دائن: حساب الصندوق (لا يوجد حقل لطريقة الدفع، نفترض الصندوق)
+    // 4. دائن: حساب الصندوق
     lines.add(JournalLineEntity(
       accountId: config.cashAccountId,
       debit: 0,
-      credit: invoice.finalAmt ?? invoice.amount,
+      credit: invoice.finalAmt ?? (netInventory + (invoice.taxAmt ?? 0) + (isFeeForInventory ? 0 : otherFee)),
       description: 'دفع نقدي للمشتريات',
       referenceType: 'purchase_invoice',
       referenceId: invoice.id,
@@ -69,42 +77,46 @@ class PurchasesAccountingTemplate {
     );
   }
 
-  /// إنشاء قيد محاسبي لفاتورة مشتريات آجلة
+  /// إنشاء قيد محاسبي لفاتورة مشتريات آجلة (Perpetual صافي)
   static JournalEntryEntity createCreditPurchaseEntry(
     InvoiceEntity invoice, {
     required PurchaseAccountConfig config,
   }) {
     final lines = <JournalLineEntity>[];
+    final discount = invoice.discountAmt ?? 0;
+    final otherFee = invoice.otherFeeAmt ?? 0;
+    final isFeeForInventory = invoice.otherFeeAccountId == null;
+    final netInventory = (invoice.amount - discount + (isFeeForInventory ? otherFee : 0)).clamp(0, double.infinity) as double;
     
-    // 1. مدين: حساب المشتريات أو المخزون
-    lines.add(JournalLineEntity(
-      accountId: config.inventoryAccountId,
-      debit: invoice.amount,
-      credit: 0,
-      description: 'مشتريات آجلة - فاتورة رقم ${invoice.number}',
-      referenceType: 'purchase_invoice',
-      referenceId: invoice.id,
-    ));
-    
-    // 2. مدين: حساب ضريبة المشتريات (إن وجدت)
-    if (invoice.taxAmt != null && invoice.taxAmt! > 0) {
+    // 1. مدين: المخزون بالصافي
+    if (netInventory > 0.005) {
       lines.add(JournalLineEntity(
-        accountId: config.taxAccountId,
-        debit: invoice.taxAmt!,
+        accountId: config.inventoryAccountId,
+        debit: netInventory,
         credit: 0,
-        description: 'ضريبة مشتريات ${invoice.taxRatio ?? 15}%',
+        description: 'مخزون - مشتريات آجلة صافي - فاتورة رقم ${invoice.number}',
+        referenceType: 'purchase_invoice',
+        referenceId: invoice.id,
+      ));
+    }
+    if (otherFee > 0 && !isFeeForInventory) {
+      lines.add(JournalLineEntity(
+        accountId: invoice.otherFeeAccountId!,
+        debit: otherFee,
+        credit: 0,
+        description: 'رسوم شراء - ${invoice.number}',
         referenceType: 'purchase_invoice',
         referenceId: invoice.id,
       ));
     }
     
-    // 3. دائن: حساب الخصم المكتسب (إن وجد)
-    if (invoice.discountAmt != null && invoice.discountAmt! > 0) {
+    // 2. مدين: ضريبة مدخلات
+    if (invoice.taxAmt != null && invoice.taxAmt! > 0) {
       lines.add(JournalLineEntity(
-        accountId: config.discountEarnedAccountId,
-        debit: 0,
-        credit: invoice.discountAmt!,
-        description: 'خصم مكتسب على المشتريات',
+        accountId: config.taxAccountId,
+        debit: invoice.taxAmt!,
+        credit: 0,
+        description: 'ضريبة مدخلات ${invoice.taxRatio ?? 15}%',
         referenceType: 'purchase_invoice',
         referenceId: invoice.id,
       ));
@@ -114,7 +126,7 @@ class PurchasesAccountingTemplate {
     lines.add(JournalLineEntity(
       accountId: config.suppliersAccountId,
       debit: 0,
-      credit: invoice.finalAmt ?? invoice.amount,
+      credit: invoice.finalAmt ?? (netInventory + (invoice.taxAmt ?? 0) + (isFeeForInventory ? 0 : otherFee)),
       description: 'ذمة دائنة للمورد #${invoice.customerId}',
       referenceType: 'purchase_invoice',
       referenceId: invoice.id,
@@ -133,21 +145,25 @@ class PurchasesAccountingTemplate {
     );
   }
 
-  /// إنشاء قيد محاسبي لمردود مشتريات
+  /// إنشاء قيد محاسبي لمردود مشتريات (عكس صافي المخزون)
   static JournalEntryEntity createPurchaseReturnEntry(
     InvoiceEntity returnInvoice, {
     required PurchaseAccountConfig config,
   }) {
     final lines = <JournalLineEntity>[];
+    final discount = returnInvoice.discountAmt ?? 0;
+    final otherFee = returnInvoice.otherFeeAmt ?? 0;
+    final isFeeForInventory = returnInvoice.otherFeeAccountId == null;
+    final netInventoryReturn = (returnInvoice.amount - discount + (isFeeForInventory ? otherFee : 0)).clamp(0, double.infinity) as double;
     
-    // 1. مدين: حساب الموردين (أو الصندوق في حالة الإرجاع النقدي)
+    // 1. مدين: الموردين أو الصندوق
     final isCredit = returnInvoice.invoiceTransType == 1;
     if (isCredit) {
       lines.add(JournalLineEntity(
         accountId: config.suppliersAccountId,
-        debit: returnInvoice.finalAmt ?? returnInvoice.amount,
+        debit: returnInvoice.finalAmt ?? (netInventoryReturn + (returnInvoice.taxAmt ?? 0) + (isFeeForInventory ? 0 : otherFee)),
         credit: 0,
-        description: 'مردود مشتريات من المورد #${returnInvoice.customerId}',
+        description: 'عكس ذمة المورد - مردود ${returnInvoice.number}',
         referenceType: 'purchase_return',
         referenceId: returnInvoice.id,
         partnerId: returnInvoice.customerId,
@@ -156,7 +172,7 @@ class PurchasesAccountingTemplate {
     } else {
       lines.add(JournalLineEntity(
         accountId: config.cashAccountId,
-        debit: returnInvoice.finalAmt ?? returnInvoice.amount,
+        debit: returnInvoice.finalAmt ?? (netInventoryReturn + (returnInvoice.taxAmt ?? 0) + (isFeeForInventory ? 0 : otherFee)),
         credit: 0,
         description: 'استرداد نقدي لمردود مشتريات',
         referenceType: 'purchase_return',
@@ -164,35 +180,35 @@ class PurchasesAccountingTemplate {
       ));
     }
     
-    // 2. دائن: حساب مردودات المشتريات
-    lines.add(JournalLineEntity(
-      accountId: config.purchaseReturnsAccountId,
-      debit: 0,
-      credit: returnInvoice.amount,
-      description: 'مردودات مشتريات - فاتورة رقم ${returnInvoice.number}',
-      referenceType: 'purchase_return',
-      referenceId: returnInvoice.id,
-    ));
-    
-    // 3. دائن: حساب ضريبة المشتريات (عكس الضريبة)
-    if (returnInvoice.taxAmt != null && returnInvoice.taxAmt! > 0) {
+    // 2. دائن: عكس المخزون بالصافي (Perpetual)
+    if (netInventoryReturn > 0.005) {
       lines.add(JournalLineEntity(
-        accountId: config.taxAccountId,
+        accountId: config.inventoryAccountId,
         debit: 0,
-        credit: returnInvoice.taxAmt!,
-        description: 'عكس ضريبة مشتريات',
+        credit: netInventoryReturn,
+        description: 'عكس مخزون - مردود مشتريات ${returnInvoice.number}',
+        referenceType: 'purchase_return',
+        referenceId: returnInvoice.id,
+      ));
+    }
+    if (otherFee > 0 && !isFeeForInventory) {
+      lines.add(JournalLineEntity(
+        accountId: returnInvoice.otherFeeAccountId!,
+        debit: 0,
+        credit: otherFee,
+        description: 'عكس رسوم - ${returnInvoice.number}',
         referenceType: 'purchase_return',
         referenceId: returnInvoice.id,
       ));
     }
     
-    // 4. مدين: حساب الخصم المكتسب (عكس الخصم)
-    if (returnInvoice.discountAmt != null && returnInvoice.discountAmt! > 0) {
+    // 3. دائن: عكس ضريبة مدخلات
+    if (returnInvoice.taxAmt != null && returnInvoice.taxAmt! > 0) {
       lines.add(JournalLineEntity(
-        accountId: config.discountEarnedAccountId,
-        debit: returnInvoice.discountAmt!,
-        credit: 0,
-        description: 'عكس خصم مكتسب',
+        accountId: config.taxAccountId,
+        debit: 0,
+        credit: returnInvoice.taxAmt!,
+        description: 'عكس ضريبة مدخلات',
         referenceType: 'purchase_return',
         referenceId: returnInvoice.id,
       ));

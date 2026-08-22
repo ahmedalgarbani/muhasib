@@ -51,8 +51,15 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
             children: [
               PurchaseReturnsHeaderWidget(
                 searchController: _searchController,
-                onRefresh: () =>
-                    innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
+                onRefresh: () => innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
+                onSearchChanged: (v) {
+                  final q = v.trim();
+                  if (q.isEmpty) {
+                    innerContext.read<PurchasesCubit>().loadPurchaseReturns();
+                  } else {
+                    innerContext.read<PurchasesCubit>().searchPurchases(q);
+                  }
+                },
               ),
               PurchaseReturnsTabBarWidget(controller: _tabController),
               Expanded(
@@ -105,16 +112,29 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
                               icon: Icons.assignment_return_outlined,
                               iconSize: 64,
                               iconColor: Colors.red.withOpacity(0.3),
-                              actionText: 'إنشاء مردود',
-                              onActionPressed: () =>
-                                  _showCreateReturnDialog(context),
                             );
                           }
+                          // تصفية حسب البحث إن وجد
+                          final q = _searchController.text.trim().toLowerCase();
+                          final filtered = q.isEmpty
+                              ? state.returns
+                              : state.returns.where((e) => e.number.toLowerCase().contains(q) || (e.parentInvoiceNumber?.toLowerCase().contains(q) ?? false)).toList();
+                          if (filtered.isEmpty) {
+                            return const Center(child: Text('لا نتائج للبحث'));
+                          }
                           return PurchaseReturnsListWidget(
-                            returns: state.returns,
+                            returns: filtered,
                             onRefresh: () => innerContext
                                 .read<PurchasesCubit>()
                                 .loadPurchaseReturns(),
+                          );
+                        } else if (state is PurchaseInvoicesLoaded) {
+                          // نتيجة البحث تعود كـ PurchaseInvoicesLoaded (يحتوي مردودات أيضاً)
+                          final filteredReturns = state.invoices.where((e) => e.invoiceType == 5).toList();
+                          if (filteredReturns.isEmpty) return const Center(child: Text('لا نتائج للبحث'));
+                          return PurchaseReturnsListWidget(
+                            returns: filteredReturns,
+                            onRefresh: () => innerContext.read<PurchasesCubit>().loadPurchaseReturns(),
                           );
                         }
                         return const Center(
@@ -122,7 +142,21 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
                         );
                       },
                     ),
-                    const PurchaseReturnsStatisticsTabWidget(),
+                    BlocBuilder<PurchasesCubit, PurchasesState>(
+                      builder: (context, state) {
+                        if (state is PurchaseReturnsLoaded) {
+                          return PurchaseReturnsStatisticsTabWidget(returns: state.returns);
+                        }
+                        if (state is PurchaseInvoicesLoaded) {
+                          final rets = state.invoices.where((e) => e.invoiceType == 5).toList();
+                          return PurchaseReturnsStatisticsTabWidget(returns: rets);
+                        }
+                        if (state is PurchasesLoading) {
+                          return const Center(child: CircularProgressIndicator());
+                        }
+                        return const PurchaseReturnsStatisticsTabWidget(returns: []);
+                      },
+                    ),
                   ],
                 ),
               ),

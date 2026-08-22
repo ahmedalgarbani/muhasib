@@ -69,7 +69,7 @@ class _HomePageViewState extends State<HomePageView> {
                 final homeType = SettingsCache.homeScrrenType;
                 final sections = <Widget>[
                   Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
+                    padding: const EdgeInsets.all(8),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [

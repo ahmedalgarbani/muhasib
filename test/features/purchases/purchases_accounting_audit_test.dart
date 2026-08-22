@@ -186,8 +186,9 @@ void main() {
           totalCredit += line.credit;
         }
 
-        expect(totalDebit, equals(1135.0)); // 1000 Inventory + 135 VAT
-        expect(totalCredit, equals(1135.0)); // 100 Discount + 1035 Cash
+        // IFRS صافي: مخزون 900 = 1000-100 + ضريبة 135 => مدين 1035 = دائن نقدية 1035 (الخصم مُحمّل على المخزون لا كإيراد منفصل)
+        expect(totalDebit, equals(1035.0)); // 900 Inventory net + 135 VAT
+        expect(totalCredit, equals(1035.0)); // 1035 Cash (discount netted)
         expect(totalDebit, equals(totalCredit));
       },
     );
@@ -255,16 +256,15 @@ void main() {
 
         expect(PurchasesAccountingTemplate.validateJournalEntry(entry), isTrue);
 
-        // Debit: Supplier Payable (reduced by 1035) + Reversed Discount (100) = 1135
-        // Credit: Purchase Returns (1000) + Reversed VAT (135) = 1135
+        // صافي: مدين مورد 1035 = دائن مخزون 900 + ضريبة 135
         double totalDebit = 0;
         double totalCredit = 0;
         for (final line in entry.lines) {
           totalDebit += line.debit;
           totalCredit += line.credit;
         }
-        expect(totalDebit, equals(1135.0));
-        expect(totalCredit, equals(1135.0));
+        expect(totalDebit, equals(1035.0));
+        expect(totalCredit, equals(1035.0));
         expect(totalDebit, equals(totalCredit));
       },
     );
@@ -361,8 +361,8 @@ void main() {
         expect(totalDebit, equals(totalCredit));
         expect(
           totalDebit,
-          equals(2270.0),
-        ); // 2000 Purchases + 270 VAT = 2270; Credit: 200 Discount + 2070 Supplier = 2270
+          equals(2070.0),
+        ); // 1800 Inventory net (2000-200) + 270 VAT = 2070; Credit: 2070 Supplier (discount netted per IAS2)
 
         // 4. Verify Stock was increased and WAC calculated
         // Initial stock: 10 units @ 100 = 1000 total

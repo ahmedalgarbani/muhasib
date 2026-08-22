@@ -14,11 +14,13 @@ import 'package:muhasib/core/constant/app_constant.dart';
 class PurchaseReturnsHeaderWidget extends StatelessWidget {
   final TextEditingController searchController;
   final VoidCallback onRefresh;
+  final ValueChanged<String>? onSearchChanged;
 
   const PurchaseReturnsHeaderWidget({
     super.key,
     required this.searchController,
     required this.onRefresh,
+    this.onSearchChanged,
   });
 
   @override
@@ -119,7 +121,7 @@ class PurchaseReturnsHeaderWidget extends StatelessWidget {
             ),
             style: const TextStyle(fontSize: 13),
             onChanged: (value) {
-              // TODO: Implement search functionality
+              onSearchChanged?.call(value);
             },
           ),
         ],
@@ -415,38 +417,50 @@ class PurchaseReturnCardWidget extends StatelessWidget {
 }
 
 class PurchaseReturnsStatisticsTabWidget extends StatelessWidget {
-  const PurchaseReturnsStatisticsTabWidget({super.key});
+  final List<InvoiceEntity>? returns;
+
+  const PurchaseReturnsStatisticsTabWidget({super.key, this.returns});
 
   @override
   Widget build(BuildContext context) {
+    final list = returns ?? const <InvoiceEntity>[];
+    final totalCount = list.length;
+    final totalValue = list.fold<double>(0, (s, e) => s + (e.finalAmt ?? e.amount));
+    final avgValue = totalCount > 0 ? totalValue / totalCount : 0.0;
+    final now = DateTime.now();
+    final thisMonthCount = list.where((e) {
+      final d = DateTime.fromMillisecondsSinceEpoch(e.date * 1000);
+      return d.year == now.year && d.month == now.month;
+    }).length;
+    String fmt(double v) => NumberFormatter.formatCurrency(v);
     return SingleChildScrollView(
       padding: AppConstant.defaultPadding,
       child: Column(
         children: [
-          const PurchaseReturnStatCardWidget(
+          PurchaseReturnStatCardWidget(
             title: 'إجمالي المردودات',
-            value: '0',
+            value: '$totalCount',
             icon: Icons.assignment_return,
             color: Colors.red,
           ),
           const SizedBox(height: 12),
-          const PurchaseReturnStatCardWidget(
+          PurchaseReturnStatCardWidget(
             title: 'قيمة المردودات',
-            value: '0.00 ريال',
+            value: fmt(totalValue),
             icon: Icons.attach_money,
             color: Colors.orange,
           ),
           const SizedBox(height: 12),
-          const PurchaseReturnStatCardWidget(
+          PurchaseReturnStatCardWidget(
             title: 'متوسط قيمة المردود',
-            value: '0.00 ريال',
+            value: fmt(avgValue),
             icon: Icons.analytics,
             color: Colors.blue,
           ),
           const SizedBox(height: 12),
-          const PurchaseReturnStatCardWidget(
+          PurchaseReturnStatCardWidget(
             title: 'المردودات هذا الشهر',
-            value: '0',
+            value: '$thisMonthCount',
             icon: Icons.calendar_month,
             color: Colors.green,
           ),

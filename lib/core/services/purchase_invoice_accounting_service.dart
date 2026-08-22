@@ -79,8 +79,13 @@ class PurchaseInvoiceAccountingService {
           conflictAlgorithm: ConflictAlgorithm.abort,
         );
 
-        // 2. Process each line - update inventory and calculate average cost
+        // 2. Process each line - update inventory and calculate average cost (IAS2 net)
         double totalInventoryValue = 0.0;
+        final grossLinesTotal = invoiceLines.fold<double>(0, (s, l) {
+          final q = (l['quantity'] as num?)?.toDouble() ?? 0.0;
+          final p = (l['price'] as num?)?.toDouble() ?? 0.0;
+          return s + q * p;
+        });
         
         for (final line in invoiceLines) {
           final productId = line['category_id'] as int?;
@@ -95,7 +100,12 @@ class PurchaseInvoiceAccountingService {
           final baseQty = (line['base_quantity'] as num?)?.toDouble() ?? qty;
           
           // Calculate total cost for the line based on user input (Quantity * Unit Price)
-          final lineTotalCost = qty * price;
+          final lineTotalCostGross = qty * price;
+          // IAS2: توزيع الخصم العام والرسوم وزنياً على البنود
+          final proportion = grossLinesTotal > 0.005 ? lineTotalCostGross / grossLinesTotal : (1.0 / invoiceLines.length);
+          final allocatedDiscount = discount * proportion;
+          final allocatedOtherFee = otherFees * proportion;
+          final lineTotalCost = (lineTotalCostGross - allocatedDiscount + allocatedOtherFee).clamp(0, double.infinity) as double;
           
           // Calculate cost per base unit
           // This is critical: Inventory tracks base units, so we need the cost of 1 base unit
@@ -302,21 +312,32 @@ class PurchaseInvoiceAccountingService {
 
     final lines = <Map<String, dynamic>>[];
 
-    // FIX HIGH-11: Inventory net of discount (IAS2) - was gross overstated
-    // If discount exists, reduce inventory value proportionally instead of crediting discount as income
-    // For conservatism, keep discount as income but debit inventory at NET = gross - discount allocation
-    // Here we apply net method: inventory debit = inventoryValue - discount (capped)
-    final netInventoryValue = ((inventoryValue - discount).clamp(0, double.infinity) as num).toDouble();
-    final effectiveDiscountForInventory = inventoryValue > discount ? discount : inventoryValue;
-    final remainingDiscountAsIncome = discount - effectiveDiscountForInventory;
+    // IAS2 صافي: inventoryValue في هذه الخدمة أصبح صافياً (بعد توزيع الخصم والرسوم وزنياً على البنود أعلاه)
+    // لذلك لا نخصم الخصم مرة أخرى ولا نضيف الرسوم كقيد منفصل – كلها ضمن inventoryValue
+    // للتوافق الخلفي، إذا كانت inventoryValue ما زالت إجمالية (قيمة المخزون قبل التوزيع) نحسب الصافي
+    double netInventoryValue;
+    // كشف ما إذا كانت inventoryValue صافية: قارن مع المتوقع الإجمالي (subtotal)
+    // إذا كانت inventoryValue قريبة من subtotal - discount + otherFees فهي صافية، وإلا نحسب
+    final expectedGross = subtotal > 0 ? subtotal : inventoryValue + discount;
+    final isAlreadyNet = (inventoryValue - (subtotal - discount + otherFees)).abs() < 0.5;
+    if (isAlreadyNet) {
+      netInventoryValue = inventoryValue.clamp(0, double.infinity) as double;
+    } else {
+      netInventoryValue = ((inventoryValue - discount).clamp(0, double.infinity) as num).toDouble();
+      // الرسوم ستُضاف كجزء من صافي المخزون إذا كانت موزعة، وإلا كقيد منفصل
+      if (otherFees > 0.005 && (inventoryValue - (subtotal - discount)).abs() > 0.01) {
+        netInventoryValue += otherFees;
+      }
+    }
+    final remainingDiscountAsIncome = isAlreadyNet ? 0.0 : (discount > inventoryValue ? discount - inventoryValue : 0.0);
 
-    // Debit: Inventory at NET cost (FIX)
+    // Debit: Inventory at NET cost (IAS2)
     if (netInventoryValue > 0.005) {
       lines.add({
         'account_id': inventoryAccountId,
         'debit_amount': _round(netInventoryValue),
         'credit_amount': 0.0,
-        'description': 'شراء مخزون - صافي بعد الخصم - $invoiceNumber',
+        'description': 'شراء مخزون - صافي بعد الخصم شامل الرسوم - $invoiceNumber',
       });
     } else if (inventoryValue > 0.005) {
       lines.add({
@@ -327,15 +348,7 @@ class PurchaseInvoiceAccountingService {
       });
     }
 
-    // Debit: Other fees - FIX allocate proportionally note, but still debit inventory (will be allocated per line via avg_cost)
-    if (otherFees > 0) {
-      lines.add({
-        'account_id': inventoryAccountId,
-        'debit_amount': _round(otherFees),
-        'credit_amount': 0.0,
-        'description': 'مصاريف شحن/إضافية - $invoiceNumber (موزعة وزنياً على الأصناف)',
-      });
-    }
+    // لا نضيف قيد رسوم منفصل إذا كانت موزعة ضمن netInventoryValue (already net)
 
     // Debit: Input VAT (recoverable)
     if (tax > 0) {

@@ -443,8 +443,19 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     required String invoiceNumber,
     required List<InvoiceLineModel> lines,
     required int? headerStockId,
+    double headerDiscount = 0.0,
+    double headerOtherFee = 0.0,
+    int? headerOtherFeeAccountId,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    // حساب مجموع البنود الإجمالي لتوزيع الخصم والرسوم وزنياً (IAS 2)
+    final grossTotal = lines.fold<double>(0, (s, l) => s + l.amount);
+    // كشف تكرار الخصم: إذا كان مجموع خصومات البنود يساوي الخصم العام تقريباً فالخصم مُوزّع مسبقاً ولا نوزعه مرة ثانية
+    final sumLineDiscounts = lines.fold<double>(0, (s, l) => s + (l.discountAmt ?? 0));
+    double effectiveHeaderDiscount = headerDiscount;
+    if ((sumLineDiscounts - headerDiscount).abs() < 0.01 && sumLineDiscounts > 0.005) {
+      effectiveHeaderDiscount = 0.0;
+    }
     for (final lineModel in lines) {
       final productId = lineModel.categoryId;
       final warehouseId = lineModel.stockId ?? headerStockId ?? 1;
@@ -458,12 +469,20 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
       if (productId == null || qty <= 0) continue;
 
-      // Net purchase cost per base unit = (line amount - discount) / baseQty
+      // توزيع وزني للخصم العام والرسوم الإضافية على البنود (IFRS/IAS2)
+      final proportion = grossTotal > 0.005 ? (lineModel.amount / grossTotal) : (1.0 / lines.length);
+      final allocatedHeaderDiscount = effectiveHeaderDiscount * proportion;
+      // الرسوم الإضافية تُحمّل على المخزون فقط إذا لم تُوجَّه لحساب مستقل
+      final isFeeForInventory = headerOtherFeeAccountId == null;
+      final allocatedOtherFee = isFeeForInventory ? headerOtherFee * proportion : 0.0;
+
+      // صافي تكلفة الشراء للبند بعد الخصم السطري + الحصة من الخصم العام + الحصة من الرسوم
       final discountAmt = lineModel.discountAmt ?? 0.0;
-      final netLineAmount = lineModel.amount - discountAmt;
+      final netLineAmount = lineModel.amount - discountAmt - allocatedHeaderDiscount + allocatedOtherFee;
       final unitCost = (qty > 0 && netLineAmount > 0)
           ? (netLineAmount / qty)
           : (lineModel.costPrice ?? lineModel.price ?? 0.0);
+      if (unitCost < -0.01) throw LocalStorageException('تكلفة البند السالبة غير مسموحة للصنف $productId');
 
       final stockResult = await txn.query(
         'warehouse_stocks',
@@ -648,6 +667,11 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       final avgCost =
           (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
       final newQty = currentQty - returnQty;
+      if (newQty < -0.001 && !SettingsCache.allowNegativeStock) {
+        throw LocalStorageException(
+          'الكمية المراد إرجاعها للصنف $productId أكبر من المتاح ($currentQty < $returnQty) – المخزون لا يسمح بالسالب',
+        );
+      }
 
       await txn.update(
         'warehouse_stocks',
@@ -1689,10 +1713,46 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final otherFee = (invoiceData['other_fee_amt'] as num?)?.toDouble() ?? 0.0;
     final otherFeeAccountId = invoiceData['other_fee_account_id'] as int?;
 
-    // total (after discount + tax + fees)
+    // تحققات محاسبية أساسية (IAS2)
+    if (subtotal < -0.01 || discount < -0.01 || tax < -0.01 || otherFee < -0.01) {
+      throw LocalStorageException('مبالغ المشتريات لا يمكن أن تكون سالبة');
+    }
+    if (discount > subtotal + 0.01) {
+      throw LocalStorageException('الخصم أكبر من إجمالي البنود');
+    }
+    // تحقق الفترة المالية المقفلة
+    try {
+      final periodClosed = await txn.rawQuery(
+        'SELECT is_closed FROM fiscal_periods WHERE start_date <= ? AND end_date >= ? LIMIT 1',
+        [entryDate, entryDate],
+      );
+      if (periodClosed.isNotEmpty && (periodClosed.first['is_closed'] as int?) == 1) {
+        throw LocalStorageException('الفترة المالية مقفلة لتاريخ الفاتورة');
+      }
+    } catch (e) {
+      if (e is LocalStorageException) rethrow;
+    }
+    // تحقق تكرار رقم الفاتورة
+    final dup = await txn.query(_invoicesTable, columns: ['id'], where: 'number = ? AND invoice_type = ? AND id != ?', whereArgs: [invoiceNumber, 2, invoiceId], limit: 1);
+    if (dup.isNotEmpty) throw LocalStorageException('رقم فاتورة المشتريات مكرر: $invoiceNumber');
+
+    // حساب مجموع خصومات السطور لتجنب ازدواج الخصم (مثل بيانات الاختبار حيث السطري = الترويسي)
+    double sumLineDiscounts = 0;
+    try {
+      final ldRows = await txn.query(_linesTable, columns: ['discount_amt'], where: 'invoice_id = ?', whereArgs: [invoiceId]);
+      for (final r in ldRows) sumLineDiscounts += (r['discount_amt'] as num?)?.toDouble() ?? 0;
+    } catch (_) {}
+    double effectiveHeaderDiscount = discount;
+    if ((sumLineDiscounts - discount).abs() < 0.01 && sumLineDiscounts > 0.005) {
+      effectiveHeaderDiscount = 0; // مكرر
+    }
+    final totalDiscountForNet = sumLineDiscounts + effectiveHeaderDiscount;
+
+    // total (after discount + tax + fees) – يستخدم header discount فقط للتوافق، لكن الصافي يستخدم الإجمالي
     final total =
         (invoiceData['final_amt'] as num?)?.toDouble() ??
         ((subtotal - discount) + otherFee + tax);
+    if (total <= 0.005) throw LocalStorageException('إجمالي فاتورة المشتريات يجب أن يكون أكبر من صفر');
 
     final isCredit = ((invoiceData['invoice_trans_type'] as int?) ?? 0) == 1;
 
@@ -1719,17 +1779,31 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       0,
       label: 'البنوك',
     );
-    final purchasesAccountId = await _resolveConnectedAccountId(
+    // المخزون: حاول حساب المخزن الخاص أولاً (Perpetual IAS2)
+    int inventoryAccountId = await _resolveConnectedAccountId(
       txn,
-      10,
-      label: 'المشتريات',
+      5,
+      label: 'المخزون',
     );
-    final taxAccountId = tax > 0
-        ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب')
-        : 0;
-    final discountEarnedId = discount > 0
-        ? await _resolveConnectedAccountId(txn, 9, label: 'الخصم المكتسب')
-        : 0;
+    try {
+      final whSpecific = await _resolveWarehouseInventoryAccountId(txn, invoiceData['stock_id'] as int?);
+      if (whSpecific != null) inventoryAccountId = whSpecific;
+    } catch (_) {}
+    // ضريبة المدخلات القابلة للاسترداد: جرّب InputVAT (17) ثم taxes (4)
+    int taxAccountId = 0;
+    if (tax > 0.005) {
+      try {
+        taxAccountId = await _resolveConnectedAccountId(txn, 17, label: 'ضريبة مدخلات');
+      } catch (_) {
+        taxAccountId = await _resolveConnectedAccountId(txn, 4, label: 'الضرائب');
+      }
+    }
+    int discountEarnedId = 0;
+    if (discount > 0.005) {
+      try {
+        discountEarnedId = await _resolveConnectedAccountId(txn, 9, label: 'الخصم المكتسب');
+      } catch (_) {}
+    }
 
     // Pick cash/bank account: default to cash unless statement hints bank
     final paymentAccountId =
@@ -1737,69 +1811,59 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         ? bankAccountId
         : cashAccountId;
 
+    // IAS2: المخزون يُسجّل بالصافي بعد الخصم التجاري (يشمل السطري + الترويسي)، الرسوم الموزعة تُحمّل عليه
+    // إذا كان للرسوم حساب مستقل فلا تُحمّل على المخزون
+    final isFeeForInventory = otherFeeAccountId == null;
+    final inventoryOtherFeePortion = isFeeForInventory ? otherFee : 0.0;
+    // صافي قيمة المخزون = الإجمالي قبل الخصم - إجمالي الخصم (سطري+ترويسي) + حصة الرسوم التي تُحمّل على المخزون
+    double netInventoryValue = (subtotal - totalDiscountForNet + inventoryOtherFeePortion);
+    if (netInventoryValue < -0.01) throw LocalStorageException('صافي قيمة المخزون سالبة');
+    netInventoryValue = netInventoryValue.clamp(0, double.infinity) as double;
+
     final rawLines = <Map<String, dynamic>>[];
 
-    // Debit purchases (gross) - if otherFeeAccountId is set, keep fee separate
-    final purchasesDebit = subtotal;
-    rawLines.add({
-      'account_id': purchasesAccountId,
-      'debit_amount': purchasesDebit,
-      'credit_amount': 0.0,
-      'notes': statement,
-      'description': 'مشتريات - $invoiceNumber',
-    });
-
-    // Debit other fees if configured
-    if (otherFee > 0) {
-      if (otherFeeAccountId != null) {
-        rawLines.add({
-          'account_id': otherFeeAccountId,
-          'debit_amount': otherFee,
-          'credit_amount': 0.0,
-          'notes': statement,
-          'description': 'رسوم/مصروفات شراء - $invoiceNumber',
-        });
-      } else {
-        // otherwise treat as part of purchases cost (add debit)
-        rawLines.add({
-          'account_id': purchasesAccountId,
-          'debit_amount': otherFee,
-          'credit_amount': 0.0,
-          'notes': statement,
-          'description': 'تكاليف إضافية على المشتريات - $invoiceNumber',
-        });
-      }
-    }
-
-    // Debit tax (input VAT simplified)
-    if (tax > 0) {
+    // مدين: المخزون بالصافي (Perpetual)
+    if (netInventoryValue > 0.005) {
       rawLines.add({
-        'account_id': taxAccountId,
-        'debit_amount': tax,
+        'account_id': inventoryAccountId,
+        'debit_amount': _round2(netInventoryValue),
         'credit_amount': 0.0,
         'notes': statement,
-        'description': 'ضريبة مشتريات - $invoiceNumber',
+        'description': otherFee > 0 && isFeeForInventory ? 'مخزون - صافي بعد الخصم شامل الرسوم - $invoiceNumber' : 'مخزون - صافي بعد الخصم - $invoiceNumber',
       });
     }
-
-    // Credit discount earned (contra cost / income)
-    if (discount > 0) {
+    // مدين: رسوم منفصلة لحساب مستقل (إن وجد)
+    if (otherFee > 0.005 && !isFeeForInventory) {
       rawLines.add({
-        'account_id': discountEarnedId,
-        'debit_amount': 0.0,
-        'credit_amount': discount,
+        'account_id': otherFeeAccountId!,
+        'debit_amount': _round2(otherFee),
+        'credit_amount': 0.0,
         'notes': statement,
-        'description': 'خصم مكتسب - $invoiceNumber',
+        'description': 'رسوم/مصروفات شراء - $invoiceNumber',
       });
     }
 
-    // Credit payable/cash (net amount after discount)
-    // total already = (subtotal - discount) + otherFee + tax
-    // So we need to credit: total (which is the net payable)
+    // مدين: ضريبة مدخلات قابلة للاسترداد (أصل)
+    if (tax > 0.005) {
+      rawLines.add({
+        'account_id': taxAccountId,
+        'debit_amount': _round2(tax),
+        'credit_amount': 0.0,
+        'notes': statement,
+        'description': 'ضريبة مدخلات - $invoiceNumber',
+      });
+    }
+
+    // (لا نسجل الخصم كإيراد منفصل إذا تم تنتيه من المخزون - IAS2)
+    // فقط إذا بقي جزء خصم لم يُمتص (خصم > صافي المخزون) نسجله كخصم مكتسب
+    // في حالتنا العادية discount <= subtotal فيكون كامل الخصم مُحمل على المخزون
+    // لذلك لا حاجة لقيد خصم منفصل
+
+    // دائن: ذمم الموردين أو النقدية
     rawLines.add({
       'account_id': isCredit ? supplierAccountId : paymentAccountId,
       'debit_amount': 0.0,
-      'credit_amount': total,
+      'credit_amount': _round2(total),
       'notes': statement,
       'description': isCredit
           ? 'ذمم الموردين - $invoiceNumber'
@@ -1807,10 +1871,6 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     });
 
     // Validate balanced
-    // Total Debit = subtotal + otherFee + tax
-    // Total Credit = discount + total = discount + (subtotal - discount + otherFee + tax)
-    //              = subtotal + otherFee + tax
-    // Should be balanced!
     final totalDebit = rawLines.fold<double>(
       0.0,
       (s, l) => s + ((l['debit_amount'] as num?)?.toDouble() ?? 0.0),
@@ -1821,12 +1881,11 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     );
     final diff = (totalDebit - totalCredit);
     if (diff.abs() > 0.01) {
-      // Add debugging info to the error message
       final debugInfo =
           'المدين: ${totalDebit.toStringAsFixed(2)}, الدائن: ${totalCredit.toStringAsFixed(2)}, '
+          'صافي المخزون: ${netInventoryValue.toStringAsFixed(2)}, الإجمالي: ${total.toStringAsFixed(2)}, '
           'المجموع الفرعي: ${subtotal.toStringAsFixed(2)}, الخصم: ${discount.toStringAsFixed(2)}, '
-          'الضريبة: ${tax.toStringAsFixed(2)}, رسوم: ${otherFee.toStringAsFixed(2)}, '
-          'الإجمالي: ${total.toStringAsFixed(2)}';
+          'الضريبة: ${tax.toStringAsFixed(2)}, رسوم: ${otherFee.toStringAsFixed(2)}';
       throw LocalStorageException(
         'قيد غير متوازن لمشتريات $invoiceNumber (فرق: ${diff.toStringAsFixed(2)}). $debugInfo',
       );
@@ -1886,6 +1945,8 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     // Removing duplicate update to prevent triple balance issue
   }
 
+  double _round2(double v) => (v * 100).roundToDouble() / 100;
+
   Future<void> _postPurchaseReturnToJournal({
     required Transaction txn,
     required int returnInvoiceId,
@@ -1913,9 +1974,26 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final otherFee = (invoiceData['other_fee_amt'] as num?)?.toDouble() ?? 0.0;
     final otherFeeAccountId = invoiceData['other_fee_account_id'] as int?;
 
+    if (subtotal < -0.01 || discount < -0.01 || tax < -0.01 || otherFee < -0.01) {
+      throw LocalStorageException('مبالغ مردود المشتريات لا يمكن أن تكون سالبة');
+    }
+    // الفترة المقفلة
+    try {
+      final periodClosed = await txn.rawQuery(
+        'SELECT is_closed FROM fiscal_periods WHERE start_date <= ? AND end_date >= ? LIMIT 1',
+        [entryDate, entryDate],
+      );
+      if (periodClosed.isNotEmpty && (periodClosed.first['is_closed'] as int?) == 1) {
+        throw LocalStorageException('الفترة المالية مقفلة لتاريخ المردود');
+      }
+    } catch (e) {
+      if (e is LocalStorageException) rethrow;
+    }
+
     final total =
         (invoiceData['final_amt'] as num?)?.toDouble() ??
         ((subtotal - discount) + otherFee + tax);
+    if (total <= 0.005) throw LocalStorageException('إجمالي المردود يجب أن يكون أكبر من صفر');
 
     final isCredit = ((invoiceData['invoice_trans_type'] as int?) ?? 0) == 1;
 
@@ -1941,85 +2019,77 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       0,
       label: 'البنوك',
     );
-    final purchaseReturnsAccountId = await _resolveConnectedAccountId(
+    // المخزون: نفس منطق المشتريات (مخزن خاص إن وجد)
+    int inventoryAccountId = await _resolveConnectedAccountId(
       txn,
-      12,
-      label: 'مردودات المشتريات',
+      5,
+      label: 'المخزون',
     );
-    final taxAccountId = tax > 0
-        ? await _resolveConnectedAccountId(txn, 4, label: 'الضرائب')
-        : 0;
-    final discountEarnedId = discount > 0
-        ? await _resolveConnectedAccountId(txn, 9, label: 'الخصم المكتسب')
-        : 0;
+    try {
+      final whSpecific = await _resolveWarehouseInventoryAccountId(txn, invoiceData['stock_id'] as int?);
+      if (whSpecific != null) inventoryAccountId = whSpecific;
+    } catch (_) {}
+    int taxAccountId = 0;
+    if (tax > 0.005) {
+      try {
+        taxAccountId = await _resolveConnectedAccountId(txn, 17, label: 'ضريبة مدخلات');
+      } catch (_) {
+        taxAccountId = await _resolveConnectedAccountId(txn, 4, label: 'الضرائب');
+      }
+    }
 
     final paymentAccountId =
         (invoiceData['statement'] as String?)?.contains('بنك') == true
         ? bankAccountId
         : cashAccountId;
 
+    final isFeeForInventory = otherFeeAccountId == null;
+    final inventoryOtherFeePortion = isFeeForInventory ? otherFee : 0.0;
+    double netInventoryReturn = (subtotal - discount + inventoryOtherFeePortion);
+    netInventoryReturn = netInventoryReturn.clamp(0, double.infinity) as double;
+
     final rawLines = <Map<String, dynamic>>[];
 
-    // Debit: supplier (reduce payable) or cash (refund received)
+    // مدين: تخفيض ذمة المورد أو استلام نقدي (مبلغ المردود الإجمالي)
     rawLines.add({
       'account_id': isCredit ? supplierAccountId : paymentAccountId,
-      'debit_amount': total,
+      'debit_amount': _round2(total),
       'credit_amount': 0.0,
       'notes': statement,
       'description': isCredit
-          ? 'تخفيض ذمة المورد - $invoiceNumber'
-          : 'استلام مردود مشتريات - $invoiceNumber',
+          ? 'تخفيض ذمة المورد - مردود $invoiceNumber'
+          : 'استلام نقدي مردود مشتريات - $invoiceNumber',
     });
 
-    // Debit: reverse discount earned
-    if (discount > 0) {
+    // دائن: عكس المخزون بالصافي (Perpetual)
+    if (netInventoryReturn > 0.005) {
       rawLines.add({
-        'account_id': discountEarnedId,
-        'debit_amount': discount,
-        'credit_amount': 0.0,
+        'account_id': inventoryAccountId,
+        'debit_amount': 0.0,
+        'credit_amount': _round2(netInventoryReturn),
         'notes': statement,
-        'description': 'عكس خصم مكتسب - $invoiceNumber',
+        'description': 'عكس مخزون - مردود مشتريات $invoiceNumber',
+      });
+    }
+    // دائن: عكس رسوم منفصلة
+    if (otherFee > 0.005 && !isFeeForInventory) {
+      rawLines.add({
+        'account_id': otherFeeAccountId!,
+        'debit_amount': 0.0,
+        'credit_amount': _round2(otherFee),
+        'notes': statement,
+        'description': 'عكس رسوم/مصروفات شراء - $invoiceNumber',
       });
     }
 
-    // Credit: purchase returns (gross)
-    rawLines.add({
-      'account_id': purchaseReturnsAccountId,
-      'debit_amount': 0.0,
-      'credit_amount': subtotal,
-      'notes': statement,
-      'description': 'مردودات مشتريات - $invoiceNumber',
-    });
-
-    // Credit: other fee reversal
-    if (otherFee > 0) {
-      if (otherFeeAccountId != null) {
-        rawLines.add({
-          'account_id': otherFeeAccountId,
-          'debit_amount': 0.0,
-          'credit_amount': otherFee,
-          'notes': statement,
-          'description': 'عكس رسوم/مصروفات شراء - $invoiceNumber',
-        });
-      } else {
-        rawLines.add({
-          'account_id': purchaseReturnsAccountId,
-          'debit_amount': 0.0,
-          'credit_amount': otherFee,
-          'notes': statement,
-          'description': 'عكس تكاليف إضافية - $invoiceNumber',
-        });
-      }
-    }
-
-    // Credit: reverse input tax
-    if (tax > 0) {
+    // دائن: عكس ضريبة المدخلات
+    if (tax > 0.005) {
       rawLines.add({
         'account_id': taxAccountId,
         'debit_amount': 0.0,
-        'credit_amount': tax,
+        'credit_amount': _round2(tax),
         'notes': statement,
-        'description': 'عكس ضريبة مشتريات - $invoiceNumber',
+        'description': 'عكس ضريبة مدخلات - $invoiceNumber',
       });
     }
 
@@ -2550,7 +2620,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             headerStockId: invoiceData['stock_id'] as int?,
           );
         } else if (invoiceType == 2) {
-          // Purchase invoice: increase stock
+          // Purchase invoice: increase stock (IAS2 allocation)
           await _increaseStockForPurchaseLines(
             txn,
             invoiceId: invoiceId,
@@ -2563,6 +2633,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                 )
                 .toList(),
             headerStockId: invoiceData['stock_id'] as int?,
+            headerDiscount: (invoiceData['discount_amt'] as num?)?.toDouble() ?? 0.0,
+            headerOtherFee: (invoiceData['other_fee_amt'] as num?)?.toDouble() ?? 0.0,
+            headerOtherFeeAccountId: invoiceData['other_fee_account_id'] as int?,
           );
         } else if (invoiceType == 5) {
           // ========== VALIDATION: مرتجع المشتريات لا يتجاوز الفاتورة الأصلية ==========
@@ -2888,6 +2961,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
                 )
                 .toList(),
             headerStockId: invoice.stockId,
+            headerDiscount: invoice.discountAmt ?? 0.0,
+            headerOtherFee: invoice.otherFeeAmt ?? 0.0,
+            headerOtherFeeAccountId: invoice.otherFeeAccountId,
           );
         } else if (invoice.invoiceType == 5) {
           await _postPurchaseReturnToJournal(
@@ -3596,6 +3672,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           invoiceNumber: purchaseInvoice.number,
           lines: purchaseInvoice.lines.map((l) => l is InvoiceLineModel ? l : InvoiceLineModel.fromEntity(l)).toList(),
           headerStockId: invData['stock_id'] as int?,
+          headerDiscount: (invData['discount_amt'] as num?)?.toDouble() ?? 0.0,
+          headerOtherFee: (invData['other_fee_amt'] as num?)?.toDouble() ?? 0.0,
+          headerOtherFeeAccountId: invData['other_fee_account_id'] as int?,
         );
 
         return invoiceId;

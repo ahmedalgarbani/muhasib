@@ -63,17 +63,27 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
 
   void _calculateTotals() {
     setState(() {
+      // gross subtotal (قبل أي خصم)
       _subtotal = _invoiceLines.fold(0, (sum, line) => sum + line.amount);
+      final headerDiscountRaw = double.tryParse(_discountController.text) ?? 0;
+      final sumLineDiscounts = _invoiceLines.fold<double>(0, (s, l) => s + (l.discountAmt ?? 0));
+      // كشف التكرار: إذا كان مجموع السطري يساوي الترويسي فهو نفس الخصم موزع مسبقاً
+      double effectiveHeader = headerDiscountRaw;
+      if ((sumLineDiscounts - headerDiscountRaw).abs() < 0.01 && sumLineDiscounts > 0.005) {
+        effectiveHeader = 0;
+      }
+      final totalDiscount = sumLineDiscounts + effectiveHeader;
+      _discountAmount = totalDiscount.clamp(0, _subtotal).toDouble();
 
-      final discountValue = double.tryParse(_discountController.text) ?? 0;
-      _discountAmount = discountValue;
-
-      final subtotalAfterDiscount = _subtotal - _discountAmount;
+      final subtotalAfterDiscount = (_subtotal - _discountAmount).clamp(0, double.infinity) as double;
 
       final taxRate = double.tryParse(_taxController.text) ?? 0;
-      _taxAmount = subtotalAfterDiscount * (taxRate / 100);
+      final safeTaxRate = taxRate.clamp(0, 100).toDouble();
+      _taxAmount = (subtotalAfterDiscount * (safeTaxRate / 100) * 100).roundToDouble() / 100;
 
-      _total = subtotalAfterDiscount + _taxAmount;
+      _total = ((subtotalAfterDiscount + _taxAmount) * 100).roundToDouble() / 100;
+      _subtotal = (_subtotal * 100).roundToDouble() / 100;
+      _discountAmount = (_discountAmount * 100).roundToDouble() / 100;
     });
   }
 
@@ -174,6 +184,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
         );
       }).toList();
 
+      final headerDiscount = double.tryParse(_discountController.text) ?? 0;
       final invoice = InvoiceEntity(
         id: widget.invoice?.id,
         number: _numberController.text,
@@ -185,7 +196,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
             : _statementController.text.trim(),
         lines: syncedLines,
         amount: _subtotal,
-        discountAmt: _discountAmount,
+        discountAmt: headerDiscount,
         taxRatio: double.tryParse(_taxController.text) ?? 0,
         taxAmt: _taxAmount,
         totalAmount: _subtotal,
