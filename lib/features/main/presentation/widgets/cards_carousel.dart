@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/features/main/presentation/models/card_data.dart';
 import 'package:muhasib/features/main/presentation/widgets/finance_card.dart';
 
@@ -70,6 +71,9 @@ class _CardsCarouselState extends State<CardsCarousel> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hintColor = Theme.of(context).colorScheme.onSurfaceVariant
+        .withValues(alpha: 0.55);
     // Provide clean compact vertical room for the sleek compact card height
     final carouselHeight = (size.height * 0.17).clamp(135.0, 155.0);
 
@@ -85,14 +89,14 @@ class _CardsCarouselState extends State<CardsCarousel> {
               Icon(
                 Icons.keyboard_double_arrow_down_rounded,
                 size: 14,
-                color: Colors.grey.shade500,
+                color: hintColor,
               ),
               const SizedBox(width: 4),
               Text(
                 'اسحب للأسفل للتحديث',
                 style: TextStyle(
                   fontSize: 11.5,
-                  color: Colors.grey.shade500,
+                  color: hintColor,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -100,7 +104,7 @@ class _CardsCarouselState extends State<CardsCarousel> {
               Icon(
                 Icons.keyboard_double_arrow_down_rounded,
                 size: 14,
-                color: Colors.grey.shade500,
+                color: hintColor,
               ),
             ],
           ),
@@ -222,8 +226,10 @@ class _CardsCarouselState extends State<CardsCarousel> {
               height: 5.5,
               decoration: BoxDecoration(
                 color: isActive
-                    ? const Color(0xFF006D74)
-                    : Colors.grey.shade300,
+                    ? (isDark ? AppColors.primaryLight : AppColors.primary)
+                    : (isDark
+                          ? Colors.white.withValues(alpha: 0.25)
+                          : AppColors.slate300),
                 borderRadius: BorderRadius.circular(3),
               ),
             );

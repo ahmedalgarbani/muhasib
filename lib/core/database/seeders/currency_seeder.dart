@@ -44,8 +44,6 @@ class CurrencySeeder {
       'is_active': 1,
       'decimal_places': 2,
     });
-
-    print('Default currencies seeded successfully');
   }
 
   /// Get the local/base currency

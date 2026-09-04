@@ -22,7 +22,9 @@ class RecentActionItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final color = isIncome ? AppColors.saudiEmerald : AppColors.error;
+    final color = isIncome
+        ? (isDark ? AppColors.emerald300 : AppColors.primary)
+        : (isDark ? AppColors.errorLight : AppColors.error);
     final bgColor = isIncome
         ? (isDark
               ? AppColors.primaryDark.withValues(alpha: 0.35)
@@ -31,28 +33,18 @@ class RecentActionItem extends StatelessWidget {
               ? AppColors.error.withValues(alpha: 0.2)
               : AppColors.errorLight);
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDark ? theme.colorScheme.surface : AppColors.slate50,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: theme.dividerColor, width: 1),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
               color: bgColor,
-              borderRadius: BorderRadius.circular(AppRadius.sm10),
+              borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
-            child: Icon(
-              icon,
-              color: isDark && isIncome ? AppColors.emerald300 : color,
-              size: 20,
-            ),
+            child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -71,15 +63,27 @@ class RecentActionItem extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(
-                  date,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.normal,
-                  ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.schedule_rounded,
+                      size: 12,
+                      color: theme.colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      date,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -87,13 +91,20 @@ class RecentActionItem extends StatelessWidget {
           const SizedBox(width: 8),
           Directionality(
             textDirection: TextDirection.ltr,
-            child: Text(
-              '${isIncome ? '+' : '-'}$amount',
-              style: TextStyle(
-                color: isDark && isIncome ? AppColors.emerald300 : color,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.3,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: bgColor.withValues(alpha: isDark ? 0.7 : 1),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Text(
+                '${isIncome ? '+' : '-'}$amount',
+                style: TextStyle(
+                  color: color,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.3,
+                ),
               ),
             ),
           ),

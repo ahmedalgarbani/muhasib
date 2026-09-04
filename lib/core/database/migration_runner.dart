@@ -1,3 +1,4 @@
+import 'dart:developer' as developer;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:sqflite/sqflite.dart';
 
@@ -11,11 +12,11 @@ class MigrationRunner {
   /// Run all pending migrations
   Future<void> runMigrations() async {
     try {
-      print('🔄 Starting database migrations...');
-      
+      developer.log('Starting database migrations...', name: 'MigrationRunner');
+
       // Get current schema version
       final currentVersion = await _getCurrentVersion();
-      print('📊 Current schema version: $currentVersion');
+      developer.log('Current schema version: $currentVersion', name: 'MigrationRunner');
 
       // Define migrations in order
       final migrations = [
@@ -32,17 +33,28 @@ class MigrationRunner {
       // Run pending migrations
       for (int i = currentVersion; i < migrations.length; i++) {
         final migrationFile = migrations[i];
-        print('⚡ Running migration ${i + 1}/${migrations.length}: $migrationFile');
-        
+        developer.log(
+          'Running migration ${i + 1}/${migrations.length}: $migrationFile',
+          name: 'MigrationRunner',
+        );
+
         await _runMigration(migrationFile);
         await _updateVersion(i + 1);
-        
-        print('✅ Migration ${i + 1} completed successfully');
+
+        developer.log('Migration ${i + 1} completed successfully', name: 'MigrationRunner');
       }
 
-      print('🎉 All migrations completed! Current version: ${migrations.length}');
-    } catch (e) {
-      print('❌ Migration failed: $e');
+      developer.log(
+        'All migrations completed! Current version: ${migrations.length}',
+        name: 'MigrationRunner',
+      );
+    } catch (e, st) {
+      developer.log(
+        'Migration failed: $e',
+        name: 'MigrationRunner',
+        error: e,
+        stackTrace: st,
+      );
       rethrow;
     }
   }
@@ -52,7 +64,7 @@ class MigrationRunner {
     try {
       // Check if schema_version table exists
       final tables = await db.rawQuery(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_version'"
+        "SELECT name FROM sqlite_master WHERE type='table' AND name='schema_version'",
       );
 
       if (tables.isEmpty) {
@@ -65,13 +77,12 @@ class MigrationRunner {
             description TEXT
           )
         ''');
-        print('📝 Created schema_version table');
         return 0;
       }
 
       // Get latest version
       final result = await db.rawQuery(
-        'SELECT MAX(version) as version FROM schema_version'
+        'SELECT MAX(version) as version FROM schema_version',
       );
 
       if (result.isEmpty || result.first['version'] == null) {
@@ -80,7 +91,7 @@ class MigrationRunner {
 
       return result.first['version'] as int;
     } catch (e) {
-      print('⚠️ Error getting current version: $e');
+      developer.log('Error getting current version: $e', name: 'MigrationRunner');
       return 0;
     }
   }
@@ -90,7 +101,7 @@ class MigrationRunner {
     try {
       // Load SQL file from assets
       final sql = await rootBundle.loadString(
-        'lib/core/database/migrations/$filename'
+        'lib/core/database/migrations/$filename',
       );
 
       // Split by semicolon and execute each statement
@@ -106,16 +117,18 @@ class MigrationRunner {
             await db.execute(statement);
             statementCount++;
           } catch (e) {
-            print('⚠️ Error executing statement: $statement');
-            print('Error: $e');
-            // Continue with next statement
+            // Note: If column already exists (idempotent migrations), catch and log as info
+            developer.log(
+              'Statement executed with warning: $statement ($e)',
+              name: 'MigrationRunner',
+            );
           }
         }
       }
 
-      print('   Executed $statementCount SQL statements');
+      developer.log('Executed $statementCount SQL statements in $filename', name: 'MigrationRunner');
     } catch (e) {
-      print('❌ Error loading migration file $filename: $e');
+      developer.log('Error loading migration file $filename: $e', name: 'MigrationRunner');
       rethrow;
     }
   }
@@ -131,13 +144,18 @@ class MigrationRunner {
 
   /// Rollback to a specific version (dangerous - for development only)
   Future<void> rollbackToVersion(int targetVersion) async {
-    print('⚠️ WARNING: Rolling back to version $targetVersion');
-    print('⚠️ This may cause data loss!');
+    developer.log(
+      'WARNING: Rolling back to version $targetVersion',
+      name: 'MigrationRunner',
+    );
 
     final currentVersion = await _getCurrentVersion();
 
     if (targetVersion >= currentVersion) {
-      print('❌ Cannot rollback to version >= current version');
+      developer.log(
+        'Cannot rollback to version >= current version',
+        name: 'MigrationRunner',
+      );
       return;
     }
 
@@ -148,7 +166,7 @@ class MigrationRunner {
       whereArgs: [targetVersion],
     );
 
-    print('✅ Rolled back to version $targetVersion');
-    print('⚠️ You may need to manually drop tables created by rolled-back migrations');
+    developer.log('Rolled back to version $targetVersion', name: 'MigrationRunner');
   }
 }
+

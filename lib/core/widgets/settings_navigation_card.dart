@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
@@ -10,12 +11,16 @@ class SettingsNavigationCard extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
+  /// Optional status badge rendered next to the title (e.g. 'قريباً').
+  final String? badge;
+
   const SettingsNavigationCard({
     super.key,
     required this.title,
     required this.subtitle,
     required this.icon,
     required this.onTap,
+    this.badge,
   });
 
   @override
@@ -33,20 +38,70 @@ class SettingsNavigationCard extends StatelessWidget {
           padding: AppConstant.defaultPadding,
           child: Row(
             children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(AppRadius.sm10),
+                ),
+                child: Icon(
+                  icon,
+                  size: 22,
+                  color: colorScheme.primary.withValues(
+                    alpha: Theme.of(context).brightness == Brightness.dark
+                        ? 1
+                        : 0.9,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                        ),
+                        if (badge != null) ...[
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 7,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.warning.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.xl28,
+                              ),
+                            ),
+                            child: Text(
+                              badge!,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.warning,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 12,
                         color: colorScheme.onSurfaceVariant,
@@ -55,13 +110,11 @@ class SettingsNavigationCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(AppRadius.sm),
-                ),
-                child: Icon(icon, size: 24, color: colorScheme.onSurfaceVariant),
+              const SizedBox(width: 8),
+              Icon(
+                Icons.chevron_left_rounded,
+                size: 20,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
               ),
             ],
           ),

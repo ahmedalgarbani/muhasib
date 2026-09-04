@@ -22,8 +22,8 @@ class StatsCardsSection extends StatelessWidget {
             child: StatsCard(
               icon: Icons.people_alt_outlined,
               title: 'العملاء',
-              value: '$customersCount',
-              subtitle: '$customersCount عميل مسجل',
+              value: customersCount,
+              subtitle: 'إجمالي العملاء المسجلين',
               color: AppColors.saudiEmerald,
             ),
           ),
@@ -32,8 +32,8 @@ class StatsCardsSection extends StatelessWidget {
             child: StatsCard(
               icon: Icons.handshake_outlined,
               title: 'الموردون',
-              value: '$suppliersCount',
-              subtitle: '$suppliersCount مورد مسجل',
+              value: suppliersCount,
+              subtitle: 'إجمالي الموردين المسجلين',
               color: const Color(0xFF0284C7),
             ),
           ),

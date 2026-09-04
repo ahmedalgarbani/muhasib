@@ -1,5 +1,5 @@
 import 'package:muhasib/core/database/database_config.dart';
-import 'package:muhasib/core/database/tables/seeders.dart';
+import 'package:muhasib/core/database/seeders/default_seeders.dart';
 import 'package:muhasib/core/database/seeders/settings_seeder.dart';
 import 'package:muhasib/core/database/seeders/tax_seeder.dart';
 import 'package:muhasib/core/database/seeders/currency_seeder.dart';
@@ -166,13 +166,15 @@ class DatabaseService implements IDatabaseService {
   }
 
   Future<void> _onCreate(Database db, int version) async {
+    final batch = db.batch();
     for (final table in _tables) {
-      await db.execute(table.createTable);
+      batch.execute(table.createTable);
 
       for (final index in table.indexes) {
-        await db.execute(index);
+        batch.execute(index);
       }
     }
+    await batch.commit(noResult: true);
 
     for (final seed in _seeders) {
       await seed(db);
@@ -482,7 +484,3 @@ class DatabaseService implements IDatabaseService {
   }
 }
 
-/*
-like this tree 
-
- */

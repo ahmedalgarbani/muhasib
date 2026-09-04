@@ -207,6 +207,7 @@ import 'package:muhasib/features/accounts/data/repositories/account_movements_re
 import 'package:muhasib/features/accounts/domain/repositories/account_movements_repository.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_account_movements.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_movements_cubit.dart';
+import 'package:muhasib/features/setting/presentation/cubit/setting_cubit.dart';
 import 'package:muhasib/features/main/presentation/cubit/main_cubit.dart';
 
 final getIt = GetIt.instance;
@@ -747,6 +748,8 @@ class GetItHelper {
         repository: getIt<new_settings_repo.ISettingsRepository>(),
       ),
     );
+    // Legacy simple SettingCubit used by /initial/setup route (no deps).
+    getIt.registerFactory(() => SettingCubit());
 
     // ==================== Settings Entities Feature ====================
     // Data Sources

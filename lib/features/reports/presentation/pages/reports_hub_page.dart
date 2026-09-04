@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:muhasib/core/route/safe_pop.dart';
 import 'package:muhasib/features/reports/data/reports_data.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_card_widget.dart';
 
@@ -26,31 +23,26 @@ class _ReportsHubPageState extends State<ReportsHubPage>
     _TabInfo(
       title: 'المحاسبة',
       icon: Icons.account_balance,
-      color: AppColors.materialBlue700,
       category: ReportCategory.accounting,
     ),
     _TabInfo(
       title: 'المبيعات',
       icon: Icons.point_of_sale,
-      color: AppColors.materialGreen700,
       category: ReportCategory.sales,
     ),
     _TabInfo(
       title: 'المشتريات',
       icon: Icons.shopping_cart,
-      color: AppColors.materialPurple700,
       category: ReportCategory.purchases,
     ),
     _TabInfo(
       title: 'المخزون',
       icon: Icons.warehouse,
-      color: AppColors.materialDeepOrange500,
       category: ReportCategory.inventory,
     ),
     _TabInfo(
       title: 'العملاء',
       icon: Icons.people,
-      color: AppColors.materialCyan700,
       category: ReportCategory.customers,
     ),
   ];
@@ -84,47 +76,22 @@ class _ReportsHubPageState extends State<ReportsHubPage>
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Directionality(
-      textDirection: TextDirection.rtl,
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
         backgroundColor: theme.scaffoldBackgroundColor,
-        appBar: AppBar(
-          backgroundColor: theme.scaffoldBackgroundColor,
-          elevation: 0,
-          scrolledUnderElevation: 0,
-          leading: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Material(
-              color: theme.colorScheme.surface,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                side: BorderSide(color: theme.dividerColor, width: 1),
-              ),
-              child: InkWell(
-                onTap: () => context.safePop(),
-                borderRadius: BorderRadius.circular(AppRadius.md),
-                child: SizedBox(
-                  width: 38,
-                  height: 38,
-                  child: Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    color: theme.colorScheme.onSurface,
-                    size: 18,
-                  ),
-                ),
-              ),
-            ),
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text(
+          'مركز التقارير',
+          style: TextStyle(
+            color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.2,
           ),
-          title: Text(
-            'مركز التقارير',
-            style: TextStyle(
-              color: isDark ? AppColors.textPrimaryDark : AppColors.primary,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 0.2,
-            ),
-          ),
-          centerTitle: true,
+        ),
+        centerTitle: true,
           bottom: PreferredSize(
             preferredSize: const Size.fromHeight(48),
             child: Container(
@@ -145,12 +112,10 @@ class _ReportsHubPageState extends State<ReportsHubPage>
                 labelStyle: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Tajawal',
                 ),
                 unselectedLabelStyle: const TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
-                  fontFamily: 'Tajawal',
                 ),
                 padding: EdgeInsets.zero,
                 labelPadding: const EdgeInsets.symmetric(horizontal: 6),
@@ -219,19 +184,49 @@ class _ReportsHubPageState extends State<ReportsHubPage>
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 80,
-                            color: Colors.grey[300],
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.08),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.search_off_rounded,
+                              size: 34,
+                              color: theme.colorScheme.onSurfaceVariant
+                                  .withValues(alpha: 0.7),
+                            ),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             'لا توجد تقارير مطابقة',
                             style: TextStyle(
-                              fontSize: 18,
-                              color: Colors.grey[600],
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: theme.colorScheme.onSurface,
                             ),
                           ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'جرّب كلمة بحث مختلفة',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          if (_searchQuery.isNotEmpty) ...[
+                            const SizedBox(height: 14),
+                            TextButton.icon(
+                              onPressed: () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                              icon: const Icon(Icons.clear_rounded, size: 16),
+                              label: const Text('مسح البحث'),
+                            ),
+                          ],
                         ],
                       ),
                     );
@@ -248,21 +243,18 @@ class _ReportsHubPageState extends State<ReportsHubPage>
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 
 class _TabInfo {
   final String title;
   final IconData icon;
-  final Color color;
   final ReportCategory category;
 
   const _TabInfo({
     required this.title,
     required this.icon,
-    required this.color,
     required this.category,
   });
 }

@@ -81,8 +81,12 @@ class QuickAccessSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = _buildItems();
     final width = MediaQuery.of(context).size.width;
-    final columns = crossAxisCount ?? (width < 600 ? 4 : 6);
-    final aspect = childAspectRatio ?? (width < 400 ? 0.7 : 1.0);
+    final columns = crossAxisCount ?? (width < 600 ? 4 : (width < 900 ? 6 : 8));
+    final aspect =
+        childAspectRatio ??
+        (width < 380
+            ? 0.75
+            : (width < 450 ? 0.82 : (width < 700 ? 0.88 : 1.0)));
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -103,16 +107,19 @@ class QuickAccessSection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'الوصول السريع',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.2,
+                const Flexible(
+                  child: Text(
+                    'الوصول السريع',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.2,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 Container(

@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +11,9 @@ import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
+import 'package:muhasib/core/widgets/error_state_card.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/widgets/pressable_scale.dart';
 import 'package:muhasib/core/widgets/stat_card.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
@@ -28,9 +32,7 @@ class _SalePageBodyState extends State<SalePageBody> {
   @override
   void initState() {
     super.initState();
-
     context.read<SalesCubit>().loadInvoices();
-    context.read<AccountsCubit>().loadAllAccounts();
   }
 
   @override
@@ -64,98 +66,110 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
       body: BlocBuilder<SalesCubit, SalesState>(
         builder: (context, state) {
           if (state is SalesLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return _LoadingView();
           } else if (state is SalesError) {
-            return Center(child: Text('Error: ${state.message}'));
+            return Center(
+              child: ErrorStateCard(
+                message: state.message,
+                onRetry: () => context.read<SalesCubit>().loadInvoices(),
+              ),
+            );
           } else if (state is SalesLoaded) {
             final invoices = state.invoices;
             final filteredInvoices = _filterInvoices(invoices);
             final stats = _calculateStats(invoices);
 
-            return CustomScrollView(
-              slivers: [
-                // Header
-                SliverToBoxAdapter(
-                  child: BillsHeader(
-                    searchQuery: _searchQuery,
-                    onSearchChanged: (query) {
-                      setState(() {
-                        _searchQuery = query;
-                      });
-                    },
-                    onFilterPressed: _toggleFilterOpen,
-                    onNewBillPressed: () {
-                      context.pushNamed(AppRoutes.salesAddInvoice);
-                    },
-                    isFilterOpen: _filterOpen,
-                  ),
-                ),
+            // Live customer-name lookup; rebuilds whenever accounts change.
+            final accountsState = context.watch<AccountsCubit>().state;
+            final customerNames = accountsState is AccountsLoaded
+                ? {
+                    for (final account in accountsState.accounts)
+                      if (account.id != null) account.id!: account.name,
+                  }
+                : const <int, String>{};
 
-                // Filter Panel
-                if (_filterOpen)
+            return RefreshIndicator(
+              color: Theme.of(context).colorScheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surface,
+              onRefresh: () async {
+                await context.read<SalesCubit>().loadInvoices().timeout(
+                  const Duration(seconds: 6),
+                  onTimeout: () {},
+                );
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  // Header
                   SliverToBoxAdapter(
-                    child: FilterPanel(
-                      sortBy: _sortBy,
-                      onSortChanged: (sort) {
+                    child: BillsHeader(
+                      searchQuery: _searchQuery,
+                      onSearchChanged: (query) {
                         setState(() {
-                          _sortBy = sort;
+                          _searchQuery = query;
                         });
                       },
+                      onFilterPressed: _toggleFilterOpen,
+                      onNewBillPressed: () {
+                        context.pushNamed(AppRoutes.salesAddInvoice);
+                      },
+                      isFilterOpen: _filterOpen,
                     ),
                   ),
 
-                // Stats
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: AppConstant.defaultPadding,
-                    child: StatsCards(stats: stats),
-                  ),
-                ),
-
-                // Bills List
-                if (filteredInvoices.isEmpty)
-                  SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Text('📄', style: TextStyle(fontSize: 60)),
-                          const SizedBox(height: 16),
-                          Text(
-                            'لا توجد فواتير',
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                        ],
+                  // Filter Panel
+                  if (_filterOpen)
+                    SliverToBoxAdapter(
+                      child: FilterPanel(
+                        sortBy: _sortBy,
+                        onSortChanged: (sort) {
+                          setState(() {
+                            _sortBy = sort;
+                          });
+                        },
                       ),
                     ),
-                  )
-                else
-                  SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                    sliver: SliverList(
-                      delegate: SliverChildBuilderDelegate((context, index) {
-                        final invoice = filteredInvoices[index];
-                        return BillCard(
-                          invoice: invoice,
-                          onTap: () {},
-                          onView: () {},
-                          onEdit: () {},
-                          onDownload: () {},
-                          onShare: () {},
-                          onDelete: () {
-                            _showDeleteDialog(context, invoice);
-                          },
-                        );
-                      }, childCount: filteredInvoices.length),
+
+                  // Stats
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: AppConstant.defaultPadding,
+                      child: StatsCards(stats: stats),
                     ),
                   ),
-              ],
+
+                  // Bills List
+                  if (filteredInvoices.isEmpty)
+                    SliverToBoxAdapter(
+                      child: _EmptyBillsView(
+                        isSearching: _searchQuery.isNotEmpty,
+                        onCreateInvoice: () =>
+                            context.pushNamed(AppRoutes.salesAddInvoice),
+                      ),
+                    )
+                  else
+                    SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final invoice = filteredInvoices[index];
+                          return BillCard(
+                            invoice: invoice,
+                            customerName:
+                                customerNames[invoice.customerId] ??
+                                'عميل #${invoice.customerId}',
+                            onDelete: () {
+                              _showDeleteDialog(context, invoice);
+                            },
+                          );
+                        }, childCount: filteredInvoices.length),
+                      ),
+                    ),
+                ],
+              ),
             );
           }
-          return const Center(child: Text('No Data'));
+          return const SizedBox.shrink();
         },
       ),
     );
@@ -173,13 +187,18 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
           .toList();
     }
 
-    final sort = InvoiceSortOption.tryFromCode(_sortBy) ?? InvoiceSortOption.dateDesc;
+    final sort =
+        InvoiceSortOption.tryFromCode(_sortBy) ?? InvoiceSortOption.dateDesc;
     filtered.sort((a, b) {
       return switch (sort) {
         InvoiceSortOption.dateDesc => b.date.compareTo(a.date),
         InvoiceSortOption.dateAsc => a.date.compareTo(b.date),
-        InvoiceSortOption.totalDesc => (b.totalAmount ?? 0).compareTo(a.totalAmount ?? 0),
-        InvoiceSortOption.totalAsc => (a.totalAmount ?? 0).compareTo(b.totalAmount ?? 0),
+        InvoiceSortOption.totalDesc => (b.totalAmount ?? 0).compareTo(
+          a.totalAmount ?? 0,
+        ),
+        InvoiceSortOption.totalAsc => (a.totalAmount ?? 0).compareTo(
+          b.totalAmount ?? 0,
+        ),
       };
     });
 
@@ -193,7 +212,11 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
       (sum, inv) => sum + (inv.totalAmount ?? 0),
     );
     final paidInvoices = invoices
-        .where((inv) => InvoicePaymentStatus.tryFromValue(inv.paymentStatus) == InvoicePaymentStatus.paid)
+        .where(
+          (inv) =>
+              InvoicePaymentStatus.tryFromValue(inv.paymentStatus) ==
+              InvoicePaymentStatus.paid,
+        )
         .toList();
     final paidAmount = paidInvoices.fold(
       0.0,
@@ -238,6 +261,128 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   }
 }
 
+// ═══════════════════════════════════════════════
+// States: loading / empty
+// ═══════════════════════════════════════════════
+class _LoadingView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(color: theme.colorScheme.primary),
+          const SizedBox(height: 16),
+          Text(
+            'جارِ تحميل الفواتير...',
+            style: TextStyle(
+              fontSize: 13.5,
+              fontWeight: FontWeight.w500,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyBillsView extends StatelessWidget {
+  final bool isSearching;
+  final VoidCallback onCreateInvoice;
+
+  const _EmptyBillsView({
+    required this.isSearching,
+    required this.onCreateInvoice,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 48, horizontal: 32),
+      child: Column(
+        children: [
+          Container(
+            width: 72,
+            height: 72,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? AppColors.primaryDark.withValues(alpha: 0.35)
+                  : AppColors.saudiMint,
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              isSearching
+                  ? Icons.search_off_rounded
+                  : Icons.receipt_long_outlined,
+              size: 34,
+              color: isDark ? AppColors.primaryLight : AppColors.primary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isSearching ? 'لا توجد نتائج مطابقة' : 'لا توجد فواتير بعد',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            isSearching
+                ? 'جرّب البحث برقم مختلف'
+                : 'ابدأ بإنشاء أول فاتورة مبيعات',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          if (!isSearching) ...[
+            const SizedBox(height: 20),
+            PressableScale(
+              onTap: onCreateInvoice,
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 11,
+                ),
+                decoration: BoxDecoration(
+                  color: isDark ? AppColors.primaryDark : AppColors.primary,
+                  borderRadius: BorderRadius.circular(AppRadius.xl28),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                    SizedBox(width: 6),
+                    Text(
+                      'فاتورة جديدة',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════
+// Header: title + new invoice + search + filter toggle
+// ═══════════════════════════════════════════════
 class BillsHeader extends StatelessWidget {
   final String searchQuery;
   final Function(String) onSearchChanged;
@@ -256,28 +401,31 @@ class BillsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: Border(
-          bottom: BorderSide(color: Theme.of(context).dividerColor),
-        ),
+        color: theme.colorScheme.surface,
+        border: Border(bottom: BorderSide(color: theme.dividerColor)),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
         child: Column(
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'فواتير المبيعات',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.gray900,
+                Expanded(
+                  child: Text(
+                    'فواتير المبيعات',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 HasibButton(
                   label: 'فاتورة جديدة',
                   onPressed: onNewBillPressed,
@@ -294,25 +442,77 @@ class BillsHeader extends StatelessWidget {
                     hint: 'ابحث برقم الفاتورة...',
                     onChanged: onSearchChanged,
                     decoration: InputDecoration(
-                      prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                      prefixIcon: Icon(
+                        Icons.search_rounded,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      hintText: 'ابحث برقم الفاتورة...',
                       filled: true,
-                      fillColor: Theme.of(context).colorScheme.surface,
+                      fillColor: isDark
+                          ? Colors.white.withValues(alpha: 0.06)
+                          : AppColors.slate50,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.sm),
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                        borderSide: BorderSide.none,
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                OutlinedButton.icon(
-                  onPressed: onFilterPressed,
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: isFilterOpen
-                        ? AppColors.blue50
-                        : Theme.of(context).colorScheme.surface,
+                PressableScale(
+                  onTap: onFilterPressed,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isFilterOpen
+                          ? (isDark
+                                ? AppColors.primaryLight.withValues(alpha: 0.15)
+                                : AppColors.primary.withValues(alpha: 0.08))
+                          : (isDark
+                                ? Colors.white.withValues(alpha: 0.06)
+                                : AppColors.slate50),
+                      borderRadius: BorderRadius.circular(AppRadius.md),
+                      border: Border.all(
+                        color: isFilterOpen
+                            ? AppColors.primary.withValues(
+                                alpha: isDark ? 0.5 : 0.35,
+                              )
+                            : theme.dividerColor,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.filter_list_rounded,
+                          size: 20,
+                          color: isFilterOpen
+                              ? (isDark
+                                    ? AppColors.primaryLight
+                                    : AppColors.primary)
+                              : theme.colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'فلتر',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: isFilterOpen
+                                ? (isDark
+                                      ? AppColors.primaryLight
+                                      : AppColors.primary)
+                                : theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  icon: const Icon(Icons.filter_list, size: 20),
-                  label: const Text('فلتر'),
                 ),
               ],
             ),
@@ -323,6 +523,9 @@ class BillsHeader extends StatelessWidget {
   }
 }
 
+// ═══════════════════════════════════════════════
+// Sort panel (Material 3 themed dropdown)
+// ═══════════════════════════════════════════════
 class FilterPanel extends StatelessWidget {
   final String sortBy;
   final Function(String) onSortChanged;
@@ -335,20 +538,37 @@ class FilterPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
-      color: Theme.of(context).colorScheme.surface,
+      color: theme.colorScheme.surface,
       padding: AppConstant.defaultPadding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'الترتيب حسب',
-            style: TextStyle(fontWeight: FontWeight.bold),
+          Row(
+            children: [
+              Icon(
+                Icons.sort_rounded,
+                size: 18,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 6),
+              Text(
+                'الترتيب حسب',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13.5,
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
-          DropdownButton<String>(
-            value: sortBy,
+          DropdownButtonFormField<String>(
+            initialValue: sortBy,
             isExpanded: true,
+            borderRadius: BorderRadius.circular(AppRadius.md),
             items: const [
               DropdownMenuItem(
                 value: 'date-desc',
@@ -377,6 +597,9 @@ class FilterPanel extends StatelessWidget {
   }
 }
 
+// ═══════════════════════════════════════════════
+// Stats strip
+// ═══════════════════════════════════════════════
 class StatsCards extends StatelessWidget {
   final BillStats stats;
 
@@ -390,7 +613,7 @@ class StatsCards extends StatelessWidget {
           child: StatCard(
             title: 'إجمالي الفواتير',
             value: '${stats.total}',
-            color: Colors.blue,
+            color: AppColors.info,
           ),
         ),
         const SizedBox(width: 12),
@@ -398,7 +621,7 @@ class StatsCards extends StatelessWidget {
           child: StatCard(
             title: 'إجمالي المبلغ',
             value: '${stats.totalAmount.toStringAsFixed(0)} ر.س',
-            color: Colors.green,
+            color: AppColors.success,
           ),
         ),
       ],
@@ -406,95 +629,204 @@ class StatsCards extends StatelessWidget {
   }
 }
 
+// ═══════════════════════════════════════════════
+// Bill card: status chip + customer + amount + delete
+// ═══════════════════════════════════════════════
 class BillCard extends StatelessWidget {
   final InvoiceEntity invoice;
-  final VoidCallback onTap;
-  final VoidCallback onView;
-  final VoidCallback onEdit;
-  final VoidCallback onDownload;
-  final VoidCallback onShare;
+  final String customerName;
   final VoidCallback onDelete;
 
   const BillCard({
     super.key,
     required this.invoice,
-    required this.onTap,
-    required this.onView,
-    required this.onEdit,
-    required this.onDownload,
-    required this.onShare,
+    required this.customerName,
     required this.onDelete,
   });
 
+  Color _statusColor(bool isDark) {
+    final status = InvoicePaymentStatus.tryFromValue(invoice.paymentStatus);
+    return switch (status) {
+      InvoicePaymentStatus.paid =>
+        isDark ? AppColors.success : AppColors.primary,
+      InvoicePaymentStatus.partial => AppColors.warning,
+      _ => isDark ? AppColors.errorLight : AppColors.error,
+    };
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final dateStr = DateFormat(
       'yyyy-MM-dd',
     ).format(DateTime.fromMillisecondsSinceEpoch(invoice.date * 1000));
-    final accountsState = context.read<AccountsCubit>().state;
-    String customerName = 'Customer #${invoice.customerId}';
-    if (accountsState is AccountsLoaded) {
-      try {
-        final customer = accountsState.accounts.firstWhere(
-          (a) => a.id == invoice.customerId,
-        );
-        customerName = customer.name;
-      } catch (_) {}
-    }
+    final status = InvoicePaymentStatus.tryFromValue(invoice.paymentStatus);
+    final statusColor = _statusColor(isDark);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: AppConstant.defaultPadding,
+    return PressableScale(
+      pressedScale: 0.985,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          border: Border.all(color: theme.dividerColor, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  invoice.number,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? AppColors.primaryLight.withValues(alpha: 0.15)
+                        : AppColors.saudiMint,
+                    borderRadius: BorderRadius.circular(AppRadius.sm10),
+                  ),
+                  child: Icon(
+                    Icons.receipt_rounded,
+                    size: 19,
+                    color: isDark ? AppColors.primaryLight : AppColors.primary,
                   ),
                 ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'delete') onDelete();
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'delete', child: Text('حذف')),
-                  ],
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    invoice.number,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.bold,
+                      color: theme.colorScheme.onSurface,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                if (status != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: statusColor.withValues(alpha: isDark ? 0.2 : 0.12),
+                      borderRadius: BorderRadius.circular(AppRadius.xl28),
+                    ),
+                    child: Text(
+                      status.labelAr,
+                      style: TextStyle(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.bold,
+                        color: statusColor,
+                      ),
+                    ),
+                  ),
+                _CardActionMenu(onDelete: onDelete),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  Icons.person_outline_rounded,
+                  size: 14,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    customerName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.schedule_rounded,
+                  size: 13,
+                  color: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.7,
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  dateStr,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),
-            Text(customerName, style: TextStyle(color: Colors.grey.shade600)),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
+            Divider(
+              height: 1,
+              color: theme.dividerColor.withValues(alpha: 0.6),
+            ),
+            const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${invoice.totalAmount?.toStringAsFixed(2) ?? 0} ر.س',
-                  style: const TextStyle(fontWeight: FontWeight.bold),
+                  'الإجمالي',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
-                Text(dateStr, style: const TextStyle(color: Colors.grey)),
+                Directionality(
+                  textDirection: ui.TextDirection.ltr,
+                  child: Text(
+                    '${invoice.totalAmount?.toStringAsFixed(2) ?? 0} ر.س',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.3,
+                      color: isDark
+                          ? AppColors.primaryLight
+                          : AppColors.primary,
+                    ),
+                  ),
+                ),
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CardActionMenu extends StatelessWidget {
+  final VoidCallback onDelete;
+
+  const _CardActionMenu({required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<String>(
+      onSelected: (value) {
+        if (value == 'delete') onDelete();
+      },
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: 'delete', child: Text('حذف')),
+      ],
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -40,7 +41,6 @@ import 'package:muhasib/features/reports/presentation/pages/aged_reports_pages.d
 import 'package:muhasib/features/reports/presentation/pages/cash_flow_report_page.dart';
 import 'package:muhasib/features/reports/presentation/pages/purchase_summary_report_page.dart';
 import 'package:muhasib/features/reports/domain/entities/report_item.dart';
-import 'package:muhasib/features/sales/presentation/widgets/components/sales_invoice_screen.dart';
 import 'package:muhasib/features/sales/presentation/pages/improved_sales_invoice_screen.dart';
 import 'package:muhasib/features/sales/presentation/widgets/sale_page_body.dart';
 import 'package:muhasib/features/sales/presentation/pages/quotations_page.dart';
@@ -94,13 +94,17 @@ import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.
 import 'package:muhasib/features/currencies/presentation/pages/currency_exchange_page_v2.dart';
 import 'package:muhasib/features/currencies/presentation/pages/currency_revaluation_page.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
+import 'package:muhasib/features/stores/presentation/cubit/stock_transfers_cubit.dart';
+import 'package:muhasib/features/stores/presentation/cubit/inventory_cubit.dart';
+import 'package:muhasib/features/stores/presentation/cubit/stock_adjustments_cubit.dart';
+import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/pages/annual_close_page.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_limit_page_clean.dart';
 import 'package:muhasib/features/settings_entities/settings_entities.dart'
     as settings_entities;
 
 final router = GoRouter(
-  debugLogDiagnostics: true,
+  debugLogDiagnostics: kDebugMode,
   initialLocation: AppRoutes.splash,
   redirect: (context, state) {
     // final authService = locator<AuthService>();
@@ -193,16 +197,19 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.login,
       name: AppRoutes.login,
+      redirect: (context, state) => AppRoutes.home,
       builder: (context, state) => const PlaceholderWidget('Login'),
     ),
     GoRoute(
       path: AppRoutes.dashboard,
       name: AppRoutes.dashboard,
+      redirect: (context, state) => AppRoutes.home,
       builder: (context, state) => const PlaceholderWidget('Dashboard'),
     ),
     GoRoute(
       path: AppRoutes.profile,
       name: AppRoutes.profile,
+      redirect: (context, state) => AppRoutes.home,
       builder: (context, state) => const PlaceholderWidget('Profile'),
     ),
 
@@ -210,6 +217,7 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.usersSync,
       name: AppRoutes.usersSync,
+      redirect: (context, state) => AppRoutes.home,
       builder: (context, state) => const PlaceholderWidget('Users & Sync'),
     ),
 
@@ -898,42 +906,16 @@ class PlaceholderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: title),
-      body: Center(child: Text(title)),
-    );
-  }
-}
-
-class _MainBottomBar extends StatefulWidget {
-  const _MainBottomBar();
-
-  @override
-  State<_MainBottomBar> createState() => _MainBottomBarState();
-}
-
-class _MainBottomBarState extends State<_MainBottomBar> {
-  int _index = 0;
-  final List<String> _tabs = [
-    AppRoutes.dashboard,
-    AppRoutes.settings,
-    AppRoutes.profile,
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return BottomNavigationBar(
-      currentIndex: _index,
-      onTap: (i) {
-        setState(() => _index = i);
-        context.go(_tabs[i]);
-      },
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.dashboard),
-          label: 'Dashboard',
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(title),
+            const SizedBox(height: 8),
+            const Text('هذه الشاشة ستتوفر قريباً'),
+          ],
         ),
-        BottomNavigationBarItem(icon: Icon(Icons.settings), label: 'Settings'),
-        BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-      ],
+      ),
     );
   }
 }

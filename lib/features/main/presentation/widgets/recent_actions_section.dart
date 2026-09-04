@@ -122,17 +122,36 @@ class RecentActionsSection extends StatelessWidget {
               ),
             )
           else
-            ...transactions.map(
-              (tx) => RecentActionItem(
-                icon: tx.icon,
-                title: tx.title,
-                amount: tx.amount,
-                date: tx.date,
-                isIncome: tx.isIncome,
-              ),
-            ),
+            ..._buildTransactionRows(theme),
         ],
       ),
     );
+  }
+
+  List<Widget> _buildTransactionRows(ThemeData theme) {
+    final rows = <Widget>[];
+    for (var i = 0; i < transactions.length; i++) {
+      final tx = transactions[i];
+      if (i > 0) {
+        rows.add(
+          Divider(
+            height: 1,
+            thickness: 1,
+            indent: 54,
+            color: theme.dividerColor.withValues(alpha: 0.5),
+          ),
+        );
+      }
+      rows.add(
+        RecentActionItem(
+          icon: tx.icon,
+          title: tx.title,
+          amount: tx.amount,
+          date: tx.date,
+          isIncome: tx.isIncome,
+        ),
+      );
+    }
+    return rows;
   }
 }
