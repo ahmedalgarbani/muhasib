@@ -135,7 +135,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
       'receiptVoucherSecondSignature': receiptSecondSignatureController.text,
       'receiptVoucherThirdSignature': receiptThirdSignatureController.text,
       'receiptVoucherFourthSignature': receiptFourthSignatureController.text,
-      'notesInBotton': null,
+      'notesInBotton': this.voucherSettings['notesInBotton'],
       'allowMultiCurrencyInVoucher': allowMultiCurrency,
       'showAccountBalanceInVoucher': showAccountBalance,
       'checkFundAndBankBalanceEnabledInVoucher': checkFundBalance,
@@ -271,6 +271,110 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                         icon: Icons.draw_outlined,
                       ),
                     ],
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'توقيع سندات القبض',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                SettingsCard(
+                  children: [
+                    SettingsSwitchTile(
+                      icon: Icons.draw,
+                      title: 'إظهار التوقيع اسفل السند',
+                      value: receiptVoucherSignature,
+                      onChanged: (value) {
+                        setState(() {
+                          receiptVoucherSignature = value;
+                        });
+                      },
+                    ),
+                    if (receiptVoucherSignature) ...[
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        title: 'التوقيع الأول',
+                        controller: receiptFirstSignatureController,
+                        hintText: 'المستلم',
+                        icon: Icons.draw_outlined,
+                      ),
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        title: 'التوقيع الثاني',
+                        controller: receiptSecondSignatureController,
+                        hintText: 'مدير الحسابات',
+                        icon: Icons.draw_outlined,
+                      ),
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        title: 'التوقيع الثالث',
+                        controller: receiptThirdSignatureController,
+                        hintText: 'الصندوق',
+                        icon: Icons.draw_outlined,
+                      ),
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        title: 'التوقيع الرابع',
+                        controller: receiptFourthSignatureController,
+                        hintText: 'المدير العام',
+                        icon: Icons.draw_outlined,
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'خيارات إضافية',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                SettingsCard(
+                  children: [
+                    SettingsSwitchTile(
+                      icon: Icons.currency_exchange,
+                      title: 'السماح بتعدد العملات في السند',
+                      value: allowMultiCurrency,
+                      onChanged: (value) {
+                        setState(() {
+                          allowMultiCurrency = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      icon: Icons.account_balance_wallet_outlined,
+                      title: 'إظهار رصيد الحساب في السند',
+                      value: showAccountBalance,
+                      onChanged: (value) {
+                        setState(() {
+                          showAccountBalance = value;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      icon: Icons.policy_outlined,
+                      title: 'التحقق من رصيد الصندوق أو البنك',
+                      value: checkFundBalance,
+                      onChanged: (value) {
+                        setState(() {
+                          checkFundBalance = value;
+                        });
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),

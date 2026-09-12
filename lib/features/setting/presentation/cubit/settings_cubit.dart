@@ -32,9 +32,9 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> updateSetting(String key, dynamic value) async {
     try {
       await repository.updateSetting(key, value);
-      _settings[key] = value;
+      _settings[key] = _mergedValue(_settings[key], value);
       SettingsCache.update(_settings);
-      emit(SettingUpdated(key: key, value: value));
+      emit(SettingUpdated(key: key, value: _settings[key]));
       emit(SettingsLoaded(settings: _settings));
     } catch (e) {
       emit(SettingsError('Failed to update setting: $e'));
@@ -45,12 +45,25 @@ class SettingsCubit extends Cubit<SettingsState> {
     try {
       emit(SettingsLoading());
       await repository.updateMultipleSettings(settings);
-      _settings.addAll(settings);
+      for (final entry in settings.entries) {
+        _settings[entry.key] = _mergedValue(_settings[entry.key], entry.value);
+      }
       SettingsCache.update(_settings);
       emit(SettingsLoaded(settings: _settings));
     } catch (e) {
       emit(SettingsError('Failed to update settings: $e'));
     }
+  }
+
+  /// Mirrors the repository merge so the in-memory cache keeps section keys
+  /// that a partial save did not touch.
+  dynamic _mergedValue(dynamic current, dynamic update) {
+    if (update is! Map) return update;
+    final merged = current is Map
+        ? Map<String, dynamic>.from(current)
+        : <String, dynamic>{};
+    merged.addAll(Map<String, dynamic>.from(update));
+    return merged;
   }
 
   dynamic getSetting(String key, {dynamic defaultValue}) {

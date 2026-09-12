@@ -58,6 +58,9 @@ class CustomDropdownField<T> extends StatelessWidget {
           )
         : null;
 
+    final hasMatch = items != null && items!.any((item) => item.value == value);
+    final safeValue = hasMatch ? value : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -89,7 +92,7 @@ class CustomDropdownField<T> extends StatelessWidget {
           ),
         ],
         DropdownButtonFormField<T>(
-          value: value,
+          value: safeValue,
           items: items,
           onChanged: enabled ? onChanged : null,
           validator: validator,

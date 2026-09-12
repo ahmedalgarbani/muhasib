@@ -5,13 +5,13 @@ import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/helpers/cubit/local_cubit.dart';
 import 'package:muhasib/core/helpers/cubit/theme_cubit.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
 import 'package:muhasib/core/widgets/settings_dropdown_tile.dart';
 import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
+import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -31,6 +31,11 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
   String timeFormat = '12 ساعة';
   int decimalNoInput = 7;
   int decimalNoOutput = 2;
+  String thousandsSeparator = ',';
+  String decimalSeparator = '.';
+  String defaultCurrencyCode = 'SAR';
+  final TextEditingController debitController = TextEditingController();
+  final TextEditingController creditController = TextEditingController();
   String debitText = 'مدين';
   String creditText = 'دائن';
   bool showStockModule = true;
@@ -53,8 +58,13 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     timeFormat = _getTimeFormatString(otherSettings['timeFormat'] ?? 0);
     decimalNoInput = otherSettings['decimalNoInput'] ?? 7;
     decimalNoOutput = otherSettings['decimalNoOutput'] ?? 2;
+    thousandsSeparator = otherSettings['thousands_separator'] ?? ',';
+    decimalSeparator = otherSettings['decimal_separator'] ?? '.';
+    defaultCurrencyCode = otherSettings['default_currency'] ?? 'SAR';
     debitText = otherSettings['debit'] ?? 'مدين';
     creditText = otherSettings['credit'] ?? 'دائن';
+    debitController.text = debitText;
+    creditController.text = creditText;
     showStockModule = otherSettings['showStockModule'] ?? true;
     showAccountantAdvanceModule =
         otherSettings['showAccountantAdvanceModule'] ?? true;
@@ -68,10 +78,23 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     language = otherSettings['language'] ?? SettingsCache.language;
     fontScale = (otherSettings['fontScale'] ?? 1.0).toDouble();
     themeMode = context.read<ThemeCubit>().state;
+
+    final currenciesCubit = context.read<CurrenciesCubit>();
+    if (currenciesCubit.allCurrencies == null) {
+      currenciesCubit.loadAllCurrencies();
+    }
+  }
+
+  @override
+  void dispose() {
+    debitController.dispose();
+    creditController.dispose();
+    super.dispose();
   }
 
   String _getDateFormatString(int format) {
-    return AppDateFormat.tryFromValue(format)?.pattern ?? AppDateFormat.dayMonthYear.pattern;
+    return AppDateFormat.tryFromValue(format)?.pattern ??
+        AppDateFormat.dayMonthYear.pattern;
   }
 
   int _getDateFormatInt(String format) {
@@ -82,7 +105,8 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
   }
 
   String _getTimeFormatString(int format) {
-    return AppTimeFormat.tryFromValue(format)?.labelAr ?? AppTimeFormat.h12.labelAr;
+    return AppTimeFormat.tryFromValue(format)?.labelAr ??
+        AppTimeFormat.h12.labelAr;
   }
 
   int _getTimeFormatInt(String format) {
@@ -93,7 +117,8 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
   }
 
   String _getHomeScreenTypeString(int type) {
-    return HomeScreenType.tryFromValue(type)?.labelAr ?? HomeScreenType.first.labelAr;
+    return HomeScreenType.tryFromValue(type)?.labelAr ??
+        HomeScreenType.first.labelAr;
   }
 
   int _getHomeScreenTypeInt(String type) {
@@ -132,8 +157,11 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
       'timeFormat': _getTimeFormatInt(timeFormat),
       'decimalNoInput': decimalNoInput,
       'decimalNoOutput': decimalNoOutput,
-      'debit': debitText,
-      'credit': creditText,
+      'thousands_separator': thousandsSeparator,
+      'decimal_separator': decimalSeparator,
+      'default_currency': defaultCurrencyCode,
+      'debit': debitController.text.isEmpty ? 'مدين' : debitController.text,
+      'credit': creditController.text.isEmpty ? 'دائن' : creditController.text,
       'showStockModule': showStockModule,
       'showAccountantAdvanceModule': showAccountantAdvanceModule,
       'updateCostAmountType': 2,
@@ -146,9 +174,23 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
     };
 
     await cubit.updateSetting('other_setting', otherSettings);
+    await _refreshCurrencyCache(defaultCurrencyCode);
 
     if (mounted) {
       AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
+    }
+  }
+
+  Future<void> _refreshCurrencyCache(String code) async {
+    try {
+      final currencies = context.read<CurrenciesCubit>().allCurrencies ?? [];
+      final match = currencies.where((c) => c.code == code).toList();
+      SettingsCache.setDefaultCurrency(
+        code: code,
+        symbol: match.isEmpty ? null : match.first.symbol,
+      );
+    } catch (_) {
+      SettingsCache.setDefaultCurrency(code: code);
     }
   }
 
@@ -218,9 +260,13 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                         setState(() {
                           language = value!;
                         });
-                        context
-                            .read<LocaleCubit>()
-                            .updateLocale(Locale(value!));
+                        context.read<LocaleCubit>().updateLocale(
+                          Locale(value ?? ''),
+                        );
+                        context.read<SettingsCubit>().updateSetting(
+                          'other_setting',
+                          {'language': value},
+                        );
                       },
                     ),
                     const Divider(),
@@ -229,7 +275,9 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                       value: homeScreenType,
                       icon: Icons.home_outlined,
                       items: ['الأولى', 'الثانية', 'الثالثة']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .map(
+                            (e) => DropdownMenuItem(value: e, child: Text(e)),
+                          )
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -276,7 +324,9 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                       value: _themeModeLabel(themeMode),
                       icon: Icons.dark_mode_outlined,
                       items: ['النظام الافتراضي', 'فاتح', 'داكن']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .map(
+                            (e) => DropdownMenuItem(value: e, child: Text(e)),
+                          )
                           .toList(),
                       onChanged: (value) {
                         final mode = _themeModeFromLabel(value!);
@@ -306,13 +356,13 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                       title: 'صيغة التاريخ',
                       value: dateFormat,
                       icon: Icons.calendar_today,
-                      items: [
-                        'dd - MM - yyyy',
-                        'yyyy - MM - dd',
-                        'MM - dd - yyyy',
-                      ]
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
+                      items:
+                          ['dd - MM - yyyy', 'yyyy - MM - dd', 'MM - dd - yyyy']
+                              .map(
+                                (e) =>
+                                    DropdownMenuItem(value: e, child: Text(e)),
+                              )
+                              .toList(),
                       onChanged: (value) {
                         setState(() {
                           dateFormat = value!;
@@ -325,7 +375,9 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                       value: timeFormat,
                       icon: Icons.access_time,
                       items: ['12 ساعة', '24 ساعة']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .map(
+                            (e) => DropdownMenuItem(value: e, child: Text(e)),
+                          )
                           .toList(),
                       onChanged: (value) {
                         setState(() {
@@ -349,36 +401,100 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                 ),
                 SettingsCard(
                   children: [
-                    ListTile(
-                      leading: Icon(
-                        Icons.numbers,
-                        size: 20,
-                        color: Colors.grey[600],
+                    SettingsDropdownTile<int>(
+                      title: 'عدد الارقام بعد الفاصلة عند الإدخال',
+                      value: decimalNoInput,
+                      icon: Icons.numbers,
+                      items: List.generate(
+                        11,
+                        (i) => DropdownMenuItem(value: i, child: Text('$i')),
                       ),
-                      title: const Text(
-                        'عدد الارقام بعد الفاصلة عند الإدخال',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      subtitle: Text(
-                        decimalNoInput.toString(),
-                        style: const TextStyle(fontSize: 13),
-                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          decimalNoInput = value!;
+                        });
+                      },
                     ),
                     const Divider(),
-                    ListTile(
-                      leading: Icon(
-                        Icons.numbers,
-                        size: 20,
-                        color: Colors.grey[600],
+                    SettingsDropdownTile<int>(
+                      title: 'عدد الارقام بعد الفاصلة عند العرض',
+                      value: decimalNoOutput,
+                      icon: Icons.numbers,
+                      items: List.generate(
+                        11,
+                        (i) => DropdownMenuItem(value: i, child: Text('$i')),
                       ),
-                      title: const Text(
-                        'عدد الارقام بعد الفاصلة عند العرض',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
-                      ),
-                      subtitle: Text(
-                        decimalNoOutput.toString(),
-                        style: const TextStyle(fontSize: 13),
-                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          decimalNoOutput = value!;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      title: 'فاصل الآلاف',
+                      value: thousandsSeparator,
+                      icon: Icons.functions,
+                      items: const [
+                        DropdownMenuItem(value: ',', child: Text(',')),
+                        DropdownMenuItem(value: '٬', child: Text('٬')),
+                        DropdownMenuItem(value: ' ', child: Text('مسافة')),
+                        DropdownMenuItem(value: '', child: Text('بدون فاصل')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          thousandsSeparator = value!;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    SettingsDropdownTile<String>(
+                      title: 'الفاصلة العشرية',
+                      value: decimalSeparator,
+                      icon: Icons.more_horiz,
+                      items: const [
+                        DropdownMenuItem(value: '.', child: Text('.')),
+                        DropdownMenuItem(value: '٫', child: Text('٫')),
+                        DropdownMenuItem(value: ',', child: Text(',')),
+                      ],
+                      onChanged: (value) {
+                        setState(() {
+                          decimalSeparator = value!;
+                        });
+                      },
+                    ),
+                    const Divider(),
+                    BlocBuilder<CurrenciesCubit, CurrenciesState>(
+                      builder: (context, state) {
+                        final currencies =
+                            context.read<CurrenciesCubit>().allCurrencies ??
+                            const [];
+                        final codes = currencies
+                            .map((c) => c.code)
+                            .toSet()
+                            .toList();
+                        if (!codes.contains(defaultCurrencyCode)) {
+                          codes.insert(0, defaultCurrencyCode);
+                        }
+                        return SettingsDropdownTile<String>(
+                          title: 'العملة الافتراضية',
+                          value: defaultCurrencyCode,
+                          icon: Icons.currency_exchange,
+                          items: codes
+                              .map(
+                                (code) => DropdownMenuItem(
+                                  value: code,
+                                  child: Text(code),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              defaultCurrencyCode = value!;
+                            });
+                          },
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -399,15 +515,15 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     SettingsTextFieldTile(
                       icon: Icons.arrow_upward,
                       title: 'مدين',
-                      controller: TextEditingController(text: debitText),
-                      onChanged: (value) => debitText = value,
+                      controller: debitController,
+                      hintText: 'مدين',
                     ),
                     const Divider(),
                     SettingsTextFieldTile(
                       icon: Icons.arrow_downward,
                       title: 'دائن',
-                      controller: TextEditingController(text: creditText),
-                      onChanged: (value) => creditText = value,
+                      controller: creditController,
+                      hintText: 'دائن',
                     ),
                   ],
                 ),

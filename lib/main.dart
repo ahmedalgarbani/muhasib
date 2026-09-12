@@ -5,6 +5,8 @@ import 'package:muhasib/core/helpers/cubit/theme_cubit.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/helpers/responsive_text.dart';
 import 'package:muhasib/core/route/app_router.dart';
+import 'package:muhasib/core/services/app_lookup_service.dart';
+import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/root_shell.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_connect_cubit.dart';
@@ -31,11 +33,25 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:muhasib/core/theme/theme.dart';
+import 'package:muhasib/core/widgets/app_lock_gate.dart';
 import 'package:muhasib/features/accounts/accounts.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:muhasib/core/database/database_initializer.dart';
 import 'generated/l10n.dart';
+
+Future<void> _primeDefaultCurrency() async {
+  try {
+    final lookup = getIt<AppLookupService>();
+    final code = await lookup.getDefaultCurrencyCode();
+    final active = await lookup.getActiveCurrencies();
+    final match = active.where((c) => c.code == code).toList();
+    SettingsCache.setDefaultCurrency(
+      code: code,
+      symbol: match.isEmpty ? null : match.first.symbol,
+    );
+  } catch (_) {}
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,6 +65,7 @@ void main() async {
   // Load app settings into the shared cubit + SettingsCache so every
   // feature reads live values from the DB (formatting, sales rules, print...).
   await getIt<SettingsCubit>().loadSettings();
+  await _primeDefaultCurrency();
 
   // Load the subscription license (starts a 30-day trial on first run) and
   // prime PlanCache so gated features know the active entitlements.
@@ -74,7 +91,9 @@ void main() async {
         BlocProvider(
           create: (context) => getIt<CustomersCubit>()..loadCustomers(),
         ),
-        BlocProvider(create: (context) => getIt<ProductsCubit>()..loadProducts()),
+        BlocProvider(
+          create: (context) => getIt<ProductsCubit>()..loadProducts(),
+        ),
         BlocProvider(create: (context) => getIt<ProductGroupsCubit>()),
         BlocProvider(create: (context) => getIt<ProductUnitsCubit>()),
         BlocProvider(create: (context) => getIt<ProductSubUnitsCubit>()),
@@ -131,7 +150,9 @@ class MohasebFinanceApp extends StatelessWidget {
               darkTheme: appDarkTheme,
               builder: (context, child) => Directionality(
                 textDirection: TextDirection.rtl,
-                child: ResponsiveTextScale(child: RootShell(child: child!)),
+                child: ResponsiveTextScale(
+                  child: AppLockGate(child: RootShell(child: child!)),
+                ),
               ),
             );
           },

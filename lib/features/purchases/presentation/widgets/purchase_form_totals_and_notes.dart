@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -73,7 +73,7 @@ class PurchaseFormTotalsCard extends StatelessWidget {
                     ),
                     style: const TextStyle(fontSize: 13),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                    inputFormatters: [DecimalTextInputFormatter()],
                     onChanged: (value) => onCalculateTotals(),
                   ),
                 ),
@@ -95,7 +95,7 @@ class PurchaseFormTotalsCard extends StatelessWidget {
                     ),
                     style: const TextStyle(fontSize: 13),
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                    inputFormatters: [DecimalTextInputFormatter()],
                     onChanged: (value) => onCalculateTotals(),
                   ),
                 ),

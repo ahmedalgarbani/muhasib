@@ -254,7 +254,13 @@ class _PosPageState extends State<PosPage> {
   double get _taxAmount =>
       SettingsCache.taxEnabled ? _taxableAmount * (_taxRate / 100) : 0.0;
 
-  double get _grandTotal => _taxableAmount + _taxAmount;
+  double get _grandTotal {
+    final raw = _taxableAmount + _taxAmount;
+    if (!SettingsCache.posCashRoundingEnabled) return raw;
+    final precision = SettingsCache.posCashRoundingPrecision;
+    if (precision <= 0) return raw;
+    return (raw / precision).round() * precision;
+  }
 
   double get _cashReceived {
     final val = double.tryParse(_cashReceivedController.text.trim());
@@ -336,6 +342,27 @@ class _PosPageState extends State<PosPage> {
         _cart[id] = line.copyWith(quantity: quantity);
       }
     });
+    if (delta > 0) {
+      _maybeShowStockAlert(line.product, line.quantity, line.quantity + delta);
+    }
+  }
+
+  /// Warns when a cart quantity crosses the available stock level
+  /// (controlled by the POS stock-alerts setting).
+  void _maybeShowStockAlert(
+    ProductEntity product,
+    double oldQuantity,
+    double newQuantity,
+  ) {
+    if (!SettingsCache.posEnableStockAlerts) return;
+    if (!product.trackInventory) return;
+    if (SettingsCache.allowNegativeStock) return;
+    if (newQuantity <= product.quantity) return;
+    if (oldQuantity > product.quantity) return;
+    AppToast.showWarning(
+      context,
+      'الكمية تتجاوز المتوفر (${NumberFormatter.formatNumber(product.quantity)})',
+    );
   }
 
   Future<void> _changeLineUnit(int productId, ProductUnitOption newUnit) async {

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/precision_helper.dart';
 import 'package:muhasib/core/services/unit_conversion_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
@@ -483,11 +483,9 @@ class _AddLineDialogState extends State<AddLineDialog> {
                                 label: 'الكمية',
                                 textEditingController: _quantityController,
                                 inputType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                    RegExp(r'[0-9.]'),
-                                  ),
-                                ],
+                                  inputFormatters: [
+                                    DecimalTextInputFormatter(),
+                                  ],
                                 prefixIcon: const Icon(Icons.numbers),
                                 isRequired: true,
                                 onChanged: (_) => _calculateTotal(),
@@ -507,11 +505,9 @@ class _AddLineDialogState extends State<AddLineDialog> {
                                 label: 'سعر الشراء للوحدة',
                                 textEditingController: _priceController,
                                 inputType: TextInputType.number,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                    RegExp(r'[0-9.]'),
-                                  ),
-                                ],
+                                  inputFormatters: [
+                                    DecimalTextInputFormatter(),
+                                  ],
                                 prefixIcon: const Icon(Icons.attach_money),
                                 isRequired: true,
                                 onChanged: (_) => _calculateTotal(),
@@ -546,9 +542,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                           textEditingController: _discountController,
                           inputType: TextInputType.number,
                           inputFormatters: [
-                            FilteringTextInputFormatter.allow(
-                              RegExp(r'[0-9.]'),
-                            ),
+                            DecimalTextInputFormatter(),
                           ],
                           prefixIcon: const Icon(Icons.discount_outlined),
                           onChanged: (_) => _calculateTotal(),

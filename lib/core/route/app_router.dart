@@ -84,6 +84,7 @@ import 'package:muhasib/features/setting/presentation/pages/print_settings_new.d
 import 'package:muhasib/features/setting/presentation/pages/security_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/pages/voucher_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/pages/stock_settings_page.dart';
+import 'package:muhasib/features/setting/presentation/pages/pos_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/pages/other_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
     as new_settings_cubit;
@@ -314,8 +315,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.currenciesRevaluation,
       name: AppRoutes.currenciesRevaluation,
-      builder: (context, state) =>
-          _planGated(PlanFeature.multiCurrency, const CurrencyRevaluationPage()),
+      builder: (context, state) => _planGated(
+        PlanFeature.multiCurrency,
+        const CurrencyRevaluationPage(),
+      ),
     ),
 
     // ======= المبيعات =======
@@ -577,8 +580,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.warehousesInventory,
       name: AppRoutes.warehousesInventory,
-      builder: (context, state) =>
-          _planGated(PlanFeature.stockOperations, const WarehousesInventoryPage()),
+      builder: (context, state) => _planGated(
+        PlanFeature.stockOperations,
+        const WarehousesInventoryPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.warehousesAdjustment,
@@ -589,8 +594,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.warehousesTransfer,
       name: AppRoutes.warehousesTransfer,
-      builder: (context, state) =>
-          _planGated(PlanFeature.stockOperations, const StockTransfersListPage()),
+      builder: (context, state) => _planGated(
+        PlanFeature.stockOperations,
+        const StockTransfersListPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.warehousesTransferForm,
@@ -668,6 +675,14 @@ final router = GoRouter(
       ),
     ),
     GoRoute(
+      path: AppRoutes.settingsPos,
+      name: AppRoutes.settingsPos,
+      builder: (context, state) => BlocProvider.value(
+        value: getIt<new_settings_cubit.SettingsCubit>(),
+        child: const PosSettingsPage(),
+      ),
+    ),
+    GoRoute(
       path: AppRoutes.settingsOther,
       name: AppRoutes.settingsOther,
       builder: (context, state) => BlocProvider.value(
@@ -731,8 +746,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsTrialBalance,
       name: AppRoutes.reportsTrialBalance,
-      builder: (context, state) =>
-          _planGated(PlanFeature.reportsAdvanced, const TrialBalanceReportPage()),
+      builder: (context, state) => _planGated(
+        PlanFeature.reportsAdvanced,
+        const TrialBalanceReportPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.reportsIncomeStatement,
@@ -753,10 +770,8 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsCashFlow,
       name: AppRoutes.reportsCashFlow,
-      builder: (context, state) => _planGated(
-        PlanFeature.reportsAdvanced,
-        const CashFlowReportPage(),
-      ),
+      builder: (context, state) =>
+          _planGated(PlanFeature.reportsAdvanced, const CashFlowReportPage()),
     ),
     GoRoute(
       path: AppRoutes.reportsGeneralLedger,
@@ -769,10 +784,8 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsJournal,
       name: AppRoutes.reportsJournal,
-      builder: (context, state) => _planGated(
-        PlanFeature.reportsAdvanced,
-        const JournalReportPage(),
-      ),
+      builder: (context, state) =>
+          _planGated(PlanFeature.reportsAdvanced, const JournalReportPage()),
     ),
 
     // تقارير المبيعات

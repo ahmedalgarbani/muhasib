@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/services/precision_helper.dart';
 import 'package:muhasib/core/services/unit_conversion_service.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
@@ -303,7 +303,7 @@ class _PurchaseLineEditorPageState extends State<PurchaseLineEditorPage> {
                                 label: 'الكمية',
                                 textEditingController: _quantityCtrl,
                                 keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                                inputFormatters: [DecimalTextInputFormatter()],
                                 prefixIcon: const Icon(Icons.numbers, size: 16),
                                 isRequired: true,
                                 onChanged: (_) => _calculateTotal(),
@@ -321,7 +321,7 @@ class _PurchaseLineEditorPageState extends State<PurchaseLineEditorPage> {
                                 label: 'سعر الشراء',
                                 textEditingController: _priceCtrl,
                                 keyboardType: TextInputType.number,
-                                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                                inputFormatters: [DecimalTextInputFormatter()],
                                 prefixIcon: const Icon(Icons.attach_money, size: 16),
                                 isRequired: true,
                                 onChanged: (_) => _calculateTotal(),
@@ -349,7 +349,7 @@ class _PurchaseLineEditorPageState extends State<PurchaseLineEditorPage> {
                             label: 'الخصم',
                             textEditingController: _discountCtrl,
                             keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9.]'))],
+                            inputFormatters: [DecimalTextInputFormatter()],
                             prefixIcon: const Icon(Icons.discount_outlined, size: 16),
                             onChanged: (_) => _calculateTotal(),
                           ),

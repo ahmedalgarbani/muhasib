@@ -55,6 +55,8 @@ class SettingsCache {
 
   static int get timeFormat => _get(other, 'timeFormat', 0) as int;
 
+  static int get decimalNoInput => _get(other, 'decimalNoInput', 7) as int;
+
   static int get decimalNoOutput => _get(other, 'decimalNoOutput', 2) as int;
 
   static String get thousandsSeparator =>
@@ -72,6 +74,14 @@ class SettingsCache {
   static bool get showStockModule =>
       _get(other, 'showStockModule', true) as bool;
 
+  static bool get showTaxModule =>
+      _get(other, 'showTaxModule', true) as bool;
+
+  static bool get showAccountantAdvanceModule =>
+      _get(other, 'showAccountantAdvanceModule', true) as bool;
+
+  static String get timezone => _get(other, 'timezone', '') as String;
+
   static bool get useMiniHasib =>
       _get(other, 'useMiniHasib', false) as bool;
 
@@ -82,6 +92,21 @@ class SettingsCache {
 
   static bool get showBackupNotifyWhenCloseApp =>
       _get(other, 'showBackupNotifyWhenCloseApp', true) as bool;
+
+  // default currency (code resolved against the currencies table at startup)
+  static String _defaultCurrencyCode = 'SAR';
+
+  static String _defaultCurrencySymbol = 'ريال';
+
+  static String get defaultCurrencyCode => _defaultCurrencyCode;
+
+  static String get defaultCurrencySymbol => _defaultCurrencySymbol;
+
+  static void setDefaultCurrency({required String code, String? symbol}) {
+    _defaultCurrencyCode = code;
+    _defaultCurrencySymbol =
+        (symbol == null || symbol.trim().isEmpty) ? code : symbol;
+  }
 
   // security_info
   static bool get securityIsActive =>
@@ -241,4 +266,51 @@ class SettingsCache {
     final value = _get(pos, 'max_discount_percent', null);
     return value == null ? null : (value as num).toDouble();
   }
+
+  static String get posDefaultCustomer =>
+      _get(pos, 'default_customer', '') as String;
+
+  static bool get posPrintReceiptAutomatically =>
+      _get(pos, 'print_receipt_automatically', true) as bool;
+
+  static int get posReceiptPrinterWidth =>
+      _get(pos, 'receipt_printer_width', 80) as int;
+
+  static int get posReceiptCopies => _get(pos, 'receipt_copies', 1) as int;
+
+  static bool get posAllowDiscountPerLine =>
+      _get(pos, 'allow_discount_per_line', true) as bool;
+
+  static bool get posCashRoundingEnabled =>
+      _get(pos, 'cash_rounding_enabled', false) as bool;
+
+  static double get posCashRoundingPrecision =>
+      (_get(pos, 'cash_rounding_precision', 0.05) as num).toDouble();
+
+  static bool get posBarcodeEnabled =>
+      _get(pos, 'barcode_enabled', true) as bool;
+
+  static bool get posShowBarcodeScanner =>
+      _get(pos, 'show_barcode_scanner', false) as bool;
+
+  static bool get posEnableStockAlerts =>
+      _get(pos, 'enable_stock_alerts', true) as bool;
+
+  static bool get posEnableCustomerCredit =>
+      _get(pos, 'enable_customer_credit', false) as bool;
+
+  static double get posDefaultCreditLimit =>
+      (_get(pos, 'default_credit_limit', 0) as num).toDouble();
+
+  static bool get posBlockCustomerOverLimit =>
+      _get(pos, 'block_customer_over_limit', false) as bool;
+
+  static bool get posAllowHoldOrders =>
+      _get(pos, 'allow_hold_orders', true) as bool;
+
+  static bool get posAllowSplitPayment =>
+      _get(pos, 'allow_split_payment', true) as bool;
+
+  static bool get posShowRemainingBalanceInReceipt =>
+      _get(pos, 'show_remaining_balance_in_receipt', true) as bool;
 }

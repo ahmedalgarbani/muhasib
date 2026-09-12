@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/theme/app_color.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
@@ -175,7 +173,7 @@ class _PaymentEditorPageState extends State<PaymentEditorPage> {
                     label: 'المبلغ',
                     textEditingController: _amountCtrl,
                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                    inputFormatters: [DecimalTextInputFormatter()],
                     prefixIcon: const Icon(Icons.attach_money, size: 18),
                   ),
                   if (_selectedMethod == PaymentMethod.bank) ...[

@@ -79,6 +79,13 @@ class _SettingsMenu extends StatelessWidget {
             icon: Icons.inventory_2_outlined,
             onTap: () => context.push(AppRoutes.settingsStock),
           ),
+          const SizedBox(height: 10),
+          SettingsNavigationCard(
+            title: 'إعدادات نقاط البيع',
+            subtitle: 'الدفع - الخصومات - الباركود - ائتمان العملاء',
+            icon: Icons.point_of_sale_outlined,
+            onTap: () => context.push(AppRoutes.settingsPos),
+          ),
           _sectionLabel(context, 'النظام والأمان'),
           SettingsNavigationCard(
             title: 'إعدادات الأمان',

@@ -20,7 +20,10 @@ class SecuritySettingsPage extends StatefulWidget {
 
 class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   bool isPasswordEnabled = false;
-  TextEditingController passwordController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
+  bool _obscure = true;
 
   @override
   void initState() {
@@ -29,27 +32,46 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     final securityInfo = cubit.getSecurityInfo();
 
     isPasswordEnabled = securityInfo['isActive'] ?? false;
-    passwordController.text = securityInfo['password'] ?? '';
+    final storedPassword = securityInfo['password']?.toString() ?? '';
+    passwordController.text = storedPassword;
+    confirmPasswordController.text = storedPassword;
   }
 
   @override
   void dispose() {
     passwordController.dispose();
+    confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _saveSettings() async {
     final cubit = context.read<SettingsCubit>();
+
+    final password = passwordController.text;
+    if (isPasswordEnabled) {
+      if (password.isEmpty) {
+        AppToast.showError(context, 'يجب إدخال كلمة المرور لتفعيل القفل');
+        return;
+      }
+      if (password != confirmPasswordController.text) {
+        AppToast.showError(context, 'كلمتا المرور غير متطابقتين');
+        return;
+      }
+    }
+
     final securityInfo = {
       'isActive': isPasswordEnabled,
-      'password': passwordController.text,
+      'password': isPasswordEnabled ? password : '',
     };
 
     await cubit.updateSetting('security_info', securityInfo);
 
-    if (mounted) {
-      AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
+    if (!mounted) return;
+    if (!isPasswordEnabled) {
+      passwordController.clear();
+      confirmPasswordController.clear();
     }
+    AppToast.showSuccess(context, 'تم حفظ الإعدادات بنجاح');
   }
 
   @override
@@ -94,11 +116,48 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                         title: 'كلمة المرور',
                         controller: passwordController,
                         hintText: 'ادخل كلمة مرور جديدة',
-                        obscureText: true,
+                        obscureText: _obscure,
+                      ),
+                      const Divider(),
+                      SettingsTextFieldTile(
+                        icon: Icons.lock_outline,
+                        title: 'تأكيد كلمة المرور',
+                        controller: confirmPasswordController,
+                        hintText: 'أعد إدخال كلمة المرور',
+                        obscureText: _obscure,
                       ),
                     ],
                   ],
                 ),
+                if (isPasswordEnabled)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            'سيُطلب إدخال كلمة المرور عند فتح التطبيق وعند العودة إليه من الخلفية.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color:
+                                  Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () =>
+                              setState(() => _obscure = !_obscure),
+                          child: Text(_obscure ? 'إظهار' : 'إخفاء'),
+                        ),
+                      ],
+                    ),
+                  ),
                 const SizedBox(height: 12),
                 HasibButton(
                   label: 'حفظ التغييرات',

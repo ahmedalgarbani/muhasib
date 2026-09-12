@@ -49,35 +49,40 @@ class SettingsRepository implements ISettingsRepository {
   @override
   Future<void> updateSetting(String key, dynamic value) async {
     final merged = await _mergeWithCurrent(key, value);
-    await database.update(
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    final encoded = _encodeValue(merged);
+    final updated = await database.update(
       'settings',
       {
-        'setting_value': _encodeValue(merged),
-        'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'setting_value': encoded,
+        'last_modification_time': now,
       },
       where: 'setting_key = ?',
       whereArgs: [key],
     );
+    if (updated == 0) {
+      await database.insert(
+        'settings',
+        {
+          'setting_key': key,
+          'setting_value': encoded,
+          'setting_type': 'STRING',
+          'category': 'General',
+          'creation_time': now,
+          'last_modification_time': now,
+        },
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+    }
   }
 
   @override
   Future<void> updateMultipleSettings(Map<String, dynamic> settings) async {
-    final batch = database.batch();
-
+    // Sequential upserts: setting rows are few and this guarantees keys
+    // missing from the table are created instead of silently dropped.
     for (final entry in settings.entries) {
-      final merged = await _mergeWithCurrent(entry.key, entry.value);
-      batch.update(
-        'settings',
-        {
-          'setting_value': _encodeValue(merged),
-          'last_modification_time': DateTime.now().millisecondsSinceEpoch ~/ 1000,
-        },
-        where: 'setting_key = ?',
-        whereArgs: [entry.key],
-      );
+      await updateSetting(entry.key, entry.value);
     }
-
-    await batch.commit();
   }
 
   /// Keeps existing fields that the caller did not provide, so partial

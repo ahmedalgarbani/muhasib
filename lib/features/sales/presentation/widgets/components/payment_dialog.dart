@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
-import 'package:flutter/services.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
@@ -239,9 +238,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
                     decimal: true,
                   ),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(
-                      RegExp(r'^\d+\.?\d{0,2}'),
-                    ),
+                    DecimalTextInputFormatter(),
                   ],
                   prefixIcon: const Icon(Icons.attach_money),
                   suffixIcon: const Padding(

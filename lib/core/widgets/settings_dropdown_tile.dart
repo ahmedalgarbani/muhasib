@@ -20,6 +20,11 @@ class SettingsDropdownTile<T> extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final hasMatch = items.any((item) => item.value == value);
+    final safeValue = hasMatch
+        ? value
+        : (items.isNotEmpty ? items.first.value : null);
+
     return ListTile(
       leading: icon != null
           ? Icon(icon, size: 20, color: colorScheme.onSurfaceVariant)
@@ -30,7 +35,7 @@ class SettingsDropdownTile<T> extends StatelessWidget {
       ),
       subtitle: DropdownButtonHideUnderline(
         child: DropdownButton<T>(
-          value: value,
+          value: safeValue,
           items: items,
           onChanged: onChanged,
           isDense: true,
