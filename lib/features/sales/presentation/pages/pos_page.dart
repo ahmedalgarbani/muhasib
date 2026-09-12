@@ -287,6 +287,11 @@ class _PosPageState extends State<PosPage> {
       setState(
         () => _cart[id] = existing.copyWith(quantity: existing.quantity + 1),
       );
+      _maybeShowStockAlert(
+        product,
+        existing.quantity,
+        existing.quantity + 1,
+      );
       return;
     }
     // Resolve unit: forcedUnit or default sale unit or base
