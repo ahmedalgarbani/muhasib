@@ -1,5 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:muhasib/features/plans/domain/entities/plan_limit.dart';
+import 'package:muhasib/features/plans/domain/services/plan_limit_guard.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/domain/repositories/warehouse_repository.dart';
 
@@ -38,6 +40,11 @@ class WarehousesCubit extends Cubit<WarehousesState> {
   }
 
   Future<void> createWarehouse(WarehouseEntity warehouse) async {
+    final limitError = _planLimitError();
+    if (limitError != null) {
+      emit(WarehousesError(limitError));
+      return;
+    }
     emit(WarehousesLoading());
     final result = await repository.createWarehouse(warehouse);
     await result.fold(
@@ -83,5 +90,12 @@ class WarehousesCubit extends Cubit<WarehousesState> {
         await loadWarehouses();
       },
     );
+  }
+
+  String? _planLimitError() {
+    final currentState = state;
+    final currentCount =
+        currentState is WarehousesLoaded ? currentState.warehouses.length : 0;
+    return PlanLimitGuard.check(PlanLimit.maxWarehouses, currentCount);
   }
 }

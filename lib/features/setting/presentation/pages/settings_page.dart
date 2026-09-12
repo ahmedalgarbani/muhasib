@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/error_state_card.dart';
 import 'package:muhasib/core/widgets/settings_navigation_card.dart';
+import 'package:muhasib/features/plans/presentation/cubit/plans_cubit.dart';
+import 'package:muhasib/features/plans/presentation/cubit/plans_state.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -106,16 +109,41 @@ class _SettingsMenu extends StatelessWidget {
             onTap: () => context.push(AppRoutes.initialSetup),
           ),
           const SizedBox(height: 10),
+          BlocBuilder<PlansCubit, PlansState>(
+            builder: (context, state) {
+              final loaded = state is PlansLoaded ? state : null;
+              return SettingsNavigationCard(
+                title: 'تفعيل التطبيق',
+                subtitle: _activationSubtitle(loaded),
+                icon: Icons.verified_outlined,
+                badge: loaded?.plan.nameAr,
+                onTap: () => context.push(AppRoutes.settingsActivation),
+              );
+            },
+          ),
+          const SizedBox(height: 10),
           SettingsNavigationCard(
-            title: 'تفعيل التطبيق',
-            subtitle: 'الحصول على المميزات الكاملة للتطبيق',
-            icon: Icons.verified_outlined,
-            badge: 'قريباً',
-            onTap: () => context.push(AppRoutes.settingsActivation),
+            title: 'الخطط والترقية',
+            subtitle: 'قارن بين الخطط واختر الأنسب لنشاطك',
+            icon: Icons.workspace_premium_outlined,
+            onTap: () => context.push(AppRoutes.plans),
           ),
         ],
       ),
     );
+  }
+
+  String _activationSubtitle(PlansLoaded? state) {
+    if (state == null) return 'الحصول على المميزات الكاملة للتطبيق';
+    if (state.expired) return 'انتهت الصلاحية — يلزم تجديد الترخيص';
+    if (state.trial) {
+      return 'فترة تجريبية — متبقي ${state.daysRemaining ?? 0} يوماً';
+    }
+    final license = state.license;
+    if (license == null) return 'الحصول على المميزات الكاملة للتطبيق';
+    if (license.isPerpetual) return 'ترخيص دائم مفعّل';
+    final date = DateFormat('yyyy/MM/dd').format(license.expiresAt!);
+    return 'سارية حتى $date';
   }
 
   Widget _sectionLabel(BuildContext context, String text) {

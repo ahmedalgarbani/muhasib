@@ -1,5 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:muhasib/features/plans/domain/entities/plan_limit.dart';
+import 'package:muhasib/features/plans/domain/services/plan_limit_guard.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/domain/repositories/product_repository.dart';
 
@@ -38,6 +40,11 @@ class ProductsCubit extends Cubit<ProductsState> {
   }
 
   Future<void> createProduct(ProductEntity product) async {
+    final limitError = _planLimitError();
+    if (limitError != null) {
+      emit(ProductsError(limitError));
+      return;
+    }
     emit(ProductsLoading());
     final result = await repository.createProduct(product);
     await result.fold(
@@ -71,5 +78,12 @@ class ProductsCubit extends Cubit<ProductsState> {
         await loadProducts();
       },
     );
+  }
+
+  String? _planLimitError() {
+    final currentState = state;
+    final currentCount =
+        currentState is ProductsLoaded ? currentState.products.length : 0;
+    return PlanLimitGuard.check(PlanLimit.maxProducts, currentCount);
   }
 }

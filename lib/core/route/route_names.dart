@@ -87,6 +87,9 @@ class AppRoutes {
   static const String settingsMaintenance = '/settings/maintenance';
   static const String settingsActivation = '/settings/activation';
 
+  // ======= الخطط والاشتراك =======
+  static const String plans = '/plans';
+
   // ======= التقارير =======
   static const String reports = '/reports';
   static const String reportsTransactions = '/reports/transactions';

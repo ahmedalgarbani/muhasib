@@ -20,6 +20,7 @@ import 'package:muhasib/features/products/presentation/cubit/product_sub_units_c
 import 'package:muhasib/features/products/presentation/cubit/item_movements_cubit.dart';
 import 'package:muhasib/features/initial/presentation/cubit/initial_cubit.dart';
 import 'package:muhasib/features/main/presentation/cubit/main_cubit.dart';
+import 'package:muhasib/features/plans/presentation/cubit/plans_cubit.dart';
 import 'package:muhasib/features/reports/presentation/cubit/reports_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/setting_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
@@ -48,6 +49,10 @@ void main() async {
   // Load app settings into the shared cubit + SettingsCache so every
   // feature reads live values from the DB (formatting, sales rules, print...).
   await getIt<SettingsCubit>().loadSettings();
+
+  // Load the subscription license (starts a 30-day trial on first run) and
+  // prime PlanCache so gated features know the active entitlements.
+  await getIt<PlansCubit>().load();
 
   final storage = await HydratedStorage.build(
     storageDirectory: kIsWeb
@@ -91,6 +96,7 @@ void main() async {
         BlocProvider(create: (context) => LocaleCubit()),
         BlocProvider(create: (context) => getIt<PurchasesCubit>()),
         BlocProvider(create: (context) => getIt<SettingsCubit>()),
+        BlocProvider(create: (context) => getIt<PlansCubit>()),
         // WarehousesCubit
         BlocProvider(create: (context) => getIt<WarehousesCubit>()),
       ],

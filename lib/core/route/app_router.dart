@@ -87,6 +87,11 @@ import 'package:muhasib/features/setting/presentation/pages/stock_settings_page.
 import 'package:muhasib/features/setting/presentation/pages/other_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
     as new_settings_cubit;
+import 'package:muhasib/features/plans/domain/entities/plan_feature.dart';
+import 'package:muhasib/features/plans/domain/entities/plan_tier.dart';
+import 'package:muhasib/features/plans/presentation/pages/activation_page.dart';
+import 'package:muhasib/features/plans/presentation/pages/plans_page.dart';
+import 'package:muhasib/features/plans/presentation/widgets/feature_gate.dart';
 import 'package:muhasib/features/initial/presentation/cubit/initial_cubit.dart';
 import 'package:muhasib/features/initial/presentation/pages/initial_gate_page.dart';
 import 'package:muhasib/features/initial/presentation/pages/initial_setup_page.dart';
@@ -94,10 +99,6 @@ import 'package:muhasib/features/currencies/presentation/cubit/currencies_cubit.
 import 'package:muhasib/features/currencies/presentation/pages/currency_exchange_page_v2.dart';
 import 'package:muhasib/features/currencies/presentation/pages/currency_revaluation_page.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
-import 'package:muhasib/features/stores/presentation/cubit/stock_transfers_cubit.dart';
-import 'package:muhasib/features/stores/presentation/cubit/inventory_cubit.dart';
-import 'package:muhasib/features/stores/presentation/cubit/stock_adjustments_cubit.dart';
-import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/pages/annual_close_page.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_limit_page_clean.dart';
 import 'package:muhasib/features/settings_entities/settings_entities.dart'
@@ -239,25 +240,34 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.accountsJournal,
       name: AppRoutes.accountsJournal,
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<JournalEntryCubit>(),
-        child: const JournalEntriesListPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.accounting,
+        BlocProvider(
+          create: (_) => getIt<JournalEntryCubit>(),
+          child: const JournalEntriesListPage(),
+        ),
       ),
     ),
     GoRoute(
       path: AppRoutes.accountsJournalAdd,
       name: AppRoutes.accountsJournalAdd,
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<JournalEntryCubit>(),
-        child: const JournalEntryScreen(),
+      builder: (context, state) => _planGated(
+        PlanFeature.accounting,
+        BlocProvider(
+          create: (_) => getIt<JournalEntryCubit>(),
+          child: const JournalEntryScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: AppRoutes.accountsVouchers,
       name: AppRoutes.accountsVouchers,
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<VouchersCubit>(),
-        child: const VouchersPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.accounting,
+        BlocProvider(
+          create: (_) => getIt<VouchersCubit>(),
+          child: const VouchersPage(),
+        ),
       ),
     ),
     GoRoute(
@@ -268,35 +278,44 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.accountsLimits,
       name: AppRoutes.accountsLimits,
-      builder: (context, state) => BlocProvider(
-        create: (_) => getIt<AccountLimitsCubit>()..loadLimits(),
-        child: const AccountLimitsScreen(),
+      builder: (context, state) => _planGated(
+        PlanFeature.accounting,
+        BlocProvider(
+          create: (_) => getIt<AccountLimitsCubit>()..loadLimits(),
+          child: const AccountLimitsScreen(),
+        ),
       ),
     ),
     GoRoute(
       path: AppRoutes.accountsAnnualClose,
       name: AppRoutes.accountsAnnualClose,
-      builder: (context, state) => const AnnualClosePage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.accounting, const AnnualClosePage()),
     ),
 
     // ======= العملات =======
     GoRoute(
       path: AppRoutes.currenciesManage,
       name: AppRoutes.currenciesManage,
-      builder: (context, state) => const CurrenciesPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.multiCurrency, const CurrenciesPage()),
     ),
     GoRoute(
       path: AppRoutes.currenciesExchange,
       name: AppRoutes.currenciesExchange,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<CurrenciesCubit>(),
-        child: const CurrencyExchangePageV2(),
+      builder: (context, state) => _planGated(
+        PlanFeature.multiCurrency,
+        BlocProvider(
+          create: (context) => getIt<CurrenciesCubit>(),
+          child: const CurrencyExchangePageV2(),
+        ),
       ),
     ),
     GoRoute(
       path: AppRoutes.currenciesRevaluation,
       name: AppRoutes.currenciesRevaluation,
-      builder: (context, state) => const CurrencyRevaluationPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.multiCurrency, const CurrencyRevaluationPage()),
     ),
 
     // ======= المبيعات =======
@@ -316,11 +335,15 @@ final router = GoRouter(
           BlocProvider(create: (context) => getIt<SalesCubit>()),
           BlocProvider(create: (context) => getIt<CustomersCubit>()),
           BlocProvider(create: (context) => getIt<ProductsCubit>()),
-          BlocProvider(create: (context) => getIt<WarehousesCubit>()..loadWarehouses()),
+          BlocProvider(
+            create: (context) => getIt<WarehousesCubit>()..loadWarehouses(),
+          ),
           BlocProvider(create: (context) => getIt<CurrenciesCubit>()),
           BlocProvider(create: (context) => getIt<ProductGroupsCubit>()),
         ],
-        child: const ImprovedSalesInvoiceScreen(invoiceType: InvoiceType.salesInvoice),
+        child: const ImprovedSalesInvoiceScreen(
+          invoiceType: InvoiceType.salesInvoice,
+        ),
       ),
     ),
     GoRoute(
@@ -331,7 +354,9 @@ final router = GoRouter(
           BlocProvider(create: (context) => getIt<SalesCubit>()),
           BlocProvider(create: (context) => getIt<CustomersCubit>()),
           BlocProvider(create: (context) => getIt<ProductsCubit>()),
-          BlocProvider(create: (context) => getIt<WarehousesCubit>()..loadWarehouses()),
+          BlocProvider(
+            create: (context) => getIt<WarehousesCubit>()..loadWarehouses(),
+          ),
           BlocProvider(create: (context) => getIt<CurrenciesCubit>()),
           BlocProvider(create: (context) => getIt<ProductGroupsCubit>()),
         ],
@@ -341,35 +366,44 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.salesQuotes,
       name: AppRoutes.salesQuotes,
-      builder: (context, state) => BlocProvider(
-        create: (context) => getIt<SalesCubit>(),
-        child: const QuotationsPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.quotations,
+        BlocProvider(
+          create: (context) => getIt<SalesCubit>(),
+          child: const QuotationsPage(),
+        ),
       ),
     ),
     GoRoute(
       path: AppRoutes.salesReturns,
       name: AppRoutes.salesReturns,
-      builder: (context, state) => MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (context) => getIt<SalesCubit>()),
-          BlocProvider(
-            create: (context) => getIt<CustomersCubit>()..loadCustomers(),
-          ),
-        ],
-        child: const ReturnsPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.salesReturns,
+        MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => getIt<SalesCubit>()),
+            BlocProvider(
+              create: (context) => getIt<CustomersCubit>()..loadCustomers(),
+            ),
+          ],
+          child: const ReturnsPage(),
+        ),
       ),
     ),
     GoRoute(
       path: AppRoutes.selectInvoiceForReturn,
       name: AppRoutes.selectInvoiceForReturn,
-      builder: (context, state) => MultiBlocProvider(
-        providers: [
-          BlocProvider(create: (context) => getIt<SalesCubit>()),
-          BlocProvider(
-            create: (context) => getIt<CustomersCubit>()..loadCustomers(),
-          ),
-        ],
-        child: const SelectInvoiceForReturnPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.salesReturns,
+        MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (context) => getIt<SalesCubit>()),
+            BlocProvider(
+              create: (context) => getIt<CustomersCubit>()..loadCustomers(),
+            ),
+          ],
+          child: const SelectInvoiceForReturnPage(),
+        ),
       ),
     ),
     GoRoute(
@@ -377,20 +411,23 @@ final router = GoRouter(
       name: AppRoutes.salesReturnsForm,
       builder: (context, state) {
         final invoiceId = state.uri.queryParameters['invoiceId'];
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(create: (context) => getIt<SalesCubit>()),
-            BlocProvider(
-              create: (context) => getIt<CustomersCubit>()..loadCustomers(),
+        return _planGated(
+          PlanFeature.salesReturns,
+          MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (context) => getIt<SalesCubit>()),
+              BlocProvider(
+                create: (context) => getIt<CustomersCubit>()..loadCustomers(),
+              ),
+              BlocProvider(
+                create: (context) => getIt<ProductsCubit>()..loadProducts(),
+              ),
+            ],
+            child: ReturnInvoiceFormPage(
+              originalInvoiceId: invoiceId != null
+                  ? int.tryParse(invoiceId)
+                  : null,
             ),
-            BlocProvider(
-              create: (context) => getIt<ProductsCubit>()..loadProducts(),
-            ),
-          ],
-          child: ReturnInvoiceFormPage(
-            originalInvoiceId: invoiceId != null
-                ? int.tryParse(invoiceId)
-                : null,
           ),
         );
       },
@@ -405,7 +442,10 @@ final router = GoRouter(
             body: Center(child: Text('بيانات المرتجع غير متوفرة')),
           );
         }
-        return ReturnDetailPage(returnInvoice: returnInvoice);
+        return _planGated(
+          PlanFeature.salesReturns,
+          ReturnDetailPage(returnInvoice: returnInvoice),
+        );
       },
     ),
     GoRoute(
@@ -417,7 +457,9 @@ final router = GoRouter(
           BlocProvider(create: (_) => getIt<ProductsCubit>()),
           BlocProvider(create: (_) => getIt<CustomersCubit>()),
           BlocProvider(create: (_) => getIt<ProductGroupsCubit>()),
-          BlocProvider(create: (_) => getIt<WarehousesCubit>()..loadWarehouses()),
+          BlocProvider(
+            create: (_) => getIt<WarehousesCubit>()..loadWarehouses(),
+          ),
           BlocProvider(create: (_) => getIt<CurrenciesCubit>()),
         ],
         child: const PosPage(),
@@ -428,14 +470,18 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.purchases,
       name: AppRoutes.purchases,
-      builder: (context, state) => const PurchasesListPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.purchases, const PurchasesListPage()),
     ),
     GoRoute(
       path: AppRoutes.purchasesAddInvoice,
       name: AppRoutes.purchasesAddInvoice,
       builder: (context, state) {
         final invoice = state.extra as InvoiceEntity?;
-        return PurchaseFormPage(invoice: invoice);
+        return _planGated(
+          PlanFeature.purchases,
+          PurchaseFormPage(invoice: invoice),
+        );
       },
     ),
     GoRoute(
@@ -443,23 +489,29 @@ final router = GoRouter(
       name: AppRoutes.purchasesDetail,
       builder: (context, state) {
         final invoice = state.extra as InvoiceEntity;
-        return PurchaseDetailPage(invoice: invoice);
+        return _planGated(
+          PlanFeature.purchases,
+          PurchaseDetailPage(invoice: invoice),
+        );
       },
     ),
     GoRoute(
       path: AppRoutes.purchasesList,
       name: AppRoutes.purchasesList,
-      builder: (context, state) => const PurchasesListPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.purchases, const PurchasesListPage()),
     ),
     GoRoute(
       path: AppRoutes.purchasesOrders,
       name: AppRoutes.purchasesOrders,
-      builder: (context, state) => const PurchaseOrdersPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.purchaseOrders, const PurchaseOrdersPage()),
     ),
     GoRoute(
       path: AppRoutes.purchasesReturns,
       name: AppRoutes.purchasesReturns,
-      builder: (context, state) => const PurchaseReturnsPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.purchaseReturns, const PurchaseReturnsPage()),
     ),
 
     // ======= الأصناف =======
@@ -476,7 +528,8 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.itemsUnits,
       name: AppRoutes.itemsUnits,
-      builder: (context, state) => const ProductUnitsPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.multiUnit, const ProductUnitsPage()),
     ),
     GoRoute(
       path: AppRoutes.itemsManage,
@@ -486,7 +539,8 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.itemsSubUnits,
       name: AppRoutes.itemsSubUnits,
-      builder: (context, state) => const ProductSubUnitsPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.multiUnit, const ProductSubUnitsPage()),
     ),
     GoRoute(
       path: AppRoutes.itemsPricing,
@@ -523,22 +577,26 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.warehousesInventory,
       name: AppRoutes.warehousesInventory,
-      builder: (context, state) => const WarehousesInventoryPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.stockOperations, const WarehousesInventoryPage()),
     ),
     GoRoute(
       path: AppRoutes.warehousesAdjustment,
       name: AppRoutes.warehousesAdjustment,
-      builder: (context, state) => const StockAdjustmentPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.stockOperations, const StockAdjustmentPage()),
     ),
     GoRoute(
       path: AppRoutes.warehousesTransfer,
       name: AppRoutes.warehousesTransfer,
-      builder: (context, state) => const StockTransfersListPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.stockOperations, const StockTransfersListPage()),
     ),
     GoRoute(
       path: AppRoutes.warehousesTransferForm,
       name: AppRoutes.warehousesTransferForm,
-      builder: (context, state) => const StockTransferPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.stockOperations, const StockTransferPage()),
     ),
 
     // ======= التهيئات =======
@@ -625,7 +683,14 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.settingsActivation,
       name: AppRoutes.settingsActivation,
-      builder: (context, state) => const PlaceholderWidget('Activation'),
+      builder: (context, state) => ActivationPage(
+        suggestedTier: state.extra is PlanTier ? state.extra as PlanTier : null,
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.plans,
+      name: AppRoutes.plans,
+      builder: (context, state) => const PlansPage(),
     ),
 
     // ======= التقارير =======
@@ -666,32 +731,48 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsTrialBalance,
       name: AppRoutes.reportsTrialBalance,
-      builder: (context, state) => const TrialBalanceReportPage(),
+      builder: (context, state) =>
+          _planGated(PlanFeature.reportsAdvanced, const TrialBalanceReportPage()),
     ),
     GoRoute(
       path: AppRoutes.reportsIncomeStatement,
       name: AppRoutes.reportsIncomeStatement,
-      builder: (context, state) => const IncomeStatementReportPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.reportsAdvanced,
+        const IncomeStatementReportPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.reportsBalanceSheet,
       name: AppRoutes.reportsBalanceSheet,
-      builder: (context, state) => const BalanceSheetReportPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.reportsAdvanced,
+        const BalanceSheetReportPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.reportsCashFlow,
       name: AppRoutes.reportsCashFlow,
-      builder: (context, state) => const CashFlowReportPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.reportsAdvanced,
+        const CashFlowReportPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.reportsGeneralLedger,
       name: AppRoutes.reportsGeneralLedger,
-      builder: (context, state) => const GeneralLedgerReportPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.reportsAdvanced,
+        const GeneralLedgerReportPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.reportsJournal,
       name: AppRoutes.reportsJournal,
-      builder: (context, state) => const JournalReportPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.reportsAdvanced,
+        const JournalReportPage(),
+      ),
     ),
 
     // تقارير المبيعات
@@ -825,7 +906,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsAgedReceivables,
       name: AppRoutes.reportsAgedReceivables,
-      builder: (context, state) => const AgedReceivablesReportPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.reportsAdvanced,
+        const AgedReceivablesReportPage(),
+      ),
     ),
     GoRoute(
       path: AppRoutes.reportsSupplierStatement,
@@ -840,7 +924,10 @@ final router = GoRouter(
     GoRoute(
       path: AppRoutes.reportsAgedPayables,
       name: AppRoutes.reportsAgedPayables,
-      builder: (context, state) => const AgedPayablesReportPage(),
+      builder: (context, state) => _planGated(
+        PlanFeature.reportsAdvanced,
+        const AgedPayablesReportPage(),
+      ),
     ),
 
     // ======= الملفات الشخصية (العملاء والموردين) =======
@@ -898,6 +985,10 @@ final router = GoRouter(
     ),
   ],
 );
+
+/// Wraps a premium screen with the plan entitlement check.
+Widget _planGated(PlanFeature feature, Widget child) =>
+    FeatureGate(feature: feature, child: child);
 
 class PlaceholderWidget extends StatelessWidget {
   final String title;

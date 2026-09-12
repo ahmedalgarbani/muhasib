@@ -9,6 +9,8 @@ import 'package:muhasib/features/currencies/domain/usecases/get_currency_by_code
 import 'package:muhasib/features/currencies/domain/usecases/get_currency_by_id.dart';
 import 'package:muhasib/features/currencies/domain/usecases/search_currencies.dart';
 import 'package:muhasib/features/currencies/domain/usecases/update_currency.dart';
+import 'package:muhasib/features/plans/domain/entities/plan_limit.dart';
+import 'package:muhasib/features/plans/domain/services/plan_limit_guard.dart';
 
 part 'currencies_state.dart';
 
@@ -45,6 +47,14 @@ class CurrenciesCubit extends Cubit<CurrenciesState> {
   }
 
   Future<void> addCurrency(CurrencyEntity currency) async {
+    final limitError = PlanLimitGuard.check(
+      PlanLimit.maxCurrencies,
+      allCurrencies?.length ?? 0,
+    );
+    if (limitError != null) {
+      emit(CurrenciesError(limitError));
+      return;
+    }
     emit(CurrenciesLoading());
     final result = await createCurrency(params: currency);
     result.fold((failure) => emit(CurrenciesError(failure.message)), (id) {

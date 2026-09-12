@@ -117,6 +117,12 @@ import 'package:muhasib/features/setting/data/repositories/settings_repository.d
     as new_settings_repo;
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
     as new_settings_cubit;
+import 'package:muhasib/features/plans/data/datasources/plan_local_datasource.dart';
+import 'package:muhasib/features/plans/data/repositories/plan_repository_impl.dart';
+import 'package:muhasib/features/plans/data/services/device_identity_service_impl.dart';
+import 'package:muhasib/features/plans/domain/repositories/plan_repository.dart';
+import 'package:muhasib/features/plans/domain/services/device_identity_service.dart';
+import 'package:muhasib/features/plans/presentation/cubit/plans_cubit.dart';
 import 'package:muhasib/features/stores/data/datasources/warehouse_local_datasource.dart';
 import 'package:muhasib/features/stores/data/datasources/stock_transfer_local_datasource.dart';
 import 'package:muhasib/features/stores/data/datasources/inventory_local_datasource.dart';
@@ -750,6 +756,23 @@ class GetItHelper {
     );
     // Legacy simple SettingCubit used by /initial/setup route (no deps).
     getIt.registerFactory(() => SettingCubit());
+
+    // ==================== Plans & Licensing Feature ====================
+    getIt.registerLazySingleton<PlanLocalDataSource>(
+      () => PlanLocalDataSourceImpl(database: database),
+    );
+    getIt.registerLazySingleton<IPlanRepository>(
+      () => PlanRepositoryImpl(localDataSource: getIt<PlanLocalDataSource>()),
+    );
+    getIt.registerLazySingleton<DeviceIdentityService>(
+      () => DeviceIdentityServiceImpl(),
+    );
+    getIt.registerLazySingleton(
+      () => PlansCubit(
+        repository: getIt<IPlanRepository>(),
+        deviceIdentity: getIt<DeviceIdentityService>(),
+      ),
+    );
 
     // ==================== Settings Entities Feature ====================
     // Data Sources
