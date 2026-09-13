@@ -105,7 +105,7 @@ class LockedFeaturePage extends StatelessWidget {
                     ),
                   ),
                 ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
               HasibButton(
                 label: 'عرض الخطط والترقية',
                 icon: Icons.workspace_premium_outlined,

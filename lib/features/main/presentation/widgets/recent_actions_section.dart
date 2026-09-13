@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/features/accounts/presentation/pages/account_detail_old.dart';
 import 'package:muhasib/features/main/presentation/cubit/main_cubit.dart';
 import 'package:muhasib/features/main/presentation/widgets/recent_action_item.dart';
@@ -16,8 +17,14 @@ class RecentActionsSection extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      margin: const EdgeInsets.symmetric(
+        vertical: AppSpacing.sm,
+        horizontal: AppSpacing.lg,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
@@ -89,7 +96,7 @@ class RecentActionsSection extends StatelessWidget {
           const SizedBox(height: 8),
           if (transactions.isEmpty)
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
               child: Center(
                 child: Column(
                   children: [

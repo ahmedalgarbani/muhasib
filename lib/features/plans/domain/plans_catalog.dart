@@ -35,8 +35,8 @@ class PlansCatalog {
     nameAr: 'الأساسية',
     nameEn: 'Basic',
     taglineAr: 'للمتاجر الصغيرة التي تحتاج المخزون والمشتريات',
-    priceMonthly: 99,
-    priceYearly: 990,
+    priceMonthly: 250,
+    priceYearly: 2500,
     features: {
       PlanFeature.pointOfSale,
       PlanFeature.salesInvoices,
@@ -65,8 +65,8 @@ class PlansCatalog {
     nameAr: 'الاحترافية',
     nameEn: 'Professional',
     taglineAr: 'محاسبة كاملة، مخازن متعددة وعملات متعددة',
-    priceMonthly: 199,
-    priceYearly: 1990,
+    priceMonthly: 350,
+    priceYearly: 3500,
     isPopular: true,
     features: {
       PlanFeature.pointOfSale,
@@ -104,8 +104,8 @@ class PlansCatalog {
     nameAr: 'الأعمال',
     nameEn: 'Enterprise',
     taglineAr: 'بلا حدود، مع دعم ذو أولوية لفريقك',
-    priceMonthly: 399,
-    priceYearly: 3990,
+    priceMonthly: 550,
+    priceYearly: 5500,
     features: {
       PlanFeature.pointOfSale,
       PlanFeature.salesInvoices,
@@ -138,12 +138,12 @@ class PlansCatalog {
     },
   );
 
-  /// 30-day evaluation license with Professional-level entitlements.
+  /// 14-day evaluation license with Professional-level entitlements.
   static const PlanEntity trial = PlanEntity(
     tier: PlanTier.trial,
     nameAr: 'التجريبية',
     nameEn: 'Trial',
-    taglineAr: 'جرّب كل مميزات الخطة الاحترافية لمدة 30 يوماً',
+    taglineAr: 'جرّب كل مميزات الخطة الاحترافية لمدة 14 يوماً',
     priceMonthly: null,
     priceYearly: null,
     features: {
@@ -178,7 +178,12 @@ class PlansCatalog {
   );
 
   /// Purchasable plans shown on the upgrade screen (trial excluded).
-  static const List<PlanEntity> purchasablePlans = [free, basic, pro, enterprise];
+  static const List<PlanEntity> purchasablePlans = [
+    free,
+    basic,
+    pro,
+    enterprise,
+  ];
 
   static const List<PlanEntity> all = [free, basic, pro, enterprise, trial];
 

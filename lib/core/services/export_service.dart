@@ -15,9 +15,38 @@ class ExportService {
     required List<String> headers,
     required List<List<String>> data,
     Map<String, String>? settings,
+    bool showInvoiceTerms = false,
   }) async {
-    final pdf = await _generatePdf(title, headers, data, settings);
+    final pdf = await _generatePdf(
+      title,
+      headers,
+      data,
+      settings,
+      showInvoiceTerms: showInvoiceTerms,
+    );
     await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => pdf.save());
+  }
+
+  /// مشاركة المستند كملف PDF (شاشة المشاركة على الجوال).
+  static Future<void> sharePdf({
+    required String title,
+    required List<String> headers,
+    required List<List<String>> data,
+    Map<String, String>? settings,
+    bool showInvoiceTerms = false,
+  }) async {
+    final pdf = await _generatePdf(
+      title,
+      headers,
+      data,
+      settings,
+      showInvoiceTerms: showInvoiceTerms,
+    );
+    final bytes = await pdf.save();
+    await Printing.sharePdf(
+      bytes: bytes,
+      filename: '${title.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_')}.pdf',
+    );
   }
 
   /// تصدير البيانات إلى ملف Excel
@@ -59,26 +88,38 @@ class ExportService {
     String title,
     List<String> headers,
     List<List<String>> data,
-    Map<String, String>? settings,
-  ) async {
+    Map<String, String>? settings, {
+    bool showInvoiceTerms = false,
+  }) async {
     final pdf = pw.Document();
-    
+
     // تحميل الخط العربي لضمان ظهور النصوص العربية بشكل صحيح
-    // ملاحظة: تأكد من وجود الخط في مسار assets/fonts/Tajawal-Regular.ttf
+    // ملاحظة: تأكد من وجود الخط في مسار assets/fonts/Tajawal/Tajawal-Regular.ttf
     final fontData = await rootBundle.load("assets/fonts/Tajawal/Tajawal-Regular.ttf");
     final ttf = pw.Font.ttf(fontData);
+
+    final repeatHeader = SettingsCache.repeatPrintHeaderInAllPages;
+    final headerWidget = _buildHeader(
+      title,
+      settings,
+      ttf,
+      _loadImage(SettingsCache.personal['logoPath']?.toString()),
+    );
 
     pdf.addPage(
       pw.MultiPage(
         pageFormat: _pageFormat(),
         textDirection: pw.TextDirection.rtl,
         theme: pw.ThemeData.withFont(base: ttf),
+        header: repeatHeader
+            ? (context) => pw.Column(children: [headerWidget, pw.SizedBox(height: 10)])
+            : null,
         build: (context) => [
-          _buildHeader(title, settings, ttf),
+          if (!repeatHeader) headerWidget,
           pw.SizedBox(height: 10),
           _buildTable(headers, data, ttf),
           pw.SizedBox(height: 10),
-          _buildFooter(settings, ttf),
+          _buildFooter(settings, ttf, showInvoiceTerms: showInvoiceTerms),
         ],
       ),
     );
@@ -95,7 +136,23 @@ class ExportService {
     return size == 'A5' ? PdfPageFormat.a5 : PdfPageFormat.a4;
   }
 
-  static pw.Widget _buildHeader(String title, Map<String, String>? settings, pw.Font font) {
+  static pw.MemoryImage? _loadImage(String? path) {
+    if (path == null || path.isEmpty) return null;
+    try {
+      final file = File(path);
+      if (!file.existsSync()) return null;
+      return pw.MemoryImage(file.readAsBytesSync());
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static pw.Widget _buildHeader(
+    String title,
+    Map<String, String>? settings,
+    pw.Font font, [
+    pw.MemoryImage? logo,
+  ]) {
     final personal = SettingsCache.personal;
     final companyName = settings?['company_name'] ??
         (SettingsCache.showPrintCompanyName
@@ -104,16 +161,19 @@ class ExportService {
         'نظام محاسب الرقمي';
 
     final infoLines = <String>[
-      if (SettingsCache.showPrintCompanyAddress &&
+      if (SettingsCache.showPrintHeaderData &&
+          SettingsCache.showPrintCompanyAddress &&
           (personal['address']?.toString() ?? '').isNotEmpty)
         personal['address'].toString(),
-      if (SettingsCache.showPrintCompanyPhone &&
+      if (SettingsCache.showPrintHeaderData &&
+          SettingsCache.showPrintCompanyPhone &&
           (personal['phone']?.toString() ?? '').isNotEmpty)
         'هاتف: ${personal['phone']}',
     ];
 
     String dateStr = '';
-    if (SettingsCache.showPrintDate || SettingsCache.showPrintTime) {
+    if (SettingsCache.showPrintHeaderData &&
+        (SettingsCache.showPrintDate || SettingsCache.showPrintTime)) {
       final datePart = intl.DateFormat('yyyy/MM/dd').format(DateTime.now());
       final timePart = intl.DateFormat('HH:mm').format(DateTime.now());
       if (SettingsCache.showPrintDate && SettingsCache.showPrintTime) {
@@ -129,7 +189,18 @@ class ExportService {
       children: [
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
+            if (logo != null)
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(left: 8),
+                child: pw.Image(
+                  logo,
+                  width: 56,
+                  height: 56,
+                  fit: pw.BoxFit.contain,
+                ),
+              ),
             pw.Expanded(
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -165,9 +236,23 @@ class ExportService {
     );
   }
 
-  static pw.Widget _buildFooter(Map<String, String>? settings, pw.Font font) {
+  static pw.Widget _buildFooter(
+    Map<String, String>? settings,
+    pw.Font font, {
+    bool showInvoiceTerms = false,
+  }) {
+    final terms = showInvoiceTerms ? SettingsCache.invoiceTerms.trim() : '';
+    final footer = showInvoiceTerms ? SettingsCache.invoiceFooter.trim() : '';
     return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
+        if (terms.isNotEmpty || footer.isNotEmpty) ...[
+          pw.Divider(),
+          if (terms.isNotEmpty)
+            pw.Text('الشروط: $terms', style: pw.TextStyle(font: font, fontSize: 8)),
+          if (footer.isNotEmpty)
+            pw.Text(footer, style: pw.TextStyle(font: font, fontSize: 8)),
+        ],
         pw.Divider(),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,

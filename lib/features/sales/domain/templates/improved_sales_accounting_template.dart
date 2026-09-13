@@ -4,6 +4,12 @@ import 'package:muhasib/features/sales/domain/entities/journal_line_entity.dart'
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
 
+/// ⚠️ LEGACY / UNUSED: قالب محاسبي قديم غير مربوط بأي مسار إنتاجي.
+/// الترحيل الفعلي للمبيعات يتم عبر
+/// `lib/features/sales/data/datasources/invoice_local_datasource.dart`،
+/// والقالب المستخدم للمعاينة هو `SalesAccountingTemplate`.
+/// لا تُعدّل هذا الملف لتصحيح السلوك المحاسبي، ولا تربطه بالخطأ.
+///
 /// قالب محاسبي محُسّن للمبيعات
 /// يدعم جميع سيناريوهات الدفع والترحيل المحاسبي
 class ImprovedSalesAccountingTemplate {

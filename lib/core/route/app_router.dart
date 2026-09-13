@@ -68,7 +68,6 @@ import 'package:muhasib/features/products/presentation/pages/products_page.dart'
 import 'package:muhasib/features/products/presentation/pages/product_sub_units_page.dart';
 import 'package:muhasib/features/products/presentation/pages/product_pricing_page.dart';
 import 'package:muhasib/features/products/presentation/pages/item_movements_page.dart';
-import 'package:muhasib/features/setting/presentation/cubit/setting_cubit.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/pages/stock_adjustment_page.dart';
 import 'package:muhasib/features/stores/presentation/pages/stock_transfer_page.dart';
@@ -85,6 +84,7 @@ import 'package:muhasib/features/setting/presentation/pages/security_settings_pa
 import 'package:muhasib/features/setting/presentation/pages/voucher_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/pages/stock_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/pages/pos_settings_page.dart';
+import 'package:muhasib/features/setting/presentation/pages/backup_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/pages/other_settings_page.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
     as new_settings_cubit;
@@ -105,7 +105,10 @@ import 'package:muhasib/features/accounts/presentation/pages/accounts_limit_page
 import 'package:muhasib/features/settings_entities/settings_entities.dart'
     as settings_entities;
 
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
 final router = GoRouter(
+  navigatorKey: rootNavigatorKey,
   debugLogDiagnostics: kDebugMode,
   initialLocation: AppRoutes.splash,
   redirect: (context, state) {
@@ -135,7 +138,6 @@ final router = GoRouter(
       name: AppRoutes.initialSetup,
       builder: (context, state) => MultiBlocProvider(
         providers: [
-          BlocProvider(create: (context) => getIt<SettingCubit>()),
           BlocProvider(create: (context) => getIt<CurrenciesCubit>()),
           BlocProvider(create: (context) => getIt<WarehousesCubit>()),
           BlocProvider(create: (context) => getIt<InitialCubit>()),
@@ -688,6 +690,14 @@ final router = GoRouter(
       builder: (context, state) => BlocProvider.value(
         value: getIt<new_settings_cubit.SettingsCubit>(),
         child: const OtherSettingsPage(),
+      ),
+    ),
+    GoRoute(
+      path: AppRoutes.settingsBackup,
+      name: AppRoutes.settingsBackup,
+      builder: (context, state) => BlocProvider.value(
+        value: getIt<new_settings_cubit.SettingsCubit>(),
+        child: const BackupSettingsPage(),
       ),
     ),
     GoRoute(

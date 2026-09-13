@@ -353,21 +353,21 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
         code: '1003',
         cId: 1130,
         name: 'المخزون',
-        type: 1,
+        type: 0,
       );
       final increaseAccountId = await _getOrCreateAccount(
         txn,
         code: '4200',
         cId: 4200,
         name: 'إيرادات تسوية المخزون',
-        type: 4,
+        type: 3,
       );
       final decreaseAccountId = await _getOrCreateAccount(
         txn,
         code: '5200',
         cId: 5200,
         name: 'خسائر تسوية المخزون',
-        type: 5,
+        type: 4,
       );
 
       // Journal entry for increases (gains)
@@ -527,9 +527,8 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
     return any.first['id'] as int;
   }
 
-  /// Applies delta to account balance respecting normal balance (debit vs credit).
-  /// delta = +amount for debit, -amount for credit (debit-normal convention).
-  /// For credit-normal accounts (liability/equity/revenue type 2,3,4) we invert.
+  /// Applies a signed debit-normal delta (debit - credit) to the account
+  /// balance cache, consistent with invoice/payment/opening engines.
   Future<void> _applyAccountBalanceDelta(
     Transaction txn,
     int accountId,
@@ -537,16 +536,14 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
   ) async {
     final rows = await txn.query(
       'accounts',
-      columns: ['balance', 'type'],
+      columns: ['balance'],
       where: 'id = ?',
       whereArgs: [accountId],
       limit: 1,
     );
     if (rows.isEmpty) return;
     final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
-    final type = (rows.first['type'] as int?) ?? 1;
-    final isCreditNormal = type == 2 || type == 3 || type == 4;
-    final newBalance = isCreditNormal ? current - delta : current + delta;
+    final newBalance = current + delta;
     await txn.update(
       'accounts',
       {

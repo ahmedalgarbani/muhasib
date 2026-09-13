@@ -53,7 +53,7 @@ class LicenseKeyService {
   static const String _perpetual = 'PERP';
   static const int _signatureLength = 16;
   static const int _fingerprintLength = 6;
-  static const int _trialDays = 30;
+  static const int trialDays = 14;
 
   static final RegExp _keyPattern = RegExp(
     r'^MHSB-([A-Z])-(\d{8}|PERP)-([A-Z2-9]{6})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})-([A-Z0-9]{4})$',
@@ -63,7 +63,7 @@ class LicenseKeyService {
   /// Professional-level entitlements. Used once per install.
   static LicenseEntity trialLicense({
     required String deviceId,
-    int days = _trialDays,
+    int days = trialDays,
   }) {
     final now = DateTime.now();
     final expiry = DateTime(

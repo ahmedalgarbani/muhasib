@@ -5,6 +5,11 @@ import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// ⚠️ LEGACY / UNUSED: هذا المحرك المحاسبي غير مربوط بأي مسار إنتاجي.
+/// مسار الترحيل الفعلي للمشتريات هو `_postPurchaseInvoiceToJournal` في
+/// `lib/features/sales/data/datasources/invoice_local_datasource.dart`.
+/// لا تُعدّل هذا الملف لتصحيح السلوك المحاسبي، ولا تربطه بالخطأ.
+///
 /// Comprehensive service for processing purchase invoices
 /// Handles: Inventory updates, average cost calculation, VAT, and journal entries
 class PurchaseInvoiceAccountingService {

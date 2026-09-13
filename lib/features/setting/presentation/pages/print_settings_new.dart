@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
@@ -10,7 +8,8 @@ import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class PrintSettingsPage extends StatefulWidget {
   const PrintSettingsPage({super.key});
@@ -21,10 +20,8 @@ class PrintSettingsPage extends StatefulWidget {
 
 class _PrintSettingsPageState extends State<PrintSettingsPage> {
   // Print Settings Variables
-  String _printType = 'A4';
-  String _printMethod = 'Pdf';
   String _printSize = 'A4';
-  String _connectionType = 'عبر وسيط آخر';
+  String _orientation = 'portrait';
 
   // Toggles
   bool _showHeaderData = true;
@@ -33,6 +30,7 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
   bool _showCompanyPhone = true;
   bool _showDate = false;
   bool _showTime = false;
+  bool _tafqeetAmount = false;
 
   @override
   void initState() {
@@ -45,12 +43,8 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
     final printerInfo = cubit.getPrinterInfo();
 
     setState(() {
-      _printType = _getPrintTypeString(printerInfo['printType'] ?? 1);
-      _printMethod = _getPrintMethodString(printerInfo['printSize'] ?? 0);
       _printSize = printerInfo['print_paper_size'] ?? 'A4';
-      _connectionType = _getConnectionTypeString(
-        printerInfo['printerConnect'] ?? 1,
-      );
+      _orientation = printerInfo['print_orientation'] ?? 'portrait';
 
       _showHeaderData = printerInfo['showHeaderData'] ?? true;
       _showCompanyName = printerInfo['showHeaderCompanyName'] ?? true;
@@ -58,77 +52,8 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
       _showCompanyPhone = printerInfo['showHeaderCompanyPhone'] ?? true;
       _showDate = printerInfo['showDate'] ?? false;
       _showTime = printerInfo['showTime'] ?? false;
+      _tafqeetAmount = printerInfo['tafqeetAmount'] ?? false;
     });
-  }
-
-  String _getPrintTypeString(int type) {
-    switch (type) {
-      case 0:
-        return 'A5';
-      case 1:
-        return 'A4';
-      case 2:
-        return 'Letter';
-      default:
-        return 'A4';
-    }
-  }
-
-  String _getPrintMethodString(int method) {
-    switch (method) {
-      case 0:
-        return 'Pdf';
-      case 1:
-        return 'Html';
-      default:
-        return 'Pdf';
-    }
-  }
-
-  String _getConnectionTypeString(int type) {
-    switch (type) {
-      case 0:
-        return 'غير وسيط آخر';
-      case 1:
-        return 'عبر وسيط آخر';
-      default:
-        return 'عبر وسيط آخر';
-    }
-  }
-
-  int _getPrintTypeInt(String type) {
-    switch (type) {
-      case 'A5':
-        return 0;
-      case 'A4':
-        return 1;
-      case 'Letter':
-        return 2;
-      default:
-        return 1;
-    }
-  }
-
-  int _getPrintMethodInt(String method) {
-    switch (method) {
-      case 'Pdf':
-        return 0;
-      case 'Html':
-        return 1;
-      default:
-        return 0;
-    }
-  }
-
-  int _getConnectionTypeInt(String type) {
-    switch (type) {
-      case 'غير وسيط آخر':
-        return 0;
-      case 'عبر وسيط آخر':
-        return 1;
-      default:
-        return 1;
-    }
   }
 
   Future<void> _saveSettings() async {
@@ -137,16 +62,15 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
 
     final updatedInfo = {
       ...printerInfo,
-      'printType': _getPrintTypeInt(_printType),
-      'printSize': _getPrintMethodInt(_printMethod),
       'print_paper_size': _printSize,
-      'printerConnect': _getConnectionTypeInt(_connectionType),
+      'print_orientation': _orientation,
       'showHeaderData': _showHeaderData,
       'showHeaderCompanyName': _showCompanyName,
       'showHeaderCompanyAddress': _showCompanyAddress,
       'showHeaderCompanyPhone': _showCompanyPhone,
       'showDate': _showDate,
       'showTime': _showTime,
+      'tafqeetAmount': _tafqeetAmount,
     };
 
     await cubit.updateSetting('printer_info', updatedInfo);
@@ -192,28 +116,6 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                 SettingsCard(
                   children: [
                     SettingsDropdownTile<String>(
-                      icon: Icons.description_outlined,
-                      title: 'نوع الخط في الطباعة',
-                      value: _printType,
-                      items: ['A4', 'A5', 'Letter']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _printType = value!),
-                    ),
-                    const Divider(),
-                    SettingsDropdownTile<String>(
-                      icon: Icons.print_outlined,
-                      title: 'طريقة الطباعة',
-                      value: _printMethod,
-                      items: ['Pdf', 'Html']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
-                      onChanged: (value) =>
-                          setState(() => _printMethod = value!),
-                    ),
-                    const Divider(),
-                    SettingsDropdownTile<String>(
                       icon: Icons.photo_size_select_large_outlined,
                       title: 'حجم الطباعة',
                       value: _printSize,
@@ -225,14 +127,21 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                     ),
                     const Divider(),
                     SettingsDropdownTile<String>(
-                      icon: Icons.link_outlined,
-                      title: 'نوع اتصال الطابعة',
-                      value: _connectionType,
-                      items: ['عبر وسيط آخر', 'غير وسيط آخر']
-                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                          .toList(),
+                      icon: Icons.screen_rotation_outlined,
+                      title: 'اتجاه الصفحة',
+                      value: _orientation,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'portrait',
+                          child: Text('طولي'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'landscape',
+                          child: Text('عرضي'),
+                        ),
+                      ],
                       onChanged: (value) =>
-                          setState(() => _connectionType = value!),
+                          setState(() => _orientation = value!),
                     ),
                   ],
                 ),
@@ -286,6 +195,28 @@ class _PrintSettingsPageState extends State<PrintSettingsPage> {
                       value: _showCompanyPhone,
                       onChanged: (value) =>
                           setState(() => _showCompanyPhone = value),
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      icon: Icons.calendar_today_outlined,
+                      title: 'عرض التاريخ',
+                      value: _showDate,
+                      onChanged: (value) => setState(() => _showDate = value),
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      icon: Icons.access_time_outlined,
+                      title: 'عرض الوقت',
+                      value: _showTime,
+                      onChanged: (value) => setState(() => _showTime = value),
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      icon: Icons.record_voice_over_outlined,
+                      title: 'تفقيط المبلغ (كتابة المبلغ بالحروف)',
+                      value: _tafqeetAmount,
+                      onChanged: (value) =>
+                          setState(() => _tafqeetAmount = value),
                     ),
                   ],
                 ),

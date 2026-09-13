@@ -80,6 +80,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
       totalAmount: returnInvoice.finalAmt ?? returnInvoice.amount,
       taxAmount: returnInvoice.taxAmt ?? 0,
       netAmount: returnInvoice.amount,
+      discountAmount: returnInvoice.discountAmt ?? 0,
       lines: invoiceLines,
     );
   }

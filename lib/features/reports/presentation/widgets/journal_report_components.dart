@@ -69,12 +69,14 @@ class WarningBannerWidget extends StatelessWidget {
         children: [
           const Icon(Icons.error, color: Colors.red, size: 18),
           const SizedBox(width: 8),
-          Text(
-            message,
-            style: const TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.bold,
-              fontSize: 12,
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: Colors.red,
+                fontWeight: FontWeight.bold,
+                fontSize: 12,
+              ),
             ),
           ),
         ],
@@ -210,26 +212,32 @@ class JournalEntryCardWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                Row(
-                  children: [
-                    Text(
-                      formatCurrency(entry.totalDebit),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Colors.blue,
-                      ),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Row(
+                      children: [
+                        Text(
+                          formatCurrency(entry.totalDebit),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Colors.blue,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Text(
+                          formatCurrency(entry.totalCredit),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 16),
-                    Text(
-                      formatCurrency(entry.totalCredit),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),

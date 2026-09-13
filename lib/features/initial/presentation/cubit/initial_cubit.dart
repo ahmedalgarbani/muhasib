@@ -48,6 +48,7 @@ class InitialCubit extends Cubit<InitialState> {
       emit(InitialOpeningBalancesSaved());
     } catch (e) {
       emit(InitialError('فشل في حفظ الأرصدة الافتتاحية: $e'));
+      rethrow;
     }
   }
 

@@ -16,6 +16,18 @@ class OpeningBalanceAccountingTemplate {
     try {
       final db = await _database.database;
       await db.transaction((txn) async {
+        // Prevent duplicate posting: opening balances are entered once.
+        final existing = await txn.query(
+          'opening_entries',
+          columns: ['id'],
+          limit: 1,
+        );
+        if (existing.isNotEmpty) {
+          throw Exception(
+            'توجد أرصدة افتتاحية مسجلة مسبقًا. احذف الأرصدة الحالية قبل حفظ أرصدة جديدة.',
+          );
+        }
+
         // Enforce accounting principle: total debits must equal total credits.
         final totalDebits = _calculateTotalDebits(openingBalances);
         final totalCredits = _calculateTotalCredits(openingBalances);
@@ -93,19 +105,23 @@ class OpeningBalanceAccountingTemplate {
     }
   }
 
-  /// Updates account balance in the accounts table
+  /// Applies the opening balance as a delta on top of the existing balance
+  /// (never overwrites, to avoid wiping transaction-driven balances).
   Future<void> _updateAccountBalance(
     dynamic txn,
     OpeningBalanceEntity balance,
   ) async {
-    await txn.update(
-      'accounts',
-      {
-        'balance': balance.balance,
-        'local_balance': balance.balance * (balance.exchangeRate ?? 1.0),
-      },
-      where: 'id = ?',
-      whereArgs: [balance.accountId],
+    final localDelta = balance.balance * (balance.exchangeRate ?? 1.0);
+    await txn.rawUpdate(
+      'UPDATE accounts '
+      'SET balance = balance + ?, local_balance = local_balance + ?, last_modification_time = ? '
+      'WHERE id = ?',
+      [
+        balance.balance,
+        localDelta,
+        DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        balance.accountId,
+      ],
     );
   }
 

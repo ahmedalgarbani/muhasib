@@ -181,13 +181,13 @@ void main() {
   });
 
   group('trialLicense', () {
-    test('creates a valid 30-day trial bound to the device', () {
+    test('creates a valid 14-day trial bound to the device', () {
       final trial = LicenseKeyService.trialLicense(deviceId: _deviceA);
 
       expect(trial.isTrial, isTrue);
       expect(trial.tier, PlanTier.trial);
       expect(trial.isExpired, isFalse);
-      expect(trial.daysRemaining, inInclusiveRange(28, 30));
+      expect(trial.daysRemaining, inInclusiveRange(12, 14));
       expect(
         LicenseKeyService.validate(trial.key, deviceId: _deviceA).isValid,
         isTrue,

@@ -2,6 +2,11 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
 import 'package:intl/intl.dart';
 
+/// ⚠️ LEGACY / UNUSED: قالب محاسبي غير مربوط بأي مسار إنتاجي.
+/// المسار الفعلي لتسوية المخزون هو
+/// `lib/features/stores/data/datasources/stock_adjustment_local_datasource.dart`.
+/// لا تُعدّل هذا الملف لتصحيح السلوك المحاسبي، ولا تربطه بالخطأ.
+///
 /// Stock Adjustment Accounting Template
 /// Creates proper journal entries for inventory adjustments
 class StockAdjustmentAccountingTemplate {
@@ -147,7 +152,7 @@ class StockAdjustmentAccountingTemplate {
       'code': '4200',
       'name': 'إيرادات تسوية المخزون',
       'is_master': 0,
-      'type': 4,
+      'type': 3,
       'national': 1,
       'is_active': 1,
       'allow_update_delete': 1,
@@ -180,7 +185,7 @@ class StockAdjustmentAccountingTemplate {
       'code': '5200',
       'name': 'خسائر تسوية المخزون',
       'is_master': 0,
-      'type': 5,
+      'type': 4,
       'national': 1,
       'is_active': 1,
       'allow_update_delete': 1,

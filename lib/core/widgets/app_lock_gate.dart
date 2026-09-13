@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
+
+/// Global lock state so app-level services (e.g. exit reminder) can check
+/// whether the lock screen is currently blocking the UI.
+class AppLockState {
+  static final ValueNotifier<bool> locked = ValueNotifier<bool>(false);
+}
 
 /// Wraps the app content and enforces the password lock configured in
 /// settings (`security_info.isActive` + `security_info.password`).
@@ -24,7 +31,7 @@ class _AppLockGateState extends State<AppLockGate>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _locked = _securityEnabled;
+    _setLocked(_securityEnabled);
   }
 
   @override
@@ -43,12 +50,21 @@ class _AppLockGateState extends State<AppLockGate>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.paused && _securityEnabled && !_locked) {
-      setState(() => _locked = true);
+      _setLocked(true);
+    }
+  }
+
+  void _setLocked(bool value) {
+    AppLockState.locked.value = value;
+    if (mounted) {
+      setState(() => _locked = value);
+    } else {
+      _locked = value;
     }
   }
 
   void _unlock() {
-    setState(() => _locked = false);
+    _setLocked(false);
   }
 
   @override
@@ -119,14 +135,14 @@ class _AppLockScreenState extends State<AppLockScreen> {
       child: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(28),
+            padding: const EdgeInsets.all(AppSpacing.xxl),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 380),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(20),
+                    padding: const EdgeInsets.all(AppSpacing.lg),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primaryContainer,
                       shape: BoxShape.circle,
@@ -137,21 +153,21 @@ class _AppLockScreenState extends State<AppLockScreen> {
                       color: theme.colorScheme.onPrimaryContainer,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     'التطبيق مقفل',
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     'أدخل كلمة المرور للمتابعة',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: AppSpacing.xxl),
                   TextField(
                     controller: _controller,
                     focusNode: _focusNode,
@@ -179,7 +195,7 @@ class _AppLockScreenState extends State<AppLockScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: AppSpacing.lg),
                   SizedBox(
                     width: double.infinity,
                     height: 50,

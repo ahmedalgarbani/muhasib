@@ -33,8 +33,8 @@ Copy one of these for any status:
   # Enterprise plan, perpetual
   dart run tool/generate_license_key.dart --device <id> --tier enterprise --perpetual
 
-  # Trial plan, 30 days
-  dart run tool/generate_license_key.dart --device <id> --tier trial --days 30
+  # Trial plan, 14 days
+  dart run tool/generate_license_key.dart --device <id> --tier trial --days 14
 
   # Expired key (for UI testing only)
   dart run tool/generate_license_key.dart --device <id> --tier pro --date 2020-01-01
@@ -179,11 +179,11 @@ void _printExamples(String deviceId) {
       ),
     ],
     [
-      'التجريبية - 30 يوم',
+      'التجريبية - 14 يوم',
       LicenseKeyService.generate(
         tier: PlanTier.trial,
         deviceId: deviceId,
-        expiresAt: now.add(const Duration(days: 30)),
+        expiresAt: now.add(const Duration(days: 14)),
       ),
     ],
     [

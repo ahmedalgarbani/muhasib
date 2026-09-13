@@ -6,6 +6,7 @@ class SettingsImagePickerTile extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
   final String buttonText;
+  final bool enabled;
 
   const SettingsImagePickerTile({
     super.key,
@@ -13,17 +14,27 @@ class SettingsImagePickerTile extends StatelessWidget {
     required this.icon,
     required this.onTap,
     this.buttonText = 'اختر',
+    this.enabled = true,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     return ListTile(
-      onTap: onTap,
-      leading: Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+      onTap: enabled ? onTap : null,
+      leading: Icon(
+        icon,
+        size: 20,
+        color: enabled
+            ? colorScheme.onSurfaceVariant
+            : colorScheme.outlineVariant,
+      ),
       title: Text(
         label,
-        style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
+        style: TextStyle(
+          fontSize: 13,
+          color: enabled ? colorScheme.onSurface : colorScheme.outlineVariant,
+        ),
       ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
@@ -32,7 +43,9 @@ class SettingsImagePickerTile extends StatelessWidget {
             buttonText,
             style: TextStyle(
               fontSize: 13,
-              color: Theme.of(context).primaryColor,
+              color: enabled
+                  ? Theme.of(context).primaryColor
+                  : colorScheme.outlineVariant,
             ),
           ),
           const SizedBox(width: 4),

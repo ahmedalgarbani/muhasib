@@ -539,7 +539,7 @@ class CustomerDataSourceImpl implements CustomerDataSource {
         'code': '3100',
         'name': 'أرصدة افتتاحية',
         'is_master': 0,
-        'type': 3,  // Equity
+        'type': 2,  // Equity
         'national': 1,
         'is_active': 1,
         'allow_update_delete': 0,

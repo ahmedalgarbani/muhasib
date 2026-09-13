@@ -114,12 +114,32 @@ class SettingsCache {
 
   static String? get securityPassword {
     final value = _get(security, 'password', null);
-    return value == null ? null : value.toString();
+    return value?.toString();
   }
 
   // backup_settings
+  static bool get backupEnabled =>
+      _get(security, 'backup_enabled', true) as bool;
+
+  static String get backupFrequency =>
+      _get(security, 'backup_frequency', 'daily') as String;
+
   static int get backupDeviceSaveMethod =>
       _get(backup, 'deviceSaveMethod', 1) as int;
+
+  static DateTime? get backupDeviceSaveTime {
+    final value = _get(backup, 'deviceSaveTime', null);
+    if (value == null) return null;
+    if (value is int) {
+      return DateTime.fromMillisecondsSinceEpoch(value);
+    }
+    if (value is String) {
+      final parsed = int.tryParse(value);
+      if (parsed != null) return DateTime.fromMillisecondsSinceEpoch(parsed);
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
 
   static int get backupDriveSaveMethod =>
       _get(backup, 'driveSaveMethod', 0) as int;
@@ -173,6 +193,9 @@ class SettingsCache {
   static bool get showCostWhenAddInvoice =>
       _get(stock, 'showCostAmountInCategoryWhenAddInvoice', true) as bool;
 
+  static bool get showCostWhenAddInvoiceInPos =>
+      _get(stock, 'showCostAmountInCategoryWhenAddInvoicePOS', false) as bool;
+
   static bool get allowReturnWithoutInvoice =>
       _get(stock, 'allowReturnWithoutInvoice', true) as bool;
 
@@ -181,6 +204,11 @@ class SettingsCache {
 
   static String get invoiceFooter =>
       _get(stock, 'invoice_footer', '') as String;
+
+  static bool get inventoryTracking =>
+      _get(stock, 'inventory_tracking', true) as bool;
+
+  static int get lowStockAlert => _get(stock, 'low_stock_alert', 10) as int;
 
   static bool get checkFundAndBankBalanceInInvoice =>
       _get(stock, 'checkFundAndBankBalanceEnabledInInvoice', false) as bool;
@@ -226,7 +254,7 @@ class SettingsCache {
 
   static String? get voucherNotesInBottom {
     final value = _get(voucher, 'notesInBotton', null);
-    return value == null ? null : value.toString();
+    return value?.toString();
   }
 
   static bool get showAccountBalanceInVoucher =>
@@ -236,6 +264,23 @@ class SettingsCache {
       _get(voucher, 'checkFundAndBankBalanceEnabledInVoucher', false) as bool;
 
   // printer_info
+  static bool get showPrintHeaderData =>
+      _get(printer, 'showHeaderData', true) as bool;
+
+  static bool get repeatPrintHeaderInAllPages =>
+      _get(printer, 'repateHeaderInAllPages', true) as bool;
+
+  static int get printCopies => _get(printer, 'print_copies', 1) as int;
+
+  static bool get showPrintPreview =>
+      _get(printer, 'show_print_preview', false) as bool;
+
+  static int get showSignatureAndSealingInVoucher =>
+      (_get(printer, 'showSignatureAndSealingInVoucher', 2) as num).toInt();
+
+  static int get showSignatureAndSealingInInvoice =>
+      (_get(printer, 'showSignatureAndSealingInInvoice', 2) as num).toInt();
+
   static bool get showPrintDate => _get(printer, 'showDate', false) as bool;
 
   static bool get showPrintTime => _get(printer, 'showTime', false) as bool;

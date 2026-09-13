@@ -130,13 +130,18 @@ class AccountStatementTransactionCardWidget extends StatelessWidget {
             title: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  t.description,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
+                Expanded(
+                  child: Text(
+                    t.description,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   NumberFormatter.formatCurrency(t.balance, symbol: 'ر.س'),
                   style: const TextStyle(
@@ -173,13 +178,14 @@ class AccountStatementTransactionCardWidget extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.all(12),
-            child: Row(
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 6,
               children: [
                 AccountStatementAmountBadgeWidget(
                   label: 'مدين: ${NumberFormatter.formatNumber(t.debitAmount)}',
                   color: Colors.green,
                 ),
-                const SizedBox(width: 10),
                 AccountStatementAmountBadgeWidget(
                   label: 'دائن: ${NumberFormatter.formatNumber(t.creditAmount)}',
                   color: Colors.red,

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/core/services/settings_cache.dart';
@@ -42,14 +44,19 @@ class VoucherPrintService {
     final ttf = pw.Font.ttf(fontData);
     final bottomNotes = SettingsCache.voucherNotesInBottom;
 
+    final logo = _loadImage(SettingsCache.personal['logoPath']?.toString());
+    final signature =
+        _loadImage(SettingsCache.personal['signature']?.toString());
+    final seal = _loadImage(SettingsCache.personal['sealingPath']?.toString());
+
     final pdf = pw.Document();
     pdf.addPage(
       pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
+        pageFormat: _pageFormat(),
         textDirection: pw.TextDirection.rtl,
         theme: pw.ThemeData.withFont(base: ttf),
         build: (context) => [
-          _buildHeader(ttf, date, number),
+          _buildHeader(ttf, date, number, logo),
           pw.SizedBox(height: 10),
           pw.Center(
             child: pw.Text(
@@ -71,7 +78,7 @@ class VoucherPrintService {
             ),
           ],
           pw.SizedBox(height: 48),
-          _buildSignatures(ttf, isReceipt),
+          _buildSignatures(ttf, isReceipt, signature, seal),
           if (notes != null && notes.isNotEmpty) ...[
             pw.SizedBox(height: 12),
             pw.Text(notes, style: pw.TextStyle(font: ttf, fontSize: 11)),
@@ -86,7 +93,34 @@ class VoucherPrintService {
     return pdf;
   }
 
-  static pw.Widget _buildHeader(pw.Font ttf, DateTime date, String number) {
+  static pw.MemoryImage? _loadImage(String? path) {
+    if (path == null || path.isEmpty) return null;
+    try {
+      final file = File(path);
+      if (!file.existsSync()) return null;
+      return pw.MemoryImage(file.readAsBytesSync());
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static PdfPageFormat _pageFormat() {
+    final size = SettingsCache.printPaperSize;
+    final landscape = SettingsCache.printOrientation == 'landscape';
+    if (landscape) {
+      return size == 'A5'
+          ? PdfPageFormat.a5.landscape
+          : PdfPageFormat.a4.landscape;
+    }
+    return size == 'A5' ? PdfPageFormat.a5 : PdfPageFormat.a4;
+  }
+
+  static pw.Widget _buildHeader(
+    pw.Font ttf,
+    DateTime date,
+    String number,
+    pw.MemoryImage? logo,
+  ) {
     final companyName = SettingsCache.personal['name']?.toString() ?? '';
     return pw.Column(
       children: [
@@ -94,6 +128,16 @@ class VoucherPrintService {
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
+            if (logo != null)
+              pw.Padding(
+                padding: const pw.EdgeInsets.only(left: 8),
+                child: pw.Image(
+                  logo,
+                  width: 56,
+                  height: 56,
+                  fit: pw.BoxFit.contain,
+                ),
+              ),
             pw.Expanded(
               child: pw.Text(
                 companyName,
@@ -158,33 +202,63 @@ class VoucherPrintService {
     );
   }
 
-  static pw.Widget _buildSignatures(pw.Font ttf, bool isReceipt) {
+  static pw.Widget _buildSignatures(
+    pw.Font ttf,
+    bool isReceipt,
+    pw.MemoryImage? signature,
+    pw.MemoryImage? seal,
+  ) {
+    final mode = SettingsCache.showSignatureAndSealingInVoucher;
     final enabled = isReceipt
         ? SettingsCache.receiptVoucherSignature
         : SettingsCache.paymentVoucherSignature;
-    if (!enabled) return pw.SizedBox();
+    if (!enabled || mode == 0) return pw.SizedBox();
     final labels = isReceipt
         ? SettingsCache.receiptVoucherSignatures
         : SettingsCache.paymentVoucherSignatures;
-    return pw.Row(
+    return pw.Column(
       children: [
-        for (final label in labels.where((l) => l.isNotEmpty))
-          pw.Expanded(
-            child: pw.Container(
-              margin: const pw.EdgeInsets.symmetric(horizontal: 8),
-              padding: const pw.EdgeInsets.only(top: 10),
-              decoration: const pw.BoxDecoration(
-                border: pw.Border(
-                  top: pw.BorderSide(color: PdfColors.black, width: 0.8),
+        if (signature != null || seal != null) ...[
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.center,
+            crossAxisAlignment: pw.CrossAxisAlignment.end,
+            children: [
+              if (signature != null)
+                pw.Image(
+                  signature,
+                  width: 80,
+                  height: 36,
+                  fit: pw.BoxFit.contain,
+                ),
+              if (seal != null) ...[
+                if (signature != null) pw.SizedBox(width: 40),
+                pw.Image(seal, width: 64, height: 64, fit: pw.BoxFit.contain),
+              ],
+            ],
+          ),
+          pw.SizedBox(height: 8),
+        ],
+        pw.Row(
+          children: [
+            for (final label in labels.where((l) => l.isNotEmpty))
+              pw.Expanded(
+                child: pw.Container(
+                  margin: const pw.EdgeInsets.symmetric(horizontal: 8),
+                  padding: const pw.EdgeInsets.only(top: 10),
+                  decoration: const pw.BoxDecoration(
+                    border: pw.Border(
+                      top: pw.BorderSide(color: PdfColors.black, width: 0.8),
+                    ),
+                  ),
+                  child: pw.Text(
+                    label,
+                    textAlign: pw.TextAlign.center,
+                    style: pw.TextStyle(font: ttf, fontSize: 12),
+                  ),
                 ),
               ),
-              child: pw.Text(
-                label,
-                textAlign: pw.TextAlign.center,
-                style: pw.TextStyle(font: ttf, fontSize: 12),
-              ),
-            ),
-          ),
+          ],
+        ),
       ],
     );
   }

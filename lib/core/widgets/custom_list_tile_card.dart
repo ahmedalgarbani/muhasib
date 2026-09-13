@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 
 /// Reusable List Tile Card for master-detail items, customers, suppliers, currencies, warehouses, and settings.
@@ -35,7 +36,7 @@ class CustomListTileCard extends StatelessWidget {
         children: [
           if (leading != null) ...[
             leading!,
-            const SizedBox(width: 14),
+            const SizedBox(width: AppSpacing.md),
           ],
           Expanded(
             child: Column(
@@ -57,7 +58,7 @@ class CustomListTileCard extends StatelessWidget {
                   ],
                 ),
                 if (subtitle != null && subtitle!.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     subtitle!,
                     style: TextStyle(
@@ -70,7 +71,7 @@ class CustomListTileCard extends StatelessWidget {
             ),
           ),
           if (trailing != null) ...[
-            const SizedBox(width: 10),
+            const SizedBox(width: AppSpacing.sm),
             trailing!,
           ] else if (onEdit != null || onDelete != null) ...[
             PopupMenuButton<String>(

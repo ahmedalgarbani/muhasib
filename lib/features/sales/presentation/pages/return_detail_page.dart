@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/services/export_service.dart';
 import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
@@ -94,14 +97,79 @@ class ReturnDetailPage extends StatelessWidget {
       totalAmount: returnInvoice.finalAmt ?? returnInvoice.amount,
       taxAmount: returnInvoice.taxAmt ?? 0,
       netAmount: returnInvoice.amount,
+      discountAmount: returnInvoice.discountAmt ?? 0,
       lines: invoiceLines,
     );
+  }
+
+  Future<List<List<String>>> _buildPrintRows() async {
+    final productNames = <int, String>{};
+    final result = await getIt<ProductRepository>().getProducts();
+    result.fold((_) {}, (products) {
+      for (final product in products) {
+        if (product.id != null) productNames[product.id!] = product.name;
+      }
+    });
+
+    final rows = <List<String>>[];
+    final lines = returnInvoice.lines;
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      final name = productNames[line.categoryId] ?? 'منتج #${line.categoryId}';
+      rows.add([
+        '${i + 1}',
+        name,
+        NumberFormatter.formatNumber(line.quantity),
+        NumberFormatter.formatCurrency(line.amount),
+        NumberFormatter.formatCurrency(line.totalAmount),
+      ]);
+    }
+    rows.add([
+      '',
+      'الإجمالي',
+      '',
+      '',
+      NumberFormatter.formatCurrency(
+        returnInvoice.finalAmt ?? returnInvoice.amount,
+      ),
+    ]);
+    return rows;
+  }
+
+  Future<void> _printDocument(
+    BuildContext context, {
+    required bool share,
+  }) async {
+    try {
+      final rows = await _buildPrintRows();
+      const headers = ['#', 'الصنف', 'الكمية', 'السعر', 'الإجمالي'];
+      final title = 'مردود مبيعات ${returnInvoice.number}';
+      if (share) {
+        await ExportService.sharePdf(
+          title: title,
+          headers: headers,
+          data: rows,
+          showInvoiceTerms: true,
+        );
+      } else {
+        await ExportService.printData(
+          title: title,
+          headers: headers,
+          data: rows,
+          showInvoiceTerms: true,
+        );
+      }
+    } catch (error) {
+      if (context.mounted) {
+        AppToast.showError(context, 'تعذر إنشاء المستند: $error');
+      }
+    }
   }
 
   void _showPrintOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -109,24 +177,24 @@ class ReturnDetailPage extends StatelessWidget {
               leading: const Icon(Icons.picture_as_pdf),
               title: const Text('تصدير PDF'),
               onTap: () {
-                Navigator.pop(context);
-                // Export to PDF
+                Navigator.pop(sheetContext);
+                _printDocument(context, share: true);
               },
             ),
             ListTile(
               leading: const Icon(Icons.print),
               title: const Text('طباعة'),
               onTap: () {
-                Navigator.pop(context);
-                // Print
+                Navigator.pop(sheetContext);
+                _printDocument(context, share: false);
               },
             ),
             ListTile(
               leading: const Icon(Icons.share),
               title: const Text('مشاركة'),
               onTap: () {
-                Navigator.pop(context);
-                // Share
+                Navigator.pop(sheetContext);
+                _printDocument(context, share: true);
               },
             ),
           ],

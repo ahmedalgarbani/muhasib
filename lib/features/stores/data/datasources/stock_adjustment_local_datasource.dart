@@ -289,7 +289,7 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
           code: '1003',
           cId: 1130,
           name: 'المخزون',
-          type: 1,
+          type: 0,
         );
         final adjustmentAccountId = isIncrease
             ? await _getOrCreateAccount(
@@ -297,14 +297,14 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
                 code: '4200',
                 cId: 4200,
                 name: 'إيرادات تسوية المخزون',
-                type: 4,
+                type: 3,
               )
             : await _getOrCreateAccount(
                 txn,
                 code: '5200',
                 cId: 5200,
                 name: 'خسائر تسوية المخزون',
-                type: 5,
+                type: 4,
               );
 
         final journalNumber = await _nextJournalNumber(txn, 'ADJ');
@@ -463,7 +463,8 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
     return any.first['id'] as int;
   }
 
-  /// Applies delta respecting normal balance (debit vs credit).
+  /// Applies a signed debit-normal delta (debit - credit) to the account
+  /// balance cache, consistent with invoice/payment/opening engines.
   Future<void> _applyAccountBalanceDelta(
     Transaction txn,
     int accountId,
@@ -471,18 +472,14 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
   ) async {
     final rows = await txn.query(
       'accounts',
-      columns: ['balance', 'type'],
+      columns: ['balance'],
       where: 'id = ?',
       whereArgs: [accountId],
       limit: 1,
     );
     if (rows.isEmpty) return;
     final current = (rows.first['balance'] as num?)?.toDouble() ?? 0.0;
-    final type = (rows.first['type'] as int?) ?? 1;
-    // Debit nature: assets(0), expenses(4) ; Credit nature: liabilities(1), equity(2), revenue(3)
-    // Type 5 (custom loss) treat as debit nature as well
-    final isCreditNormal = type == 1 || type == 2 || type == 3;
-    final newBalance = isCreditNormal ? current - delta : current + delta;
+    final newBalance = current + delta;
     await txn.update(
       'accounts',
       {

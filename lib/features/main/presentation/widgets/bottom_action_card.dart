@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/widgets/pressable_scale.dart';
 
 class BottomActionCard extends StatelessWidget {
@@ -13,8 +14,11 @@ class BottomActionCard extends StatelessWidget {
 
     return PressableScale(
       child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.symmetric(
+          vertical: AppSpacing.sm,
+          horizontal: AppSpacing.lg,
+        ),
+        padding: const EdgeInsets.all(AppSpacing.md),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topRight,

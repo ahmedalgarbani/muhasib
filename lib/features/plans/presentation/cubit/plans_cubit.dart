@@ -11,7 +11,7 @@ import 'package:muhasib/features/plans/domain/services/license_key_service.dart'
 import 'package:muhasib/features/plans/domain/services/plan_cache.dart';
 import 'plans_state.dart';
 
-/// Owns the active subscription: loads the stored license, starts a 30-day
+/// Owns the active subscription: loads the stored license, starts a 14-day
 /// device-bound trial on first run, validates user-entered keys and keeps
 /// [PlanCache] in sync so any layer can gate on entitlements.
 ///

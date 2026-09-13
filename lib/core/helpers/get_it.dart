@@ -1,4 +1,7 @@
 import 'package:get_it/get_it.dart';
+import 'package:muhasib/core/services/backup_service.dart';
+import 'package:muhasib/core/services/media_storage_service.dart';
+import 'package:muhasib/features/sales/data/datasources/pos_held_orders_datasource.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
 import 'package:muhasib/core/services/account_validation_service.dart';
@@ -213,7 +216,6 @@ import 'package:muhasib/features/accounts/data/repositories/account_movements_re
 import 'package:muhasib/features/accounts/domain/repositories/account_movements_repository.dart';
 import 'package:muhasib/features/accounts/domain/usecases/get_account_movements.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/account_movements_cubit.dart';
-import 'package:muhasib/features/setting/presentation/cubit/setting_cubit.dart';
 import 'package:muhasib/features/main/presentation/cubit/main_cubit.dart';
 
 final getIt = GetIt.instance;
@@ -743,6 +745,13 @@ class GetItHelper {
     getIt.registerFactory(() => CustomersCubit(getIt<CustomerRepository>()));
 
     // ==================== Settings Feature ====================
+    // Backup service (database file snapshots; no-op on web)
+    getIt.registerLazySingleton(() => BackupService());
+    getIt.registerLazySingleton(() => MediaStorageService());
+    getIt.registerLazySingleton(
+      () => PosHeldOrdersDataSource(getIt<DatabaseService>()),
+    );
+
     // Repository
     getIt.registerLazySingleton<new_settings_repo.ISettingsRepository>(
       () => new_settings_repo.SettingsRepository(database: database),
@@ -754,8 +763,6 @@ class GetItHelper {
         repository: getIt<new_settings_repo.ISettingsRepository>(),
       ),
     );
-    // Legacy simple SettingCubit used by /initial/setup route (no deps).
-    getIt.registerFactory(() => SettingCubit());
 
     // ==================== Plans & Licensing Feature ====================
     getIt.registerLazySingleton<PlanLocalDataSource>(

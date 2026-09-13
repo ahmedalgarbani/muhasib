@@ -20,9 +20,11 @@ import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart
 import 'package:muhasib/features/products/presentation/cubit/product_groups_cubit.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
+import 'package:muhasib/features/sales/data/datasources/pos_held_orders_datasource.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/add_customer_dialog.dart';
+import 'package:muhasib/features/sales/presentation/widgets/pos_receipt_print_service.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/bank_entity.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/cashbox_entity.dart';
 import 'package:muhasib/features/settings_entities/domain/repositories/bank_repository.dart';
@@ -61,10 +63,15 @@ class _PosPageState extends State<PosPage> {
   bool _isSplitPayment = false;
   DiscountType _discountType = DiscountType.amount;
   bool _saving = false;
+  bool _scannerAutoOpened = false;
   // pending invoice for success dialog after Bloc confirm
   String? _pendingNumber;
   double? _pendingFinalAmount;
   double? _pendingChange;
+  String? _lastInvoiceNumber;
+  double _lastInvoiceAmount = 0;
+  double _lastInvoiceChange = 0;
+  int _heldOrdersCount = 0;
 
   // Banks & Funds (Cashboxes)
   List<BankEntity> _banks = [];
@@ -97,11 +104,32 @@ class _PosPageState extends State<PosPage> {
     final customerState = context.read<CustomersCubit>().state;
     if (customerState is CustomersLoaded &&
         customerState.customers.isNotEmpty) {
-      _selectedCustomer = customerState.customers.first;
+      _selectedCustomer = _defaultCustomerFrom(customerState.customers);
     }
     _loadBanksAndFunds();
     _loadWarehouses();
     _initDefaultPaymentMethod();
+    _refreshHeldOrdersCount();
+  }
+
+  Future<void> _refreshHeldOrdersCount() async {
+    try {
+      final orders = await getIt<PosHeldOrdersDataSource>().getAll();
+      if (mounted) setState(() => _heldOrdersCount = orders.length);
+    } catch (_) {}
+  }
+
+  /// Resolves the configured POS default customer by name, falling back to
+  /// the first available customer (previous behavior).
+  Customer? _defaultCustomerFrom(List<Customer> customers) {
+    if (customers.isEmpty) return null;
+    final name = SettingsCache.posDefaultCustomer.trim();
+    if (name.isNotEmpty) {
+      for (final customer in customers) {
+        if (customer.name == name) return customer;
+      }
+    }
+    return customers.first;
   }
 
   Future<void> _loadWarehouses() async {
@@ -334,6 +362,10 @@ class _PosPageState extends State<PosPage> {
         _cart[id] = existing.copyWith(quantity: existing.quantity + 1);
       }
     });
+    final updated = _cart[id];
+    if (updated != null) {
+      _maybeShowStockAlert(product, existing?.quantity ?? 0, updated.quantity);
+    }
   }
 
   void _changeQuantity(int id, double delta) {
@@ -370,8 +402,49 @@ class _PosPageState extends State<PosPage> {
     );
   }
 
-  Future<void> _changeLineUnit(int productId, ProductUnitOption newUnit) async {
-    final line = _cart[productId];
+  Future<void> _showLineDiscountDialog(_PosLine line) async {
+    if (!SettingsCache.posAllowDiscountPerLine) return;
+    final id = line.product.id;
+    if (id == null) return;
+    final gross = line.unitPrice * line.quantity;
+    final controller = TextEditingController(
+      text: line.discount <= 0 ? '' : line.discount.toStringAsFixed(2),
+    );
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text('خصم على ${line.product.name}'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: 'قيمة الخصم (${_getCurrencySymbol()})',
+            hintText: '0',
+            border: const OutlineInputBorder(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('إلغاء'),
+          ),
+          FilledButton(
+            onPressed: () {
+              final value = (double.tryParse(controller.text.trim()) ?? 0)
+                  .clamp(0.0, gross);
+              setState(() => _cart[id] = line.copyWith(discount: value));
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('تطبيق'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+  }
+
+  Future<void> _changeLineUnit(int productId, ProductUnitOption newUnit) async {    final line = _cart[productId];
     if (line == null) return;
     final svc = getIt<UnitConversionService>();
     final newPrice = svc.resolveUnitPrice(
@@ -392,7 +465,7 @@ class _PosPageState extends State<PosPage> {
       final customerState = context.read<CustomersCubit>().state;
       if (customerState is CustomersLoaded &&
           customerState.customers.isNotEmpty) {
-        _selectedCustomer = customerState.customers.first;
+        _selectedCustomer = _defaultCustomerFrom(customerState.customers);
       } else {
         _selectedCustomer = null;
       }
@@ -411,7 +484,170 @@ class _PosPageState extends State<PosPage> {
     });
   }
 
+  Future<void> _holdCart() async {
+    if (_cart.isEmpty) return;
+    try {
+      final items = _cart.values
+          .map(
+            (line) => HeldOrderItem(
+              productId: line.product.id!,
+              name: line.product.name,
+              quantity: line.quantity,
+              unitPrice: line.unitPrice,
+              discount: line.discount,
+              unitId: line.unitOption?.unitId,
+              subUnitId: line.unitOption?.subUnitId,
+            ),
+          )
+          .toList();
+      final customerId = _selectedCustomer?.id;
+      await getIt<PosHeldOrdersDataSource>().insert(
+        customerId: customerId == null ? null : int.tryParse(customerId),
+        customerName: _selectedCustomer?.name,
+        note: _statementController.text.trim().isEmpty
+            ? null
+            : _statementController.text.trim(),
+        items: items,
+      );
+      if (!mounted) return;
+      _clearCart();
+      AppToast.showSuccess(context, 'تم تعليق الفاتورة');
+      await _refreshHeldOrdersCount();
+    } catch (error) {
+      if (mounted) {
+        AppToast.showError(context, 'تعذر تعليق الفاتورة: $error');
+      }
+    }
+  }
+
+  Future<void> _showHeldOrders() async {
+    List<HeldOrder> orders;
+    try {
+      orders = await getIt<PosHeldOrdersDataSource>().getAll();
+    } catch (_) {
+      if (mounted) AppToast.showError(context, 'تعذر جلب الفواتير المعلقة');
+      return;
+    }
+    if (!mounted) return;
+    if (orders.isEmpty) {
+      AppToast.showInfo(context, 'لا توجد فواتير معلقة');
+      return;
+    }
+    final selected = await showModalBottomSheet<HeldOrder>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: orders.length,
+          itemBuilder: (context, index) {
+            final order = orders[index];
+            return ListTile(
+              leading: const Icon(
+                Icons.pause_circle_outline,
+                color: AppColors.saudiEmerald,
+              ),
+              title: Text(
+                '${order.customerName ?? "عميل نقدي"} - ${order.itemCount} صنف',
+              ),
+              subtitle: Text(
+                '${DateFormatter.formatDateTime(order.createdAt)} • ${NumberFormatter.formatCurrency(order.total)}',
+                style: const TextStyle(fontSize: 11),
+              ),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete_outline, color: AppColors.error),
+                tooltip: 'حذف',
+                onPressed: () async {
+                  if (order.id != null) {
+                    await getIt<PosHeldOrdersDataSource>().delete(order.id!);
+                  }
+                  if (sheetContext.mounted) Navigator.pop(sheetContext);
+                  await _refreshHeldOrdersCount();
+                },
+              ),
+              onTap: () => Navigator.pop(sheetContext, order),
+            );
+          },
+        ),
+      ),
+    );
+    if (selected != null) {
+      await _resumeHeldOrder(selected);
+    }
+  }
+
+  Future<void> _resumeHeldOrder(HeldOrder order) async {
+    final productsState = context.read<ProductsCubit>().state;
+    final products = productsState is ProductsLoaded
+        ? productsState.products
+        : <ProductEntity>[];
+    final svc = getIt<UnitConversionService>();
+    final restored = <int, _PosLine>{};
+    for (final item in order.items) {
+      final matches = products.where((p) => p.id == item.productId).toList();
+      if (matches.isEmpty) continue;
+      final product = matches.first;
+      ProductUnitOption? unit;
+      if (item.unitId != null) {
+        try {
+          final units = await svc.getUnitsForProduct(item.productId);
+          final unitMatches = units
+              .where((u) => u.unitId == item.unitId)
+              .toList();
+          if (unitMatches.isNotEmpty) unit = unitMatches.first;
+        } catch (_) {}
+      }
+      restored[item.productId] = _PosLine(
+        product: product,
+        quantity: item.quantity,
+        unitOption: unit,
+        unitPrice: item.unitPrice,
+        discount: item.discount,
+      );
+    }
+    if (!mounted) return;
+    setState(() {
+      _cart
+        ..clear()
+        ..addAll(restored);
+      _statementController.text = order.note ?? '';
+      _currentStep = 1;
+    });
+    final customersState = context.read<CustomersCubit>().state;
+    if (order.customerName != null && customersState is CustomersLoaded) {
+      final customerMatches = customersState.customers
+          .where((c) => c.name == order.customerName)
+          .toList();
+      if (customerMatches.isNotEmpty) {
+        setState(() => _selectedCustomer = customerMatches.first);
+      }
+    }
+    if (order.id != null) {
+      await getIt<PosHeldOrdersDataSource>().delete(order.id!);
+    }
+    await _refreshHeldOrdersCount();
+    if (mounted) AppToast.showSuccess(context, 'تم استعادة الفاتورة المعلقة');
+  }
+
   // ==================== Barcode Scanner ====================
+
+  void _maybeAutoOpenScanner(
+    BuildContext context,
+    List<ProductEntity> products,
+  ) {
+    if (_scannerAutoOpened || products.isEmpty) return;
+    if (!SettingsCache.posBarcodeEnabled ||
+        !SettingsCache.posShowBarcodeScanner) {
+      return;
+    }
+    final platform = Theme.of(context).platform;
+    if (platform != TargetPlatform.android && platform != TargetPlatform.iOS) {
+      return;
+    }
+    _scannerAutoOpened = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _scanBarcode(products);
+    });
+  }
 
   Future<void> _scanBarcode(List<ProductEntity> products) async {
     final code = await showModalBottomSheet<String>(
@@ -591,6 +827,20 @@ class _PosPageState extends State<PosPage> {
 
     final finalAmount = _grandTotal;
 
+    // Max discount guard (POS setting)
+    final maxDiscount = SettingsCache.maxDiscountPercent;
+    if (maxDiscount != null && _discountType == DiscountType.percent) {
+      final discountPercent =
+          double.tryParse(_discountController.text.trim()) ?? 0;
+      if (discountPercent > maxDiscount) {
+        AppToast.showError(
+          context,
+          'نسبة الخصم تتجاوز الحد المسموح (${NumberFormatter.formatNumber(maxDiscount)}%)',
+        );
+        return;
+      }
+    }
+
     // Check deferred payment requirement
     if (!_isSplitPayment &&
         _paymentMethod == PaymentMethod.deferred &&
@@ -620,6 +870,28 @@ class _PosPageState extends State<PosPage> {
         AppToast.showError(
           context,
           'وجود متبقي آجل في الدفع المقسم (${NumberFormatter.formatNumber(splitDeferred)} ${_getCurrencySymbol()}) يتطلب اختيار عميل مسجل',
+        );
+        setState(() => _currentStep = 1);
+        return;
+      }
+    }
+
+    // Customer credit-limit guard (POS settings)
+    final deferredTotal = _isSplitPayment
+        ? splitDeferred
+        : (_paymentMethod == PaymentMethod.deferred ? finalAmount : 0.0);
+    final customer = _selectedCustomer;
+    if (deferredTotal > 0.001 &&
+        customer != null &&
+        SettingsCache.posEnableCustomerCredit &&
+        SettingsCache.posBlockCustomerOverLimit) {
+      final creditLimit = customer.creditLimit > 0
+          ? customer.creditLimit
+          : SettingsCache.posDefaultCreditLimit;
+      if (creditLimit > 0 && customer.balance + deferredTotal > creditLimit) {
+        AppToast.showError(
+          context,
+          'تجاوز العميل حد الائتمان المسموح (${NumberFormatter.formatNumber(creditLimit)} ${_getCurrencySymbol()})',
         );
         setState(() => _currentStep = 1);
         return;
@@ -789,8 +1061,9 @@ class _PosPageState extends State<PosPage> {
       totalAmount: line.total,
       taxAmt: 0,
       taxRatio: 0,
-      discountAmt: 0,
+      discountAmt: line.discount,
       discountRatio: 0,
+      lineDiscount: line.discount,
       netRevenueAmt: line.total,
       currencyCode: _getCurrencyCode(),
       exchangeRate: 1,
@@ -818,6 +1091,62 @@ class _PosPageState extends State<PosPage> {
       creationTime: now,
       lastModificationTime: now,
     );
+  }
+
+  double _paidForReceipt(double total, double change) {
+    if (_isSplitPayment) {
+      final cash = double.tryParse(_splitCashController.text.trim()) ?? 0;
+      final bank = double.tryParse(_splitBankController.text.trim()) ?? 0;
+      return (cash + bank).clamp(0.0, total);
+    }
+    switch (_paymentMethod) {
+      case PaymentMethod.cash:
+        return (total + change).clamp(0.0, double.infinity);
+      case PaymentMethod.bank:
+        return total;
+      case PaymentMethod.deferred:
+        return 0;
+    }
+  }
+
+  Future<void> _printReceipt({
+    required String number,
+    required double total,
+    required double change,
+  }) async {
+    try {
+      final lines = _cart.values
+          .map(
+            (line) => PosReceiptLine(
+              name: line.product.name,
+              quantity: line.quantity,
+              unitPrice: line.unitPrice,
+              total: line.total,
+            ),
+          )
+          .toList();
+      if (lines.isEmpty) return;
+      final paid = _paidForReceipt(total, change);
+      final remaining = (total - paid).clamp(0.0, double.infinity);
+      await PosReceiptPrintService.printReceipt(
+        number: number,
+        date: DateTime.now(),
+        lines: lines,
+        subtotal: _subtotal,
+        discount: _discountAmount,
+        tax: _taxAmount,
+        total: total,
+        paid: paid,
+        change: change,
+        remaining: remaining,
+        customerName: _selectedCustomer?.name,
+        customerBalance: _selectedCustomer?.balance,
+      );
+    } catch (error) {
+      if (mounted) {
+        AppToast.showError(context, 'تعذر طباعة الإيصال: $error');
+      }
+    }
   }
 
   void _showSuccessDialog(
@@ -918,6 +1247,23 @@ class _PosPageState extends State<PosPage> {
                 ),
               ),
               const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _printReceipt(
+                    number: _lastInvoiceNumber ?? invoiceNumber,
+                    total: _lastInvoiceAmount > 0
+                        ? _lastInvoiceAmount
+                        : finalAmount,
+                    change: _lastInvoiceChange > 0
+                        ? _lastInvoiceChange
+                        : change,
+                  ),
+                  icon: const Icon(Icons.print, size: 18),
+                  label: const Text('طباعة الإيصال'),
+                ),
+              ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -1001,8 +1347,14 @@ class _PosPageState extends State<PosPage> {
                 _pendingNumber = null;
                 _pendingFinalAmount = null;
                 _pendingChange = null;
+                _lastInvoiceNumber = number;
+                _lastInvoiceAmount = amount;
+                _lastInvoiceChange = change;
               });
               _showSuccessDialog(number, amount, change);
+              if (SettingsCache.posPrintReceiptAutomatically) {
+                _printReceipt(number: number, total: amount, change: change);
+              }
             } else if (state is SalesError) {
               setState(() {
                 _saving = false;
@@ -1019,7 +1371,7 @@ class _PosPageState extends State<PosPage> {
             if (state is CustomersLoaded && state.customers.isNotEmpty) {
               if (_selectedCustomer == null) {
                 setState(() {
-                  _selectedCustomer = state.customers.first;
+                  _selectedCustomer = _defaultCustomerFrom(state.customers);
                 });
               }
             }
@@ -1100,6 +1452,21 @@ class _PosPageState extends State<PosPage> {
         ],
       ),
       actions: [
+        if (SettingsCache.posAllowHoldOrders && _cart.isNotEmpty)
+          IconButton(
+            tooltip: 'تعليق الفاتورة',
+            icon: const Icon(Icons.pause_circle_outline),
+            onPressed: _holdCart,
+          ),
+        if (SettingsCache.posAllowHoldOrders && _heldOrdersCount > 0)
+          IconButton(
+            tooltip: 'الفواتير المعلقة',
+            icon: Badge(
+              label: Text('$_heldOrdersCount'),
+              child: const Icon(Icons.inbox_outlined),
+            ),
+            onPressed: _showHeldOrders,
+          ),
         if (_cart.isNotEmpty)
           IconButton(
             tooltip: 'مسح السلة',
@@ -1304,6 +1671,7 @@ class _PosPageState extends State<PosPage> {
         final products = state is ProductsLoaded
             ? state.products
             : <ProductEntity>[];
+        _maybeAutoOpenScanner(context, products);
         final filtered = _filteredProducts(products);
 
         return Column(
@@ -1403,25 +1771,27 @@ class _PosPageState extends State<PosPage> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
-          Material(
-            color: AppColors.saudiEmerald,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            child: InkWell(
-              onTap: () => _scanBarcode(products),
+          if (SettingsCache.posBarcodeEnabled) ...[
+            const SizedBox(width: 8),
+            Material(
+              color: AppColors.saudiEmerald,
               borderRadius: BorderRadius.circular(AppRadius.md),
-              child: Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                child: const Icon(
-                  Icons.qr_code_scanner_rounded,
-                  color: Colors.white,
-                  size: 22,
+              child: InkWell(
+                onTap: () => _scanBarcode(products),
+                borderRadius: BorderRadius.circular(AppRadius.md),
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  child: const Icon(
+                    Icons.qr_code_scanner_rounded,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -1622,14 +1992,26 @@ class _PosPageState extends State<PosPage> {
                               : AppColors.primary,
                         ),
                       ),
-                      if (product.trackInventory)
+                      if (SettingsCache.inventoryTracking &&
+                          product.trackInventory)
                         Text(
                           'المتاح: ${NumberFormatter.formatNumber(product.quantity)}',
                           style: TextStyle(
                             fontSize: 10.5,
-                            color: product.quantity > 0
-                                ? theme.colorScheme.onSurfaceVariant
-                                : AppColors.error,
+                            color: product.quantity <= 0
+                                ? AppColors.error
+                                : (product.quantity <= SettingsCache.lowStockAlert
+                                      ? Colors.orange.shade700
+                                      : theme.colorScheme.onSurfaceVariant),
+                          ),
+                        ),
+                      if (SettingsCache.showCostWhenAddInvoiceInPos &&
+                          product.costAmount != null)
+                        Text(
+                          'التكلفة: ${NumberFormatter.formatNumber(product.costAmount!)}',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            color: theme.colorScheme.onSurfaceVariant,
                           ),
                         ),
                     ],
@@ -2028,6 +2410,15 @@ class _PosPageState extends State<PosPage> {
                               color: Colors.blueGrey.shade600,
                             ),
                           ),
+                        if (line.discount > 0)
+                          Text(
+                            'خصم: ${NumberFormatter.formatNumber(line.discount)} ${_getCurrencySymbol()}',
+                            style: const TextStyle(
+                              fontSize: 10,
+                              color: AppColors.error,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -2072,6 +2463,21 @@ class _PosPageState extends State<PosPage> {
                       ),
                     ],
                   ),
+                  if (SettingsCache.posAllowDiscountPerLine)
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      tooltip: 'خصم الصنف',
+                      icon: Icon(
+                        line.discount > 0
+                            ? Icons.percent
+                            : Icons.percent_outlined,
+                        size: 18,
+                        color: line.discount > 0
+                            ? AppColors.saudiEmerald
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
+                      onPressed: () => _showLineDiscountDialog(line),
+                    ),
                   const SizedBox(width: 8),
                   SizedBox(
                     width: 70,
@@ -2387,17 +2793,19 @@ class _PosPageState extends State<PosPage> {
                   isDark: isDark,
                 ),
               ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: _buildPaymentTile(
-                  isSplit: true,
-                  method: PaymentMethod.cash,
-                  title: 'دفع مقسم',
-                  icon: Icons.call_split_rounded,
-                  theme: theme,
-                  isDark: isDark,
+              if (SettingsCache.posAllowSplitPayment) ...[
+                const SizedBox(width: 6),
+                Expanded(
+                  child: _buildPaymentTile(
+                    isSplit: true,
+                    method: PaymentMethod.cash,
+                    title: 'دفع مقسم',
+                    icon: Icons.call_split_rounded,
+                    theme: theme,
+                    isDark: isDark,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
           const SizedBox(height: 14),
@@ -3128,21 +3536,25 @@ class _PosPageState extends State<PosPage> {
     );
   }
 }
-
 class _PosLine {
   final ProductEntity product;
   final double quantity;
   final ProductUnitOption? unitOption;
   final double unitPrice;
+  final double discount;
 
   _PosLine({
     required this.product,
     this.quantity = 1,
     this.unitOption,
     double? unitPrice,
+    this.discount = 0,
   }) : unitPrice = unitPrice ?? (product.sellAmount ?? 0);
 
-  double get total => PrecisionHelper.roundCurrency(unitPrice * quantity);
+  double get total => PrecisionHelper.roundCurrency(
+        (unitPrice * quantity - discount).clamp(0.0, double.infinity),
+      );
+
   double get baseQuantity => unitOption != null
       ? PrecisionHelper.calcBaseQuantity(
           quantity: quantity,
@@ -3157,11 +3569,13 @@ class _PosLine {
     double? quantity,
     ProductUnitOption? unitOption,
     double? unitPrice,
+    double? discount,
   }) => _PosLine(
     product: product,
     quantity: quantity ?? this.quantity,
     unitOption: unitOption ?? this.unitOption,
     unitPrice: unitPrice ?? this.unitPrice,
+    discount: discount ?? this.discount,
   );
 }
 

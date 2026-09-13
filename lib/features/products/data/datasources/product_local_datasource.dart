@@ -169,14 +169,14 @@ class ProductLocalDataSourceImpl implements ProductLocalDataSource {
         code: '1003',
         cId: 1130,
         name: 'المخزون',
-        type: 1,
+        type: 0,
       );
       final obId = await _getOrCreateAccount(
         txn,
         code: '3100',
         cId: 3100,
         name: 'أرصدة افتتاحية',
-        type: 3,
+        type: 2,
       );
 
       final entryId = await txn.insert('journal_entries', {

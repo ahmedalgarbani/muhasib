@@ -21,6 +21,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
   final Map<int, bool> _debitCreditSelection = {}; // true = debit, false = credit
   List<AccountEntity> _accounts = [];
   DateTime _selectedDate = DateTime.now();
+  bool _isSaving = false;
 
   @override
   void initState() {
@@ -84,6 +85,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
                 OpeningBalancesFooterWidget(
                   totals: totals,
                   isBalanced: isBalanced,
+                  isSaving: _isSaving,
                   onClearAll: _clearAll,
                   onSaveBalances: isBalanced ? _saveBalances : null,
                 ),
@@ -158,6 +160,8 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
   }
 
   Future<void> _saveBalances() async {
+    if (_isSaving) return;
+
     final balances = <OpeningBalanceEntity>[];
 
     for (var account in _accounts) {
@@ -189,6 +193,7 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
     }
 
     try {
+      setState(() => _isSaving = true);
       await context.read<InitialCubit>().saveOpeningBalances(balances);
 
       if (!mounted) return;
@@ -198,6 +203,10 @@ class _OpeningBalancesPageState extends State<OpeningBalancesPage> {
       Navigator.pop(context);
     } catch (e) {
       AppToast.showError(context, 'خطأ في حفظ الأرصدة: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isSaving = false);
+      }
     }
   }
 }

@@ -8,6 +8,7 @@ import 'package:muhasib/core/widgets/settings_card.dart';
 import 'package:muhasib/core/widgets/settings_dropdown_tile.dart';
 import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
+import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -22,10 +23,12 @@ class _PosSettingsPageState extends State<PosSettingsPage> {
   late Map<String, dynamic> posSettings;
 
   String defaultPaymentMethod = 'cash';
+  String defaultCustomerName = '';
   final TextEditingController maxDiscountController = TextEditingController();
   final TextEditingController defaultCreditLimitController =
       TextEditingController();
   bool allowSplitPayment = true;
+  bool allowDiscountPerLine = true;
   bool cashRoundingEnabled = false;
   double cashRoundingPrecision = 0.05;
   bool barcodeEnabled = true;
@@ -41,9 +44,11 @@ class _PosSettingsPageState extends State<PosSettingsPage> {
 
     defaultPaymentMethod =
         posSettings['default_payment_method']?.toString() ?? 'cash';
+    defaultCustomerName = posSettings['default_customer']?.toString() ?? '';
     final maxDiscount = posSettings['max_discount_percent'];
     maxDiscountController.text = maxDiscount == null ? '' : '$maxDiscount';
     allowSplitPayment = posSettings['allow_split_payment'] ?? true;
+    allowDiscountPerLine = posSettings['allow_discount_per_line'] ?? true;
     cashRoundingEnabled = posSettings['cash_rounding_enabled'] ?? false;
     cashRoundingPrecision =
         (posSettings['cash_rounding_precision'] ?? 0.05).toDouble();
@@ -79,7 +84,9 @@ class _PosSettingsPageState extends State<PosSettingsPage> {
 
     final settings = {
       'default_payment_method': defaultPaymentMethod,
+      'default_customer': defaultCustomerName,
       'max_discount_percent': maxDiscount,
+      'allow_discount_per_line': allowDiscountPerLine,
       'allow_split_payment': allowSplitPayment,
       'cash_rounding_enabled': cashRoundingEnabled,
       'cash_rounding_precision': cashRoundingPrecision,
@@ -132,6 +139,38 @@ class _PosSettingsPageState extends State<PosSettingsPage> {
                       },
                     ),
                     const Divider(),
+                    BlocBuilder<CustomersCubit, CustomersState>(
+                      builder: (context, state) {
+                        final names = state is CustomersLoaded
+                            ? state.customers.map((c) => c.name).toList()
+                            : <String>[];
+                        if (defaultCustomerName.isNotEmpty &&
+                            !names.contains(defaultCustomerName)) {
+                          names.insert(0, defaultCustomerName);
+                        }
+                        return SettingsDropdownTile<String>(
+                          title: 'العميل الافتراضي',
+                          value: defaultCustomerName.isEmpty
+                              ? null
+                              : defaultCustomerName,
+                          icon: Icons.person_outline,
+                          items: names
+                              .map(
+                                (name) => DropdownMenuItem(
+                                  value: name,
+                                  child: Text(name),
+                                ),
+                              )
+                              .toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              defaultCustomerName = value ?? '';
+                            });
+                          },
+                        );
+                      },
+                    ),
+                    const Divider(),
                     SettingsTextFieldTile(
                       title: 'الحد الأقصى لنسبة الخصم %',
                       controller: maxDiscountController,
@@ -140,6 +179,17 @@ class _PosSettingsPageState extends State<PosSettingsPage> {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                    ),
+                    const Divider(),
+                    SettingsSwitchTile(
+                      title: 'السماح بالخصم على مستوى الصنف',
+                      icon: Icons.percent,
+                      value: allowDiscountPerLine,
+                      onChanged: (value) {
+                        setState(() {
+                          allowDiscountPerLine = value;
+                        });
+                      },
                     ),
                     const Divider(),
                     SettingsSwitchTile(

@@ -314,6 +314,14 @@ class ReturnDetailTotalsCard extends StatelessWidget {
         child: Column(
           children: [
             _ReturnTotalRow(label: 'المجموع الفرعي', amount: returnInvoice.amount),
+            if (returnInvoice.discountAmt != null &&
+                returnInvoice.discountAmt! > 0) ...[
+              const SizedBox(height: 12),
+              _ReturnTotalRow(
+                label: 'الخصم',
+                amount: -returnInvoice.discountAmt!,
+              ),
+            ],
             if (returnInvoice.taxAmt != null && returnInvoice.taxAmt! > 0) ...[
               const SizedBox(height: 12),
               _ReturnTotalRow(label: 'الضريبة', amount: returnInvoice.taxAmt!),

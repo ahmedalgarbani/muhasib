@@ -43,12 +43,16 @@ class InvoiceReportSummaryCardWidget extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 16),
               const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -103,14 +107,16 @@ class InvoiceReportStatusSummaryWidget extends StatelessWidget {
             size: 18,
           ),
           const SizedBox(width: 12),
-          Text(
-            isClean
-                ? 'جميع الفواتير تمت معالجتها برمجياً ومحاسبيًا.'
-                : 'تنبيه: يوجد $withoutJournalEntry فواتير لم يُنشأ لها قيد محاسبي.',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: isClean ? Colors.green[800] : Colors.orange[800],
+          Expanded(
+            child: Text(
+              isClean
+                  ? 'جميع الفواتير تمت معالجتها برمجياً ومحاسبيًا.'
+                  : 'تنبيه: يوجد $withoutJournalEntry فواتير لم يُنشأ لها قيد محاسبي.',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isClean ? Colors.green[800] : Colors.orange[800],
+              ),
             ),
           ),
         ],
@@ -222,10 +228,15 @@ class InvoiceReportCardWidget extends StatelessWidget {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              r.number.isNotEmpty ? r.number : '#${r.id}',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            Expanded(
+              child: Text(
+                r.number.isNotEmpty ? r.number : '#${r.id}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
             ),
+            const SizedBox(width: 8),
             Text(
               formattedCurrency,
               style: const TextStyle(
@@ -243,8 +254,15 @@ class InvoiceReportCardWidget extends StatelessWidget {
               children: [
                 const Icon(Icons.person_outline, size: 14, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(r.partyName, style: const TextStyle(fontSize: 12)),
-                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    r.partyName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                const SizedBox(width: 12),
                 const Icon(
                   Icons.calendar_today_outlined,
                   size: 14,

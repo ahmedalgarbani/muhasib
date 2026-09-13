@@ -32,11 +32,23 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                       children: [
                         Row(
                           children: const [
-                            Expanded(child: AccountDropdownFieldWidget(value: 'تنازلياً')),
+                            Expanded(
+                              child: AccountDropdownFieldWidget(
+                                value: 'تنازلياً',
+                              ),
+                            ),
                             SizedBox(width: 8),
-                            Expanded(child: AccountDropdownFieldWidget(value: 'التاريخ')),
+                            Expanded(
+                              child: AccountDropdownFieldWidget(
+                                value: 'التاريخ',
+                              ),
+                            ),
                             SizedBox(width: 8),
-                            Expanded(child: AccountDropdownFieldWidget(value: 'نوع العملية')),
+                            Expanded(
+                              child: AccountDropdownFieldWidget(
+                                value: 'نوع العملية',
+                              ),
+                            ),
                           ],
                         ),
                         const SizedBox(height: 10),
@@ -46,22 +58,26 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                             AccountPeriodOptionRadioWidget(
                               label: 'سنوي',
                               selectedPeriod: selectedPeriod,
-                              onChanged: (val) => setState(() => selectedPeriod = val),
+                              onChanged: (val) =>
+                                  setState(() => selectedPeriod = val),
                             ),
                             AccountPeriodOptionRadioWidget(
                               label: 'الكل',
                               selectedPeriod: selectedPeriod,
-                              onChanged: (val) => setState(() => selectedPeriod = val),
+                              onChanged: (val) =>
+                                  setState(() => selectedPeriod = val),
                             ),
                             AccountPeriodOptionRadioWidget(
                               label: 'شهري',
                               selectedPeriod: selectedPeriod,
-                              onChanged: (val) => setState(() => selectedPeriod = val),
+                              onChanged: (val) =>
+                                  setState(() => selectedPeriod = val),
                             ),
                             AccountPeriodOptionRadioWidget(
                               label: 'يومي',
                               selectedPeriod: selectedPeriod,
-                              onChanged: (val) => setState(() => selectedPeriod = val),
+                              onChanged: (val) =>
+                                  setState(() => selectedPeriod = val),
                             ),
                           ],
                         ),
@@ -69,11 +85,17 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                         Row(
                           children: [
                             Expanded(
-                              child: AccountDateFieldWidget(label: 'الى تاريخ:', date: endDate),
+                              child: AccountDateFieldWidget(
+                                label: 'الى تاريخ:',
+                                date: endDate,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: AccountDateFieldWidget(label: 'من تاريخ:', date: startDate),
+                              child: AccountDateFieldWidget(
+                                label: 'من تاريخ:',
+                                date: startDate,
+                              ),
                             ),
                           ],
                         ),
@@ -148,7 +170,11 @@ class AccountDropdownFieldWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
       itemHeight: 48.0,
-      icon: Icon(Icons.arrow_drop_down, color: Theme.of(context).colorScheme.onSurface),      items: const [],
+      icon: Icon(
+        Icons.arrow_drop_down,
+        color: Theme.of(context).colorScheme.onSurface,
+      ),
+      items: const [],
       onChanged: (a) {},
       decoration: InputDecoration(
         contentPadding: const EdgeInsets.symmetric(horizontal: 8),
@@ -352,7 +378,7 @@ class CustomAppBarAccountDetail extends StatelessWidget
     return AppBar(
       backgroundColor: Theme.of(context).colorScheme.surface,
       title: const Text(
-        'حسيب',
+        'محاسب',
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
       ),
       actions: [

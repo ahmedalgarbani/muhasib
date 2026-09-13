@@ -48,7 +48,8 @@ class _ReportBasePageState extends State<ReportBasePage> {
     _filter = ReportFilter.currentMonth();
     // If the page provides an always-required filter (e.g. account selector),
     // show the filter panel by default so the control is immediately visible.
-    if (widget.additionalFilters != null && widget.additionalFilters!.isNotEmpty) {
+    if (widget.additionalFilters != null &&
+        widget.additionalFilters!.isNotEmpty) {
       _showFilters = true;
     }
   }
@@ -121,7 +122,11 @@ class _ReportBasePageState extends State<ReportBasePage> {
         QuickDateRange.week => () {
           final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
           return _filter.copyWith(
-            startDate: DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day),
+            startDate: DateTime(
+              startOfWeek.year,
+              startOfWeek.month,
+              startOfWeek.day,
+            ),
             endDate: DateTime(now.year, now.month, now.day, 23, 59, 59, 999),
           );
         }(),
@@ -179,7 +184,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                 color: widget.color,
                 boxShadow: [
                   BoxShadow(
-                    color: widget.color.withOpacity(0.3),
+                    color: widget.color.withValues(alpha: 0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -190,7 +195,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(AppRadius.lg),
                     ),
                     child: Icon(widget.icon, color: Colors.white, size: 32),
@@ -215,15 +220,23 @@ class _ReportBasePageState extends State<ReportBasePage> {
                             children: [
                               Icon(
                                 Icons.date_range,
-                                color: Colors.white.withOpacity(0.8),
+                                color: Colors.white.withValues(alpha: 0.8),
                                 size: 14,
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                '${_formatDate(_filter.startDate)} - ${_formatDate(_filter.endDate)}',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 14,
+                              Expanded(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  alignment: AlignmentDirectional.centerStart,
+                                  child: Text(
+                                    '${_formatDate(_filter.startDate)} - ${_formatDate(_filter.endDate)}',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
+                                      fontSize: 14,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -234,7 +247,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                   ),
                   if (widget.showDateFilter)
                     Material(
-                      color: Colors.white.withOpacity(0.2),
+                      color: Colors.white.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       child: IconButton(
                         icon: const Icon(
@@ -392,13 +405,13 @@ class QuickFilterChipWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return ActionChip(
       label: Text(label),
-      backgroundColor: color.withOpacity(0.05),
+      backgroundColor: color.withValues(alpha: 0.05),
       labelStyle: TextStyle(
         color: color,
         fontWeight: FontWeight.bold,
         fontSize: 12,
       ),
-      side: BorderSide(color: color.withOpacity(0.2)),
+      side: BorderSide(color: color.withValues(alpha: 0.2)),
       onPressed: onPressed,
     );
   }

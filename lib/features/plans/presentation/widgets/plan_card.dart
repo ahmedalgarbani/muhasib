@@ -63,8 +63,8 @@ class PlanCard extends StatelessWidget {
           color: _isCurrent
               ? color
               : plan.isPopular
-                  ? color.withValues(alpha: 0.6)
-                  : theme.dividerColor,
+              ? color.withValues(alpha: 0.6)
+              : theme.dividerColor,
           width: _isCurrent || plan.isPopular ? 1.6 : 1,
         ),
         boxShadow: plan.isPopular
@@ -172,9 +172,11 @@ class PlanCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                 ],
-                ...highlights.take(7).map(
+                ...highlights
+                    .take(7)
+                    .map(
                       (feature) => Padding(
-                        padding: const EdgeInsets.only(bottom: 7),
+                        padding: const EdgeInsets.only(bottom: 8),
                         child: Row(
                           children: [
                             Icon(
@@ -198,7 +200,7 @@ class PlanCard extends StatelessWidget {
                     ),
                 if (highlights.length > 7)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 7, right: 25),
+                    padding: const EdgeInsets.only(bottom: 8, right: 25),
                     child: Text(
                       '+ ${highlights.length - 7} مميزات أخرى',
                       style: TextStyle(
@@ -212,20 +214,21 @@ class PlanCard extends StatelessWidget {
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
-                  children: [
-                    PlanLimit.maxProducts,
-                    PlanLimit.maxWarehouses,
-                    PlanLimit.maxUsers,
-                    PlanLimit.maxCurrencies,
-                  ]
-                      .map(
-                        (limit) => _LimitChip(
-                          label: limit.labelAr,
-                          value: plan.limitLabel(limit),
-                          color: color,
-                        ),
-                      )
-                      .toList(),
+                  children:
+                      [
+                            PlanLimit.maxProducts,
+                            PlanLimit.maxWarehouses,
+                            PlanLimit.maxUsers,
+                            PlanLimit.maxCurrencies,
+                          ]
+                          .map(
+                            (limit) => _LimitChip(
+                              label: limit.labelAr,
+                              value: plan.limitLabel(limit),
+                              color: color,
+                            ),
+                          )
+                          .toList(),
                 ),
                 const SizedBox(height: 16),
                 HasibButton(
@@ -292,13 +295,13 @@ class _PriceBlock extends StatelessWidget {
             const SizedBox(width: 3),
             const Padding(
               padding: EdgeInsets.only(bottom: 3),
-              child: Text('ر.س/شهر', style: TextStyle(fontSize: 11)),
+              child: Text('ر.ي/شهر', style: TextStyle(fontSize: 11)),
             ),
           ],
         ),
         if (plan.priceYearly != null)
           Text(
-            'أو ${plan.priceYearly} ر.س سنوياً',
+            'أو ${plan.priceYearly} ر.ي سنوياً',
             style: TextStyle(
               fontSize: 10.5,
               color: Theme.of(context).colorScheme.onSurfaceVariant,

@@ -180,48 +180,55 @@ class ItemMovementsListWidget extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: movement.transInOut
-                                ? Colors.green.shade50
-                                : Colors.red.shade50,
-                            borderRadius: BorderRadius.circular(AppRadius.sm),
-                          ),
-                          child: Icon(
-                            movement.transInOut
-                                ? Icons.arrow_downward
-                                : Icons.arrow_upward,
-                            color: movement.transInOut
-                                ? Colors.green
-                                : Colors.red,
-                            size: 20,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              movement.movementTypeString,
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: movement.transInOut
+                                  ? Colors.green.shade50
+                                  : Colors.red.shade50,
+                              borderRadius: BorderRadius.circular(AppRadius.sm),
                             ),
-                            Text(
-                              'رقم المستند: ${movement.docNo}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
+                            child: Icon(
+                              movement.transInOut
+                                  ? Icons.arrow_downward
+                                  : Icons.arrow_upward,
+                              color: movement.transInOut
+                                  ? Colors.green
+                                  : Colors.red,
+                              size: 20,
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  movement.movementTypeString,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  'رقم المستند: ${movement.docNo}',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(width: 8),
                     Text(
                       DateFormatter.formatDate(date),
                       style: TextStyle(
@@ -234,23 +241,26 @@ class ItemMovementsListWidget extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(movement.statement, style: const TextStyle(fontSize: 14)),
                 const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
                   children: [
-                    Row(
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
                       children: [
                         ItemMovementQuantityChipWidget(
                           label: 'دخول',
                           quantity: movement.quantityIn,
                           color: Colors.green,
                         ),
-                        const SizedBox(width: 8),
                         ItemMovementQuantityChipWidget(
                           label: 'خروج',
                           quantity: movement.quantityOut,
                           color: Colors.red,
                         ),
-                        const SizedBox(width: 8),
                         ItemMovementQuantityChipWidget(
                           label: 'الصافي',
                           quantity: movement.netQuantity,
@@ -270,6 +280,7 @@ class ItemMovementsListWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text('الرصيد:', style: TextStyle(fontSize: 12)),
                           const SizedBox(width: 4),
@@ -288,7 +299,9 @@ class ItemMovementsListWidget extends StatelessWidget {
                 ),
                 if (movement.sellAmount != null) ...[
                   const SizedBox(height: 8),
-                  Row(
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 4,
                     children: [
                       Text(
                         'السعر: ${movement.sellAmount?.toStringAsFixed(2) ?? '0'} ${movement.currencyCode ?? 'ر.س'}',
@@ -298,7 +311,6 @@ class ItemMovementsListWidget extends StatelessWidget {
                         ),
                       ),
                       if (movement.costAmount != null) ...[
-                        const SizedBox(width: 16),
                         Text(
                           'التكلفة: ${movement.costAmount?.toStringAsFixed(2)} ${movement.currencyCode ?? 'ر.س'}',
                           style: TextStyle(

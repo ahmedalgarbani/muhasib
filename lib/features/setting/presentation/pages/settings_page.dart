@@ -95,6 +95,13 @@ class _SettingsMenu extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           SettingsNavigationCard(
+            title: 'النسخ الاحتياطي',
+            subtitle: 'إنشاء نسخة احتياطية - الاستعادة - الجدولة',
+            icon: Icons.backup_outlined,
+            onTap: () => context.push(AppRoutes.settingsBackup),
+          ),
+          const SizedBox(height: 10),
+          SettingsNavigationCard(
             title: 'إعدادات أخرى',
             subtitle: 'إعدادات التاريخ والوقت - تكوينات النظام',
             icon: Icons.settings_outlined,

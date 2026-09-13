@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/core/widgets/pressable_scale.dart';
 
 /// Friendly inline error state with a retry action.
@@ -23,8 +24,11 @@ class ErrorStateCard extends StatelessWidget {
     final errorColor = isDark ? AppColors.errorLight : AppColors.error;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(
+        vertical: AppSpacing.sm,
+        horizontal: AppSpacing.lg,
+      ),
+      padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),
@@ -74,7 +78,10 @@ class ErrorStateCard extends StatelessWidget {
           PressableScale(
             onTap: onRetry,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.xl,
+                vertical: AppSpacing.sm,
+              ),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.primaryDark : AppColors.primary,
                 borderRadius: BorderRadius.circular(AppRadius.xl28),

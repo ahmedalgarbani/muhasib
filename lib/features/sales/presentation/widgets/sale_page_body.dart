@@ -63,114 +63,116 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-      body: BlocBuilder<SalesCubit, SalesState>(
-        builder: (context, state) {
-          if (state is SalesLoading) {
-            return _LoadingView();
-          } else if (state is SalesError) {
-            return Center(
-              child: ErrorStateCard(
-                message: state.message,
-                onRetry: () => context.read<SalesCubit>().loadInvoices(),
-              ),
-            );
-          } else if (state is SalesLoaded) {
-            final invoices = state.invoices;
-            final filteredInvoices = _filterInvoices(invoices);
-            final stats = _calculateStats(invoices);
-
-            // Live customer-name lookup; rebuilds whenever accounts change.
-            final accountsState = context.watch<AccountsCubit>().state;
-            final customerNames = accountsState is AccountsLoaded
-                ? {
-                    for (final account in accountsState.accounts)
-                      if (account.id != null) account.id!: account.name,
-                  }
-                : const <int, String>{};
-
-            return RefreshIndicator(
-              color: Theme.of(context).colorScheme.primary,
-              backgroundColor: Theme.of(context).colorScheme.surface,
-              onRefresh: () async {
-                await context.read<SalesCubit>().loadInvoices().timeout(
-                  const Duration(seconds: 6),
-                  onTimeout: () {},
-                );
-              },
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  // Header
-                  SliverToBoxAdapter(
-                    child: BillsHeader(
-                      searchQuery: _searchQuery,
-                      onSearchChanged: (query) {
-                        setState(() {
-                          _searchQuery = query;
-                        });
-                      },
-                      onFilterPressed: _toggleFilterOpen,
-                      onNewBillPressed: () {
-                        context.pushNamed(AppRoutes.salesAddInvoice);
-                      },
-                      isFilterOpen: _filterOpen,
-                    ),
-                  ),
-
-                  // Filter Panel
-                  if (_filterOpen)
+      body: SafeArea(
+        child: BlocBuilder<SalesCubit, SalesState>(
+          builder: (context, state) {
+            if (state is SalesLoading) {
+              return _LoadingView();
+            } else if (state is SalesError) {
+              return Center(
+                child: ErrorStateCard(
+                  message: state.message,
+                  onRetry: () => context.read<SalesCubit>().loadInvoices(),
+                ),
+              );
+            } else if (state is SalesLoaded) {
+              final invoices = state.invoices;
+              final filteredInvoices = _filterInvoices(invoices);
+              final stats = _calculateStats(invoices);
+        
+              // Live customer-name lookup; rebuilds whenever accounts change.
+              final accountsState = context.watch<AccountsCubit>().state;
+              final customerNames = accountsState is AccountsLoaded
+                  ? {
+                      for (final account in accountsState.accounts)
+                        if (account.id != null) account.id!: account.name,
+                    }
+                  : const <int, String>{};
+        
+              return RefreshIndicator(
+                color: Theme.of(context).colorScheme.primary,
+                backgroundColor: Theme.of(context).colorScheme.surface,
+                onRefresh: () async {
+                  await context.read<SalesCubit>().loadInvoices().timeout(
+                    const Duration(seconds: 6),
+                    onTimeout: () {},
+                  );
+                },
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  slivers: [
+                    // Header
                     SliverToBoxAdapter(
-                      child: FilterPanel(
-                        sortBy: _sortBy,
-                        onSortChanged: (sort) {
+                      child: BillsHeader(
+                        searchQuery: _searchQuery,
+                        onSearchChanged: (query) {
                           setState(() {
-                            _sortBy = sort;
+                            _searchQuery = query;
                           });
                         },
+                        onFilterPressed: _toggleFilterOpen,
+                        onNewBillPressed: () {
+                          context.pushNamed(AppRoutes.salesAddInvoice);
+                        },
+                        isFilterOpen: _filterOpen,
                       ),
                     ),
-
-                  // Stats
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: AppConstant.defaultPadding,
-                      child: StatsCards(stats: stats),
-                    ),
-                  ),
-
-                  // Bills List
-                  if (filteredInvoices.isEmpty)
+        
+                    // Filter Panel
+                    if (_filterOpen)
+                      SliverToBoxAdapter(
+                        child: FilterPanel(
+                          sortBy: _sortBy,
+                          onSortChanged: (sort) {
+                            setState(() {
+                              _sortBy = sort;
+                            });
+                          },
+                        ),
+                      ),
+        
+                    // Stats
                     SliverToBoxAdapter(
-                      child: _EmptyBillsView(
-                        isSearching: _searchQuery.isNotEmpty,
-                        onCreateInvoice: () =>
-                            context.pushNamed(AppRoutes.salesAddInvoice),
-                      ),
-                    )
-                  else
-                    SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate((context, index) {
-                          final invoice = filteredInvoices[index];
-                          return BillCard(
-                            invoice: invoice,
-                            customerName:
-                                customerNames[invoice.customerId] ??
-                                'عميل #${invoice.customerId}',
-                            onDelete: () {
-                              _showDeleteDialog(context, invoice);
-                            },
-                          );
-                        }, childCount: filteredInvoices.length),
+                      child: Padding(
+                        padding: AppConstant.defaultPadding,
+                        child: StatsCards(stats: stats),
                       ),
                     ),
-                ],
-              ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
+        
+                    // Bills List
+                    if (filteredInvoices.isEmpty)
+                      SliverToBoxAdapter(
+                        child: _EmptyBillsView(
+                          isSearching: _searchQuery.isNotEmpty,
+                          onCreateInvoice: () =>
+                              context.pushNamed(AppRoutes.salesAddInvoice),
+                        ),
+                      )
+                    else
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate((context, index) {
+                            final invoice = filteredInvoices[index];
+                            return BillCard(
+                              invoice: invoice,
+                              customerName:
+                                  customerNames[invoice.customerId] ??
+                                  'عميل #${invoice.customerId}',
+                              onDelete: () {
+                                _showDeleteDialog(context, invoice);
+                              },
+                            );
+                          }, childCount: filteredInvoices.length),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
   }

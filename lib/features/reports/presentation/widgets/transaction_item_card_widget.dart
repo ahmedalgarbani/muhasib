@@ -49,14 +49,19 @@ class TransactionItemCardWidget extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  t.reference,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
-                    color: Colors.blueGrey,
+                Expanded(
+                  child: Text(
+                    t.reference,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: Colors.blueGrey,
+                    ),
                   ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   '${t.date.day}/${t.date.month}/${t.date.year}',
                   style: TextStyle(color: Colors.grey[600], fontSize: 11),

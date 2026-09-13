@@ -94,6 +94,44 @@ void main() {
       );
     });
 
+    test('sales return with discount preview remains balanced', () {
+      final template = SalesAccountingTemplate();
+      // net 1000 - discount 50 + tax 150 = final 1100
+      final result = template.generateSalesReturnEntries(
+        customerId: 1,
+        customerName: 'عميل',
+        returnNumber: 'SR-2',
+        originalInvoiceNumber: 'SI-2',
+        returnDate: 1,
+        totalAmount: 1100,
+        taxAmount: 150,
+        netAmount: 1000,
+        discountAmount: 50,
+        lines: [
+          InvoiceLineEntry.fromInvoiceLine(
+            categoryId: 1,
+            productName: 'منتج',
+            quantity: 5,
+            unitPrice: 200,
+            costPerUnit: 70,
+          ),
+        ],
+      );
+
+      // Debit: 1000 (returns) + 150 (VAT) + 350 (COGS) = 1500
+      // Credit: 1100 (customer) + 50 (discount reverse) + 350 (COGS) = 1500
+      expect(template.validateEntries(result), isTrue);
+      expect(result['total_debit'], 1500.0);
+      expect(result['total_credit'], 1500.0);
+
+      final entries = result['entries'] as List;
+      final discountLine = entries.where(
+        (e) => (e as Map<String, dynamic>)['account_code'] == '315',
+      );
+      expect(discountLine.length, 1);
+      expect(discountLine.first['credit'], 50.0);
+    });
+
     test('unbalanced entries are rejected', () {
       final template = SalesAccountingTemplate();
       expect(

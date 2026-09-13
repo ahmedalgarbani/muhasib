@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 
 /// Standardized Modal Dialog layout for forms, prompts, and selections.
 class CustomDialog extends StatelessWidget {
@@ -30,7 +31,10 @@ class CustomDialog extends StatelessWidget {
     return Directionality(
       textDirection: TextDirection.rtl,
       child: Dialog(
-        insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        insetPadding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.lg,
+          vertical: AppSpacing.xl,
+        ),
         shape:
             shape ??
             RoundedRectangleBorder(
@@ -45,8 +49,8 @@ class CustomDialog extends StatelessWidget {
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 18,
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.lg,
                 ),
                 decoration: BoxDecoration(
                   color: headerColor,
@@ -58,14 +62,14 @@ class CustomDialog extends StatelessWidget {
                   children: [
                     if (icon != null) ...[
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(AppSpacing.sm),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Icon(icon, color: Colors.white, size: 22),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: AppSpacing.md),
                     ],
                     Expanded(
                       child: Column(
@@ -108,18 +112,47 @@ class CustomDialog extends StatelessWidget {
               // Body Content
               Flexible(
                 child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(AppSpacing.md),
                   child: content,
                 ),
               ),
               // Actions Footer
               if (actions != null && actions!.isNotEmpty) ...[
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                  child: Row(
-                    children: actions!
-                        .map((action) => Expanded(child: action))
-                        .toList(),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    0,
+                    AppSpacing.lg,
+                    AppSpacing.lg,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      if (actions!.length == 1) {
+                        return actions!.first;
+                      }
+
+                      if (constraints.maxWidth < 300) {
+                        return Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (int i = 0; i < actions!.length; i++) ...[
+                              if (i > 0) const SizedBox(height: 8),
+                              actions![i],
+                            ],
+                          ],
+                        );
+                      }
+
+                      return Row(
+                        children: [
+                          for (int i = 0; i < actions!.length; i++) ...[
+                            if (i > 0) const SizedBox(width: 12),
+                            Expanded(child: actions![i]),
+                          ],
+                        ],
+                      );
+                    },
                   ),
                 ),
               ],

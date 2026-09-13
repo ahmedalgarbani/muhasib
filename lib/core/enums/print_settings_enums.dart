@@ -1,4 +1,4 @@
-/// إعدادات الطباعة — يغطي print_settings_page.dart و print_settings_new.dart
+/// إعدادات الطباعة — يغطي print_settings_new.dart
 /// 10 حالات switch على int/String كانت بلا Enum
 
 enum PrintPaperType {

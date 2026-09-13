@@ -84,6 +84,7 @@ class AppRoutes {
   static const String settingsVoucher = '/settings/voucher';
   static const String settingsStock = '/settings/stock';
   static const String settingsPos = '/settings/pos';
+  static const String settingsBackup = '/settings/backup';
   static const String settingsOther = '/settings/other';
   static const String settingsMaintenance = '/settings/maintenance';
   static const String settingsActivation = '/settings/activation';

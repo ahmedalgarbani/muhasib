@@ -220,7 +220,7 @@ class _ActivationBody extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         if (state.deviceId != null) ...[
           DeviceIdCard(deviceId: state.deviceId!),
           const SizedBox(height: 16),
@@ -229,7 +229,7 @@ class _ActivationBody extends StatelessWidget {
           deviceId: state.deviceId,
           tier: suggestedTier,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
@@ -298,7 +298,7 @@ class _ActivationBody extends StatelessWidget {
           ),
         ),
         if (kDebugMode) ...[
-          const SizedBox(height: 18),
+          const SizedBox(height: 16),
           _DebugTools(
             onGenerate: onGenerateDebugKey,
             onReset: onResetActivation,

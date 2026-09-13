@@ -136,12 +136,16 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
                               color: AppColors.success,
                             ),
                             const SizedBox(width: 8),
-                            Text(
-                              invoice.number,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.gray900,
+                            Expanded(
+                              child: Text(
+                                invoice.number,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.gray900,
+                                ),
                               ),
                             ),
                           ],
@@ -201,27 +205,34 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'المبلغ الإجمالي',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'المبلغ الإجمالي',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatCurrency(invoice.finalAmt ?? invoice.amount),
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.success,
+                        const SizedBox(height: 4),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            _formatCurrency(invoice.finalAmt ?? invoice.amount),
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.success,
+                            ),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   PurchasesListPaymentStatusChipWidget(
                     status: invoice.paymentStatus,
                   ),
@@ -238,14 +249,13 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
 class PurchasesListPaymentStatusChipWidget extends StatelessWidget {
   final int status;
 
-  const PurchasesListPaymentStatusChipWidget({
-    super.key,
-    required this.status,
-  });
+  const PurchasesListPaymentStatusChipWidget({super.key, required this.status});
 
   @override
   Widget build(BuildContext context) {
-    final paymentStatus = InvoicePaymentStatus.tryFromValue(status) ?? InvoicePaymentStatus.unpaid;
+    final paymentStatus =
+        InvoicePaymentStatus.tryFromValue(status) ??
+        InvoicePaymentStatus.unpaid;
     final (String text, Color color) = switch (paymentStatus) {
       InvoicePaymentStatus.paid => ('مدفوعة', Colors.green),
       InvoicePaymentStatus.partial => ('مدفوعة جزئياً', Colors.orange),

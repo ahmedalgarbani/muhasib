@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/constant/app_string.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/theme.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/features/accounts/presentation/cubit/accounts_cubit.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
@@ -126,7 +127,7 @@ class _SummaryCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         decoration: BoxDecoration(
           color: cardColor,
           borderRadius: BorderRadius.circular(AppRadius.lg),

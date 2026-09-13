@@ -24,40 +24,60 @@ class IncomeStatementSummaryRowWidget extends StatelessWidget {
         ? (s.netIncome / s.totalRevenue * 100)
         : 0.0;
 
-    return Row(
-      children: [
-        Expanded(
-          child: ReportKpiCard(
-            title: 'إجمالي الإيرادات',
-            value: formatCurrency(s.totalRevenue),
-            icon: Icons.trending_up,
-            color: Colors.green[700]!,
-            subtitle: 'جميع دخل الفعالية',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ReportKpiCard(
-            title: 'إجمالي التكاليف والمصروفات',
-            value: formatCurrency(totalExpenses),
-            icon: Icons.trending_down,
-            color: Colors.red[700]!,
-            subtitle: 'مبيعات + تشغيل',
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ReportKpiCard(
-            title: isProfit ? 'صافي الربح' : 'صافي الخسارة',
-            value: formatCurrency(s.netIncome),
-            icon: isProfit ? Icons.account_balance : Icons.warning,
-            color: isProfit ? Colors.teal[700]! : Colors.deepOrange[700]!,
-            trendText: '${marginPercent.toStringAsFixed(1)}%',
-            isPositiveTrend: isProfit,
-            subtitle: 'هامش الربحية',
-          ),
-        ),
-      ],
+    final cards = [
+      ReportKpiCard(
+        title: 'إجمالي الإيرادات',
+        value: formatCurrency(s.totalRevenue),
+        icon: Icons.trending_up,
+        color: Colors.green[700]!,
+        subtitle: 'جميع دخل الفعالية',
+      ),
+      ReportKpiCard(
+        title: 'إجمالي التكاليف والمصروفات',
+        value: formatCurrency(totalExpenses),
+        icon: Icons.trending_down,
+        color: Colors.red[700]!,
+        subtitle: 'مبيعات + تشغيل',
+      ),
+      ReportKpiCard(
+        title: isProfit ? 'صافي الربح' : 'صافي الخسارة',
+        value: formatCurrency(s.netIncome),
+        icon: isProfit ? Icons.account_balance : Icons.warning,
+        color: isProfit ? Colors.teal[700]! : Colors.deepOrange[700]!,
+        trendText: '${marginPercent.toStringAsFixed(1)}%',
+        isPositiveTrend: isProfit,
+        subtitle: 'هامش الربحية',
+      ),
+    ];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 650) {
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                for (int i = 0; i < cards.length; i++) ...[
+                  if (i > 0) const SizedBox(width: 12),
+                  SizedBox(
+                    width: 220,
+                    child: cards[i],
+                  ),
+                ],
+              ],
+            ),
+          );
+        }
+
+        return Row(
+          children: [
+            for (int i = 0; i < cards.length; i++) ...[
+              if (i > 0) const SizedBox(width: 12),
+              Expanded(child: cards[i]),
+            ],
+          ],
+        );
+      },
     );
   }
 }

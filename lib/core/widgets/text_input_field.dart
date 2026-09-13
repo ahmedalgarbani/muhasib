@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 
 /// A modern, premium text input field widget following system design standards.
 class TextInputField extends StatelessWidget {
@@ -132,7 +133,7 @@ class TextInputField extends StatelessWidget {
       children: [
         if (label.isNotEmpty) ...[
           Padding(
-            padding: const EdgeInsets.only(bottom: 6.0),
+            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
               child: RichText(
                 text: TextSpan(
                   style: TextStyle(
@@ -195,8 +196,8 @@ class TextInputField extends StatelessWidget {
                 filled: true,
                 fillColor: backgroundColor ?? defaultFillColor,
                 contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 15,
+                  horizontal: AppSpacing.lg,
+                  vertical: AppSpacing.md,
                 ),
                 isDense: true,
                 border: OutlineInputBorder(

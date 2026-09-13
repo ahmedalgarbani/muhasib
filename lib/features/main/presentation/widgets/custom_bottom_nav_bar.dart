@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -21,7 +22,12 @@ class CustomBottomNavBar extends StatelessWidget {
     final surfaceColor = Theme.of(context).colorScheme.surface;
 
     return Container(
-      margin: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+      margin: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        0,
+        AppSpacing.lg,
+        AppSpacing.lg,
+      ),
       decoration: BoxDecoration(
         color: Colors.transparent,
         borderRadius: BorderRadius.circular(AppRadius.xl28),
@@ -126,7 +132,10 @@ class _NavBarItem extends StatelessWidget {
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 250),
           curve: Curves.easeInOut,
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.xs,
+          ),
           decoration: BoxDecoration(
             color: isActive
                 ? (isDark

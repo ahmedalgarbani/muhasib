@@ -40,8 +40,11 @@ class ProductsHeaderWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 12,
+            runSpacing: 8,
             children: [
               const Text(
                 'إدارة المنتجات',
@@ -52,6 +55,7 @@ class ProductsHeaderWidget extends StatelessWidget {
                 ),
               ),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
                     icon: Icon(isGridView ? Icons.list : Icons.grid_view),
@@ -282,9 +286,8 @@ class ProductsListWidget extends StatelessWidget {
                 ),
               ],
             ),
-            trailing: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -305,8 +308,8 @@ class ProductsListWidget extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(height: 4),
                 PopupMenuButton<String>(
+                  padding: EdgeInsets.zero,
                   itemBuilder: (context) => [
                     const PopupMenuItem(
                       value: 'edit',

@@ -19,6 +19,7 @@ class SalesAccountingTemplate {
   static const String accountCodeSalesReturns = '415';   // مرتجعات المبيعات
   static const String accountCodeInventory = '113';      // المخزون
   static const String accountCodeCOGS = '316';           // تكلفة البضاعة المباعة
+  static const String accountCodeDiscountAllowed = '315';// الخصم المسموح به
   static const String accountCodeCash = '111';           // النقدية والبنوك
   static const String accountCodeTaxPayable = '214';     // الضرائب المستحقة
 
@@ -115,8 +116,8 @@ class SalesAccountingTemplate {
       'description': 'قيد فاتورة مبيعات رقم $invoiceNumber',
       'reference_number': invoiceNumber,
       'entries': entries,
-      'total_debit': totalAmount + totalCost,
-      'total_credit': totalAmount + totalCost,
+      'total_debit': _sumEntries(entries, 'debit'),
+      'total_credit': _sumEntries(entries, 'credit'),
     };
   }
 
@@ -128,6 +129,7 @@ class SalesAccountingTemplate {
   /// Dr. Sales Returns      XXX
   /// Dr. Tax Payable        XXX (if applicable)
   ///     Cr. Customers (A/R)    XXX
+  ///     Cr. Discount Allowed   XXX (if the original sale had a discount)
   /// 
   /// Inventory Entry:
   /// Dr. Inventory          XXX
@@ -142,6 +144,7 @@ class SalesAccountingTemplate {
     required double taxAmount,
     required double netAmount,
     required List<InvoiceLineEntry> lines,
+    double discountAmount = 0.0,
   }) {
     final entries = <Map<String, dynamic>>[];
     
@@ -177,6 +180,18 @@ class SalesAccountingTemplate {
       'credit': totalAmount,
       'notes': 'مرتجع فاتورة رقم $originalInvoiceNumber',
     });
+
+    // Credit: reverse the discount allowed on the original sale
+    if (discountAmount > 0) {
+      entries.add({
+        'line_number': entries.length + 1,
+        'account_code': accountCodeDiscountAllowed,
+        'account_name': 'الخصم المسموح به',
+        'debit': 0.0,
+        'credit': discountAmount,
+        'notes': 'عكس خصم مسموح - مرتجع $returnNumber',
+      });
+    }
     
     // Entry 2: Return goods to inventory
     double totalCost = lines.fold(0.0, (sum, line) => sum + line.costAmount);
@@ -209,8 +224,8 @@ class SalesAccountingTemplate {
       'description': 'قيد مرتجع مبيعات رقم $returnNumber - الفاتورة الأصلية $originalInvoiceNumber',
       'reference_number': originalInvoiceNumber,
       'entries': entries,
-      'total_debit': totalAmount + totalCost,
-      'total_credit': totalAmount + totalCost,
+      'total_debit': _sumEntries(entries, 'debit'),
+      'total_credit': _sumEntries(entries, 'credit'),
     };
   }
 
@@ -253,17 +268,42 @@ class SalesAccountingTemplate {
       'description': 'قيد سداد من العميل $customerName',
       'reference_number': receiptNumber,
       'entries': entries,
-      'total_debit': amount,
-      'total_credit': amount,
+      'total_debit': _sumEntries(entries, 'debit'),
+      'total_credit': _sumEntries(entries, 'credit'),
     };
+  }
+
+  /// Sums a numeric column (debit/credit) from the generated entry lines
+  double _sumEntries(List<Map<String, dynamic>> entries, String field) {
+    return entries.fold<double>(
+      0.0,
+      (sum, entry) => sum + ((entry[field] as num?)?.toDouble() ?? 0.0),
+    );
   }
 
   /// Validate that accounting entries are balanced
   /// Returns true if total debits equal total credits
   bool validateEntries(Map<String, dynamic> template) {
-    final totalDebit = template['total_debit'] as double;
-    final totalCredit = template['total_credit'] as double;
-    
+    final entries = template['entries'] as List?;
+    final double totalDebit;
+    final double totalCredit;
+
+    if (entries != null && entries.isNotEmpty) {
+      totalDebit = entries.fold<double>(
+        0.0,
+        (sum, entry) =>
+            sum + (((entry as Map<String, dynamic>)['debit'] as num?)?.toDouble() ?? 0.0),
+      );
+      totalCredit = entries.fold<double>(
+        0.0,
+        (sum, entry) =>
+            sum + (((entry as Map<String, dynamic>)['credit'] as num?)?.toDouble() ?? 0.0),
+      );
+    } else {
+      totalDebit = (template['total_debit'] as num?)?.toDouble() ?? 0.0;
+      totalCredit = (template['total_credit'] as num?)?.toDouble() ?? 0.0;
+    }
+
     // Allow for small floating point differences
     return (totalDebit - totalCredit).abs() < 0.01;
   }

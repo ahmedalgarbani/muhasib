@@ -2,15 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/export_service.dart';
+import 'package:muhasib/features/products/domain/repositories/product_repository.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart';
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 
 import 'package:muhasib/features/sales/presentation/widgets/components/quotation_detail_components.dart';
@@ -183,10 +185,72 @@ class QuotationDetailPage extends StatelessWidget {
     );
   }
 
+  Future<List<List<String>>> _buildPrintRows() async {
+    final productNames = <int, String>{};
+    final result = await getIt<ProductRepository>().getProducts();
+    result.fold((_) {}, (products) {
+      for (final product in products) {
+        if (product.id != null) productNames[product.id!] = product.name;
+      }
+    });
+
+    final rows = <List<String>>[];
+    final lines = quotation.lines;
+    for (var i = 0; i < lines.length; i++) {
+      final line = lines[i];
+      final name = productNames[line.categoryId] ?? 'منتج #${line.categoryId}';
+      rows.add([
+        '${i + 1}',
+        name,
+        NumberFormatter.formatNumber(line.quantity),
+        NumberFormatter.formatCurrency(line.amount),
+        NumberFormatter.formatCurrency(line.totalAmount),
+      ]);
+    }
+    rows.add([
+      '',
+      'الإجمالي',
+      '',
+      '',
+      NumberFormatter.formatCurrency(quotation.finalAmt ?? quotation.amount),
+    ]);
+    return rows;
+  }
+
+  Future<void> _printDocument(
+    BuildContext context, {
+    required bool share,
+  }) async {
+    try {
+      final rows = await _buildPrintRows();
+      const headers = ['#', 'الصنف', 'الكمية', 'السعر', 'الإجمالي'];
+      final title = 'عرض سعر ${quotation.number}';
+      if (share) {
+        await ExportService.sharePdf(
+          title: title,
+          headers: headers,
+          data: rows,
+          showInvoiceTerms: true,
+        );
+      } else {
+        await ExportService.printData(
+          title: title,
+          headers: headers,
+          data: rows,
+          showInvoiceTerms: true,
+        );
+      }
+    } catch (error) {
+      if (context.mounted) {
+        AppToast.showError(context, 'تعذر إنشاء المستند: $error');
+      }
+    }
+  }
+
   void _showPrintOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -194,16 +258,16 @@ class QuotationDetailPage extends StatelessWidget {
               leading: const Icon(Icons.picture_as_pdf),
               title: const Text('تصدير PDF'),
               onTap: () {
-                Navigator.pop(context);
-                // Export to PDF
+                Navigator.pop(sheetContext);
+                _printDocument(context, share: true);
               },
             ),
             ListTile(
               leading: const Icon(Icons.print),
               title: const Text('طباعة'),
               onTap: () {
-                Navigator.pop(context);
-                // Print
+                Navigator.pop(sheetContext);
+                _printDocument(context, share: false);
               },
             ),
           ],

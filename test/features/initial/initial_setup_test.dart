@@ -250,5 +250,46 @@ void main() {
       // Assert
       expect(journalEntries.length, greaterThan(0));
     });
+
+    test('Should replace (not duplicate) opening balances when saved twice and restore accounts', () async {
+      final db = await databaseService.database;
+      final saveBalances = SaveOpeningBalances(repository);
+
+      final balances = [
+        OpeningBalanceEntity(
+          accountId: 1,
+          accountName: 'الصندوق',
+          accountCode: '1001',
+          debitAmount: 1000,
+          creditAmount: 0,
+          balance: 1000,
+          date: DateTime.now(),
+        ),
+        OpeningBalanceEntity(
+          accountId: 2,
+          accountName: 'رأس المال',
+          accountCode: '3001',
+          debitAmount: 0,
+          creditAmount: 1000,
+          balance: -1000,
+          date: DateTime.now(),
+        ),
+      ];
+
+      await saveBalances(balances);
+      await saveBalances(balances);
+
+      final openingEntries = await db.query('opening_entries');
+      final openingLines = await db.query('opening_entry_lines');
+      expect(openingEntries.length, 1);
+      expect(openingLines.length, 2);
+
+      // Deletion before re-save must reverse the previous opening effects,
+      // so account balances reflect exactly one application of the balances.
+      final account1 = await db.query('accounts', where: 'id = ?', whereArgs: [1]);
+      final account2 = await db.query('accounts', where: 'id = ?', whereArgs: [2]);
+      expect((account1.first['balance'] as num).toDouble(), 1000.0);
+      expect((account2.first['balance'] as num).toDouble(), -1000.0);
+    });
   });
 }

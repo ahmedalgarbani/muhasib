@@ -16,6 +16,7 @@ import 'package:muhasib/core/database/tables/app_users_table.dart';
 import 'package:muhasib/core/database/tables/user_permissions_table.dart';
 import 'package:muhasib/core/database/tables/user_data_permissions_table.dart';
 import 'package:muhasib/core/database/tables/settings_table.dart';
+import 'package:muhasib/core/database/tables/pos_held_orders_table.dart';
 import 'package:muhasib/core/database/tables/account_limits_table.dart';
 import 'package:muhasib/core/database/tables/account_currencies_table.dart';
 import 'package:muhasib/core/database/tables/account_limit_logs_table.dart';
@@ -144,7 +145,15 @@ class DatabaseService implements IDatabaseService {
     }
 
     // Ensure audit_logs columns exist if table was created in older migration
-    final auditCols = ['entity_type TEXT NULL', 'entity_id INTEGER NULL', 'action TEXT NULL', 'created_at INTEGER NULL', 'action_type TEXT NULL', 'table_name TEXT NULL', 'record_id INTEGER NULL'];
+    final auditCols = [
+      'entity_type TEXT NULL',
+      'entity_id INTEGER NULL',
+      'action TEXT NULL',
+      'created_at INTEGER NULL',
+      'action_type TEXT NULL',
+      'table_name TEXT NULL',
+      'record_id INTEGER NULL',
+    ];
     for (final col in auditCols) {
       try {
         await db.execute('ALTER TABLE audit_logs ADD COLUMN $col');
@@ -299,7 +308,9 @@ class DatabaseService implements IDatabaseService {
         "ALTER TABLE stock_movements ADD COLUMN packaging INTEGER NULL DEFAULT 1",
       ];
       for (final sql in upgrades) {
-        try { await db.execute(sql); } catch (_) {}
+        try {
+          await db.execute(sql);
+        } catch (_) {}
       }
       final indexes = [
         "CREATE UNIQUE INDEX IF NOT EXISTS idx_category_sub_units_barcode ON category_sub_units(barcode) WHERE barcode IS NOT NULL AND barcode != ''",
@@ -309,7 +320,9 @@ class DatabaseService implements IDatabaseService {
         "CREATE INDEX IF NOT EXISTS idx_stock_movements_unit ON stock_movements(unit_id)",
       ];
       for (final idx in indexes) {
-        try { await db.execute(idx); } catch (_) {}
+        try {
+          await db.execute(idx);
+        } catch (_) {}
       }
       // Seed default sub-units for existing products (if none)
       try {
@@ -329,6 +342,7 @@ class DatabaseService implements IDatabaseService {
     UserPermissionsTable(),
     UserDataPermissionsTable(),
     SettingsTable(),
+    PosHeldOrdersTable(),
 
     // Accounting
     AccountsTable(),
@@ -483,4 +497,3 @@ class DatabaseService implements IDatabaseService {
     }
   }
 }
-

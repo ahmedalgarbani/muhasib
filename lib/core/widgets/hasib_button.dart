@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 
 enum HasibButtonVariant { primary, secondary, text, danger, success }
 
@@ -44,7 +45,9 @@ class HasibButton extends StatelessWidget {
         backgroundColor = isEnabled
             ? AppColors.primary
             : colorScheme.surfaceContainerHighest;
-        foregroundColor = isEnabled ? Colors.white : colorScheme.onSurfaceVariant;
+        foregroundColor = isEnabled
+            ? Colors.white
+            : colorScheme.onSurfaceVariant;
         break;
       case HasibButtonVariant.secondary:
         backgroundColor = Colors.transparent;
@@ -67,13 +70,18 @@ class HasibButton extends StatelessWidget {
         foregroundColor = isEnabled ? Colors.white : AppColors.red800;
         break;
       case HasibButtonVariant.success:
-        backgroundColor = isEnabled ? AppColors.success : AppColors.successLight;
+        backgroundColor = isEnabled
+            ? AppColors.success
+            : AppColors.successLight;
         foregroundColor = isEnabled ? Colors.white : AppColors.emerald800;
         break;
     }
 
-    final Widget? effectiveLeading = leading ??
-        (icon != null ? Icon(icon, size: fontSize != null ? fontSize! + 3 : 18) : null);
+    final Widget? effectiveLeading =
+        leading ??
+        (icon != null
+            ? Icon(icon, size: fontSize != null ? fontSize! + 3 : 18)
+            : null);
 
     Widget content = Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -99,12 +107,18 @@ class HasibButton extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: fontSize ?? 15,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.2,
+        Flexible(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: fontSize ?? 15,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 0.2,
+              ),
+              maxLines: 1,
+            ),
           ),
         ),
       ],
@@ -115,7 +129,12 @@ class HasibButton extends StatelessWidget {
         onPressed: isEnabled ? onPressed : null,
         style: TextButton.styleFrom(
           foregroundColor: foregroundColor,
-          padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          padding:
+              padding ??
+              const EdgeInsets.symmetric(
+                vertical: AppSpacing.md,
+                horizontal: AppSpacing.lg,
+              ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.sm14),
           ),
@@ -133,16 +152,17 @@ class HasibButton extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.sm14),
-            boxShadow: (variant == HasibButtonVariant.primary ||
-                    variant == HasibButtonVariant.danger ||
-                    variant == HasibButtonVariant.success) &&
+            boxShadow:
+                (variant == HasibButtonVariant.primary ||
+                        variant == HasibButtonVariant.danger ||
+                        variant == HasibButtonVariant.success) &&
                     isEnabled
                 ? [
                     BoxShadow(
                       color: backgroundColor.withValues(alpha: 0.22),
                       blurRadius: 10,
                       offset: const Offset(0, 3),
-                    )
+                    ),
                   ]
                 : null,
           ),
@@ -153,7 +173,12 @@ class HasibButton extends StatelessWidget {
               foregroundColor: foregroundColor,
               disabledBackgroundColor: backgroundColor,
               disabledForegroundColor: foregroundColor,
-              padding: padding ?? const EdgeInsets.symmetric(vertical: 14, horizontal: 18),
+              padding:
+                  padding ??
+                  const EdgeInsets.symmetric(
+                    vertical: AppSpacing.md,
+                    horizontal: AppSpacing.lg,
+                  ),
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm14),

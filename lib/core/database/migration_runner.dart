@@ -28,6 +28,7 @@ class MigrationRunner {
         '006_prevent_negative_stock.sql',
         '007_fix_tolerance.sql',
         '008_multi_unit_enhancement.sql',
+        '009_pos_held_orders.sql',
       ];
 
       // Run pending migrations

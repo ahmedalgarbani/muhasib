@@ -185,6 +185,7 @@ class OpeningBalancesAccountsListWidget extends StatelessWidget {
 class OpeningBalancesFooterWidget extends StatelessWidget {
   final Map<String, double> totals;
   final bool isBalanced;
+  final bool isSaving;
   final VoidCallback onClearAll;
   final VoidCallback? onSaveBalances;
 
@@ -192,6 +193,7 @@ class OpeningBalancesFooterWidget extends StatelessWidget {
     super.key,
     required this.totals,
     required this.isBalanced,
+    this.isSaving = false,
     required this.onClearAll,
     required this.onSaveBalances,
   });
@@ -279,14 +281,15 @@ class OpeningBalancesFooterWidget extends StatelessWidget {
             children: [
               HasibButton(
                 label: 'مسح الكل',
-                onPressed: onClearAll,
+                onPressed: isSaving ? null : onClearAll,
                 leading: const Icon(Icons.clear),
                 variant: HasibButtonVariant.secondary,
               ),
               HasibButton(
                 label: 'حفظ الأرصدة',
-                onPressed: isBalanced ? onSaveBalances : null,
+                onPressed: isBalanced && !isSaving ? onSaveBalances : null,
                 leading: const Icon(Icons.save),
+                loading: isSaving,
                 variant: HasibButtonVariant.success,
               ),
             ],

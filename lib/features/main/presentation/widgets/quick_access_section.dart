@@ -3,6 +3,7 @@ import 'package:muhasib/core/route/route_names.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 import 'package:muhasib/features/main/presentation/widgets/quick_access_item.dart';
 
 class QuickAccessSection extends StatelessWidget {
@@ -89,8 +90,14 @@ class QuickAccessSection extends StatelessWidget {
             : (width < 450 ? 0.82 : (width < 700 ? 0.88 : 1.0)));
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.md,
+      ),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg20),

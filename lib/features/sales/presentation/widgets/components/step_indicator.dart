@@ -62,6 +62,9 @@ class StepIndicator extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     steps[stepIndex],
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.gray600, height: 1.4).copyWith(
                       color: isActive ? AppColors.primary : AppColors.gray600,
                       fontWeight: isActive

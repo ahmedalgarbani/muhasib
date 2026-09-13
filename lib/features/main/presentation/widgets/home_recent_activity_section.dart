@@ -9,6 +9,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_spacing.dart';
 
 /// ─────────────────────────────────────────────
 /// Home Recent Activity Section
@@ -100,7 +101,7 @@ class HomeRecentActivityEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 24),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
       child: Center(
         child: Column(
           children: [

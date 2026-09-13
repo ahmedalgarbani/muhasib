@@ -26,14 +26,17 @@ class InvoiceTotalRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: isTotal ? 14 : 12,
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            color: color ?? (isTotal ? AppColors.gray900 : Colors.grey[700]),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: isTotal ? 14 : 12,
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              color: color ?? (isTotal ? AppColors.gray900 : Colors.grey[700]),
+            ),
           ),
         ),
+        const SizedBox(width: 8),
         Text(
           amountText,
           style: TextStyle(

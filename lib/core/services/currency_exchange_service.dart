@@ -88,16 +88,36 @@ class CurrencyExchangeService {
         
         final exchangeId = await txn.insert('currency_exchanges', exchangeData);
         
-        // 2. Create journal entry for the exchange
+        // 2. Resolve the exchange difference account BEFORE writing anything.
+        //    If a significant difference exists without a target account, the
+        //    entry would be unbalanced - so abort instead of corrupting the ledger.
+        final bool hasSignificantDiff = diffAbs > 0.01;
+        final int? diffAccountId = hasSignificantDiff
+            ? (exchangeDifferenceAccountId ??
+                  await _resolveExchangeDifferenceAccount(txn, isProfit))
+            : exchangeDifferenceAccountId;
+        if (hasSignificantDiff && diffAccountId == null) {
+          throw Exception(
+            'لا يمكن ترحيل قيد صرف العملات: فرق الصرف ${diffAbs.toStringAsFixed(2)} '
+            'ولا يوجد حساب لأرباح/خسائر فروق الصرف',
+          );
+        }
+
+        // Actual totals including the difference line
+        final totalDebit =
+            debitLocalAmount + (hasSignificantDiff && isLoss ? diffAbs : 0.0);
+        final totalCredit =
+            creditLocalAmount + (hasSignificantDiff && isProfit ? diffAbs : 0.0);
+        if ((totalDebit - totalCredit).abs() > 0.01) {
+          throw Exception(
+            'قيد صرف العملات غير متوازن (مدين: ${totalDebit.toStringAsFixed(2)}، '
+            'دائن: ${totalCredit.toStringAsFixed(2)})',
+          );
+        }
+
+        // 3. Create journal entry for the exchange
         final journalNumber = 'EX-$exchangeNumber';
         final journalDescription = 'قيد صرف عملات رقم $exchangeNumber - تحويل من $creditCurrencyCode إلى $debitCurrencyCode';
-        
-        // FIX MEDIUM-32: Handle dust correctly - if diffAbs <=0.01, consider balanced within tolerance, but header must reflect actual lines
-        // For clear audit, if diffAbs >0.01 we add diff line and header = max; if dust <=0.01 we round header to average and consider balanced
-        final bool hasSignificantDiff = diffAbs > 0.01;
-        final totalLocal = hasSignificantDiff ? (isLoss ? creditLocalAmount : debitLocalAmount) : (debitLocalAmount + creditLocalAmount) / 2;
-        // Small dust will be ignored (rounded) and considered balanced
-        final headerDiff = hasSignificantDiff ? 0.0 : exchangeDifference;
         final journalEntryData = {
           'number': journalNumber,
           'entry_date': date.millisecondsSinceEpoch ~/ 1000,
@@ -108,9 +128,9 @@ class CurrencyExchangeService {
           'notes': notes,
           'status': 1,
           'is_posted': 1,
-          'total_debit': hasSignificantDiff ? totalLocal : (debitLocalAmount + creditLocalAmount)/2,
-          'total_credit': hasSignificantDiff ? totalLocal : (debitLocalAmount + creditLocalAmount)/2,
-          'difference': hasSignificantDiff ? 0.0 : 0.0, // dust rounded to balanced
+          'total_debit': totalDebit,
+          'total_credit': totalCredit,
+          'difference': _round2(totalDebit - totalCredit),
           'creator_id': 1,
           'last_modifier_id': 1,
           'creation_time': now,
@@ -150,13 +170,8 @@ class CurrencyExchangeService {
           'notes': 'بيع $creditAmount $creditCurrencyCode',
         });
         
-        // 4. If there's an exchange difference, record it - FIX threshold 0.01
-        final diffAccountId = exchangeDifferenceAccountId ??
-            (diffAbs > 0.01
-                ? await _resolveExchangeDifferenceAccount(txn, isProfit)
-                : null);
-
-        if (diffAbs > 0.01 && diffAccountId != null) {
+        // 4. If there's an exchange difference, record it (threshold 0.01)
+        if (hasSignificantDiff && diffAccountId != null) {
           if (isProfit) {
             // Profit from exchange - Credit to income
             await txn.insert('journal_entry_lines', {
@@ -203,7 +218,7 @@ class CurrencyExchangeService {
         // 6. Apply balance updates to accounts
         await _applyAccountBalanceDelta(txn, debitAccountId, debitLocalAmount);
         await _applyAccountBalanceDelta(txn, creditAccountId, -creditLocalAmount);
-        if (diffAbs > 0.005 && diffAccountId != null) {
+        if (hasSignificantDiff && diffAccountId != null) {
           if (isProfit) {
             await _applyAccountBalanceDelta(txn, diffAccountId, -diffAbs);
           } else {
@@ -629,6 +644,39 @@ class CurrencyExchangeService {
       return byName.first['id'] as int;
     }
 
-    return null;
+    // 3. Auto-create the account (same pattern as sales/purchases services)
+    //    so a significant exchange difference can never remain unposted.
+    final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+    try {
+      return await txn.insert('accounts', {
+        'c_id': isProfit ? 4160 : 3170,
+        'code': isProfit ? '4005' : '3006',
+        'name': isProfit ? 'أرباح فروق صرف العملات' : 'خسائر فروق صرف العملات',
+        'is_master': 0,
+        'master_id': null,
+        'master_c_id': isProfit ? 4000 : 3000,
+        'type': isProfit ? 3 : 4,
+        'national': 1,
+        'statement': 'قائمة الدخل',
+        'is_active': 1,
+        'allow_update_delete': 1,
+        'balance': 0.0,
+        'local_balance': 0.0,
+        'creation_time': now,
+        'last_modification_time': now,
+      });
+    } catch (_) {
+      // Unique constraint (c_id/code) race: re-query by c_id
+      final retry = await txn.query(
+        'accounts',
+        columns: ['id'],
+        where: 'c_id = ? OR code = ?',
+        whereArgs: [isProfit ? 4160 : 3170, isProfit ? '4005' : '3006'],
+        limit: 1,
+      );
+      return retry.isNotEmpty ? retry.first['id'] as int : null;
+    }
   }
+
+  double _round2(double value) => (value * 100).roundToDouble() / 100;
 }

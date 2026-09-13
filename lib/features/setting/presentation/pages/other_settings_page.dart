@@ -220,7 +220,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                 SettingsCard(
                   children: [
                     SettingsSwitchTile(
-                      title: 'استخدام حسيب بشكل مبسط (دفتر حسابات)',
+                      title: 'استخدام محاسب بشكل مبسط (دفتر حسابات)',
                       value: useMiniHasib,
                       icon: Icons.account_tree,
                       enabled: true,

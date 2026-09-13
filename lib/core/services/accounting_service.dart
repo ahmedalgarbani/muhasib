@@ -2,6 +2,11 @@ import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// ⚠️ LEGACY / UNUSED: هذا المحرك المحاسبي غير مربوط بأي مسار إنتاجي.
+/// مسار الترحيل الفعلي هو `_postSalesInvoiceToJournal` في
+/// `lib/features/sales/data/datasources/invoice_local_datasource.dart`.
+/// لا تُعدّل هذا الملف لتصحيح السلوك المحاسبي، ولا تربطه بالخطأ.
+/// (يُستخدم فقط في `test/accounting_fixes_test.dart` كاختبارات تاريخية.)
 class AccountingService {
   final DatabaseService _databaseService;
 

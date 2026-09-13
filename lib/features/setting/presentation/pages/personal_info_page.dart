@@ -1,12 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/helpers/get_it.dart';
+import 'package:muhasib/core/services/media_storage_service.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
 import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
-import 'package:muhasib/core/widgets/settings_image_picker_tile.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
@@ -28,6 +30,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
   late TextEditingController _emailController;
   late TextEditingController _taxNumberController;
   late TextEditingController _commercialRegisterController;
+  String? _logoPath;
+  String? _sealPath;
+  String? _signaturePath;
 
   @override
   void initState() {
@@ -36,7 +41,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     final personalInfo = cubit.getPersonalInfo();
 
     _nameArController = TextEditingController(
-      text: personalInfo['name'] ?? 'حسيب',
+      text: personalInfo['name'] ?? 'محاسب',
     );
     _nameEnController = TextEditingController(
       text: personalInfo['nameFrn'] ?? 'Hasib',
@@ -59,6 +64,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     _commercialRegisterController = TextEditingController(
       text: personalInfo['company_commercial_register'] ?? '',
     );
+    _logoPath = personalInfo['logoPath']?.toString();
+    _sealPath = personalInfo['sealingPath']?.toString();
+    _signaturePath = personalInfo['signature']?.toString();
   }
 
   @override
@@ -74,6 +82,27 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     super.dispose();
   }
 
+  Future<void> _pickImage(String field) async {
+    final path = await getIt<MediaStorageService>().pickAndStoreImage(
+      fileName: field,
+    );
+    if (path == null || !mounted) return;
+    setState(() {
+      switch (field) {
+        case 'logo':
+          _logoPath = path;
+          break;
+        case 'seal':
+          _sealPath = path;
+          break;
+        case 'signature':
+          _signaturePath = path;
+          break;
+      }
+    });
+    AppToast.showSuccess(context, 'تم اختيار الصورة، لا تنسَ حفظ التغييرات');
+  }
+
   Future<void> _saveSettings() async {
     final cubit = context.read<SettingsCubit>();
     final personalInfo = {
@@ -85,6 +114,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       'company_email': _emailController.text,
       'taxNo': _taxNumberController.text,
       'company_commercial_register': _commercialRegisterController.text,
+      'logoPath': _logoPath,
+      'sealingPath': _sealPath,
+      'signature': _signaturePath,
     };
 
     await cubit.updateSetting('personal_info', personalInfo);
@@ -125,7 +157,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       SettingsTextFieldTile(
                         controller: _nameArController,
                         title: 'الاسم باللغة المحلية',
-                        hintText: 'حسيب',
+                        hintText: 'محاسب',
                         icon: Icons.person_outline,
                       ),
                       const Divider(),
@@ -217,28 +249,28 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                   ),
                   SettingsCard(
                     children: [
-                      SettingsImagePickerTile(
+                      _ImageFieldTile(
                         label: 'الشعار',
                         icon: Icons.image_outlined,
-                        onTap: () {
-                          // TODO: Implement image picker for logo
-                        },
+                        path: _logoPath,
+                        onPick: () => _pickImage('logo'),
+                        onClear: () => setState(() => _logoPath = null),
                       ),
                       const Divider(),
-                      SettingsImagePickerTile(
+                      _ImageFieldTile(
                         label: 'الختم',
                         icon: Icons.verified_user_outlined,
-                        onTap: () {
-                          // TODO: Implement image picker for seal
-                        },
+                        path: _sealPath,
+                        onPick: () => _pickImage('seal'),
+                        onClear: () => setState(() => _sealPath = null),
                       ),
                       const Divider(),
-                      SettingsImagePickerTile(
+                      _ImageFieldTile(
                         label: 'التوقيع',
                         icon: Icons.draw_outlined,
-                        onTap: () {
-                          // TODO: Implement image picker for signature
-                        },
+                        path: _signaturePath,
+                        onPick: () => _pickImage('signature'),
+                        onClear: () => setState(() => _signaturePath = null),
                       ),
                     ],
                   ),
@@ -254,6 +286,70 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             );
           }
         },
+      ),
+    );
+  }
+}
+
+class _ImageFieldTile extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final String? path;
+  final VoidCallback onPick;
+  final VoidCallback onClear;
+
+  const _ImageFieldTile({
+    required this.label,
+    required this.icon,
+    required this.path,
+    required this.onPick,
+    required this.onClear,
+  });
+
+  bool get _hasImage {
+    final value = path;
+    if (value == null || value.isEmpty) return false;
+    try {
+      return File(value).existsSync();
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return ListTile(
+      leading: _hasImage
+          ? ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Image.file(
+                File(path!),
+                width: 44,
+                height: 44,
+                fit: BoxFit.cover,
+              ),
+            )
+          : Icon(icon, size: 20, color: colorScheme.onSurfaceVariant),
+      title: Text(label, style: const TextStyle(fontSize: 13)),
+      subtitle: Text(
+        _hasImage ? 'تم الرفع' : 'لم يتم الرفع',
+        style: TextStyle(fontSize: 11, color: colorScheme.onSurfaceVariant),
+      ),
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_hasImage)
+            IconButton(
+              icon: const Icon(Icons.delete_outline, size: 18),
+              tooltip: 'إزالة',
+              onPressed: onClear,
+            ),
+          TextButton(
+            onPressed: onPick,
+            child: Text(_hasImage ? 'تغيير' : 'اختيار'),
+          ),
+        ],
       ),
     );
   }

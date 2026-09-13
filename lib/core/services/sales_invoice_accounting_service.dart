@@ -8,6 +8,11 @@ import 'package:muhasib/core/errors/failure.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// ⚠️ LEGACY / UNUSED: هذا المحرك المحاسبي غير مربوط بأي مسار إنتاجي.
+/// مسار الترحيل الفعلي للمبيعات موجود في
+/// `lib/features/sales/data/datasources/invoice_local_datasource.dart`.
+/// لا تُعدّل هذا الملف لتصحيح السلوك المحاسبي، ولا تربطه بالخطأ.
+///
 /// Comprehensive service for sales invoice accounting operations
 /// Handles: Journal entries, inventory updates, COGS, multiple payments, discounts, commissions
 class SalesInvoiceAccountingService {

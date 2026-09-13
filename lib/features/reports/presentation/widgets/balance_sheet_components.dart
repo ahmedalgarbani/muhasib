@@ -26,14 +26,16 @@ class BalanceSheetEquationWidget extends StatelessWidget {
             size: 20,
           ),
           const SizedBox(width: 12),
-          Text(
-            ok
-                ? 'الميزانية العمومية متوازنة تماماً ( الأصول = الخصوم + حقوق الملكية ) ✓'
-                : 'فرق الميزانية: ${result.difference.abs().toStringAsFixed(2)} ⚠',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: ok ? Colors.green[800] : Colors.red[800],
-              fontSize: 13,
+          Expanded(
+            child: Text(
+              ok
+                  ? 'الميزانية العمومية متوازنة تماماً ( الأصول = الخصوم + حقوق الملكية ) ✓'
+                  : 'فرق الميزانية: ${result.difference.abs().toStringAsFixed(2)} ⚠',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: ok ? Colors.green[800] : Colors.red[800],
+                fontSize: 13,
+              ),
             ),
           ),
         ],
@@ -74,7 +76,7 @@ class BalanceSheetSectionWidget extends StatelessWidget {
           Container(
             padding: AppConstant.defaultPadding,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.05),
+              color: color.withValues(alpha: 0.05),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppRadius.lg),
               ),

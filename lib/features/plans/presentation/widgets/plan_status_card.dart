@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/features/plans/domain/services/license_key_service.dart';
 
 import '../cubit/plans_state.dart';
 import 'plan_ui.dart';
@@ -20,7 +21,7 @@ class PlanStatusCard extends StatelessWidget {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -129,7 +130,8 @@ class PlanStatusCard extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.xs),
               child: LinearProgressIndicator(
-                value: (state.daysRemaining! / 30).clamp(0.0, 1.0),
+                value: (state.daysRemaining! / LicenseKeyService.trialDays)
+                    .clamp(0.0, 1.0),
                 minHeight: 6,
                 backgroundColor: Colors.white.withValues(alpha: 0.25),
                 valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
