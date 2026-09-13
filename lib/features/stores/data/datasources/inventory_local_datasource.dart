@@ -1,3 +1,4 @@
+import 'package:muhasib/core/enums/account_connect_type.dart';
 import 'package:muhasib/features/stores/data/models/inventory_model.dart';
 import 'package:muhasib/features/stores/data/models/inventory_line_model.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
@@ -348,12 +349,9 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
       // (Inventory differences must be recorded in accounting)
 
       // Get account IDs (get-or-create so existing DBs work)
-      final inventoryAccountId = await _getOrCreateAccount(
+      final inventoryAccountId = await _resolveInventoryAccount(
         txn,
-        code: '1003',
-        cId: 1130,
-        name: 'المخزون',
-        type: 0,
+        inventory.stockId,
       );
       final increaseAccountId = await _getOrCreateAccount(
         txn,
@@ -469,6 +467,60 @@ class InventoryLocalDataSourceImpl implements InventoryLocalDataSource {
   }
 
   // Helper methods for accounting
+  /// Resolves the inventory account with the same precedence as invoice
+  /// posting: warehouse-specific account → live account_connects (type 5) →
+  /// seeded/default inventory account. Prevents inventory balances from being
+  /// split across different accounts after re-linking the chart.
+  Future<int> _resolveInventoryAccount(Transaction txn, int? warehouseId) async {
+    if (warehouseId != null) {
+      final rows = await txn.query(
+        'stocks',
+        columns: ['account_id'],
+        where: 'id = ?',
+        whereArgs: [warehouseId],
+        limit: 1,
+      );
+      final accId = rows.isNotEmpty ? rows.first['account_id'] as int? : null;
+      if (accId != null) {
+        final acc = await txn.query(
+          'accounts',
+          columns: ['id'],
+          where: 'id = ?',
+          whereArgs: [accId],
+          limit: 1,
+        );
+        if (acc.isNotEmpty) return accId;
+      }
+    }
+
+    final connect = await txn.query(
+      'account_connects',
+      columns: ['c_id'],
+      where: 'account_connect_type = ?',
+      whereArgs: [AccountConnectType.inventory.value],
+      limit: 1,
+    );
+    final cId = connect.isNotEmpty ? connect.first['c_id'] as int? : null;
+    if (cId != null) {
+      final acc = await txn.query(
+        'accounts',
+        columns: ['id'],
+        where: 'c_id = ?',
+        whereArgs: [cId],
+        limit: 1,
+      );
+      if (acc.isNotEmpty) return acc.first['id'] as int;
+    }
+
+    return _getOrCreateAccount(
+      txn,
+      code: '1003',
+      cId: 1130,
+      name: 'المخزون',
+      type: 0,
+    );
+  }
+
   /// Resolves an account by code, creating it if missing
   Future<int> _getOrCreateAccount(
     Transaction txn, {

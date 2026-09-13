@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
+import 'package:muhasib/core/services/biometric_auth_service.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/settings_card.dart';
 import 'package:muhasib/core/widgets/settings_switch_tile.dart';
@@ -20,6 +21,8 @@ class SecuritySettingsPage extends StatefulWidget {
 
 class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   bool isPasswordEnabled = false;
+  bool isBiometricEnabled = false;
+  bool _biometricAvailable = false;
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
@@ -32,9 +35,14 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     final securityInfo = cubit.getSecurityInfo();
 
     isPasswordEnabled = securityInfo['isActive'] ?? false;
+    isBiometricEnabled = securityInfo['useBiometric'] ?? false;
     final storedPassword = securityInfo['password']?.toString() ?? '';
     passwordController.text = storedPassword;
     confirmPasswordController.text = storedPassword;
+
+    BiometricAuthService.isAvailable().then((available) {
+      if (mounted) setState(() => _biometricAvailable = available);
+    });
   }
 
   @override
@@ -62,6 +70,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     final securityInfo = {
       'isActive': isPasswordEnabled,
       'password': isPasswordEnabled ? password : '',
+      'useBiometric': isPasswordEnabled && isBiometricEnabled,
     };
 
     await cubit.updateSetting('security_info', securityInfo);
@@ -126,6 +135,19 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                         hintText: 'أعد إدخال كلمة المرور',
                         obscureText: _obscure,
                       ),
+                      if (_biometricAvailable) ...[
+                        const Divider(),
+                        SettingsSwitchTile(
+                          icon: Icons.fingerprint,
+                          title: 'فتح القفل بالبصمة',
+                          value: isBiometricEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              isBiometricEnabled = value;
+                            });
+                          },
+                        ),
+                      ],
                     ],
                   ],
                 ),

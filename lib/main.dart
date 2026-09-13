@@ -6,6 +6,7 @@ import 'package:muhasib/core/helpers/get_it.dart';
 import 'package:muhasib/core/helpers/responsive_text.dart';
 import 'package:muhasib/core/route/app_router.dart';
 import 'package:muhasib/core/services/app_lookup_service.dart';
+import 'package:muhasib/core/services/accounting_setup_validator.dart';
 import 'package:muhasib/core/services/backup_service.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/widgets/root_shell.dart';
@@ -65,6 +66,20 @@ Future<void> _autoBackupIfDue() async {
   } catch (_) {}
 }
 
+/// Runs the accounting configuration check once at startup. Posting itself is
+/// already guarded (account resolution throws when nothing is configured), but
+/// this surfaces missing/inactive default accounts early in the logs.
+Future<void> _validateAccountingSetup() async {
+  try {
+    final result = await getIt<AccountingSetupValidator>().validateAll();
+    if (!result.isValid || result.hasWarnings) {
+      debugPrint('⚠️ Accounting setup validation: $result');
+    }
+  } catch (e) {
+    debugPrint('⚠️ Accounting setup validation failed: $e');
+  }
+}
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -73,6 +88,9 @@ void main() async {
 
   // Initialize GetIt dependencies
   await GetItHelper.init();
+
+  // Surface missing/inactive default accounting accounts in the logs
+  await _validateAccountingSetup();
 
   // Load app settings into the shared cubit + SettingsCache so every
   // feature reads live values from the DB (formatting, sales rules, print...).

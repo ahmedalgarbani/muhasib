@@ -24,6 +24,9 @@ import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart'
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/payment_method_chip_widget.dart';
+import 'package:muhasib/core/enums/account_connect_type.dart';
+import 'package:muhasib/core/services/account_config_service.dart';
+import 'package:muhasib/features/accounts/domain/repositories/account_repository.dart';
 
 class ReturnInvoiceFormPage extends StatefulWidget {
   final int? originalInvoiceId;
@@ -116,7 +119,23 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
     _totalReturnAmount = PrecisionHelper.roundCurrency(total);
   }
 
-  void _saveReturn() {
+  Future<bool> _hasSufficientFundBalance(double amount) async {
+    if (!SettingsCache.checkFundAndBankBalanceInInvoice) return true;
+    try {
+      final config = getIt<AccountConfigService>();
+      final type = _refundByBank
+          ? AccountConnectType.banks
+          : AccountConnectType.cashboxes;
+      final cId = await config.getAccountIdOrNull(type);
+      if (cId == null) return true;
+      final result = await getIt<AccountRepository>().getAccountByCId(cId);
+      return result.fold((_) => true, (account) => account.balance >= amount);
+    } catch (_) {
+      return true;
+    }
+  }
+
+  Future<void> _saveReturn() async {
     if (_formKey.currentState!.validate()) {
       if (_originalInvoice == null &&
           !SettingsCache.allowReturnWithoutInvoice) {
@@ -211,6 +230,19 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                 _totalReturnAmount /
                 originalGross)
           : 0.0;
+
+      final refundAmount = PrecisionHelper.roundCurrency(
+        _totalReturnAmount + proportionalTax - proportionalDiscount,
+      );
+      if (refundAmount > 0 && !await _hasSufficientFundBalance(refundAmount)) {
+        if (mounted) {
+          AppToast.showError(
+            context,
+            'رصيد الصندوق أو البنك غير كافٍ لإتمام عملية الاسترداد',
+          );
+        }
+        return;
+      }
 
       final returnInvoice = InvoiceEntity(
         invoiceType: InvoiceType.salesReturn.value,

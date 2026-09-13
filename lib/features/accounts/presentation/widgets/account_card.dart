@@ -159,36 +159,44 @@ class AccountCard extends StatelessWidget {
                       'الرصيد الحالي',
                       style: TextStyle(color: Colors.grey, fontSize: baseFont),
                     ),
-                    Row(
-                      children: [
-                        Icon(
-                          (account.national == 1 || account.national == 0)
-                              ? Icons.trending_up
-                              : Icons.trending_down,
-                          size: isTablet ? 18 : 14,
-                          color:
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerLeft,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
                               (account.national == 1 || account.national == 0)
-                              ? Colors.green
-                              : Colors.red,
+                                  ? Icons.trending_up
+                                  : Icons.trending_down,
+                              size: isTablet ? 18 : 14,
+                              color:
+                                  (account.national == 1 || account.national == 0)
+                                  ? Colors.green
+                                  : Colors.red,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              formatNumber(account.balance),
+                              style: TextStyle(
+                                color: colors.text,
+                                fontSize: baseFont * 1.4,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'ريال',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: baseFont,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          formatNumber(account.balance),
-                          style: TextStyle(
-                            color: colors.text,
-                            fontSize: baseFont * 1.4,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          'ريال',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: baseFont,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ],
                 ),

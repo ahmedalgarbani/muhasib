@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/services/biometric_auth_service.dart';
 import 'package:muhasib/core/services/settings_cache.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 
@@ -77,7 +78,13 @@ class _AppLockGateState extends State<AppLockGate>
         ),
         if (_locked)
           Positioned.fill(
-            child: AppLockScreen(onUnlocked: _unlock),
+            child: Overlay(
+              initialEntries: [
+                OverlayEntry(
+                  builder: (context) => AppLockScreen(onUnlocked: _unlock),
+                ),
+              ],
+            ),
           ),
       ],
     );
@@ -98,13 +105,22 @@ class _AppLockScreenState extends State<AppLockScreen> {
   final _focusNode = FocusNode();
   String? _error;
   bool _obscure = true;
+  bool _biometricInProgress = false;
+  bool _showPasswordEntry = false;
+
+  bool get _biometricEnabled => SettingsCache.securityUseBiometric;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _focusNode.requestFocus();
-    });
+    if (_biometricEnabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _tryBiometric());
+    } else {
+      _showPasswordEntry = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _focusNode.requestFocus();
+      });
+    }
   }
 
   @override
@@ -112,6 +128,30 @@ class _AppLockScreenState extends State<AppLockScreen> {
     _controller.dispose();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  Future<void> _tryBiometric() async {
+    if (!mounted || _biometricInProgress) return;
+    setState(() => _biometricInProgress = true);
+    final available = await BiometricAuthService.isAvailable();
+    if (!available) {
+      if (mounted) {
+        setState(() {
+          _biometricInProgress = false;
+          _showPasswordEntry = true;
+        });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _focusNode.requestFocus();
+        });
+      }
+      return;
+    }
+    final success = await BiometricAuthService.authenticate();
+    if (!mounted) return;
+    setState(() => _biometricInProgress = false);
+    if (success) {
+      widget.onUnlocked();
+    }
   }
 
   void _tryUnlock() {
@@ -162,49 +202,97 @@ class _AppLockScreenState extends State<AppLockScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xs),
                   Text(
-                    'أدخل كلمة المرور للمتابعة',
+                    _showPasswordEntry
+                        ? 'أدخل كلمة المرور للمتابعة'
+                        : 'استخدم البصمة لفتح التطبيق',
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xxl),
-                  TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    obscureText: _obscure,
-                    textInputAction: TextInputAction.done,
-                    textAlign: TextAlign.center,
-                    onSubmitted: (_) => _tryUnlock(),
-                    onChanged: (_) {
-                      if (_error != null) setState(() => _error = null);
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'كلمة المرور',
-                      errorText: _error,
-                      prefixIcon: const Icon(Icons.key),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscure
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                  if (_showPasswordEntry) ...[
+                    TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      obscureText: _obscure,
+                      textInputAction: TextInputAction.done,
+                      textAlign: TextAlign.center,
+                      onSubmitted: (_) => _tryUnlock(),
+                      onChanged: (_) {
+                        if (_error != null) setState(() => _error = null);
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'كلمة المرور',
+                        errorText: _error,
+                        prefixIcon: const Icon(Icons.key),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscure
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                          ),
+                          onPressed: () =>
+                              setState(() => _obscure = !_obscure),
                         ),
-                        onPressed: () => setState(() => _obscure = !_obscure),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: FilledButton.icon(
-                      onPressed: _tryUnlock,
-                      icon: const Icon(Icons.lock_open),
-                      label: const Text('دخول'),
+                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: FilledButton.icon(
+                        onPressed: _tryUnlock,
+                        icon: const Icon(Icons.lock_open),
+                        label: const Text('دخول'),
+                      ),
                     ),
-                  ),
+                    if (_biometricEnabled) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      TextButton.icon(
+                        onPressed: _tryBiometric,
+                        icon: const Icon(Icons.fingerprint),
+                        label: const Text('استخدام البصمة بدلاً من ذلك'),
+                      ),
+                    ],
+                  ] else ...[
+                    InkWell(
+                      onTap: _tryBiometric,
+                      customBorder: const CircleBorder(),
+                      child: Container(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primaryContainer,
+                          shape: BoxShape.circle,
+                        ),
+                        child: _biometricInProgress
+                            ? SizedBox(
+                                width: 46,
+                                height: 46,
+                                child: CircularProgressIndicator(
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                ),
+                              )
+                            : Icon(
+                                Icons.fingerprint,
+                                size: 46,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextButton(
+                      onPressed: () {
+                        setState(() => _showPasswordEntry = true);
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (mounted) _focusNode.requestFocus();
+                        });
+                      },
+                      child: const Text('الدخول بكلمة المرور بدلاً من ذلك'),
+                    ),
+                  ],
                 ],
               ),
             ),

@@ -827,6 +827,14 @@ class _PosPageState extends State<PosPage> {
 
     final finalAmount = _grandTotal;
 
+    // Cash rounding: absorb the difference into the revenue subtotal so the
+    // posted journal entry keeps balancing (sales = total + discount - tax).
+    // Without this, enabling cash rounding could make posting fail as
+    // "unbalanced entry" when the rounding delta exceeds the 0.01 tolerance.
+    final rawTotal = _subtotal - _discountAmount + _taxAmount;
+    final roundingDelta = finalAmount - rawTotal;
+    final adjustedSubtotal = _subtotal + roundingDelta;
+
     // Max discount guard (POS setting)
     final maxDiscount = SettingsCache.maxDiscountPercent;
     if (maxDiscount != null && _discountType == DiscountType.percent) {
@@ -861,6 +869,22 @@ class _PosPageState extends State<PosPage> {
     if (_isSplitPayment) {
       splitCash = double.tryParse(_splitCashController.text.trim()) ?? 0.0;
       splitBank = double.tryParse(_splitBankController.text.trim()) ?? 0.0;
+
+      if (splitCash < 0 || splitBank < 0) {
+        AppToast.showError(context, 'لا يمكن إدخال مبالغ سالبة في الدفع المقسم');
+        return;
+      }
+
+      // Reject overpayment instead of silently dropping the excess later
+      final overpaid = (splitCash + splitBank) - finalAmount;
+      if (overpaid > 0.01) {
+        AppToast.showError(
+          context,
+          'المبلغ المدفوع يتجاوز إجمالي الفاتورة بمقدار ${NumberFormatter.formatNumber(overpaid)} ${_getCurrencySymbol()} — يرجى إرجاع الباقي للعميل أو تصحيح المبلغ',
+        );
+        return;
+      }
+
       splitDeferred = (finalAmount - splitCash - splitBank).clamp(
         0.0,
         double.infinity,
@@ -984,7 +1008,7 @@ class _PosPageState extends State<PosPage> {
         number: number,
         date: now,
         statement: statementText,
-        amount: _subtotal,
+        amount: adjustedSubtotal,
         totalAmount: finalAmount,
         taxAmt: _taxAmount,
         taxRatio: _taxRate,
@@ -992,8 +1016,8 @@ class _PosPageState extends State<PosPage> {
         discountRatio: _discountType == DiscountType.percent
             ? (double.tryParse(_discountController.text.trim()) ?? 0.0)
             : 0.0,
-        netRevenueAmt: _subtotal - _discountAmount,
-        totalAmountAfterDiscount: _subtotal - _discountAmount,
+        netRevenueAmt: adjustedSubtotal - _discountAmount,
+        totalAmountAfterDiscount: adjustedSubtotal - _discountAmount,
         finalAmt: finalAmount,
         currencyCode: _getCurrencyCode(),
         exchangeRate: 1,

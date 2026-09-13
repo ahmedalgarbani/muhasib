@@ -117,6 +117,9 @@ class SettingsCache {
     return value?.toString();
   }
 
+  static bool get securityUseBiometric =>
+      _get(security, 'useBiometric', false) as bool;
+
   // backup_settings
   static bool get backupEnabled =>
       _get(security, 'backup_enabled', true) as bool;

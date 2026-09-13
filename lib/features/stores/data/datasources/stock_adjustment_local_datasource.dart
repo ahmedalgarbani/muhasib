@@ -1,3 +1,4 @@
+import 'package:muhasib/core/enums/account_connect_type.dart';
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/features/stores/data/models/stock_adjustment_model.dart';
 import 'package:muhasib/features/stores/domain/entities/stock_adjustment_entity.dart';
@@ -284,12 +285,9 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
       // Increase (Gain): Dr Inventory / Cr Settlement Income (4200)
       // Decrease (Loss):  Dr Settlement Loss (5200) / Cr Inventory
       if (totalValue > 0.001) {
-        final inventoryAccountId = await _getOrCreateAccount(
+        final inventoryAccountId = await _resolveInventoryAccount(
           txn,
-          code: '1003',
-          cId: 1130,
-          name: 'المخزون',
-          type: 0,
+          adjustment.stockId,
         );
         final adjustmentAccountId = isIncrease
             ? await _getOrCreateAccount(
@@ -404,6 +402,60 @@ class StockAdjustmentLocalDataSourceImpl implements StockAdjustmentLocalDataSour
     return maps.map((map) => StockAdjustmentLineModel.fromMap(map)).toList();
   }
   // Helpers for Accounting
+  /// Resolves the inventory account with the same precedence as invoice
+  /// posting: warehouse-specific account → live account_connects (type 5) →
+  /// seeded/default inventory account. Prevents inventory balances from being
+  /// split across different accounts after re-linking the chart.
+  Future<int> _resolveInventoryAccount(Transaction txn, int? warehouseId) async {
+    if (warehouseId != null) {
+      final rows = await txn.query(
+        'stocks',
+        columns: ['account_id'],
+        where: 'id = ?',
+        whereArgs: [warehouseId],
+        limit: 1,
+      );
+      final accId = rows.isNotEmpty ? rows.first['account_id'] as int? : null;
+      if (accId != null) {
+        final acc = await txn.query(
+          'accounts',
+          columns: ['id'],
+          where: 'id = ?',
+          whereArgs: [accId],
+          limit: 1,
+        );
+        if (acc.isNotEmpty) return accId;
+      }
+    }
+
+    final connect = await txn.query(
+      'account_connects',
+      columns: ['c_id'],
+      where: 'account_connect_type = ?',
+      whereArgs: [AccountConnectType.inventory.value],
+      limit: 1,
+    );
+    final cId = connect.isNotEmpty ? connect.first['c_id'] as int? : null;
+    if (cId != null) {
+      final acc = await txn.query(
+        'accounts',
+        columns: ['id'],
+        where: 'c_id = ?',
+        whereArgs: [cId],
+        limit: 1,
+      );
+      if (acc.isNotEmpty) return acc.first['id'] as int;
+    }
+
+    return _getOrCreateAccount(
+      txn,
+      code: '1003',
+      cId: 1130,
+      name: 'المخزون',
+      type: 0,
+    );
+  }
+
   /// Resolves an account by code, creating it if missing (works for
   /// existing databases where the settlement accounts were never seeded).
   Future<int> _getOrCreateAccount(
