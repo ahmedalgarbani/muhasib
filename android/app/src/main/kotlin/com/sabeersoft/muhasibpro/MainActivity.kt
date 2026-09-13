@@ -1,4 +1,4 @@
-package com.example.muhasib
+package com.sabeersoft.muhasibpro
 
 import io.flutter.embedding.android.FlutterFragmentActivity
 

@@ -56,11 +56,14 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
     preventWhenSaleLessThanCost =
         stockSettings['preventWhenSaleLessThanCost'] ?? true;
     showCostAmountInInvoice = stockSettings['showCoseAmountInInvoice'] ?? true;
-    showCustomPhoneInInvoice = stockSettings['showCustomPhoneInInvoice'] ?? true;
+    showCustomPhoneInInvoice =
+        stockSettings['showCustomPhoneInInvoice'] ?? true;
     showCostAmountInCategoryWhenAddInvoice =
         stockSettings['showCostAmountInCategoryWhenAddInvoice'] ?? true;
     showCostAmountInCategoryWhenAddInvoicePOS =
         stockSettings['showCostAmountInCategoryWhenAddInvoicePOS'] ?? false;
+    checkFundAndBankBalanceEnabledInInvoice =
+        stockSettings['checkFundAndBankBalanceEnabledInInvoice'] ?? false;
     checkFundAndBankBalanceEnabledInInvoice =
         stockSettings['checkFundAndBankBalanceEnabledInInvoice'] ?? false;
     isStockNegativeAllowed = stockSettings['isStockNegativeAllowed'] ?? false;
@@ -77,7 +80,8 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
         (stockSettings['invoice_starting_number'] ?? 1000).toString();
     taxNameController.text =
         stockSettings['tax_name']?.toString() ?? 'ضريبة القيمة المضافة';
-    taxRateController.text = (stockSettings['default_tax_rate'] ?? 15).toString();
+    taxRateController.text = (stockSettings['default_tax_rate'] ?? 15)
+        .toString();
   }
 
   @override
@@ -105,6 +109,8 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
           showCostAmountInCategoryWhenAddInvoicePOS,
       'checkFundAndBankBalanceEnabledInInvoice':
           checkFundAndBankBalanceEnabledInInvoice,
+      'checkFundAndBankBalanceEnabledInInvoice':
+          checkFundAndBankBalanceEnabledInInvoice,
       'isStockNegativeAllowed': isStockNegativeAllowed,
       'invoice_prefix': invoicePrefixController.text.trim(),
       'quotation_prefix': quotationPrefixController.text.trim(),
@@ -114,8 +120,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
       'tax_enabled': taxEnabled,
       'tax_inclusive_pricing': taxInclusivePricing,
       'tax_name': taxNameController.text.trim(),
-      'default_tax_rate':
-          int.tryParse(taxRateController.text.trim()) ?? 15,
+      'default_tax_rate': int.tryParse(taxRateController.text.trim()) ?? 15,
     };
 
     await cubit.updateSetting('stock_setting', stockSettings);
@@ -226,8 +231,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
                     ),
                     const Divider(),
                     SettingsSwitchTile(
-                      title:
-                          'اظهار سعر التكلفة للاصناف في شاشة نقاط البيع',
+                      title: 'اظهار سعر التكلفة للاصناف في شاشة نقاط البيع',
                       value: showCostAmountInCategoryWhenAddInvoicePOS,
                       icon: Icons.point_of_sale,
                       onChanged: (value) {

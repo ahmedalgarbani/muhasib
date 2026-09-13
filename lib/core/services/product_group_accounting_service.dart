@@ -1,6 +1,11 @@
 import 'package:muhasib/core/services/database_service.dart';
 import 'package:muhasib/core/services/account_config_service.dart';
 
+/// ⚠️ LEGACY / UNUSED: هذه الخدمة غير مسجلة في `get_it` وغير مربوطة بمسار
+/// الترحيل الفعلي (`invoice_local_datasource.dart`). أي إعدادات محاسبية خاصة
+/// بمجموعة منتجات لن يكون لها أثر فعلي حتى يتم ربطها. لا تفترض أن الحسابات
+/// الخاصة بالمجموعات مُطبَّقة في الإنتاج.
+///
 /// Service to resolve accounting accounts based on product group configuration
 /// Enables segment-based accounting where different product groups can have
 /// different inventory, COGS, revenue, and purchase accounts

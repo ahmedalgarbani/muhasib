@@ -137,6 +137,8 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
 
   Future<void> _saveReturn() async {
     if (_formKey.currentState!.validate()) {
+      final customersCubit = context.read<CustomersCubit>();
+      final salesCubit = context.read<SalesCubit>();
       if (_originalInvoice == null &&
           !SettingsCache.allowReturnWithoutInvoice) {
         AppToast.showError(context, 'يرجى اختيار الفاتورة الأصلية');
@@ -268,7 +270,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
       String customerName = 'Unknown';
       if (_originalInvoice != null) {
         try {
-          final customersState = context.read<CustomersCubit>().state;
+          final customersState = customersCubit.state;
           if (customersState is CustomersLoaded) {
             final customer = customersState.customers.firstWhere(
               (c) => c.id == _originalInvoice!.customerId.toString(),
@@ -281,7 +283,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
         }
       }
 
-      context.read<SalesCubit>().createReturn(
+      salesCubit.createReturn(
         returnInvoice,
         _originalInvoice?.id ?? 0,
         customerName,
