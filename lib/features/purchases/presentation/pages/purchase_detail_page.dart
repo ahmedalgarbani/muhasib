@@ -86,7 +86,7 @@ class _PurchaseDetailPageState extends State<PurchaseDetailPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       PurchaseDetailHeader(invoice: widget.invoice),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       PurchaseDetailInfoCard(invoice: widget.invoice),
                       const SizedBox(height: 16),
                       PurchaseDetailSupplierCard(invoice: widget.invoice),

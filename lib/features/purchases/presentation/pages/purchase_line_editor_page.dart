@@ -268,23 +268,23 @@ class _PurchaseLineEditorPageState extends State<PurchaseLineEditorPage> {
                                         child: Row(children: [
                                           Text(u.unitName, style: const TextStyle(fontSize: 13)),
                                           if (!u.isMainUnit) ...[
-                                            const SizedBox(width: 6),
-                                            Text('(${u.packaging}×)', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                                            const SizedBox(width: 8),
+                                            Text('(${u.packaging}×)', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
                                           ],
                                           if (u.isDefaultPurchase) ...[
                                             const SizedBox(width: 4),
-                                            const Icon(Icons.star, size: 12, color: Colors.amber),
+                                            const Icon(Icons.star, size: 12, color: AppColors.warning),
                                           ],
                                         ]),
                                       ))
                                   .toList(),
                               onChanged: _onUnitChanged,
                             ),
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 8),
                             if (_selectedUnit != null)
                               Text(
                                 'معامل التحويل: ${ _selectedUnit!.totalConversion.toStringAsFixed(_selectedUnit!.totalConversion % 1 == 0 ? 0 : 2)}  •  الكمية الأساسية = الكمية × ${ _selectedUnit!.totalConversion}',
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                style: TextStyle(fontSize: 11, color: AppColors.gray500),
                               ),
                           ],
                         ],
@@ -340,7 +340,7 @@ class _PurchaseLineEditorPageState extends State<PurchaseLineEditorPage> {
                               alignment: Alignment.centerRight,
                               child: Text(
                                 'الكمية الأساسية: ${PrecisionHelper.calcBaseQuantity(quantity: double.tryParse(_quantityCtrl.text) ?? 0, packaging: _selectedUnit!.packaging, conversionRate: _selectedUnit!.conversionRate).toStringAsFixed(2)} حبة',
-                                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                                style: TextStyle(fontSize: 11, color: AppColors.gray500),
                               ),
                             ),
                           ],

@@ -44,7 +44,7 @@ class ReportDataTable<T> extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.inbox_outlined, size: 48, color: Colors.grey[400]),
+              Icon(Icons.inbox_outlined, size: 48, color: AppColors.gray400),
               const SizedBox(height: 12),
               Text(
                 emptyMessage,
@@ -52,7 +52,7 @@ class ReportDataTable<T> extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
-                  color: Colors.grey[600],
+                  color: AppColors.gray500,
                 ),
               ),
             ],
@@ -132,7 +132,7 @@ class ReportDataTable<T> extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 14,
+                  vertical: 16,
                 ),
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 child: footerRow,

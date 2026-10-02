@@ -112,7 +112,7 @@ class _OpeningBalancePageState extends State<OpeningBalancePage> {
                             descriptionController: _descriptionController,
                             onPickDate: () => _pickDate(context, opening),
                           ),
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 12),
                           OpeningBalanceSummaryCardWidget(
                             opening: opening,
                           ),
@@ -244,7 +244,7 @@ class OpeningBalanceMasterDataCardWidget extends StatelessWidget {
                   children: [
                     const Text(
                       'رقم القيد الافتتاحي',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray400),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -265,7 +265,7 @@ class OpeningBalanceMasterDataCardWidget extends StatelessWidget {
                     children: [
                       const Text(
                         'تاريخ العملية',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(fontSize: 12, color: AppColors.gray400),
                       ),
                       const SizedBox(height: 4),
                       Row(
@@ -319,10 +319,10 @@ class OpeningBalanceSummaryCardWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isBalanced ? Colors.green.shade50 : Colors.red.shade50,
+        color: isBalanced ? AppColors.emerald50 : AppColors.red50,
         borderRadius: BorderRadius.circular(AppRadius.xl),
         border: Border.all(
-          color: isBalanced ? Colors.green.shade100 : Colors.red.shade100,
+          color: isBalanced ? AppColors.emerald100 : AppColors.red100,
         ),
       ),
       child: Column(
@@ -333,12 +333,12 @@ class OpeningBalanceSummaryCardWidget extends StatelessWidget {
               OpeningBalanceSimpleStatWidget(
                 label: 'إجمالي المدين',
                 value: NumberFormatter.formatNumber(opening.totalDebit),
-                color: Colors.green,
+                color: AppColors.success,
               ),
               OpeningBalanceSimpleStatWidget(
                 label: 'إجمالي الدائن',
                 value: NumberFormatter.formatNumber(opening.totalCredit),
-                color: Colors.red,
+                color: AppColors.error,
               ),
             ],
           ),
@@ -349,7 +349,7 @@ class OpeningBalanceSummaryCardWidget extends StatelessWidget {
               Icon(
                 isBalanced ? Icons.check_circle : Icons.warning_amber_rounded,
                 size: 20,
-                color: isBalanced ? Colors.green : Colors.red,
+                color: isBalanced ? AppColors.success : AppColors.error,
               ),
               const SizedBox(width: 8),
               Text(
@@ -358,7 +358,7 @@ class OpeningBalanceSummaryCardWidget extends StatelessWidget {
                     : 'القيد غير متوازن (الفرق: ${NumberFormatter.formatNumber(diff)})',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: isBalanced ? Colors.green : Colors.red,
+                  color: isBalanced ? AppColors.success : AppColors.error,
                 ),
               ),
             ],
@@ -385,7 +385,7 @@ class OpeningBalanceSimpleStatWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(label, style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.gray400)),
         const SizedBox(height: 4),
         Text(
           value,
@@ -452,11 +452,11 @@ class OpeningBalanceLinesListWidget extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(Icons.inbox_outlined, size: 48, color: Colors.grey.shade300),
+            Icon(Icons.inbox_outlined, size: 48, color: AppColors.gray300),
             const SizedBox(height: 8),
             const Text(
               'لا توجد أرصدة مضافة بعد',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: AppColors.gray400),
             ),
           ],
         ),
@@ -476,7 +476,7 @@ class OpeningBalanceLinesListWidget extends StatelessWidget {
           child: ListTile(
             contentPadding: const EdgeInsets.all(12),
             leading: CircleAvatar(
-              backgroundColor: Colors.blue.shade50,
+              backgroundColor: AppColors.blue50,
               child: Text(
                 line.lineNumber.toString(),
                 style: const TextStyle(fontSize: 12),
@@ -492,13 +492,13 @@ class OpeningBalanceLinesListWidget extends StatelessWidget {
                   OpeningBalanceLineBadgeWidget(
                     label: 'مدين',
                     value: NumberFormatter.formatNumber(line.debit),
-                    color: Colors.green,
+                    color: AppColors.success,
                   ),
                 if (line.credit > 0)
                   OpeningBalanceLineBadgeWidget(
                     label: 'دائن',
                     value: NumberFormatter.formatNumber(line.credit),
-                    color: Colors.red,
+                    color: AppColors.error,
                   ),
               ],
             ),
@@ -508,12 +508,12 @@ class OpeningBalanceLinesListWidget extends StatelessWidget {
                 IconButton(
                   icon: const Icon(
                     Icons.edit_note_outlined,
-                    color: Colors.blue,
+                    color: AppColors.info,
                   ),
                   onPressed: () => onEditLine(line, i),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
                   onPressed: () => onRemoveLine(i),
                 ),
               ],

@@ -9,6 +9,7 @@ import 'package:muhasib/features/settings_entities/presentation/cubit/cashboxes_
 import 'package:muhasib/core/theme/app_radius.dart';
 
 import 'package:muhasib/features/sales/presentation/widgets/components/dropdown_state_widgets.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Dynamic bank selector that loads banks from database
 class BankSelectorDropdown extends StatelessWidget {
@@ -67,7 +68,7 @@ class BankSelectorDropdown extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         '(${bank.branchName})',
-                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        style: TextStyle(color: AppColors.gray500, fontSize: 12),
                       ),
                     ],
                   ],
@@ -138,7 +139,7 @@ class CashboxSelectorDropdown extends StatelessWidget {
                 child: Row(
                   children: [
                     if (cashbox.isMainFund)
-                      const Icon(Icons.star, size: 16, color: Colors.amber),
+                      const Icon(Icons.star, size: 16, color: AppColors.warning),
                     if (cashbox.isMainFund) const SizedBox(width: 4),
                     Text(cashbox.name),
                   ],

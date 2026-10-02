@@ -130,7 +130,7 @@ class _ItemsBalanceReportPageState extends State<ItemsBalanceReportPage> {
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
                       filled: true,
-                      fillColor: Colors.grey[50],
+                      fillColor: AppColors.gray50,
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
@@ -151,7 +151,7 @@ class _ItemsBalanceReportPageState extends State<ItemsBalanceReportPage> {
                 color: AppColors.materialDeepOrange500,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 12,
-                  vertical: 10,
+                  vertical: 12,
                 ),
                 child: const Row(
                   children: [
@@ -234,7 +234,7 @@ class _ItemsBalanceReportPageState extends State<ItemsBalanceReportPage> {
                             Icon(
                               Icons.error_outline,
                               size: 48,
-                              color: Colors.red[300],
+                              color: AppColors.red300,
                             ),
                             const SizedBox(height: 8),
                             Text(state.message),
@@ -257,17 +257,17 @@ class _ItemsBalanceReportPageState extends State<ItemsBalanceReportPage> {
                             Icon(
                               Icons.inventory_2_outlined,
                               size: 64,
-                              color: Colors.grey,
+                              color: AppColors.gray400,
                             ),
                             SizedBox(height: 12),
                             Text(
                               'لا توجد أرصدة',
-                              style: TextStyle(color: Colors.grey),
+                              style: TextStyle(color: AppColors.gray400),
                             ),
                             Text(
                               'لا توجد أصناف مطابقة للفلتر',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color: AppColors.gray400,
                                 fontSize: 12,
                               ),
                             ),
@@ -284,7 +284,7 @@ class _ItemsBalanceReportPageState extends State<ItemsBalanceReportPage> {
                           padding: AppConstant.defaultPadding,
                           itemCount: list.length,
                           separatorBuilder: (_, __) =>
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 8),
                           itemBuilder: (context, i) {
                             final e = list[i];
                             return _BalanceRow(balance: e);
@@ -345,7 +345,7 @@ class _WarehouseChipsBalance extends StatelessWidget {
                             const Icon(
                               Icons.star,
                               size: 14,
-                              color: Colors.amber,
+                              color: AppColors.warning,
                             ),
                           if (w.isMainStock) const SizedBox(width: 4),
                           Text(w.name, style: const TextStyle(fontSize: 12)),
@@ -377,9 +377,9 @@ class _BalanceRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.gray200),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       child: Row(
         children: [
           Expanded(
@@ -397,7 +397,7 @@ class _BalanceRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   balance.unitName,
-                  style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 10, color: AppColors.gray500),
                 ),
               ],
             ),
@@ -410,7 +410,7 @@ class _BalanceRow extends StatelessWidget {
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                color: Colors.blue[700],
+                color: AppColors.blue700,
               ),
             ),
           ),
@@ -421,7 +421,7 @@ class _BalanceRow extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.green[700],
+                color: AppColors.emerald700,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -433,7 +433,7 @@ class _BalanceRow extends StatelessWidget {
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.red[700],
+                color: AppColors.red700,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -445,7 +445,7 @@ class _BalanceRow extends StatelessWidget {
               textAlign: TextAlign.end,
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[800],
+                color: AppColors.gray700,
                 fontWeight: FontWeight.bold,
               ),
             ),

@@ -33,7 +33,7 @@ class QuotationHeaderWidget extends StatelessWidget {
               controller: searchController,
               hint: 'ابحث برقم العرض أو اسم العميل...',
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(

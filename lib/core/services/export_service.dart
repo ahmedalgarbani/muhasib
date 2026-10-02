@@ -112,13 +112,13 @@ class ExportService {
         textDirection: pw.TextDirection.rtl,
         theme: pw.ThemeData.withFont(base: ttf),
         header: repeatHeader
-            ? (context) => pw.Column(children: [headerWidget, pw.SizedBox(height: 10)])
+            ? (context) => pw.Column(children: [headerWidget, pw.SizedBox(height: 12)])
             : null,
         build: (context) => [
           if (!repeatHeader) headerWidget,
-          pw.SizedBox(height: 10),
+          pw.SizedBox(height: 12),
           _buildTable(headers, data, ttf),
-          pw.SizedBox(height: 10),
+          pw.SizedBox(height: 12),
           _buildFooter(settings, ttf, showInvoiceTerms: showInvoiceTerms),
         ],
       ),
@@ -216,9 +216,9 @@ class ExportService {
           ],
         ),
         pw.Divider(),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 12),
         pw.Center(child: pw.Text(title, style: pw.TextStyle(font: font, fontSize: 22, fontWeight: pw.FontWeight.bold, color: PdfColors.blue800))),
-        pw.SizedBox(height: 10),
+        pw.SizedBox(height: 12),
       ],
     );
   }

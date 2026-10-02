@@ -57,25 +57,25 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
       'value': 'spot',
       'label': 'جرد فوري',
       'icon': Icons.flash_on,
-      'color': Colors.orange,
+      'color': AppColors.warning,
     },
     {
       'value': 'periodic',
       'label': 'جرد دوري',
       'icon': Icons.schedule,
-      'color': Colors.blue,
+      'color': AppColors.info,
     },
     {
       'value': 'cycle',
       'label': 'جرد دائري',
       'icon': Icons.autorenew,
-      'color': Colors.green,
+      'color': AppColors.success,
     },
     {
       'value': 'annual',
       'label': 'جرد سنوي',
       'icon': Icons.event_available,
-      'color': Colors.purple,
+      'color': AppColors.purple500,
     },
   ];
 
@@ -435,17 +435,17 @@ class _WarehousesInventoryPageState extends State<WarehousesInventoryPage> {
               if (totalDifference > 0)
                 Text(
                   '• زيادة: $totalDifference وحدة',
-                  style: const TextStyle(color: Colors.green),
+                  style: const TextStyle(color: AppColors.success),
                 )
               else if (totalDifference < 0)
                 Text(
                   '• نقص: ${totalDifference.abs()} وحدة',
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: AppColors.error),
                 )
               else
                 const Text(
                   '• لا توجد فروقات',
-                  style: TextStyle(color: Colors.blue),
+                  style: TextStyle(color: AppColors.info),
                 ),
               const SizedBox(height: 16),
               const Text(

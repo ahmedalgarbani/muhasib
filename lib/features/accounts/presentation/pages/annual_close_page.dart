@@ -5,6 +5,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/annual_close_components.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class AnnualClosePage extends StatefulWidget {
   const AnnualClosePage({super.key});
@@ -114,7 +115,7 @@ class _AnnualClosePageState extends State<AnnualClosePage> {
             SizedBox(height: 16),
             Text(
               'تحذير: هذه العملية لا يمكن التراجع عنها!',
-              style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
+              style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
             ),
           ],
         ),

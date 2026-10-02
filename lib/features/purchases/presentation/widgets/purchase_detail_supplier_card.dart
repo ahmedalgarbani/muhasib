@@ -35,7 +35,7 @@ class PurchaseDetailSupplierCard extends StatelessWidget {
           elevation: 0,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.md),
-            side: BorderSide(color: Colors.grey.shade200),
+            side: BorderSide(color: AppColors.gray200),
           ),
           child: Padding(
             padding: AppConstant.defaultPadding,
@@ -54,14 +54,14 @@ class PurchaseDetailSupplierCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(10),
+                      padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withOpacity(0.1),
+                        color: AppColors.info.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: const Icon(
                         Icons.business,
-                        color: Colors.blue,
+                        color: AppColors.info,
                         size: 20,
                       ),
                     ),
@@ -85,7 +85,7 @@ class PurchaseDetailSupplierCard extends StatelessWidget {
                               invoice.shippingAddress!,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey[600],
+                                color: AppColors.gray500,
                               ),
                             ),
                         ],

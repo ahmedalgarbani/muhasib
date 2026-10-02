@@ -4,6 +4,7 @@ import 'package:muhasib/features/reports/domain/entities/income_statement_entity
 import 'package:muhasib/features/reports/presentation/cubit/income_statement_state.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_kpi_card.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class IncomeStatementSummaryRowWidget extends StatelessWidget {
   final IncomeStatementSummary summary;
@@ -29,21 +30,21 @@ class IncomeStatementSummaryRowWidget extends StatelessWidget {
         title: 'إجمالي الإيرادات',
         value: formatCurrency(s.totalRevenue),
         icon: Icons.trending_up,
-        color: Colors.green[700]!,
+        color: AppColors.emerald700,
         subtitle: 'جميع دخل الفعالية',
       ),
       ReportKpiCard(
         title: 'إجمالي التكاليف والمصروفات',
         value: formatCurrency(totalExpenses),
         icon: Icons.trending_down,
-        color: Colors.red[700]!,
+        color: AppColors.red700,
         subtitle: 'مبيعات + تشغيل',
       ),
       ReportKpiCard(
         title: isProfit ? 'صافي الربح' : 'صافي الخسارة',
         value: formatCurrency(s.netIncome),
         icon: isProfit ? Icons.account_balance : Icons.warning,
-        color: isProfit ? Colors.teal[700]! : Colors.deepOrange[700]!,
+        color: isProfit ? AppColors.teal700 : AppColors.materialDeepOrange700,
         trendText: '${marginPercent.toStringAsFixed(1)}%',
         isPositiveTrend: isProfit,
         subtitle: 'هامش الربحية',
@@ -104,7 +105,7 @@ class IncomeStatementCategoryWidget extends StatelessWidget {
             style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
-              color: Colors.blueGrey,
+              color: AppColors.slate500,
             ),
           ),
         ),
@@ -162,7 +163,7 @@ class IncomeStatementFinalResultWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isProfit ? Colors.green[50] : Colors.red[50],
+        color: isProfit ? AppColors.emerald50 : AppColors.red50,
         borderRadius: const BorderRadius.vertical(
           bottom: Radius.circular(AppRadius.lg20),
         ),
@@ -175,7 +176,7 @@ class IncomeStatementFinalResultWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: isProfit ? Colors.green[800] : Colors.red[800],
+              color: isProfit ? AppColors.emerald800 : AppColors.red800,
             ),
           ),
           Text(
@@ -183,7 +184,7 @@ class IncomeStatementFinalResultWidget extends StatelessWidget {
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
-              color: isProfit ? Colors.green[800] : Colors.red[800],
+              color: isProfit ? AppColors.emerald800 : AppColors.red800,
             ),
           ),
         ],

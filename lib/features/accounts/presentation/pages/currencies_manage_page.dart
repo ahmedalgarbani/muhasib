@@ -277,7 +277,7 @@ class CurrencyCard extends StatelessWidget {
                   index.toString(),
                   style: TextStyle(
                     fontSize: 18,
-                    color: Colors.grey[400],
+                    color: AppColors.gray400,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -298,7 +298,7 @@ class CurrencyCard extends StatelessWidget {
                         currency.rate == 1.0
                             ? 'العملة الافتراضية'
                             : '${currency.rate} سعر الصرف',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 14, color: AppColors.gray500),
                       ),
                     ],
                   ),
@@ -309,7 +309,7 @@ class CurrencyCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 IconButton(
-                  icon: Icon(Icons.more_vert, color: Colors.grey[400]),
+                  icon: Icon(Icons.more_vert, color: AppColors.gray400),
                   onPressed: () {},
                 ),
               ],

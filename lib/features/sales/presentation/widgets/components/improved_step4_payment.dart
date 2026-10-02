@@ -56,7 +56,7 @@ class ImprovedStep4Payment extends StatelessWidget {
                     label: 'المتبقي',
                     amount: remaining,
                     isTotal: true,
-                    color: remaining > 0 ? Colors.orange : Colors.green,
+                    color: remaining > 0 ? AppColors.warning : AppColors.success,
                   ),
                 ],
               ),

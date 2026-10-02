@@ -38,7 +38,7 @@ class PurchaseOrderCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
-          color: isConverted ? Colors.green.shade200 : Colors.grey.shade200,
+          color: isConverted ? AppColors.emerald200 : AppColors.gray200,
         ),
       ),
       child: InkWell(
@@ -85,7 +85,7 @@ class PurchaseOrderCard extends StatelessWidget {
                                 _formatDate(order.date),
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: Colors.grey.shade600,
+                                  color: AppColors.gray500,
                                 ),
                               ),
                             ],
@@ -102,22 +102,22 @@ class PurchaseOrderCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.business, size: 14, color: Colors.grey.shade600),
-                  const SizedBox(width: 6),
+                  Icon(Icons.business, size: 14, color: AppColors.gray500),
+                  const SizedBox(width: 8),
                   Text(
                     'المورد #${order.customerId}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                    style: TextStyle(fontSize: 12, color: AppColors.gray600),
                   ),
                   const SizedBox(width: 16),
                   Icon(
                     Icons.inventory_2,
                     size: 14,
-                    color: Colors.grey.shade600,
+                    color: AppColors.gray500,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Text(
                     '${order.lines.length} منتج',
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                    style: TextStyle(fontSize: 12, color: AppColors.gray600),
                   ),
                 ],
               ),
@@ -133,7 +133,7 @@ class PurchaseOrderCard extends StatelessWidget {
                           'القيمة الإجمالية',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade600,
+                            color: AppColors.gray500,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -181,20 +181,20 @@ class PurchaseOrderCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
+                    color: AppColors.gray50,
                     borderRadius: BorderRadius.circular(AppRadius.sm6),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.note, size: 14, color: Colors.grey.shade600),
-                      const SizedBox(width: 6),
+                      Icon(Icons.note, size: 14, color: AppColors.gray500),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           order.statement!,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey.shade700,
+                            color: AppColors.gray600,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -224,23 +224,23 @@ class PurchaseOrderStatusChipWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isConverted) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.green.withOpacity(0.1),
+          color: AppColors.success.withOpacity(0.1),
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: Colors.green.withOpacity(0.3)),
+          border: Border.all(color: AppColors.success.withOpacity(0.3)),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.check_circle, size: 14, color: Colors.green),
+            Icon(Icons.check_circle, size: 14, color: AppColors.success),
             SizedBox(width: 4),
             Text(
               'تم التحويل',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Colors.green,
+                color: AppColors.success,
               ),
             ),
           ],
@@ -248,23 +248,23 @@ class PurchaseOrderStatusChipWidget extends StatelessWidget {
       );
     } else {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         decoration: BoxDecoration(
-          color: Colors.orange.withOpacity(0.1),
+          color: AppColors.warning.withOpacity(0.1),
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: Colors.orange.withOpacity(0.3)),
+          border: Border.all(color: AppColors.warning.withOpacity(0.3)),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.hourglass_empty, size: 14, color: Colors.orange),
+            Icon(Icons.hourglass_empty, size: 14, color: AppColors.warning),
             SizedBox(width: 4),
             Text(
               'قيد الانتظار',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: Colors.orange,
+                color: AppColors.warning,
               ),
             ),
           ],

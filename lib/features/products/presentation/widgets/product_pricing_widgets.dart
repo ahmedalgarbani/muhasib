@@ -104,7 +104,7 @@ class ProductPricingContentWidget extends StatelessWidget {
               return Center(
                 child: Text(
                   state.message,
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: AppColors.error),
                 ),
               );
             } else if (state is ProductSubUnitsLoaded) {
@@ -266,13 +266,13 @@ class ProductPriceLevelItemWidget extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: hasPrice
-              ? Colors.green.shade50
+              ? AppColors.emerald50
               : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.sm),
         ),
         child: Icon(
           Icons.attach_money,
-          color: hasPrice ? Colors.green.shade700 : Colors.grey.shade400,
+          color: hasPrice ? AppColors.emerald700 : AppColors.gray400,
         ),
       ),
       title: Text(levelName),
@@ -293,8 +293,8 @@ class ProductPriceLevelItemWidget extends StatelessWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: hasPrice
-                      ? Colors.green.shade700
-                      : Colors.grey.shade500,
+                      ? AppColors.emerald700
+                      : AppColors.gray400,
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -312,7 +312,7 @@ class ProductPriceLevelItemWidget extends StatelessWidget {
             ),
             if (hasPrice)
               IconButton(
-                icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+                icon: const Icon(Icons.delete, size: 20, color: AppColors.error),
                 onPressed: () => onDeletePricing(price.id),
               ),
           ],

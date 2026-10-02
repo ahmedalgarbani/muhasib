@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/reports/domain/entities/transaction_entity.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class TransactionItemCardWidget extends StatelessWidget {
   final TransactionEntity transaction;
@@ -57,14 +58,14 @@ class TransactionItemCardWidget extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 13,
-                      color: Colors.blueGrey,
+                      color: AppColors.slate500,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   '${t.date.day}/${t.date.month}/${t.date.year}',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                  style: TextStyle(color: AppColors.gray500, fontSize: 11),
                 ),
               ],
             ),
@@ -83,7 +84,7 @@ class TransactionItemCardWidget extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 15,
-                color: Colors.blue,
+                color: AppColors.info,
               ),
             ),
           ),
@@ -96,7 +97,7 @@ class TransactionItemCardWidget extends StatelessWidget {
               padding: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  Icon(Icons.circle, size: 8, color: Colors.green[300]),
+                  Icon(Icons.circle, size: 8, color: AppColors.emerald300),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -106,12 +107,12 @@ class TransactionItemCardWidget extends StatelessWidget {
                               ?.accountName ??
                           t.details.firstOrNull?.accountName ??
                           '—',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                      style: TextStyle(fontSize: 11, color: AppColors.gray600),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
                   const SizedBox(width: 8),
-                  Icon(Icons.circle, size: 8, color: Colors.red[300]),
+                  Icon(Icons.circle, size: 8, color: AppColors.red300),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
@@ -122,7 +123,7 @@ class TransactionItemCardWidget extends StatelessWidget {
                           t.details.firstOrNull?.accountName ??
                           '—',
                       textAlign: TextAlign.end,
-                      style: TextStyle(fontSize: 11, color: Colors.grey[700]),
+                      style: TextStyle(fontSize: 11, color: AppColors.gray600),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),

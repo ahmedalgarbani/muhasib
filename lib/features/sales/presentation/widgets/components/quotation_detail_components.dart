@@ -52,7 +52,7 @@ class QuotationDetailHeaderCard extends StatelessWidget {
                       'عرض سعر',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppColors.gray500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -69,7 +69,7 @@ class QuotationDetailHeaderCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 6,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
                     color: status == InvoiceStatus.converted
@@ -244,7 +244,7 @@ class _QuotationProductLineWidget extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'الكمية: ${line.quantity} ${line is InvoiceLineEntity ? "(${line.conversionRate ?? 1}x)" : ""} × ${_formatCurrency(line.unitPrice ?? line.price ?? 0)} ${line is InvoiceLineEntity && (line.packaging ?? 1) > 1 ? "(${line.baseQuantity ?? line.quantity} حبة أساس)" : ""}',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 12, color: AppColors.gray500),
               ),
             ],
           ),
@@ -394,7 +394,7 @@ class QuotationDetailBottomActions extends StatelessWidget {
           onPressed: onConvert,
           leading: const Icon(Icons.transform),
           variant: HasibButtonVariant.success,
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 12),
           fontSize: 16,
         ),
       ),
@@ -417,14 +417,14 @@ class _QuotationInfoItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.grey.shade600),
+        Icon(icon, size: 18, color: AppColors.gray500),
         const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 11, color: AppColors.gray500),
             ),
             const SizedBox(height: 2),
             Text(
@@ -465,7 +465,7 @@ class _QuotationTotalRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isFinal ? 16 : 14,
             fontWeight: isFinal ? FontWeight.bold : FontWeight.w500,
-            color: isFinal ? AppColors.gray900 : Colors.grey.shade700,
+            color: isFinal ? AppColors.gray900 : AppColors.gray600,
           ),
         ),
         Text(

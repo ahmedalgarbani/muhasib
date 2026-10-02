@@ -61,7 +61,7 @@ class CurrenciesListWidget extends StatelessWidget {
                   const SizedBox(width: 8),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
+                      horizontal: 8,
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
@@ -106,7 +106,7 @@ class CurrenciesListWidget extends StatelessWidget {
                 IconButton(
                   icon: const Icon(
                     Icons.delete_outline,
-                    color: Colors.red,
+                    color: AppColors.error,
                     size: 20,
                   ),
                   visualDensity: VisualDensity.compact,

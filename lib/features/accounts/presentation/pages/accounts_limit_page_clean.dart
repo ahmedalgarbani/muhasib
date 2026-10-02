@@ -86,7 +86,7 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
               return Center(
                 child: Text(
                   state.message,
-                  style: const TextStyle(color: Colors.red),
+                  style: const TextStyle(color: AppColors.error),
                 ),
               );
             }
@@ -134,7 +134,7 @@ class _AccountLimitsScreenState extends State<AccountLimitsScreen> {
               Navigator.pop(context);
               limitsCubit.deleteLimit(limit.id!);
             },
-            child: const Text('نعم، احذف', style: TextStyle(color: Colors.red)),
+            child: const Text('نعم، احذف', style: TextStyle(color: AppColors.error)),
           ),
         ],
       ),
@@ -157,8 +157,8 @@ class _AccountLimitCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final usageLevel = limit.usageLevel;
     final color = usageLevel == UsageLevel.critical
-        ? Colors.red
-        : (usageLevel == UsageLevel.warning ? Colors.orange : Colors.green);
+        ? AppColors.error
+        : (usageLevel == UsageLevel.warning ? AppColors.warning : AppColors.success);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -194,9 +194,9 @@ class _AccountLimitCard extends StatelessWidget {
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete, color: Colors.red, size: 18),
+                      Icon(Icons.delete, color: AppColors.error, size: 18),
                       SizedBox(width: 8),
-                      Text('حذف', style: TextStyle(color: Colors.red)),
+                      Text('حذف', style: TextStyle(color: AppColors.error)),
                     ],
                   ),
                 ),
@@ -252,7 +252,7 @@ class _AccountLimitCard extends StatelessWidget {
                 ),
                 Text(
                   limit.isActive ? 'نشط' : 'متوقف',
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  style: const TextStyle(fontSize: 12, color: AppColors.gray400),
                 ),
               ],
             ),
@@ -384,7 +384,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                 const SizedBox(height: 16),
                 const Text(
                   'الحساب المستهدف',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                  style: TextStyle(color: AppColors.gray400, fontSize: 13),
                 ),
                 const SizedBox(height: 8),
                 AccountLimitPickerWidget(
@@ -400,7 +400,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                         label: 'سقف المدين',
                         controller: _debitController,
                         icon: Icons.arrow_downward,
-                        color: Colors.green,
+                        color: AppColors.success,
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -409,7 +409,7 @@ class _AddEditLimitSheetState extends State<_AddEditLimitSheet> {
                         label: 'سقف الدائن',
                         controller: _creditController,
                         icon: Icons.arrow_upward,
-                        color: Colors.red,
+                        color: AppColors.error,
                       ),
                     ),
                   ],
@@ -517,15 +517,15 @@ class AccountLimitPickerWidget extends StatelessWidget {
                   'اضغط لاختيار الحساب...',
               style: TextStyle(
                 color: limit != null
-                    ? Colors.grey
+                    ? AppColors.gray400
                     : (selectedAccount == null
-                          ? Colors.grey
+                          ? AppColors.gray400
                           : Theme.of(context).colorScheme.onSurface),
               ),
             ),
             const Spacer(),
             if (limit == null)
-              const Icon(Icons.search, size: 18, color: Colors.grey),
+              const Icon(Icons.search, size: 18, color: AppColors.gray400),
           ],
         ),
       ),
@@ -552,7 +552,7 @@ class AccountLimitInputFieldWidget extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        Text(label, style: const TextStyle(color: AppColors.gray400, fontSize: 13)),
         const SizedBox(height: 8),
         TextInputField(
           controller: controller,
@@ -602,7 +602,7 @@ class _AccountSearchSheetState extends State<_AccountSearchSheet> {
       ),
       child: Column(
         children: [
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: TextInputField(

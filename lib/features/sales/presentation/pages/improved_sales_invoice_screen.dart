@@ -416,7 +416,7 @@ class _ImprovedSalesInvoiceScreenState
             // Progress Indicator
             Container(
               color: Theme.of(context).colorScheme.surface,
-              padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
               child: Row(
                 children: List.generate(maxStep * 2 - 1, (index) {
                   if (index.isOdd) {

@@ -8,6 +8,7 @@ import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_transactions_widgets.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class AccountTransactionsPage extends StatefulWidget {
   final AccountEntity account;
@@ -182,21 +183,21 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                 value: NumberFormatter.formatNumber(
                   transaction['debit_amount'] ?? 0.0,
                 ),
-                valueColor: Colors.red,
+                valueColor: AppColors.error,
               ),
               AccountDetailRowWidget(
                 label: 'دائن',
                 value: NumberFormatter.formatNumber(
                   transaction['credit_amount'] ?? 0.0,
                 ),
-                valueColor: Colors.green,
+                valueColor: AppColors.success,
               ),
               AccountDetailRowWidget(
                 label: 'الرصيد',
                 value: NumberFormatter.formatNumber(
                   transaction['balance'] ?? 0.0,
                 ),
-                valueColor: Colors.blue,
+                valueColor: AppColors.info,
               ),
               if (transaction['notes'] != null &&
                   transaction['notes'].toString().isNotEmpty)
@@ -204,7 +205,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                   label: 'ملاحظات',
                   value: transaction['notes'],
                 ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
             ],
           ),
         );
@@ -224,7 +225,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
             onPressed: _loadTransactions,
           ),
           IconButton(
-            icon: const Icon(Icons.picture_as_pdf, color: Colors.red),
+            icon: const Icon(Icons.picture_as_pdf, color: AppColors.error),
             onPressed: () {},
           ),
         ],
@@ -282,7 +283,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                             const Icon(
                               Icons.calendar_today,
                               size: 18,
-                              color: Colors.grey,
+                              color: AppColors.gray400,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -296,7 +297,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                             const Icon(
                               Icons.calendar_today,
                               size: 18,
-                              color: Colors.grey,
+                              color: AppColors.gray400,
                             ),
                             const SizedBox(width: 8),
                             Text(
@@ -371,14 +372,14 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                         Icon(
                           Icons.receipt_long_outlined,
                           size: 64,
-                          color: Colors.grey[400],
+                          color: AppColors.gray400,
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'لا توجد حركات في الفترة المحددة',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[600],
+                            color: AppColors.gray500,
                           ),
                         ),
                       ],
@@ -413,7 +414,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                   'الإجمالي',
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
+                    color: AppColors.gray600,
                   ),
                 ),
                 Row(
@@ -423,13 +424,13 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                       children: [
                         const Text(
                           'مدين',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: AppColors.gray400),
                         ),
                         Text(
                           NumberFormatter.formatNumber(totalDebit),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.red,
+                            color: AppColors.error,
                           ),
                         ),
                       ],
@@ -440,13 +441,13 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                       children: [
                         const Text(
                           'دائن',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: AppColors.gray400),
                         ),
                         Text(
                           NumberFormatter.formatNumber(totalCredit),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
-                            color: Colors.green,
+                            color: AppColors.success,
                           ),
                         ),
                       ],
@@ -468,7 +469,7 @@ class _AccountTransactionsPageState extends State<AccountTransactionsPage> {
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
-                    color: currentBalance >= 0 ? Colors.green : Colors.red,
+                    color: currentBalance >= 0 ? AppColors.success : AppColors.error,
                   ),
                 ),
               ],

@@ -111,7 +111,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
                     return Row(
                       children: [
                         const Icon(Icons.warehouse,
-                            size: 18, color: Colors.grey),
+                            size: 18, color: AppColors.gray400),
                         const SizedBox(width: 8),
                         const Text('المخزن:',
                             style: TextStyle(
@@ -141,7 +141,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
                     );
                   },
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 // Search
                 TextInputField(
                   controller: _searchController,
@@ -161,7 +161,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.md),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
+                      borderSide: BorderSide(color: AppColors.gray300),
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 8),
@@ -193,7 +193,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.error_outline,
-                            size: 48, color: Colors.red[300]),
+                            size: 48, color: AppColors.red300),
                         const SizedBox(height: 8),
                         Text(state.message, textAlign: TextAlign.center),
                         const SizedBox(height: 12),
@@ -319,7 +319,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: AppColors.gray300,
                         borderRadius: BorderRadius.circular(2))),
               ),
               const SizedBox(height: 16),
@@ -331,7 +331,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
                           fontSize: 18, fontWeight: FontWeight.bold)),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
@@ -346,17 +346,17 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
               ),
               const SizedBox(height: 12),
               Text('التاريخ: ${date.day}/${date.month}/${date.year}',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 12)),
+                  style: TextStyle(color: AppColors.gray500, fontSize: 12)),
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.output, size: 16, color: Colors.grey),
-                  const SizedBox(width: 6),
+                  const Icon(Icons.output, size: 16, color: AppColors.gray400),
+                  const SizedBox(width: 8),
                   Text('من: $fromName',
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                   const SizedBox(width: 12),
-                  const Icon(Icons.input, size: 16, color: Colors.grey),
-                  const SizedBox(width: 6),
+                  const Icon(Icons.input, size: 16, color: AppColors.gray400),
+                  const SizedBox(width: 8),
                   Text('إلى: $toName',
                       style: const TextStyle(fontWeight: FontWeight.w600)),
                 ],
@@ -364,7 +364,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
               if (transfer.statement.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text('البيان: ${transfer.statement}',
-                    style: TextStyle(color: Colors.grey[700], fontSize: 13)),
+                    style: TextStyle(color: AppColors.gray600, fontSize: 13)),
               ],
               const Divider(height: 24),
               Text('الأصناف (${transfer.lines.length})',
@@ -372,7 +372,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
                       fontWeight: FontWeight.bold, fontSize: 14)),
               const SizedBox(height: 8),
               ...transfer.lines.map((l) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
                     child: Row(
                       children: [
                         Expanded(
@@ -389,7 +389,7 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
                                 'التكلفة: ${NumberFormatter.formatNumber(l.costAmount ?? 0)}',
                                 textAlign: TextAlign.end,
                                 style: TextStyle(
-                                    fontSize: 11, color: Colors.grey[600]))),
+                                    fontSize: 11, color: AppColors.gray500))),
                       ],
                     ),
                   )),
@@ -468,19 +468,19 @@ class _StockTransfersListViewState extends State<_StockTransfersListView> {
   Color _statusColor(TransferStatus s) {
     switch (s) {
       case TransferStatus.draft:
-        return Colors.grey;
+        return AppColors.gray400;
       case TransferStatus.pendingApproval:
-        return Colors.orange;
+        return AppColors.warning;
       case TransferStatus.approved:
-        return Colors.blue;
+        return AppColors.info;
       case TransferStatus.inTransit:
-        return Colors.teal;
+        return AppColors.teal500;
       case TransferStatus.completed:
-        return Colors.green;
+        return AppColors.success;
       case TransferStatus.rejected:
-        return Colors.red;
+        return AppColors.error;
       case TransferStatus.cancelled:
-        return Colors.grey;
+        return AppColors.gray400;
     }
   }
 }
@@ -519,13 +519,13 @@ class _TransferCard extends StatelessWidget {
       TransferStatus.cancelled => 'ملغي',
     };
     final statusColor = switch (transfer.status) {
-      TransferStatus.draft => Colors.grey,
-      TransferStatus.pendingApproval => Colors.orange,
-      TransferStatus.approved => Colors.blue,
-      TransferStatus.inTransit => Colors.teal,
-      TransferStatus.completed => Colors.green,
-      TransferStatus.rejected => Colors.red,
-      TransferStatus.cancelled => Colors.grey,
+      TransferStatus.draft => AppColors.gray400,
+      TransferStatus.pendingApproval => AppColors.warning,
+      TransferStatus.approved => AppColors.info,
+      TransferStatus.inTransit => AppColors.teal500,
+      TransferStatus.completed => AppColors.success,
+      TransferStatus.rejected => AppColors.error,
+      TransferStatus.cancelled => AppColors.gray400,
     };
 
     return CustomCardContainer(
@@ -533,13 +533,13 @@ class _TransferCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey[200]!),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.md),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -550,7 +550,7 @@ class _TransferCard extends StatelessWidget {
                     children: [
                       Icon(Icons.swap_horiz,
                           size: 18, color: AppColors.materialPurple500),
-                      const SizedBox(width: 6),
+                      const SizedBox(width: 8),
                       Text(transfer.number,
                           style: const TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 13)),
@@ -558,7 +558,7 @@ class _TransferCard extends StatelessWidget {
                   ),
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                         color: statusColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(10),
@@ -577,18 +577,18 @@ class _TransferCard extends StatelessWidget {
                   Expanded(
                     child: Row(
                       children: [
-                        const Icon(Icons.output, size: 14, color: Colors.grey),
+                        const Icon(Icons.output, size: 14, color: AppColors.gray400),
                         const SizedBox(width: 4),
                         Expanded(
                             child: Text(fromName,
                                 overflow: TextOverflow.ellipsis,
                                 style: const TextStyle(fontSize: 12))),
                         const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 6),
+                          padding: EdgeInsets.symmetric(horizontal: 8),
                           child: Icon(Icons.arrow_forward,
-                              size: 14, color: Colors.grey),
+                              size: 14, color: AppColors.gray400),
                         ),
-                        const Icon(Icons.input, size: 14, color: Colors.grey),
+                        const Icon(Icons.input, size: 14, color: AppColors.gray400),
                         const SizedBox(width: 4),
                         Expanded(
                             child: Text(toName,
@@ -599,22 +599,22 @@ class _TransferCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('${date.day}/${date.month}/${date.year}',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      style: TextStyle(fontSize: 11, color: AppColors.gray500)),
                   Text('${transfer.lines.length} صنف',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600])),
+                      style: TextStyle(fontSize: 11, color: AppColors.gray500)),
                 ],
               ),
               if (transfer.statement.isNotEmpty) ...[
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(transfer.statement,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: TextStyle(fontSize: 11, color: Colors.grey[700])),
+                    style: TextStyle(fontSize: 11, color: AppColors.gray600)),
               ],
               if (onPost != null || onDelete != null) ...[
                 const Divider(height: 16),
@@ -632,9 +632,9 @@ class _TransferCard extends StatelessWidget {
                       TextButton.icon(
                         onPressed: onDelete,
                         icon: const Icon(Icons.delete_outline,
-                            size: 16, color: Colors.red),
+                            size: 16, color: AppColors.error),
                         label: const Text('حذف',
-                            style: TextStyle(fontSize: 12, color: Colors.red)),
+                            style: TextStyle(fontSize: 12, color: AppColors.error)),
                       ),
                   ],
                 ),

@@ -444,7 +444,8 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
     final accRows = await db.query('accounts', columns: ['type','code'], where: 'id = ?', whereArgs: [accountId], limit: 1);
     final accType = accRows.isNotEmpty ? (accRows.first['type'] as int? ?? 1) : 1;
     final accCode = accRows.isNotEmpty ? (accRows.first['code'] as String? ?? '') : '';
-    final isCreditNormal = accType == 2 || accType == 4 || accCode.startsWith('2') || accCode.startsWith('4');
+    // AccountType: 0=assets, 1=liabilities, 2=equity, 3=revenue, 4=expenses.
+    final isCreditNormal = accType == 1 || accType == 2 || accType == 3 || accCode.startsWith('2') || accCode.startsWith('4');
     final res = await db.rawQuery(
       'SELECT COALESCE(SUM(jel.debit_amount),0) as d, COALESCE(SUM(jel.credit_amount),0) as c FROM journal_entry_lines jel JOIN journal_entries je ON je.id=jel.journal_entry_id WHERE je.is_posted=1 AND jel.account_id=? AND ${normalizedReportTimestampSql('je.entry_date')} < ?',
       [accountId, reportTimestampSeconds(beforeDate)],
@@ -558,7 +559,8 @@ class ReportsLocalDataSourceImpl implements ReportsLocalDataSource {
     final db = await _databaseService.database;
     final rows = await db.rawQuery(
       '''
-      SELECT a.id, a.code, a.name, a.type, COALESCE(SUM(jel.debit_amount - jel.credit_amount), 0) as net
+      SELECT a.id, a.code, a.name, a.type,
+             COALESCE(SUM(CASE WHEN je.id IS NOT NULL THEN jel.debit_amount - jel.credit_amount ELSE 0 END), 0) as net
       FROM accounts a 
       LEFT JOIN journal_entry_lines jel ON jel.account_id = a.id 
       LEFT JOIN journal_entries je ON je.id = jel.journal_entry_id AND je.is_posted = 1 AND je.status = 1 AND ${normalizedReportTimestampSql('je.entry_date')} <= ?

@@ -28,9 +28,9 @@ class AccountColorHelper {
       return (background: colors.background, border: colors.border, icon: colors.icon);
     }
     return (
-      background: Colors.grey[100]!,
-      border: Colors.grey[400]!,
-      icon: Colors.grey[600]!,
+      background: AppColors.gray100,
+      border: AppColors.gray400,
+      icon: AppColors.gray500,
     );
   }
 }

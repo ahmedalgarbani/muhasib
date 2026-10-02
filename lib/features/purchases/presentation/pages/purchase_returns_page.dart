@@ -81,13 +81,13 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
                                 Icon(
                                   Icons.error_outline,
                                   size: 64,
-                                  color: Colors.red[300],
+                                  color: AppColors.red300,
                                 ),
                                 const SizedBox(height: 16),
                                 Text(
                                   state.message,
                                   style: const TextStyle(
-                                    color: Colors.red,
+                                    color: AppColors.error,
                                     fontSize: 14,
                                   ),
                                   textAlign: TextAlign.center,
@@ -112,7 +112,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
                               subtitle: 'لم يتم إنشاء أي مردودات مشتريات بعد',
                               icon: Icons.assignment_return_outlined,
                               iconSize: 64,
-                              iconColor: Colors.red.withOpacity(0.3),
+                              iconColor: AppColors.error.withOpacity(0.3),
                             );
                           }
                           // تصفية حسب البحث إن وجد
@@ -198,7 +198,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
                 innerContext.read<PurchasesCubit>().loadPurchaseReturns();
               });
             },
-            backgroundColor: Colors.red,
+            backgroundColor: AppColors.error,
             icon: const Icon(Icons.assignment_return, size: 20),
             label: const Text('مردود جديد', style: TextStyle(fontSize: 13)),
           ),
@@ -216,7 +216,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
         ),
         title: const Row(
           children: [
-            Icon(Icons.assignment_return, color: Colors.red),
+            Icon(Icons.assignment_return, color: AppColors.error),
             SizedBox(width: 8),
             Text('إنشاء مردود مشتريات'),
           ],
@@ -233,17 +233,17 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.orange.shade50,
+                color: AppColors.amber50,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline, size: 18, color: Colors.orange),
+                  Icon(Icons.info_outline, size: 18, color: AppColors.warning),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'سيتم فتح نموذج لاختيار المنتجات المراد إرجاعها',
-                      style: TextStyle(fontSize: 12, color: Colors.orange),
+                      style: TextStyle(fontSize: 12, color: AppColors.warning),
                     ),
                   ),
                 ],
@@ -254,7 +254,7 @@ class _PurchaseReturnsPageState extends State<PurchaseReturnsPage>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+            child: const Text('إلغاء', style: TextStyle(color: AppColors.gray400)),
           ),
           HasibButton(
             label: 'متابعة',

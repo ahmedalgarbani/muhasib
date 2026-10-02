@@ -282,7 +282,7 @@ class _ModernConverterCard extends StatelessWidget {
                         onTap: onSwap,
                         borderRadius: BorderRadius.circular(30),
                         child: Container(
-                          padding: const EdgeInsets.all(10),
+                          padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
                             color: AppColors.primary,
                             shape: BoxShape.circle,
@@ -306,8 +306,8 @@ class _ModernConverterCard extends StatelessWidget {
                   if (fromCurrency != null && toCurrency != null) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
+                        horizontal: 12,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: theme.colorScheme.surfaceContainerHighest,
@@ -389,7 +389,7 @@ class _SideBox extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surfaceContainerHighest.withValues(
           alpha: 0.35,
@@ -414,7 +414,7 @@ class _SideBox extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: badgeColor,
                   borderRadius: BorderRadius.circular(AppRadius.xs),
@@ -456,7 +456,7 @@ class _SideBox extends StatelessWidget {
                   validator: (v) => v == null ? 'مطلوب' : null,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               // Amount Input
               Expanded(
                 flex: 4,
@@ -550,7 +550,7 @@ class _CustomRateCard extends StatelessWidget {
               onChanged: onToggle,
             ),
             if (useCustomRate) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               TextInputField(
                 controller: controller,
                 label: 'سعر الصرف الفعلي للعملية',
@@ -654,7 +654,7 @@ class _AccountingImpactCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
-                      vertical: 3,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       color: hasDifference
@@ -681,7 +681,7 @@ class _AccountingImpactCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             // Financial Breakdown Table
             Container(
@@ -700,7 +700,7 @@ class _AccountingImpactCard extends StatelessWidget {
                         '${fromLocal.toStringAsFixed(2)} ${fromCurrency?.isLocalCurrency == true ? fromCurrency?.code : 'محلي'}',
                     color: AppColors.rose700,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   _BreakdownRow(
                     label: 'القيمة المستلمة (بالمحلي):',
                     value:
@@ -723,16 +723,16 @@ class _AccountingImpactCard extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
 
             // Live Journal Entry Lines Preview
             const Text(
               'أسطر القيد المتولد:',
               style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.all(10),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: theme.colorScheme.surfaceContainerHighest.withValues(
                   alpha: 0.2,
@@ -788,7 +788,7 @@ class _AccountingImpactCard extends StatelessWidget {
             ),
 
             if (hasDifference) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               CustomDropdownField<int>(
                 label: 'حساب أرباح/خسائر فروق الصرف (مطلوب عند وجود فروق)',
                 value: differenceAccountId,

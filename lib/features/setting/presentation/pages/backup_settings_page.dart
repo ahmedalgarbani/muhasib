@@ -13,6 +13,7 @@ import 'package:muhasib/core/widgets/settings_dropdown_tile.dart';
 import 'package:muhasib/core/widgets/settings_switch_tile.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class BackupSettingsPage extends StatefulWidget {
   const BackupSettingsPage({super.key});
@@ -306,7 +307,7 @@ class _SectionLabel extends StatelessWidget {
         text,
         style: const TextStyle(
           fontSize: 13,
-          color: Colors.grey,
+          color: AppColors.gray400,
           fontWeight: FontWeight.w500,
         ),
       ),

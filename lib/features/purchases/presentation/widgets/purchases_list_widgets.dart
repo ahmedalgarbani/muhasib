@@ -25,7 +25,7 @@ class PurchasesListHeaderWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        border: Border(bottom: BorderSide(color: AppColors.gray200)),
       ),
       padding: AppConstant.defaultPadding,
       child: Column(
@@ -47,16 +47,16 @@ class PurchasesListHeaderWidget extends StatelessWidget {
                   controller: searchController,
                   hint: 'ابحث في فواتير المشتريات...',
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
                     filled: true,
                     fillColor: Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.sm),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: AppColors.gray300),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.sm),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: AppColors.gray300),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -71,7 +71,7 @@ class PurchasesListHeaderWidget extends StatelessWidget {
                 onPressed: onRefresh,
                 icon: const Icon(Icons.refresh),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.grey.shade100,
+                  backgroundColor: AppColors.gray100,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
@@ -111,7 +111,7 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: InkWell(
         onTap: onTap,
@@ -155,7 +155,7 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
                           _formatDate(invoice.date),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.gray500,
                           ),
                         ),
                       ],
@@ -164,7 +164,7 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 6,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.success.withOpacity(0.1),
@@ -184,11 +184,11 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
               const Divider(height: 24),
               Row(
                 children: [
-                  Icon(Icons.business, size: 16, color: Colors.grey.shade600),
+                  Icon(Icons.business, size: 16, color: AppColors.gray500),
                   const SizedBox(width: 8),
                   Text(
                     'المورد #${invoice.customerId}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                    style: TextStyle(fontSize: 14, color: AppColors.gray600),
                   ),
                 ],
               ),
@@ -196,7 +196,7 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
               if (invoice.statement != null) ...[
                 Text(
                   invoice.statement!,
-                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                  style: TextStyle(fontSize: 12, color: AppColors.gray500),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -213,7 +213,7 @@ class PurchasesListInvoiceCardWidget extends StatelessWidget {
                           'المبلغ الإجمالي',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.gray500,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -257,9 +257,9 @@ class PurchasesListPaymentStatusChipWidget extends StatelessWidget {
         InvoicePaymentStatus.tryFromValue(status) ??
         InvoicePaymentStatus.unpaid;
     final (String text, Color color) = switch (paymentStatus) {
-      InvoicePaymentStatus.paid => ('مدفوعة', Colors.green),
-      InvoicePaymentStatus.partial => ('مدفوعة جزئياً', Colors.orange),
-      InvoicePaymentStatus.unpaid => ('غير مدفوعة', Colors.red),
+      InvoicePaymentStatus.paid => ('مدفوعة', AppColors.success),
+      InvoicePaymentStatus.partial => ('مدفوعة جزئياً', AppColors.warning),
+      InvoicePaymentStatus.unpaid => ('غير مدفوعة', AppColors.error),
     };
 
     return Container(

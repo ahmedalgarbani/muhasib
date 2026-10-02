@@ -142,7 +142,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                       title: 'صافي المشتريات',
                       value: _format(data.netPurchases),
                       icon: Icons.shopping_basket,
-                      color: Colors.deepOrange[700]!,
+                      color: AppColors.materialDeepOrange700,
                       subtitle: 'عدد الفواتير: ${data.invoiceCount}',
                       isPositiveTrend: true,
                     ),
@@ -153,7 +153,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                       title: 'إجمالي المشتريات قبل الخصم',
                       value: _format(data.totalPurchases),
                       icon: Icons.shopping_bag,
-                      color: Colors.purple[700]!,
+                      color: AppColors.purple700,
                       subtitle: 'المرتجعات: ${_format(data.totalReturns)}',
                     ),
                   ),
@@ -163,7 +163,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                       title: 'الخصومات والضرائب المدفوعة',
                       value: _format(data.totalDiscounts + data.totalTaxes),
                       icon: Icons.receipt_long,
-                      color: Colors.teal[700]!,
+                      color: AppColors.teal700,
                       subtitle:
                           'خصم: ${_format(data.totalDiscounts)} | ضريبة: ${_format(data.totalTaxes)}',
                     ),
@@ -195,7 +195,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                           CircleAvatar(
                             radius: 12,
                             backgroundColor: index < 3
-                                ? Colors.deepOrange[100]
+                                ? AppColors.materialDeepOrange100
                                 : Theme.of(
                                     context,
                                   ).colorScheme.surfaceContainerHighest,
@@ -205,8 +205,8 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
                                 color: index < 3
-                                    ? Colors.deepOrange[900]
-                                    : Colors.grey[700],
+                                    ? AppColors.materialDeepOrange900
+                                    : AppColors.gray600,
                               ),
                             ),
                           ),
@@ -231,7 +231,7 @@ class _PurchaseSummaryContentState extends State<_PurchaseSummaryContent> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Colors.deepOrange[800],
+                          color: AppColors.materialDeepOrange800,
                         ),
                       ),
                     ),

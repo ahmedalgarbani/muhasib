@@ -7,6 +7,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/products/domain/entities/product_entity.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Bottom sheet listing products (search by name/barcode) for stores documents.
 class ProductPickerSheet extends StatefulWidget {
@@ -159,7 +160,7 @@ class _ProductPickerSheetState extends State<ProductPickerSheet> {
           _query.isEmpty
               ? 'لا توجد منتجات مسجلة'
               : 'لا توجد منتجات مطابقة للبحث',
-          style: TextStyle(color: Colors.grey[600]),
+          style: TextStyle(color: AppColors.gray500),
         ),
       );
     }

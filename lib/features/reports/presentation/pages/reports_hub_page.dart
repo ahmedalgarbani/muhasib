@@ -118,12 +118,12 @@ class _ReportsHubPageState extends State<ReportsHubPage>
                   fontWeight: FontWeight.w500,
                 ),
                 padding: EdgeInsets.zero,
-                labelPadding: const EdgeInsets.symmetric(horizontal: 6),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 8),
                 tabs: _tabs
                     .map(
                       (tab) => Tab(
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(AppRadius.xl28),
                           ),
@@ -131,7 +131,7 @@ class _ReportsHubPageState extends State<ReportsHubPage>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(tab.icon, size: 16),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               Text(tab.title),
                             ],
                           ),
@@ -217,7 +217,7 @@ class _ReportsHubPageState extends State<ReportsHubPage>
                             ),
                           ),
                           if (_searchQuery.isNotEmpty) ...[
-                            const SizedBox(height: 14),
+                            const SizedBox(height: 16),
                             TextButton.icon(
                               onPressed: () {
                                 _searchController.clear();

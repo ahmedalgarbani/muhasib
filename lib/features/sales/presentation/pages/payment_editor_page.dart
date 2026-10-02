@@ -127,18 +127,18 @@ class _PaymentEditorPageState extends State<PaymentEditorPage> {
               child: Column(
                 children: [
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    const Text('الإجمالي', style: TextStyle(fontSize: 13, color: Colors.grey)),
+                    const Text('الإجمالي', style: TextStyle(fontSize: 13, color: AppColors.gray400)),
                     Text(NumberFormatter.formatCurrency(widget.totalAmount), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primary)),
                   ]),
                   const SizedBox(height: 8),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                    const Text('المدفوع', style: TextStyle(fontSize: 12, color: Colors.grey)),
+                    const Text('المدفوع', style: TextStyle(fontSize: 12, color: AppColors.gray400)),
                     Text(NumberFormatter.formatCurrency(_totalPaid), style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold)),
                   ]),
                   const Divider(height: 16),
                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
                     const Text('المتبقي', style: TextStyle(fontWeight: FontWeight.bold)),
-                    Text(NumberFormatter.formatCurrency(_remaining.abs()), style: TextStyle(fontWeight: FontWeight.bold, color: _remaining > 0 ? Colors.orange : Colors.green)),
+                    Text(NumberFormatter.formatCurrency(_remaining.abs()), style: TextStyle(fontWeight: FontWeight.bold, color: _remaining > 0 ? AppColors.warning : AppColors.success)),
                   ]),
                 ],
               ),
@@ -191,7 +191,7 @@ class _PaymentEditorPageState extends State<PaymentEditorPage> {
                     else
                       Container(
                         padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(color: Colors.amber.shade50, borderRadius: BorderRadius.circular(8), border: Border.all(color: Colors.amber.shade200)),
+                        decoration: BoxDecoration(color: AppColors.amber50, borderRadius: BorderRadius.circular(8), border: Border.all(color: AppColors.amber200)),
                         child: const Text('لا توجد بنوك، أضف من الإعدادات', style: TextStyle(fontSize: 12)),
                       ),
                     const SizedBox(height: 12),
@@ -234,7 +234,7 @@ class _PaymentEditorPageState extends State<PaymentEditorPage> {
                       : null,
                   trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                     Text(NumberFormatter.formatCurrency(p.amount), style: const TextStyle(fontWeight: FontWeight.bold)),
-                    IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () => _removeAt(idx)),
+                    IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error), onPressed: () => _removeAt(idx)),
                   ]),
                 ),
               );

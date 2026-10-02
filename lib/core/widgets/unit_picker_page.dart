@@ -50,7 +50,7 @@ class UnitPickerPage extends StatelessWidget {
                     children: [
                       Text(productName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                       Text('السعر الأساسي: ${NumberFormatter.formatNumber(basePrice)} $currencySymbol',
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                          style: TextStyle(fontSize: 12, color: AppColors.gray500)),
                     ],
                   ),
                 ),
@@ -82,11 +82,11 @@ class UnitPickerPage extends StatelessWidget {
                       width: 44,
                       height: 44,
                       decoration: BoxDecoration(
-                        color: isMain ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey.shade100,
+                        color: isMain ? AppColors.primary.withValues(alpha: 0.1) : AppColors.gray100,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(isMain ? Icons.star : Icons.layers_outlined,
-                          color: isMain ? AppColors.primary : Colors.grey.shade700, size: 20),
+                          color: isMain ? AppColors.primary : AppColors.gray600, size: 20),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -97,9 +97,9 @@ class UnitPickerPage extends StatelessWidget {
                             children: [
                               Text(u.unitName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                               if (u.isDefaultSale) ...[
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                   decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(4)),
                                   child: const Text('افتراضي', style: TextStyle(color: Colors.white, fontSize: 10)),
                                 ),
@@ -109,10 +109,10 @@ class UnitPickerPage extends StatelessWidget {
                           const SizedBox(height: 2),
                           Text(
                             isMain ? 'الوحدة الأساسية' : 'تحتوي على ${u.totalConversion.toStringAsFixed(u.totalConversion % 1 == 0 ? 0 : 2)} من الوحدة الأساسية',
-                            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+                            style: TextStyle(fontSize: 11, color: AppColors.gray500),
                           ),
                           if (u.hasBarcode)
-                            Text('باركود: ${u.barcode}', style: TextStyle(fontSize: 10, color: Colors.grey.shade500)),
+                            Text('باركود: ${u.barcode}', style: TextStyle(fontSize: 10, color: AppColors.gray400)),
                         ],
                       ),
                     ),
@@ -120,11 +120,11 @@ class UnitPickerPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(NumberFormatter.formatNumber(price), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.primary)),
-                        Text(currencySymbol, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                        Text(currencySymbol, style: TextStyle(fontSize: 11, color: AppColors.gray500)),
                       ],
                     ),
                     const SizedBox(width: 8),
-                    const Icon(Icons.chevron_left, size: 18, color: Colors.grey),
+                    const Icon(Icons.chevron_left, size: 18, color: AppColors.gray400),
                   ],
                 ),
               ),

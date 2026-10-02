@@ -16,6 +16,7 @@ import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class OtherSettingsPage extends StatefulWidget {
   const OtherSettingsPage({super.key});
@@ -212,7 +213,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     'تكوينات النظام',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -294,7 +295,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     'الشاشات والخطوط',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -305,11 +306,11 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                       leading: Icon(
                         Icons.text_fields,
                         size: 20,
-                        color: Colors.grey[600],
+                        color: AppColors.gray500,
                       ),
                       title: const Text(
                         'حجم الخط',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(fontSize: 12, color: AppColors.gray400),
                       ),
                       subtitle: Text(
                         fontScale == 1.0
@@ -345,7 +346,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     'إعدادات الوقت والتاريخ',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -394,7 +395,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     'الأرقام العشرية',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -505,7 +506,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     'المدين والدائن',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -534,7 +535,7 @@ class _OtherSettingsPageState extends State<OtherSettingsPage> {
                     'إعدادات عامة',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

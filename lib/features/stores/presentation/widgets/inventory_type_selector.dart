@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class InventoryTypeSelector extends StatelessWidget {
   final String selectedType;
@@ -37,7 +38,7 @@ class InventoryTypeSelector extends StatelessWidget {
                 border: Border.all(
                   color: isSelected
                       ? type['color'] as Color
-                      : Colors.grey[300]!,
+                      : AppColors.gray300,
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -48,7 +49,7 @@ class InventoryTypeSelector extends StatelessWidget {
                     type['icon'] as IconData,
                     color: isSelected
                         ? type['color'] as Color
-                        : Colors.grey[600],
+                        : AppColors.gray500,
                     size: 28,
                   ),
                   const SizedBox(height: 4),
@@ -58,7 +59,7 @@ class InventoryTypeSelector extends StatelessWidget {
                       fontSize: 12,
                       color: isSelected
                           ? type['color'] as Color
-                          : Colors.grey[600],
+                          : AppColors.gray500,
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,

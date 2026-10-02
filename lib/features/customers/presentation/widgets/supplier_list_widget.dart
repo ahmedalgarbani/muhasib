@@ -5,6 +5,7 @@ import 'package:muhasib/features/customers/presentation/widgets/party_profile_wi
 import 'package:muhasib/core/constant/app_constant.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/sales/presentation/models/sale_invoice_models.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class SupplierListWidget extends StatelessWidget {
   final String searchQuery;
@@ -89,8 +90,8 @@ class SupplierListWidget extends StatelessWidget {
               title: 'مستحقات الموردين (لهم)',
               value: '${totalDue.toStringAsFixed(0)} ر.س',
               subtitle: '$totalSuppliers مورد',
-              color: Colors.orange.shade900,
-              backgroundColor: Colors.orange.shade50,
+              color: AppColors.amber900,
+              backgroundColor: AppColors.amber50,
               icon: Icons.business,
             ),
           ),
@@ -100,8 +101,8 @@ class SupplierListWidget extends StatelessWidget {
               title: 'مدفوعات مقدمة (عليهم)',
               value: '${totalAdvance.toStringAsFixed(0)} ر.س',
               subtitle: 'أرصدة للمنشأة',
-              color: Colors.green.shade700,
-              backgroundColor: Colors.green.shade50,
+              color: AppColors.emerald700,
+              backgroundColor: AppColors.emerald50,
               icon: Icons.account_balance_wallet_outlined,
             ),
           ),
@@ -119,7 +120,7 @@ class SupplierListWidget extends StatelessWidget {
     required IconData icon,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(AppRadius.md),

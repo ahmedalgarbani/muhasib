@@ -44,8 +44,8 @@ class JournalEntryCardWidget extends StatelessWidget {
                 children: [
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
+                      horizontal: 12,
+                      vertical: 8,
                     ),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
@@ -63,7 +63,7 @@ class JournalEntryCardWidget extends StatelessWidget {
                   const Spacer(),
                   Text(
                     dateStr,
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                    style: TextStyle(color: AppColors.gray400, fontSize: 13),
                   ),
                 ],
               ),
@@ -96,7 +96,7 @@ class JournalEntryCardWidget extends StatelessWidget {
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 14,
-                    color: Colors.grey.shade400,
+                    color: AppColors.gray400,
                   ),
                 ],
               ),
@@ -116,15 +116,15 @@ class JournalEntryStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: (isPosted ? Colors.green : Colors.orange).withValues(alpha: 0.1),
+        color: (isPosted ? AppColors.success : AppColors.warning).withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppRadius.lg20),
       ),
       child: Text(
         isPosted ? 'مرحل' : 'مسودة',
         style: TextStyle(
-          color: isPosted ? Colors.green : Colors.orange,
+          color: isPosted ? AppColors.success : AppColors.warning,
           fontSize: 12,
           fontWeight: FontWeight.bold,
         ),
@@ -151,7 +151,7 @@ class _AmountSummary extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+          style: TextStyle(color: AppColors.gray400, fontSize: 11),
         ),
         const SizedBox(height: 4),
         Text(

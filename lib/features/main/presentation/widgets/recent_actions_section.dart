@@ -115,7 +115,7 @@ class RecentActionsSection extends StatelessWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
                     Text(
                       'لا توجد عمليات مسجلة حتى الآن',
                       style: TextStyle(

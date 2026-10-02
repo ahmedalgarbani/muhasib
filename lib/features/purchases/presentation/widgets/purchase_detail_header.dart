@@ -28,7 +28,7 @@ class PurchaseDetailHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: AppColors.gray400.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 4,
           ),
@@ -64,7 +64,7 @@ class PurchaseDetailHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   _formatDate(invoice.date),
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 12, color: AppColors.gray500),
                 ),
               ],
             ),
@@ -88,13 +88,13 @@ class PurchaseStatusChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final status = InvoicePaymentStatus.tryFromValue(paymentStatus) ?? InvoicePaymentStatus.unpaid;
     final (String text, Color color, IconData icon) = switch (status) {
-      InvoicePaymentStatus.paid => ('مدفوعة', Colors.green, Icons.check_circle),
-      InvoicePaymentStatus.partial => ('مدفوعة جزئياً', Colors.orange, Icons.timelapse),
-      InvoicePaymentStatus.unpaid => ('غير مدفوعة', Colors.red, Icons.cancel),
+      InvoicePaymentStatus.paid => ('مدفوعة', AppColors.success, Icons.check_circle),
+      InvoicePaymentStatus.partial => ('مدفوعة جزئياً', AppColors.warning, Icons.timelapse),
+      InvoicePaymentStatus.unpaid => ('غير مدفوعة', AppColors.error, Icons.cancel),
     };
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppRadius.lg20),

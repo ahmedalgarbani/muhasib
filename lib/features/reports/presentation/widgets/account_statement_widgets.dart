@@ -3,6 +3,7 @@ import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class AccountStatementAccountSelectorWidget extends StatelessWidget {
   final int? selectedAccountId;
@@ -66,7 +67,7 @@ class AccountStatementSummaryItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: 140,
-      margin: const EdgeInsets.only(left: 10),
+      margin: const EdgeInsets.only(left: 12),
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
@@ -81,7 +82,7 @@ class AccountStatementSummaryItemWidget extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              color: Colors.grey[600],
+              color: AppColors.gray500,
               fontSize: 10,
               fontWeight: FontWeight.bold,
             ),
@@ -147,7 +148,7 @@ class AccountStatementTransactionCardWidget extends StatelessWidget {
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
-                    color: Colors.blueGrey,
+                    color: AppColors.slate500,
                   ),
                 ),
               ],
@@ -156,14 +157,14 @@ class AccountStatementTransactionCardWidget extends StatelessWidget {
               padding: const EdgeInsets.only(top: 8),
               child: Row(
                 children: [
-                  const Icon(Icons.date_range, size: 12, color: Colors.grey),
+                  const Icon(Icons.date_range, size: 12, color: AppColors.gray400),
                   const SizedBox(width: 4),
                   Text(
                     '${t.transactionDate.day}/${t.transactionDate.month}/${t.transactionDate.year}',
                     style: const TextStyle(fontSize: 11),
                   ),
                   const SizedBox(width: 16),
-                  const Icon(Icons.tag, size: 12, color: Colors.grey),
+                  const Icon(Icons.tag, size: 12, color: AppColors.gray400),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -184,11 +185,11 @@ class AccountStatementTransactionCardWidget extends StatelessWidget {
               children: [
                 AccountStatementAmountBadgeWidget(
                   label: 'مدين: ${NumberFormatter.formatNumber(t.debitAmount)}',
-                  color: Colors.green,
+                  color: AppColors.success,
                 ),
                 AccountStatementAmountBadgeWidget(
                   label: 'دائن: ${NumberFormatter.formatNumber(t.creditAmount)}',
-                  color: Colors.red,
+                  color: AppColors.error,
                 ),
               ],
             ),
@@ -212,7 +213,7 @@ class AccountStatementAmountBadgeWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.05),
         borderRadius: BorderRadius.circular(AppRadius.sm),

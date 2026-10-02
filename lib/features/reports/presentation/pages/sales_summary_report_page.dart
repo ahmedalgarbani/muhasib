@@ -139,7 +139,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
                           title: 'صافي المبيعات',
                           value: _format(s.netSales),
                           icon: Icons.trending_up,
-                          color: Colors.green[700]!,
+                          color: AppColors.emerald700,
                           subtitle: 'عدد الفواتير: ${s.invoiceCount}',
                           isPositiveTrend: true,
                         ),
@@ -151,7 +151,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
                           title: 'إجمالي المبيعات قبل الخصم',
                           value: _format(s.totalSales),
                           icon: Icons.point_of_sale,
-                          color: Colors.blue[700]!,
+                          color: AppColors.blue700,
                           subtitle: 'المرتجعات: ${_format(s.totalReturns)}',
                         ),
                       ),
@@ -162,7 +162,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
                           title: 'إجمالي الخصومات والضرائب',
                         value: _format(s.totalDiscounts + s.totalTaxes),
                         icon: Icons.discount,
-                        color: Colors.orange[700]!,
+                        color: AppColors.amber700,
                         subtitle:
                             'خصم: ${_format(s.totalDiscounts)} | ضريبة: ${_format(s.totalTaxes)}',
                         ),
@@ -200,7 +200,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
                             CircleAvatar(
                               radius: 12,
                               backgroundColor: index < 3
-                                  ? Colors.amber[100]
+                                  ? AppColors.amber100
                                   : Theme.of(context)
                                         .colorScheme
                                         .surfaceContainerHighest,
@@ -210,8 +210,8 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
                                   fontSize: 11,
                                   fontWeight: FontWeight.bold,
                                   color: index < 3
-                                      ? Colors.amber[900]
-                                      : Colors.grey[700],
+                                      ? AppColors.amber900
+                                      : AppColors.gray600,
                                 ),
                               ),
                             ),
@@ -244,7 +244,7 @@ class _SalesSummaryContentState extends State<_SalesSummaryContent> {
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.bold,
-                            color: Colors.green[800],
+                            color: AppColors.emerald800,
                           ),
                         ),
                       ),

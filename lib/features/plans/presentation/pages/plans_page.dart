@@ -105,17 +105,17 @@ class _PlansBody extends StatelessWidget {
             color: theme.colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 16),
         for (final plan in PlansCatalog.purchasablePlans)
           Padding(
-            padding: const EdgeInsets.only(bottom: 14),
+            padding: const EdgeInsets.only(bottom: 16),
             child: PlanCard(
               plan: plan,
               state: state,
               onSelect: () => _selectPlan(context, plan),
             ),
           ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         SupportWhatsAppCard(deviceId: state.deviceId),
       ],
     );
@@ -138,7 +138,7 @@ class _Banner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: background,
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -147,7 +147,7 @@ class _Banner extends StatelessWidget {
       child: Row(
         children: [
           Icon(icon, color: color, size: 22),
-          const SizedBox(width: 10),
+          const SizedBox(width: 12),
           Expanded(
             child: Text(
               text,

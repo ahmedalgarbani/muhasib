@@ -85,7 +85,7 @@ class _ProductsPageState extends State<ProductsPage> {
                       return Center(
                         child: Text(
                           state.message,
-                          style: const TextStyle(color: Colors.red),
+                          style: const TextStyle(color: AppColors.error),
                         ),
                       );
                     } else if (state is ProductsLoaded) {
@@ -161,7 +161,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 }
                 Navigator.pop(dialogContext);
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
               child: const Text('حذف'),
             ),
           ],

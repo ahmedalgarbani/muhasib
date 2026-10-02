@@ -40,7 +40,7 @@ class CustomCheckboxTile extends StatelessWidget {
         secondary: icon != null
             ? Icon(
                 icon,
-                color: enabled ? AppColors.primary : Colors.grey,
+                color: enabled ? AppColors.primary : AppColors.gray400,
                 size: 22,
               )
             : null,
@@ -49,7 +49,7 @@ class CustomCheckboxTile extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 14,
-            color: enabled ? colorScheme.onSurface : Colors.grey,
+            color: enabled ? colorScheme.onSurface : AppColors.gray400,
           ),
         ),
         subtitle: subtitle != null
@@ -57,7 +57,7 @@ class CustomCheckboxTile extends StatelessWidget {
                 subtitle!,
                 style: TextStyle(
                   fontSize: 12,
-                  color: enabled ? colorScheme.onSurfaceVariant : Colors.grey,
+                  color: enabled ? colorScheme.onSurfaceVariant : AppColors.gray400,
                 ),
               )
             : null,

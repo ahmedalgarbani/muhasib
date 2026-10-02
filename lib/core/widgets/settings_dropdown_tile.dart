@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Reusable Dropdown Tile for settings pages.
 class SettingsDropdownTile<T> extends StatelessWidget {
@@ -31,7 +32,7 @@ class SettingsDropdownTile<T> extends StatelessWidget {
           : null,
       title: Text(
         title,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
+        style: const TextStyle(fontSize: 12, color: AppColors.gray400),
       ),
       subtitle: DropdownButtonHideUnderline(
         child: DropdownButton<T>(

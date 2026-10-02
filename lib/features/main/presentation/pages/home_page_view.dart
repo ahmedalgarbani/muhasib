@@ -83,7 +83,7 @@ class _HomePageViewState extends State<HomePageView> {
                     return Column(
                       children: [
                         const HomeGreetingHeader(),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         ErrorStateCard(
                           message: state.message,
                           onRetry: () =>
@@ -97,7 +97,7 @@ class _HomePageViewState extends State<HomePageView> {
                     return const Column(
                       children: [
                         HomeGreetingHeader(),
-                        SizedBox(height: 6),
+                        SizedBox(height: 8),
                         HomeSkeletonLoader(),
                       ],
                     );
@@ -124,7 +124,7 @@ class _HomePageViewState extends State<HomePageView> {
 
   List<Widget> _buildSections(MainDashboardLoaded state) {
     final homeType = SettingsCache.homeScrrenType;
-    final sections = <Widget>[const SizedBox(height: 6)];
+    final sections = <Widget>[const SizedBox(height: 8)];
 
     if (homeType == 2) {
       sections.addAll([
@@ -181,7 +181,7 @@ class _HomePageViewState extends State<HomePageView> {
         const BottomActionCard(),
       ]);
     }
-    sections.add(const SizedBox(height: 10));
+    sections.add(const SizedBox(height: 12));
     return sections;
   }
 }

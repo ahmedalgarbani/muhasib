@@ -200,7 +200,7 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
                         title: 'إجمالي الأصول',
                         value: _format(data.totalAssets),
                         icon: Icons.trending_up,
-                        color: Colors.green[700]!,
+                        color: AppColors.emerald700,
                         subtitle: 'الأصول المتداولة والثابتة',
                       ),
                     ),
@@ -211,7 +211,7 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
                         title: 'الخصوم وحقوق الملكية',
                         value: _format(data.totalLiabilities + data.totalEquity),
                         icon: Icons.account_balance_wallet,
-                        color: Colors.blue[700]!,
+                        color: AppColors.blue700,
                         subtitle: 'التزامات + الملكية',
                       ),
                     ),
@@ -223,8 +223,8 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
                         value: _format(workingCapital),
                         icon: Icons.account_balance,
                         color: workingCapital >= 0
-                            ? Colors.teal[700]!
-                            : Colors.red[700]!,
+                            ? AppColors.teal700
+                            : AppColors.red700,
                         subtitle: 'الأصول - الخصوم',
                         isPositiveTrend: workingCapital >= 0,
                       ),
@@ -232,11 +232,11 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               BalanceSheetSectionWidget(
                 title: 'الأصول',
                 value: data.totalAssets,
-                color: Colors.green[800]!,
+                color: AppColors.emerald800,
                 icon: Icons.trending_up,
                 rows: assets,
                 formatCurrency: _format,
@@ -245,7 +245,7 @@ class _BalanceSheetContentState extends State<_BalanceSheetContent> {
               BalanceSheetSectionWidget(
                 title: 'الخصوم وحقوق الملكية',
                 value: data.totalLiabilities + data.totalEquity,
-                color: Colors.blue[800]!,
+                color: AppColors.blue800,
                 icon: Icons.account_balance_wallet,
                 rows: liabilitiesAndEquity,
                 formatCurrency: _format,

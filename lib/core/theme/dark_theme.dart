@@ -63,7 +63,7 @@ final ThemeData appDarkTheme = ThemeData(
       backgroundColor: AppColors.primaryLight,
       foregroundColor: Colors.white,
       elevation: 0,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm14),
       ),
@@ -78,7 +78,7 @@ final ThemeData appDarkTheme = ThemeData(
     style: OutlinedButton.styleFrom(
       foregroundColor: AppColors.primaryLight,
       side: const BorderSide(color: AppColors.borderDark, width: 1.5),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm14),
       ),
@@ -92,7 +92,7 @@ final ThemeData appDarkTheme = ThemeData(
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
       foregroundColor: AppColors.primaryLight,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
@@ -106,7 +106,7 @@ final ThemeData appDarkTheme = ThemeData(
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
     fillColor: AppColors.surfaceDark,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     hintStyle: const TextStyle(
       fontFamily: 'Tajawal',
       color: AppColors.textSecondaryDark,
@@ -153,7 +153,7 @@ final ThemeData appDarkTheme = ThemeData(
       fontWeight: FontWeight.w500,
       color: AppColors.textPrimaryDark,
     ),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
   bottomSheetTheme: const BottomSheetThemeData(
     backgroundColor: AppColors.surfaceDark,

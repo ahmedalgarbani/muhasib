@@ -294,7 +294,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           DropdownButtonFormField<int>(
                             value: _selectedCategoryId,
                             isExpanded: true,
@@ -363,7 +363,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                                 DropdownButtonFormField<ProductUnitOption>(
                                   value: _selectedUnitOption,
                                   isExpanded: true,
@@ -387,7 +387,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                                               child: Row(
                                                 children: [
                                                   Text(u.unitName),
-                                                  const SizedBox(width: 6),
+                                                  const SizedBox(width: 8),
                                                   if (!u.isMainUnit)
                                                     Text(
                                                       '(${u.packaging} x)',
@@ -416,15 +416,15 @@ class _AddLineDialogState extends State<AddLineDialog> {
                                       .toList(),
                                   onChanged: _onUnitChanged,
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 8),
                                 if (_selectedUnitOption != null)
                                   Container(
-                                    padding: const EdgeInsets.all(6),
+                                    padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
-                                      color: Colors.blue.shade50,
+                                      color: AppColors.blue50,
                                       borderRadius: BorderRadius.circular(6),
                                       border: Border.all(
-                                        color: Colors.blue.shade200,
+                                        color: AppColors.blue200,
                                       ),
                                     ),
                                     child: Row(
@@ -432,15 +432,15 @@ class _AddLineDialogState extends State<AddLineDialog> {
                                         const Icon(
                                           Icons.info_outline,
                                           size: 14,
-                                          color: Colors.blue,
+                                          color: AppColors.info,
                                         ),
-                                        const SizedBox(width: 6),
+                                        const SizedBox(width: 8),
                                         Expanded(
                                           child: Text(
                                             'معامل التحويل: ${_selectedUnitOption!.totalConversion.toStringAsFixed(2)} → الكمية الأساسية = الكمية × ${_selectedUnitOption!.totalConversion}',
                                             style: TextStyle(
                                               fontSize: 10,
-                                              color: Colors.blue.shade700,
+                                              color: AppColors.blue700,
                                             ),
                                           ),
                                         ),
@@ -454,15 +454,15 @@ class _AddLineDialogState extends State<AddLineDialog> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Colors.amber.withAlpha(30),
+                              color: AppColors.warning.withAlpha(30),
                               borderRadius: BorderRadius.circular(AppRadius.sm),
-                              border: Border.all(color: Colors.amber),
+                              border: Border.all(color: AppColors.warning),
                             ),
                             child: const Row(
                               children: [
                                 Icon(
                                   Icons.warning_amber_rounded,
-                                  color: Colors.amber,
+                                  color: AppColors.warning,
                                 ),
                                 SizedBox(width: 8),
                                 Expanded(
@@ -526,9 +526,9 @@ class _AddLineDialogState extends State<AddLineDialog> {
                         const SizedBox(height: 12),
                         if (_selectedUnitOption != null)
                           Container(
-                            padding: const EdgeInsets.all(6),
+                            padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade50,
+                              color: AppColors.gray50,
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
@@ -551,7 +551,7 @@ class _AddLineDialogState extends State<AddLineDialog> {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: Colors.grey[100],
+                            color: AppColors.gray100,
                             borderRadius: BorderRadius.circular(AppRadius.sm),
                           ),
                           child: Row(

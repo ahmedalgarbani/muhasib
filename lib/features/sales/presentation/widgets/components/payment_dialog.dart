@@ -287,11 +287,11 @@ class _PaymentDialogState extends State<PaymentDialog> {
               )
             else
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.amber.shade50,
+                  color: AppColors.amber50,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.amber.shade200),
+                  border: Border.all(color: AppColors.amber200),
                 ),
                 child: const Text(
                   'لا توجد بنوك مفعلة. أضف بنكاً من الإعدادات.',
@@ -316,7 +316,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
           ),
 
           if (_payments.isNotEmpty) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             const Text(
               'الدفعات المضافة',
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -364,7 +364,7 @@ class _PaymentDialogState extends State<PaymentDialog> {
                       ),
                       IconButton(
                         onPressed: () => _removePayment(index),
-                        icon: const Icon(Icons.delete, color: Colors.red),
+                        icon: const Icon(Icons.delete, color: AppColors.error),
                       ),
                     ],
                   ),

@@ -254,7 +254,7 @@ class _SalesBillsScreenState extends State<SalesBillsScreen> {
               }
               Navigator.pop(context);
             },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('حذف'),
           ),
         ],
@@ -334,7 +334,7 @@ class _EmptyBillsView extends StatelessWidget {
               color: theme.colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             isSearching
                 ? 'جرّب البحث برقم مختلف'
@@ -362,7 +362,7 @@ class _EmptyBillsView extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.add_rounded, size: 18, color: Colors.white),
-                    SizedBox(width: 6),
+                    SizedBox(width: 8),
                     Text(
                       'فاتورة جديدة',
                       style: TextStyle(
@@ -466,8 +466,8 @@ class BillsHeader extends StatelessWidget {
                   onTap: onFilterPressed,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
+                      horizontal: 16,
+                      vertical: 12,
                     ),
                     decoration: BoxDecoration(
                       color: isFilterOpen
@@ -555,7 +555,7 @@ class FilterPanel extends StatelessWidget {
                 size: 18,
                 color: theme.colorScheme.onSurfaceVariant,
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Text(
                 'الترتيب حسب',
                 style: TextStyle(
@@ -669,8 +669,8 @@ class BillCard extends StatelessWidget {
     return PressableScale(
       pressedScale: 0.985,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -703,7 +703,7 @@ class BillCard extends StatelessWidget {
                     color: isDark ? AppColors.primaryLight : AppColors.primary,
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     invoice.number,
@@ -720,7 +720,7 @@ class BillCard extends StatelessWidget {
                 if (status != null)
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 9,
+                      horizontal: 8,
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
@@ -739,7 +739,7 @@ class BillCard extends StatelessWidget {
                 _CardActionMenu(onDelete: onDelete),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Icon(
@@ -776,12 +776,12 @@ class BillCard extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Divider(
               height: 1,
               color: theme.dividerColor.withValues(alpha: 0.6),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [

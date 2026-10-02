@@ -156,13 +156,13 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
                       borderRadius: BorderRadius.circular(AppRadius.md),
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 14,
+                          horizontal: 16,
+                          vertical: 16,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(AppRadius.md),
-                          border: Border.all(color: Colors.grey[300]!),
+                          border: Border.all(color: AppColors.gray300),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.03),
@@ -178,7 +178,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
                               size: 20,
                               color: AppColors.primary,
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 _selectedIds.isEmpty
@@ -189,7 +189,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: _selectedIds.isEmpty
-                                      ? Colors.grey[600]
+                                      ? AppColors.gray500
                                       : Colors.black87,
                                   fontWeight: _selectedIds.isEmpty
                                       ? FontWeight.normal
@@ -199,7 +199,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
                             ),
                             Icon(
                               Icons.keyboard_arrow_down,
-                              color: Colors.grey[600],
+                              color: AppColors.gray500,
                             ),
                           ],
                         ),
@@ -208,7 +208,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
                     const SizedBox(height: 8),
                     Text(
                       'اذا لم يتم اختيار اي صنف، يتم طباعة الاسعار لجميع الاصناف.',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 11, color: AppColors.gray500),
                     ),
                     const SizedBox(height: 16),
                     // Preview table header
@@ -288,7 +288,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
                       ),
                       onPressed: () => _printPrices(),
                       variant: HasibButtonVariant.primary,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     const SizedBox(height: 12),
                   ],
@@ -310,7 +310,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+            Icon(Icons.error_outline, size: 48, color: AppColors.red300),
             const SizedBox(height: 8),
             Text(state.message),
             const SizedBox(height: 12),
@@ -328,9 +328,9 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.price_check_outlined, size: 64, color: Colors.grey),
+            Icon(Icons.price_check_outlined, size: 64, color: AppColors.gray400),
             SizedBox(height: 12),
-            Text('لا توجد أسعار', style: TextStyle(color: Colors.grey)),
+            Text('لا توجد أسعار', style: TextStyle(color: AppColors.gray400)),
           ],
         ),
       );
@@ -341,16 +341,16 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(AppRadius.md),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(color: AppColors.gray200),
         ),
         child: ListView.separated(
           itemCount: list.length,
           separatorBuilder: (_, __) =>
-              Divider(height: 1, color: Colors.grey[200]),
+              Divider(height: 1, color: AppColors.gray200),
           itemBuilder: (context, i) {
             final e = list[i];
             return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               child: Row(
                 children: [
                   Expanded(
@@ -369,7 +369,7 @@ class _ProductPricesReportPageState extends State<ProductPricesReportPage> {
                           e.unitName,
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.grey[600],
+                            color: AppColors.gray500,
                           ),
                         ),
                       ],
@@ -497,7 +497,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     vertical: 8,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[50],
+                  fillColor: AppColors.gray50,
                 ),
                 onChanged: (v) => setState(() => _query = v.trim()),
               ),
@@ -513,7 +513,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                     products.isNotEmpty &&
                     products.every((p) => _selected.contains(p.id));
                 return Container(
-                  color: Colors.grey[50],
+                  color: AppColors.gray50,
                   child: CheckboxListTile(
                     value: allSelected,
                     title: const Text(
@@ -570,7 +570,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                             '${p.barcodeNo} - ${p.quantity.toInt()} حبة',
                             style: TextStyle(
                               fontSize: 11,
-                              color: Colors.grey[600],
+                              color: AppColors.gray500,
                             ),
                           ),
                           onChanged: (val) {
@@ -603,7 +603,7 @@ class _ProductPickerSheetState extends State<_ProductPickerSheet> {
                   label: 'تم',
                   onPressed: () => Navigator.pop(context, _selected.toList()),
                   variant: HasibButtonVariant.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
               ),
             ),

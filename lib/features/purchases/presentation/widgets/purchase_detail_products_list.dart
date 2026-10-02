@@ -23,7 +23,7 @@ class PurchaseDetailProductsList extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -68,7 +68,7 @@ class PurchaseDetailProductsList extends StatelessWidget {
                   padding: const EdgeInsets.all(12),
                   child: Text(
                     'لا توجد أصناف في هذه الفاتورة',
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 13, color: AppColors.gray500),
                   ),
                 ),
               )
@@ -139,7 +139,7 @@ class PurchaseProductItemWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AppColors.gray50,
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Column(
@@ -185,7 +185,7 @@ class PurchaseProductItemWidget extends StatelessWidget {
                           'الكمية: ${line.quantity}',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey[600],
+                            color: AppColors.gray500,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -193,7 +193,7 @@ class PurchaseProductItemWidget extends StatelessWidget {
                           'السعر: ${_formatCurrency(unitPrice)}',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey[600],
+                            color: AppColors.gray500,
                           ),
                         ),
                       ],
@@ -217,14 +217,14 @@ class PurchaseProductItemWidget extends StatelessWidget {
               padding:
                   const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: AppColors.warning.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.xs),
               ),
               child: Text(
                 'خصم: ${_formatCurrency(line.discountAmt!)}',
                 style: const TextStyle(
                   fontSize: 10,
-                  color: Colors.orange,
+                  color: AppColors.warning,
                   fontWeight: FontWeight.w600,
                 ),
               ),

@@ -4,6 +4,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_app_bar.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class ReportBasePage extends StatefulWidget {
   final String title;
@@ -215,7 +216,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                         ),
                         if (widget.showDateFilter &&
                             _filter.startDate != null) ...[
-                          const SizedBox(height: 6),
+                          const SizedBox(height: 8),
                           Row(
                             children: [
                               Icon(
@@ -223,7 +224,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                                 color: Colors.white.withValues(alpha: 0.8),
                                 size: 14,
                               ),
-                              const SizedBox(width: 6),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: FittedBox(
                                   fit: BoxFit.scaleDown,
@@ -308,7 +309,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: BorderSide(color: AppColors.gray300),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -332,7 +333,7 @@ class _ReportBasePageState extends State<ReportBasePage> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
-                          color: Colors.blueGrey,
+                          color: AppColors.slate500,
                         ),
                       ),
                       const SizedBox(height: 8),

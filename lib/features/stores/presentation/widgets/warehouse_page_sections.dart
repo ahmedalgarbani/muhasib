@@ -10,6 +10,7 @@ import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.da
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class WarehouseMenuCard extends StatelessWidget {
   const WarehouseMenuCard({
@@ -98,7 +99,7 @@ class WarehouseTypeSelector extends StatelessWidget {
                 color: selected ? color.withOpacity(0.1) : Colors.white,
                 borderRadius: BorderRadius.circular(AppRadius.md),
                 border: Border.all(
-                  color: selected ? color : Colors.grey[300]!,
+                  color: selected ? color : AppColors.gray300,
                   width: selected ? 2 : 1,
                 ),
               ),
@@ -107,7 +108,7 @@ class WarehouseTypeSelector extends StatelessWidget {
                 children: [
                   Icon(
                     type['icon'] as IconData,
-                    color: selected ? color : Colors.grey[600],
+                    color: selected ? color : AppColors.gray500,
                     size: height == 100 ? 32 : 28,
                   ),
                   SizedBox(height: height == 100 ? 8 : 4),
@@ -116,7 +117,7 @@ class WarehouseTypeSelector extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: height == 100 ? null : 12,
-                      color: selected ? color : Colors.grey[600],
+                      color: selected ? color : AppColors.gray500,
                       fontWeight: selected
                           ? FontWeight.bold
                           : FontWeight.normal,
@@ -196,7 +197,7 @@ class WarehouseDocumentCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppColors.gray50,
                       ),
                       child: Text('${date.year}/${date.month}/${date.day}'),
                     ),
@@ -310,7 +311,7 @@ class TransferWarehouseSelection extends StatelessWidget {
               }
               if (state is WarehousesError) {
                 return Text('خطأ في تحميل المخازن: ${state.message}',
-                    style: TextStyle(color: Colors.red[700]));
+                    style: TextStyle(color: AppColors.red700));
               }
               final warehouses = state is WarehousesLoaded
                   ? state.warehouses
@@ -318,7 +319,7 @@ class TransferWarehouseSelection extends StatelessWidget {
               if (warehouses.isEmpty) {
                 return const Text(
                     'لا توجد مخازن — أنشئ مخزناً أولاً من الإعدادات',
-                    style: TextStyle(color: Colors.grey));
+                    style: TextStyle(color: AppColors.gray400));
               }
               return Row(
                 children: [
@@ -470,12 +471,12 @@ class _InventoryLineItemState extends State<InventoryLineItem> {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: positive
-            ? Colors.green.withOpacity(0.1)
-            : Colors.red.withOpacity(0.1),
+            ? AppColors.success.withOpacity(0.1)
+            : AppColors.error.withOpacity(0.1),
         child: Text(
           '${widget.index + 1}',
           style: TextStyle(
-            color: positive ? Colors.green : Colors.red,
+            color: positive ? AppColors.success : AppColors.error,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -496,7 +497,7 @@ class _InventoryLineItemState extends State<InventoryLineItem> {
             'الفرق: ${difference > 0 ? '+' : ''}$difference',
             style: TextStyle(
               fontSize: 12,
-              color: positive ? Colors.green : Colors.red,
+              color: positive ? AppColors.success : AppColors.error,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -524,7 +525,7 @@ class _InventoryLineItemState extends State<InventoryLineItem> {
               ),
             )
           : IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              icon: const Icon(Icons.delete_outline, color: AppColors.error),
               onPressed: widget.onDelete,
             ),
     );

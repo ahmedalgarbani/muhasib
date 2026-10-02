@@ -139,7 +139,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                 ),
                                 const Icon(
                                   Icons.calendar_today,
-                                  color: Colors.grey,
+                                  color: AppColors.gray400,
                                 ),
                               ],
                             ),
@@ -349,7 +349,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                   }
                                 },
                                 variant: HasibButtonVariant.primary,
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                                 fontSize: 16,
                               ),
                             ),
@@ -359,7 +359,7 @@ class _AddEntryDialogState extends State<AddEntryDialog> {
                                 label: 'إلغاء',
                                 onPressed: () => Navigator.pop(context),
                                 variant: HasibButtonVariant.secondary,
-                                padding: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.symmetric(vertical: 12),
                                 fontSize: 16,
                               ),
                             ),

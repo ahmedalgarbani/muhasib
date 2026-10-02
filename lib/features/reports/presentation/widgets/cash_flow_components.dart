@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class CashFlowSectionCardWidget extends StatelessWidget {
   final String title;
@@ -40,7 +41,7 @@ class CashFlowSectionCardWidget extends StatelessWidget {
           Text(
             '${formatCurrency(value)} ر.س',
             style: TextStyle(
-              color: value >= 0 ? Colors.green : Colors.red,
+              color: value >= 0 ? AppColors.success : AppColors.error,
               fontWeight: FontWeight.bold,
               fontSize: 14,
             ),
@@ -81,7 +82,7 @@ class CashFlowFinalSummaryWidget extends StatelessWidget {
           Text(
             isMatching ? 'متطابق ✓' : 'فرق: ${diff.toStringAsFixed(1)}',
             style: TextStyle(
-              color: isMatching ? Colors.green : Colors.red,
+              color: isMatching ? AppColors.success : AppColors.error,
               fontWeight: FontWeight.bold,
             ),
           ),

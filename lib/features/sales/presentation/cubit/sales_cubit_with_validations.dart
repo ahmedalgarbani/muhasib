@@ -12,6 +12,7 @@ import 'package:muhasib/features/accounts/presentation/mixins/account_connect_va
 import 'package:muhasib/features/accounts/domain/services/account_limit_service.dart';
 import 'package:muhasib/features/accounts/domain/services/account_connect_validator.dart';
 import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Example Sales Cubit with complete validation
 class SalesCubitWithValidations extends Cubit<dynamic>
@@ -198,7 +199,7 @@ class SalesCubitWithValidations extends Cubit<dynamic>
       builder: (context) => CustomDialog(
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.red[600], size: 28),
+            Icon(Icons.error_outline, color: AppColors.red600, size: 28),
             const SizedBox(width: 12),
             const Text('خطأ'),
           ],

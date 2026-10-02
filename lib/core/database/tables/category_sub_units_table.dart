@@ -32,7 +32,7 @@ class CategorySubUnitsTable implements TableSchema {
 
   @override
   List<String> get indexes => [
-    'CREATE UNIQUE INDEX IF NOT EXISTS idx_category_sub_units_barcode ON category_sub_units(barcode) WHERE barcode IS NOT NULL AND barcode != "";',
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_category_sub_units_barcode ON category_sub_units(barcode) WHERE barcode IS NOT NULL AND barcode != '';",
     'CREATE INDEX IF NOT EXISTS idx_category_sub_units_product ON category_sub_units(category_id);',
     'CREATE INDEX IF NOT EXISTS idx_category_sub_units_unit ON category_sub_units(unit_id);',
     'CREATE UNIQUE INDEX IF NOT EXISTS idx_category_sub_units_unique_product_unit ON category_sub_units(category_id, unit_id) WHERE unit_id IS NOT NULL;',

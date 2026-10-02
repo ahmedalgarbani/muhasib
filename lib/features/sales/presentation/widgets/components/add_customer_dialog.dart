@@ -284,7 +284,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.35),
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -338,7 +338,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   title: !_isSupplier ? 'عليه (مدين)' : 'عليه (دفعة مقدمة)',
                   subtitle: !_isSupplier ? 'مستحق على العميل' : 'مدفوع له مقدماً',
                   isSelected: _balanceDirection == BalanceDirection.debit,
-                  selectedColor: !_isSupplier ? Colors.red : Colors.green,
+                  selectedColor: !_isSupplier ? AppColors.error : AppColors.success,
                   onTap: () {
                     setState(() => _balanceDirection = BalanceDirection.debit);
                   },
@@ -350,7 +350,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                   title: !_isSupplier ? 'له (دائن / رصيد)' : 'له (دائن / مستحق)',
                   subtitle: !_isSupplier ? 'رصيد لصالحه' : 'مستحق للمورد',
                   isSelected: _balanceDirection == BalanceDirection.credit,
-                  selectedColor: !_isSupplier ? Colors.green : Colors.orange.shade800,
+                  selectedColor: !_isSupplier ? AppColors.success : AppColors.amber800,
                   onTap: () {
                     setState(() => _balanceDirection = BalanceDirection.credit);
                   },
@@ -359,13 +359,13 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
             ],
           ),
           if (hasAmount) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: (_balanceDirection == BalanceDirection.debit
-                        ? (!_isSupplier ? Colors.red : Colors.green)
-                        : (!_isSupplier ? Colors.green : Colors.orange.shade800))
+                        ? (!_isSupplier ? AppColors.error : AppColors.success)
+                        : (!_isSupplier ? AppColors.success : AppColors.amber800))
                     .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
@@ -375,8 +375,8 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                     Icons.info_outline,
                     size: 16,
                     color: _balanceDirection == BalanceDirection.debit
-                        ? (!_isSupplier ? Colors.red : Colors.green)
-                        : (!_isSupplier ? Colors.green : Colors.orange.shade800),
+                        ? (!_isSupplier ? AppColors.error : AppColors.success)
+                        : (!_isSupplier ? AppColors.success : AppColors.amber800),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -385,8 +385,8 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                       style: TextStyle(
                         fontSize: 11,
                         color: _balanceDirection == BalanceDirection.debit
-                            ? (!_isSupplier ? Colors.red.shade900 : Colors.green.shade900)
-                            : (!_isSupplier ? Colors.green.shade900 : Colors.orange.shade900),
+                            ? (!_isSupplier ? AppColors.red900 : AppColors.emerald900)
+                            : (!_isSupplier ? AppColors.emerald900 : AppColors.amber900),
                       ),
                     ),
                   ),
@@ -411,11 +411,11 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
       borderRadius: BorderRadius.circular(AppRadius.sm),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
         decoration: BoxDecoration(
           color: isSelected ? selectedColor.withValues(alpha: 0.15) : Colors.transparent,
           border: Border.all(
-            color: isSelected ? selectedColor : Colors.grey.shade400,
+            color: isSelected ? selectedColor : AppColors.gray400,
             width: isSelected ? 2 : 1,
           ),
           borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -428,9 +428,9 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
                 Icon(
                   isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
                   size: 16,
-                  color: isSelected ? selectedColor : Colors.grey,
+                  color: isSelected ? selectedColor : AppColors.gray400,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   title,
                   style: TextStyle(
@@ -446,7 +446,7 @@ class _AddCustomerDialogState extends State<AddCustomerDialog> {
               subtitle,
               style: TextStyle(
                 fontSize: 10,
-                color: isSelected ? selectedColor : Colors.grey.shade600,
+                color: isSelected ? selectedColor : AppColors.gray500,
               ),
             ),
           ],

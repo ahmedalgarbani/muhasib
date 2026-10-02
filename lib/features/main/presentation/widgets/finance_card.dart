@@ -224,8 +224,8 @@ class FinanceCard extends StatelessWidget {
                     // Card Content: Name and Amount
                     Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 18,
-                        vertical: 10,
+                        horizontal: 20,
+                        vertical: 12,
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -255,7 +255,7 @@ class FinanceCard extends StatelessWidget {
                                     ),
                                     size: 14.5,
                                   ),
-                                  const SizedBox(width: 5),
+                                  const SizedBox(width: 4),
                                   Text(
                                     data.title.isNotEmpty
                                         ? data.title
@@ -276,7 +276,7 @@ class FinanceCard extends StatelessWidget {
                             ),
                           ),
 
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 4),
 
                           // Amount & Currency Display
                           FittedBox(
@@ -302,7 +302,7 @@ class FinanceCard extends StatelessWidget {
                                       letterSpacing: 0.6,
                                     ),
                                   ),
-                                  const SizedBox(width: 5),
+                                  const SizedBox(width: 4),
                                   Text(
                                     data.currency,
                                     style: TextStyle(

@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/currencies/domain/entities/currency_entity.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Standalone Currency Card Widget for displaying currency details in a list.
 class CurrencyCardWidget extends StatelessWidget {
@@ -76,7 +78,7 @@ class CurrencyCardWidget extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.blue.withValues(alpha: 0.1),
+                            color: AppColors.info.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(AppRadius.xs),
                           ),
                           child: Text(
@@ -84,7 +86,7 @@ class CurrencyCardWidget extends StatelessWidget {
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: AppColors.info,
                             ),
                           ),
                         ),
@@ -96,7 +98,7 @@ class CurrencyCardWidget extends StatelessWidget {
                         Icon(
                           Icons.trending_up,
                           size: 16,
-                          color: Colors.grey[600],
+                          color: AppColors.gray500,
                         ),
                         const SizedBox(width: 4),
                         Flexible(
@@ -104,7 +106,7 @@ class CurrencyCardWidget extends StatelessWidget {
                             'سعر الصرف: ${currency.exchangeRate.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Colors.grey[600],
+                              color: AppColors.gray500,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -117,7 +119,7 @@ class CurrencyCardWidget extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.green.withValues(alpha: 0.1),
+                              color: AppColors.success.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(AppRadius.xs),
                             ),
                             child: const Text(
@@ -125,7 +127,7 @@ class CurrencyCardWidget extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.green,
+                                color: AppColors.success,
                               ),
                             ),
                           ),
@@ -163,16 +165,16 @@ class CurrencyCardWidget extends StatelessWidget {
                           Icons.delete,
                           size: 20,
                           color: currency.isLocalCurrency == true
-                              ? Colors.grey
-                              : Colors.red,
+                              ? AppColors.gray400
+                              : AppColors.error,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           'حذف',
                           style: TextStyle(
                             color: currency.isLocalCurrency == true
-                                ? Colors.grey
-                                : Colors.red,
+                                ? AppColors.gray400
+                                : AppColors.error,
                           ),
                         ),
                       ],

@@ -89,7 +89,7 @@ class PlanStatusCard extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 8,
-                              vertical: 3,
+                              vertical: 4,
                             ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.2),
@@ -114,7 +114,7 @@ class PlanStatusCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Text(
             _statusText(),
             style: TextStyle(
@@ -126,7 +126,7 @@ class PlanStatusCard extends StatelessWidget {
             ),
           ),
           if (state.trial && state.daysRemaining != null) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.xs),
               child: LinearProgressIndicator(
@@ -147,7 +147,7 @@ class PlanStatusCard extends StatelessWidget {
                   size: 15,
                   color: Colors.white.withValues(alpha: 0.85),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     state.license!.maskedKey,

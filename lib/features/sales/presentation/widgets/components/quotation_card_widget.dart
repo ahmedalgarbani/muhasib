@@ -88,7 +88,7 @@ class QuotationCardWidget extends StatelessWidget {
                           _formatDate(quotation.date),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.gray500,
                           ),
                         ),
                       ],
@@ -103,12 +103,12 @@ class QuotationCardWidget extends StatelessWidget {
                   Icon(
                     Icons.person_outline,
                     size: 16,
-                    color: Colors.grey.shade600,
+                    color: AppColors.gray500,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'عميل #${quotation.customerId}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                    style: TextStyle(fontSize: 14, color: AppColors.gray600),
                   ),
                 ],
               ),
@@ -124,7 +124,7 @@ class QuotationCardWidget extends StatelessWidget {
                           'الإجمالي',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.gray500,
                           ),
                         ),
                         const SizedBox(height: 4),

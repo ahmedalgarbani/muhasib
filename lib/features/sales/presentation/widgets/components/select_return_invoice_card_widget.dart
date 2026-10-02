@@ -38,7 +38,7 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
           color: hasReturn
-              ? Colors.orange.shade200
+              ? AppColors.amber200
               : Theme.of(context).dividerColor,
         ),
       ),
@@ -80,7 +80,7 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
                           _formatDate(invoice.date),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.gray500,
                           ),
                         ),
                       ],
@@ -90,10 +90,10 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 6,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.orange.shade100,
+                        color: AppColors.amber100,
                         borderRadius: BorderRadius.circular(AppRadius.lg20),
                       ),
                       child: const Row(
@@ -102,14 +102,14 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
                           Icon(
                             Icons.assignment_return,
                             size: 14,
-                            color: Colors.orange,
+                            color: AppColors.warning,
                           ),
                           SizedBox(width: 4),
                           Text(
                             'له مرتجع',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.orange,
+                              color: AppColors.warning,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -124,12 +124,12 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
                   Icon(
                     Icons.person_outline,
                     size: 16,
-                    color: Colors.grey.shade600,
+                    color: AppColors.gray500,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'عميل #${invoice.customerId}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                    style: TextStyle(fontSize: 14, color: AppColors.gray600),
                   ),
                 ],
               ),
@@ -144,7 +144,7 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
                         'المبلغ الإجمالي',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: AppColors.gray500,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -187,22 +187,22 @@ class SelectReturnInvoiceCardWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
+                    color: AppColors.amber50,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(color: Colors.orange.shade200),
+                    border: Border.all(color: AppColors.amber200),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.info_outline,
                         size: 16,
-                        color: Colors.orange,
+                        color: AppColors.warning,
                       ),
                       const SizedBox(width: 8),
                       const Expanded(
                         child: Text(
                           'هذه الفاتورة لديها مرتجع بالفعل',
-                          style: TextStyle(fontSize: 12, color: Colors.orange),
+                          style: TextStyle(fontSize: 12, color: AppColors.warning),
                         ),
                       ),
                     ],

@@ -212,7 +212,7 @@ class _CardsCarouselState extends State<CardsCarousel> {
           ),
         ),
 
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
 
         // Modern Capsule Indicator Dots
         Row(
@@ -221,7 +221,7 @@ class _CardsCarouselState extends State<CardsCarousel> {
             final isActive = widget.activeIndex == index;
             return AnimatedContainer(
               duration: const Duration(milliseconds: 250),
-              margin: const EdgeInsets.symmetric(horizontal: 3),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
               width: isActive ? 24 : 6,
               height: 5.5,
               decoration: BoxDecoration(

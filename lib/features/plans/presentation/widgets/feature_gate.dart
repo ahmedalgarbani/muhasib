@@ -76,7 +76,7 @@ class LockedFeaturePage extends StatelessWidget {
                   color: theme.colorScheme.onSurface,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Text(
                 feature.labelAr,
                 textAlign: TextAlign.center,
@@ -89,7 +89,7 @@ class LockedFeaturePage extends StatelessWidget {
               if (minimumTier != null)
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
+                    horizontal: 16,
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(

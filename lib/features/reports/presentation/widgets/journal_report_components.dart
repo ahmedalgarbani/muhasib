@@ -61,19 +61,19 @@ class WarningBannerWidget extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.red[50],
+        color: AppColors.red50,
         borderRadius: BorderRadius.circular(AppRadius.sm10),
-        border: Border.all(color: Colors.red.withOpacity(0.2)),
+        border: Border.all(color: AppColors.error.withOpacity(0.2)),
       ),
       child: Row(
         children: [
-          const Icon(Icons.error, color: Colors.red, size: 18),
+          const Icon(Icons.error, color: AppColors.error, size: 18),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
               style: const TextStyle(
-                color: Colors.red,
+                color: AppColors.error,
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -112,7 +112,7 @@ class JournalEntryCardWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: entry.isPosted
                   ? AppColors.blueGrey700
-                  : Colors.orange.withOpacity(0.8),
+                  : AppColors.warning.withOpacity(0.8),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(AppRadius.lg),
               ),
@@ -146,7 +146,7 @@ class JournalEntryCardWidget extends StatelessWidget {
           ),
           ...entry.lines.map(
             (l) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(color: Theme.of(context).dividerColor),
@@ -165,7 +165,7 @@ class JournalEntryCardWidget extends StatelessWidget {
                     child: Text(
                       l.debitAmount > 0 ? formatCurrency(l.debitAmount) : '-',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.blue[700], fontSize: 12),
+                      style: TextStyle(color: AppColors.blue700, fontSize: 12),
                     ),
                   ),
                   Expanded(
@@ -174,7 +174,7 @@ class JournalEntryCardWidget extends StatelessWidget {
                           ? formatCurrency(l.creditAmount)
                           : '-',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.green[700], fontSize: 12),
+                      style: TextStyle(color: AppColors.emerald700, fontSize: 12),
                     ),
                   ),
                 ],
@@ -199,14 +199,14 @@ class JournalEntryCardWidget extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: isBalanced
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                        ? AppColors.success.withOpacity(0.1)
+                        : AppColors.error.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.sm6),
                   ),
                   child: Text(
                     isBalanced ? 'قيد متوازن ✓' : 'غير متوازن ⚠',
                     style: TextStyle(
-                      color: isBalanced ? Colors.green[700] : Colors.red[700],
+                      color: isBalanced ? AppColors.emerald700 : AppColors.red700,
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
                     ),
@@ -223,7 +223,7 @@ class JournalEntryCardWidget extends StatelessWidget {
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
-                            color: Colors.blue,
+                            color: AppColors.info,
                           ),
                         ),
                         const SizedBox(width: 16),
@@ -232,7 +232,7 @@ class JournalEntryCardWidget extends StatelessWidget {
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 13,
-                            color: Colors.green,
+                            color: AppColors.success,
                           ),
                         ),
                       ],

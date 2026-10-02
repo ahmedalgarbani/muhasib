@@ -10,6 +10,7 @@ import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class VoucherSettingsPage extends StatefulWidget {
   const VoucherSettingsPage({super.key});
@@ -166,7 +167,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     'صيغة سندات الصرف',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -195,7 +196,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     'صيغة سندات القبض',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -224,7 +225,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     'توقيع سندات الصرف',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -280,7 +281,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     'توقيع سندات القبض',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -336,7 +337,7 @@ class _VoucherSettingsPageState extends State<VoucherSettingsPage> {
                     'خيارات إضافية',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),

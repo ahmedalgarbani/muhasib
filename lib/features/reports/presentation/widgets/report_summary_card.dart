@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class ReportSummaryCard extends StatelessWidget {
   final String title;
@@ -26,7 +27,7 @@ class ReportSummaryCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -61,8 +62,8 @@ class ReportSummaryCard extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: change! >= 0
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.red.withOpacity(0.1),
+                        ? AppColors.success.withOpacity(0.1)
+                        : AppColors.error.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   child: Row(
@@ -71,7 +72,7 @@ class ReportSummaryCard extends StatelessWidget {
                       Icon(
                         change! >= 0 ? Icons.trending_up : Icons.trending_down,
                         size: 16,
-                        color: change! >= 0 ? Colors.green : Colors.red,
+                        color: change! >= 0 ? AppColors.success : AppColors.error,
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -79,7 +80,7 @@ class ReportSummaryCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: change! >= 0 ? Colors.green : Colors.red,
+                          color: change! >= 0 ? AppColors.success : AppColors.error,
                         ),
                       ),
                     ],
@@ -88,7 +89,7 @@ class ReportSummaryCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(title, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+          Text(title, style: TextStyle(fontSize: 14, color: AppColors.gray500)),
           const SizedBox(height: 4),
           Text(
             value,
@@ -98,7 +99,7 @@ class ReportSummaryCard extends StatelessWidget {
             const SizedBox(height: 4),
             Text(
               subtitle!,
-              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+              style: TextStyle(fontSize: 12, color: AppColors.gray400),
             ),
           ],
         ],

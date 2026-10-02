@@ -320,6 +320,48 @@ class InvoiceLocalDataSourceImpl implements InvoiceLocalDataSource {
     );
   }
 
+  /// Services / non-stock products (track_inventory = 0) have no stock or COGS.
+  Future<bool> _isInventoryTracked(Transaction txn, int productId) async {
+    try {
+      final rows = await txn.query(
+        'categories',
+        columns: ['track_inventory'],
+        where: 'id = ?',
+        whereArgs: [productId],
+        limit: 1,
+      );
+      return rows.isEmpty || (rows.first['track_inventory'] as int? ?? 1) != 0;
+    } catch (_) {
+      return true;
+    }
+  }
+
+  /// Weighted-average cost after receiving [qty] units valued at [unitCost].
+  double _avgCostAfterInflow(
+    double currentQty,
+    double currentAvg,
+    double qty,
+    double unitCost,
+  ) {
+    if (unitCost <= 0) return currentAvg;
+    if (currentQty <= 0) return unitCost;
+    return (currentQty * currentAvg + qty * unitCost) / (currentQty + qty);
+  }
+
+  /// Weighted-average cost after removing [qty] units valued at [unitCost]
+  /// (e.g. cancelling a return that brought them in at that cost).
+  double _avgCostAfterOutflow(
+    double currentQty,
+    double currentAvg,
+    double qty,
+    double unitCost,
+  ) {
+    final remainingQty = currentQty - qty;
+    if (unitCost <= 0 || remainingQty <= 0.000001) return currentAvg;
+    final remainingValue = currentQty * currentAvg - qty * unitCost;
+    return remainingValue > 0 ? remainingValue / remainingQty : currentAvg;
+  }
+
   /// Reverses every journal entry linked to a document:
   /// Reverses the accounting effects of a posted journal entry by generating
   /// a full mirror reversal journal entry (preserving Audit Trail without hard DELETE):
@@ -888,7 +930,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
     final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final lines = await txn.query(
       _linesTable,
-      columns: ['category_id', 'stock_id', 'quantity', 'base_quantity', 'unit_id', 'conversion_rate', 'packaging'],
+      columns: ['category_id', 'stock_id', 'quantity', 'base_quantity', 'unit_id', 'conversion_rate', 'packaging', 'cost_price'],
       where: 'invoice_id = ?',
       whereArgs: [invoiceId],
     );
@@ -901,6 +943,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       final packaging = (line['packaging'] as int?) ?? 1;
       final qty = baseQty;
       if (productId == null || qty <= 0) continue;
+      if (!await _isInventoryTracked(txn, productId)) continue;
 
       final warehouseId = (line['stock_id'] as int?) ?? headerStockId ?? 1;
       final stockResult = await txn.query(
@@ -913,12 +956,19 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
       final currentQty =
           (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-      final avgCost =
+      final currentAvg =
           (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+      // Goods come back at the cost the reversed COGS entry used.
+      final lineCost = (line['cost_price'] as num?)?.toDouble() ?? 0.0;
+      final avgCost = lineCost > 0 ? lineCost : currentAvg;
       final newQty = currentQty + qty;
       await txn.update(
         'warehouse_stocks',
-        {'quantity': newQty, 'last_modification_time': now},
+        {
+          'quantity': newQty,
+          'avg_cost': _avgCostAfterInflow(currentQty, currentAvg, qty, avgCost),
+          'last_modification_time': now,
+        },
         where: 'product_id = ? AND warehouse_id = ?',
         whereArgs: [productId, warehouseId],
       );
@@ -1275,12 +1325,16 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
       });
     }
 
-    // Post cost of goods sold using the cost captured on each invoice line.
-    // If a line has no captured cost, use the warehouse average cost at posting time.
+    // Post cost of goods sold at the warehouse weighted-average cost (perpetual
+    // WAC, IAS 2) so the inventory account stays equal to the stock valuation.
+    // The cost captured on the line (usually the product's static cost) is only
+    // a fallback when the warehouse has no average cost yet. The cost actually
+    // used is written back to the line so returns reverse the same amount.
     double totalCogs = 0.0;
     final costLines = await txn.query(
       _linesTable,
       columns: [
+        'id',
         'category_id',
         'stock_id',
         'quantity',
@@ -1297,22 +1351,15 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           (line['stock_id'] as int?) ?? (invoiceData['stock_id'] as int?);
       if (productId == null) continue;
       // Skip COGS for service / non-tracked products
-      try {
-        final cat = await txn.query('categories', columns: ['track_inventory'], where: 'id = ?', whereArgs: [productId], limit: 1);
-        if (cat.isNotEmpty && (cat.first['track_inventory'] as int? ?? 1) == 0) continue;
-      } catch (_) {}
+      if (!await _isInventoryTracked(txn, productId)) continue;
 
       final quantity =
           ((line['base_quantity'] as num?) ?? (line['quantity'] as num?) ?? 0)
               .toDouble();
       if (quantity <= 0) continue;
 
-      var lineCost = (line['cost_total'] as num?)?.toDouble() ?? 0.0;
-      if (lineCost <= 0) {
-        final unitCost = (line['cost_price'] as num?)?.toDouble() ?? 0.0;
-        lineCost = quantity * unitCost;
-      }
-      if (lineCost <= 0 && warehouseId != null) {
+      var unitCost = 0.0;
+      if (warehouseId != null) {
         final stockRows = await txn.query(
           'warehouse_stocks',
           columns: ['avg_cost'],
@@ -1320,12 +1367,17 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           whereArgs: [productId, warehouseId],
           limit: 1,
         );
-        final averageCost = stockRows.isEmpty
-            ? 0.0
-            : ((stockRows.first['avg_cost'] as num?)?.toDouble() ?? 0.0);
-        lineCost = quantity * averageCost;
+        if (stockRows.isNotEmpty) {
+          unitCost = (stockRows.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+        }
       }
-      if (lineCost <= 0) {
+      if (unitCost <= 0) {
+        final capturedTotal = (line['cost_total'] as num?)?.toDouble() ?? 0.0;
+        unitCost = capturedTotal > 0
+            ? capturedTotal / quantity
+            : ((line['cost_price'] as num?)?.toDouble() ?? 0.0);
+      }
+      if (unitCost <= 0) {
         final productRows = await txn.query(
           'categories',
           columns: ['cost_amount'],
@@ -1333,11 +1385,17 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           whereArgs: [productId],
           limit: 1,
         );
-        final productCost = productRows.isEmpty
+        unitCost = productRows.isEmpty
             ? 0.0
             : ((productRows.first['cost_amount'] as num?)?.toDouble() ?? 0.0);
-        lineCost = quantity * productCost;
       }
+      final lineCost = _round2(quantity * unitCost);
+      await txn.update(
+        _linesTable,
+        {'cost_price': unitCost, 'cost_total': lineCost},
+        where: 'id = ?',
+        whereArgs: [line['id']],
+      );
       totalCogs += lineCost;
     }
 
@@ -3234,6 +3292,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         final returnQtyBase = baseQtyRaw ?? (displayQty * packagingVal * convRate);
         final unitId = line['unit_id'] as int?;
         if (productId == null || returnQtyBase <= 0) continue;
+        if (!await _isInventoryTracked(txn, productId)) continue;
 
         final warehouseId = (line['stock_id'] as int?) ?? 1;
         final stockResult = await txn.query(
@@ -3246,12 +3305,24 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
 
         final currentQty =
             (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
-        final avgCost =
+        final currentAvg =
             (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
+        // Goods leave at the cost the return brought them in at.
+        final lineCost = (line['cost_price'] as num?)?.toDouble() ?? 0.0;
+        final avgCost = lineCost > 0 ? lineCost : currentAvg;
         final newQty = currentQty - returnQtyBase;
         await txn.update(
           'warehouse_stocks',
-          {'quantity': newQty, 'last_modification_time': now},
+          {
+            'quantity': newQty,
+            'avg_cost': _avgCostAfterOutflow(
+              currentQty,
+              currentAvg,
+              returnQtyBase,
+              avgCost,
+            ),
+            'last_modification_time': now,
+          },
           where: 'product_id = ? AND warehouse_id = ?',
           whereArgs: [productId, warehouseId],
         );
@@ -3851,6 +3922,23 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
         final now = DateTime.now().millisecondsSinceEpoch ~/ 1000;
         double totalCOGSReversal = 0.0;
 
+        // Returned goods re-enter stock at the unit cost the original sale
+        // charged to COGS (per base unit), not at the price typed in the form.
+        final Map<int, double> parentUnitCost = {};
+        if (parentInvoiceId > 0) {
+          final parentCostLines = await txn.query(
+            _linesTable,
+            columns: ['category_id', 'cost_price'],
+            where: 'invoice_id = ?',
+            whereArgs: [parentInvoiceId],
+          );
+          for (final l in parentCostLines) {
+            final pid = l['category_id'] as int?;
+            final cost = (l['cost_price'] as num?)?.toDouble() ?? 0.0;
+            if (pid != null && cost > 0) parentUnitCost[pid] = cost;
+          }
+        }
+
         for (final line in returnInvoice.lines) {
           final lineModel = line is InvoiceLineModel
               ? line
@@ -3858,7 +3946,7 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           final lineData = lineModel.toJson(invoiceId: returnId);
           lineData.remove('id'); // Remove ID to avoid UNIQUE constraint error
 
-          await txn.insert(
+          final returnLineId = await txn.insert(
             _linesTable,
             lineData,
             conflictAlgorithm: ConflictAlgorithm.abort,
@@ -3878,7 +3966,9 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
           final returnQtyBase = baseQtyRaw ?? (displayQty * packagingVal * convRate);
           final unitIdForMove = lineData['unit_id'] as int?;
 
-          if (productId != null && returnQtyBase > 0) {
+          if (productId != null &&
+              returnQtyBase > 0 &&
+              await _isInventoryTracked(txn, productId)) {
             // Get current stock and average cost
             final stockResult = await txn.query(
               'warehouse_stocks',
@@ -3888,30 +3978,48 @@ WHERE account_id = ? AND currency_id = ? AND is_active = 1
             );
 
             double currentQty = 0.0;
-            double avgCost =
-                (lineData['cost_price'] as num?)?.toDouble() ?? 0.0;
+            double avgCost = 0.0;
 
             if (stockResult.isNotEmpty) {
               currentQty =
                   (stockResult.first['quantity'] as num?)?.toDouble() ?? 0.0;
               avgCost =
-                  (stockResult.first['avg_cost'] as num?)?.toDouble() ??
-                  avgCost;
+                  (stockResult.first['avg_cost'] as num?)?.toDouble() ?? 0.0;
             }
 
             final newQty = currentQty + returnQtyBase;
 
             // Calculate COGS reversal for this line (التكلفة على أساس الكمية الأساسية)
-            // إذا كانت cost_price محفوظة كتكلفة وحدة أساس، نضرب في base؛ وإلا نستخدم المتوسط
-            final costPerBase = (lineData['cost_price'] as num?)?.toDouble() ?? avgCost;
+            // الأولوية لتكلفة البيع الأصلية، ثم التكلفة المرسلة مع السطر، ثم المتوسط الحالي
+            final lineCost = (lineData['cost_price'] as num?)?.toDouble() ?? 0.0;
+            final costPerBase = parentUnitCost[productId] ??
+                (lineCost > 0 ? lineCost : avgCost);
             final effectiveCost = (costPerBase > 0 ? costPerBase : avgCost);
-            totalCOGSReversal += returnQtyBase * effectiveCost;
+            totalCOGSReversal += _round2(returnQtyBase * effectiveCost);
+            await txn.update(
+              _linesTable,
+              {
+                'cost_price': effectiveCost,
+                'cost_total': _round2(returnQtyBase * effectiveCost),
+              },
+              where: 'id = ?',
+              whereArgs: [returnLineId],
+            );
 
             // Update or insert warehouse stock
             if (stockResult.isNotEmpty) {
               await txn.update(
                 'warehouse_stocks',
-                {'quantity': newQty, 'last_modification_time': now},
+                {
+                  'quantity': newQty,
+                  'avg_cost': _avgCostAfterInflow(
+                    currentQty,
+                    avgCost,
+                    returnQtyBase,
+                    effectiveCost,
+                  ),
+                  'last_modification_time': now,
+                },
                 where: 'product_id = ? AND warehouse_id = ?',
                 whereArgs: [productId, warehouseId],
               );

@@ -258,7 +258,7 @@ class _ImprovedStep2ProductsState extends State<ImprovedStep2Products> {
                               final item = widget.invoice.items[idx];
                               return Container(
                                 margin: const EdgeInsets.only(bottom: 8),
-                                padding: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(color: Theme.of(context).colorScheme.surface, borderRadius: BorderRadius.circular(8), border: Border.all(color: Theme.of(context).dividerColor)),
                                 child: Row(
                                   children: [
@@ -266,17 +266,17 @@ class _ImprovedStep2ProductsState extends State<ImprovedStep2Products> {
                                       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                                         Text(item.name, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold)),
                                         const SizedBox(height: 2),
-                                        Text('${NumberFormatter.formatNumber(item.price)} × ${item.quantity} ${item.unit} = ${NumberFormatter.formatNumber(item.total)}', style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+                                        Text('${NumberFormatter.formatNumber(item.price)} × ${item.quantity} ${item.unit} = ${NumberFormatter.formatNumber(item.total)}', style: TextStyle(fontSize: 11, color: AppColors.gray500)),
                                         if (item.packaging * item.conversionRate > 1)
-                                          Text('الأساس: ${item.baseQuantity?.toStringAsFixed(item.baseQuantity! % 1 == 0 ? 0 : 2)} حبة', style: const TextStyle(fontSize: 10, color: Colors.blueGrey)),
+                                          Text('الأساس: ${item.baseQuantity?.toStringAsFixed(item.baseQuantity! % 1 == 0 ? 0 : 2)} حبة', style: const TextStyle(fontSize: 10, color: AppColors.slate500)),
                                       ]),
                                     ),
                                     Row(mainAxisSize: MainAxisSize.min, children: [
                                       IconButton(visualDensity: VisualDensity.compact, icon: const Icon(Icons.remove_circle_outline, size: 18, color: AppColors.error), onPressed: () => _updateQty(idx, -1)),
-                                      Container(padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6)), child: Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold))),
+                                      Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4), decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest, borderRadius: BorderRadius.circular(6)), child: Text('${item.quantity}', style: const TextStyle(fontWeight: FontWeight.bold))),
                                       IconButton(visualDensity: VisualDensity.compact, icon: const Icon(Icons.add_circle_outline, size: 18, color: AppColors.success), onPressed: () => _updateQty(idx, 1)),
                                     ]),
-                                    IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: Colors.red), onPressed: () => _removeItem(idx)),
+                                    IconButton(icon: const Icon(Icons.delete_outline, size: 18, color: AppColors.error), onPressed: () => _removeItem(idx)),
                                   ],
                                 ),
                               );
@@ -290,8 +290,8 @@ class _ImprovedStep2ProductsState extends State<ImprovedStep2Products> {
                                 children: [
                                   Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [const Text('المجموع الفرعي'), Text(NumberFormatter.formatCurrency(widget.invoice.subtotal))]),
                                   if (SettingsCache.taxEnabled) ...[
-                                    const SizedBox(height: 6),
-                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(SettingsCache.taxName, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)), Text(NumberFormatter.formatCurrency(widget.invoice.taxAmount), style: const TextStyle(fontSize: 12))]),
+                                    const SizedBox(height: 8),
+                                    Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(SettingsCache.taxName, style: TextStyle(fontSize: 12, color: AppColors.gray500)), Text(NumberFormatter.formatCurrency(widget.invoice.taxAmount), style: const TextStyle(fontSize: 12))]),
                                   ],
                                   const Divider(height: 16),
                                   Row(children: [

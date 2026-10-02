@@ -416,9 +416,9 @@ class _Step3PaymentState extends State<Step3Payment> {
                             borderRadius: BorderRadius.circular(AppRadius.md),
                             borderSide: BorderSide(
                               color: _showOverpaymentWarning
-                                  ? Colors.orange
+                                  ? AppColors.warning
                                   : (_showUnderpaymentWarning
-                                        ? Colors.blue
+                                        ? AppColors.info
                                         : Theme.of(context).dividerColor),
                               width: 2,
                             ),
@@ -620,13 +620,13 @@ class _Step3PaymentState extends State<Step3Payment> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withOpacity(0.1),
-                      border: Border.all(color: Colors.orange),
+                      color: AppColors.warning.withOpacity(0.1),
+                      border: Border.all(color: AppColors.warning),
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info, color: Colors.orange),
+                        const Icon(Icons.info, color: AppColors.warning),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Column(
@@ -636,7 +636,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 'مبلغ زائد',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                                  color: AppColors.warning,
                                 ),
                               ),
                               Text(
@@ -656,13 +656,13 @@ class _Step3PaymentState extends State<Step3Payment> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.1),
-                      border: Border.all(color: Colors.blue),
+                      color: AppColors.info.withOpacity(0.1),
+                      border: Border.all(color: AppColors.info),
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.info, color: Colors.blue),
+                        const Icon(Icons.info, color: AppColors.info),
                         const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Column(
@@ -672,7 +672,7 @@ class _Step3PaymentState extends State<Step3Payment> {
                                 'دفعة جزئية',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.blue,
+                                  color: AppColors.info,
                                 ),
                               ),
                               Text(

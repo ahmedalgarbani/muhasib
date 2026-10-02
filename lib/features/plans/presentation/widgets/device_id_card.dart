@@ -58,7 +58,7 @@ class DeviceIdCard extends StatelessWidget {
                   color: AppColors.info,
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               const Expanded(
                 child: Text(
                   'معرّف هذا الجهاز',
@@ -73,10 +73,10 @@ class DeviceIdCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
             decoration: BoxDecoration(
               color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -99,7 +99,7 @@ class DeviceIdCard extends StatelessWidget {
               color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Text(
             'أرسل هذا المعرّف لفريق المبيعات عند الشراء. مفتاح التفعيل '
             'يُصدر لهذا الجهاز فقط ولا يعمل على أي جهاز آخر.',

@@ -11,6 +11,7 @@ import 'package:muhasib/features/sales/domain/entities/invoice_line_entity.dart'
 import 'package:muhasib/features/sales/domain/enums/invoice_enums.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/core/widgets/hasib_button.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class SelectPurchaseForReturnPage extends StatefulWidget {
   const SelectPurchaseForReturnPage({super.key});
@@ -268,7 +269,7 @@ class _ReturnQtyDialogState extends State<_ReturnQtyDialog> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('حدد كميات الإرجاع لكل صنف (0 = عدم الإرجاع)', style: TextStyle(fontSize: 12, color: Colors.grey)),
+            const Text('حدد كميات الإرجاع لكل صنف (0 = عدم الإرجاع)', style: TextStyle(fontSize: 12, color: AppColors.gray400)),
             const SizedBox(height: 12),
             Flexible(
               child: ListView.separated(
@@ -285,8 +286,8 @@ class _ReturnQtyDialogState extends State<_ReturnQtyDialog> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('صنف #${line.categoryId ?? i + 1}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                            Text('الكمية الأصلية: ${_maxQty[i]}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                            Text('السعر: ${((line.amount / (line.quantity == 0 ? 1 : line.quantity))).toStringAsFixed(2)}', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                            Text('الكمية الأصلية: ${_maxQty[i]}', style: const TextStyle(fontSize: 11, color: AppColors.gray400)),
+                            Text('السعر: ${((line.amount / (line.quantity == 0 ? 1 : line.quantity))).toStringAsFixed(2)}', style: const TextStyle(fontSize: 11, color: AppColors.gray400)),
                           ],
                         ),
                       ),

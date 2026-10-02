@@ -103,9 +103,9 @@ class CustomListTileCard extends StatelessWidget {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete, size: 18, color: Colors.red),
+                        Icon(Icons.delete, size: 18, color: AppColors.error),
                         SizedBox(width: 8),
-                        Text('حذف', style: TextStyle(color: Colors.red)),
+                        Text('حذف', style: TextStyle(color: AppColors.error)),
                       ],
                     ),
                   ),

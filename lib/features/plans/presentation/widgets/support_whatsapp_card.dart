@@ -137,7 +137,7 @@ class SupportWhatsAppCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(12),
@@ -157,7 +157,7 @@ class SupportWhatsAppCard extends StatelessWidget {
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Text(
                   _message,
                   style: const TextStyle(fontSize: 12.5, height: 1.5),
@@ -178,7 +178,7 @@ class SupportWhatsAppCard extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: _whatsAppGreen,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 13),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(AppRadius.sm14),
                 ),

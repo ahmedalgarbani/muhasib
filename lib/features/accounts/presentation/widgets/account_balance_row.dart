@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/helpers/formatters.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Reusable widget to display account balance with formatting
 class AccountBalanceRow extends StatelessWidget {
@@ -20,7 +21,7 @@ class AccountBalanceRow extends StatelessWidget {
         Text(
           'الرصيد الحالي',
           style: TextStyle(
-            color: Colors.grey[600],
+            color: AppColors.gray500,
             fontSize: 13,
           ),
         ),
@@ -35,13 +36,13 @@ class AccountBalanceRow extends StatelessWidget {
                 Icon(
                   balance >= 0 ? Icons.trending_up : Icons.trending_down,
                   size: 16,
-                  color: balance >= 0 ? Colors.green : Colors.red,
+                  color: balance >= 0 ? AppColors.success : AppColors.error,
                 ),
                 const SizedBox(width: 4),
                 Text(
                   NumberFormatter.formatNumber(balance),
                   style: TextStyle(
-                    color: Colors.grey[800],
+                    color: AppColors.gray700,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
@@ -50,7 +51,7 @@ class AccountBalanceRow extends StatelessWidget {
                 Text(
                   currency,
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: AppColors.gray500,
                     fontSize: 13,
                   ),
                 ),

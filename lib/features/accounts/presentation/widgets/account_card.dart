@@ -50,7 +50,7 @@ class AccountCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: EdgeInsets.all(isTablet ? 10 : 8),
+                      padding: EdgeInsets.all(isTablet ? 12 : 8),
                       decoration: BoxDecoration(
                         color: colors.background,
                         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -80,7 +80,7 @@ class AccountCard extends StatelessWidget {
                           Text(
                             account.code,
                             style: TextStyle(
-                              color: Colors.grey,
+                              color: AppColors.gray400,
                               fontSize: baseFont,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -90,8 +90,8 @@ class AccountCard extends StatelessWidget {
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: isTablet ? 10 : 8,
-                        vertical: isTablet ? 6 : 4,
+                        horizontal: isTablet ? 12 : 8,
+                        vertical: isTablet ? 8 : 4,
                       ),
                       decoration: BoxDecoration(
                         color: colors.background,
@@ -121,7 +121,7 @@ class AccountCard extends StatelessWidget {
                   padding: EdgeInsets.only(bottom: isTablet ? 16 : 12),
                   decoration: const BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(color: Colors.grey, width: 0.5),
+                      bottom: BorderSide(color: AppColors.gray400, width: 0.5),
                     ),
                   ),
                   child: Row(
@@ -129,7 +129,7 @@ class AccountCard extends StatelessWidget {
                       Text(
                         'رقم الحساب:',
                         style: TextStyle(
-                          color: Colors.grey,
+                          color: AppColors.gray400,
                           fontSize: baseFont,
                         ),
                       ),
@@ -157,7 +157,7 @@ class AccountCard extends StatelessWidget {
                   children: [
                     Text(
                       'الرصيد الحالي',
-                      style: TextStyle(color: Colors.grey, fontSize: baseFont),
+                      style: TextStyle(color: AppColors.gray400, fontSize: baseFont),
                     ),
                     const SizedBox(width: 8),
                     Flexible(
@@ -174,8 +174,8 @@ class AccountCard extends StatelessWidget {
                               size: isTablet ? 18 : 14,
                               color:
                                   (account.national == 1 || account.national == 0)
-                                  ? Colors.green
-                                  : Colors.red,
+                                  ? AppColors.success
+                                  : AppColors.error,
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -190,7 +190,7 @@ class AccountCard extends StatelessWidget {
                             Text(
                               'ريال',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color: AppColors.gray400,
                                 fontSize: baseFont,
                               ),
                             ),
@@ -208,7 +208,7 @@ class AccountCard extends StatelessWidget {
                   padding: EdgeInsets.only(top: isTablet ? 16 : 12),
                   decoration: const BoxDecoration(
                     border: Border(
-                      top: BorderSide(color: Colors.grey, width: 0.5),
+                      top: BorderSide(color: AppColors.gray400, width: 0.5),
                     ),
                   ),
                   child: account.isMaster
@@ -218,13 +218,13 @@ class AccountCard extends StatelessWidget {
                             const Icon(
                               Icons.chevron_left,
                               size: 14,
-                              color: Colors.grey,
+                              color: AppColors.gray400,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               'اضغط لعرض الحسابات الفرعية',
                               style: TextStyle(
-                                color: Colors.grey,
+                                color: AppColors.gray400,
                                 fontSize: baseFont,
                               ),
                             ),

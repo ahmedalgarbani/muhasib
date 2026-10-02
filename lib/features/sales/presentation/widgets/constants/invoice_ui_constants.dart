@@ -141,7 +141,7 @@ class InvoiceStatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: InvoiceStatusUI.getBackgroundColor(status),
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -189,7 +189,7 @@ class InvoiceTypeBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: InvoiceTypeUI.getBackgroundColor(type),
         borderRadius: BorderRadius.circular(AppRadius.md),

@@ -25,7 +25,8 @@ import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/quotation_card_widget.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/quotation_filter_bar_widget.dart';
 import 'package:muhasib/features/sales/presentation/widgets/components/quotation_header_widget.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class QuotationsPage extends StatefulWidget {
   const QuotationsPage({super.key});
@@ -178,15 +179,15 @@ class _QuotationsPageState extends State<QuotationsPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: AppColors.blue50,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: AppColors.blue200),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.info_outline,
-                    color: Colors.blue.shade700,
+                    color: AppColors.blue700,
                     size: 20,
                   ),
                   const SizedBox(width: 8),

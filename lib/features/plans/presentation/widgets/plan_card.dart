@@ -83,7 +83,7 @@ class PlanCard extends StatelessWidget {
           if (plan.isPopular)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 6),
+              padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
                 color: color,
                 borderRadius: const BorderRadius.only(
@@ -133,7 +133,7 @@ class PlanCard extends StatelessWidget {
                                 ),
                               ),
                               if (_isCurrent) ...[
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
                                 const Icon(
                                   Icons.check_circle,
                                   size: 16,
@@ -142,7 +142,7 @@ class PlanCard extends StatelessWidget {
                               ],
                             ],
                           ),
-                          const SizedBox(height: 3),
+                          const SizedBox(height: 4),
                           Text(
                             plan.taglineAr,
                             style: TextStyle(
@@ -154,11 +154,11 @@ class PlanCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     _PriceBlock(plan: plan, color: color),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 Divider(height: 1, color: theme.dividerColor),
                 const SizedBox(height: 12),
                 if (_previousPlan != null) ...[
@@ -200,7 +200,7 @@ class PlanCard extends StatelessWidget {
                     ),
                 if (highlights.length > 7)
                   Padding(
-                    padding: const EdgeInsets.only(bottom: 8, right: 25),
+                    padding: const EdgeInsets.only(bottom: 8, right: 24),
                     child: Text(
                       '+ ${highlights.length - 7} مميزات أخرى',
                       style: TextStyle(
@@ -210,7 +210,7 @@ class PlanCard extends StatelessWidget {
                       ),
                     ),
                   ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Wrap(
                   spacing: 6,
                   runSpacing: 6,
@@ -262,7 +262,7 @@ class _PriceBlock extends StatelessWidget {
     }
     if (monthly == 0) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.successLight,
           borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -292,9 +292,9 @@ class _PriceBlock extends StatelessWidget {
                 color: color,
               ),
             ),
-            const SizedBox(width: 3),
+            const SizedBox(width: 4),
             const Padding(
-              padding: EdgeInsets.only(bottom: 3),
+              padding: EdgeInsets.only(bottom: 4),
               child: Text('ر.ي/شهر', style: TextStyle(fontSize: 11)),
             ),
           ],
@@ -326,7 +326,7 @@ class _LimitChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.07),
         borderRadius: BorderRadius.circular(AppRadius.sm),

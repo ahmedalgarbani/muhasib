@@ -152,7 +152,7 @@ class OpeningBalanceAccountingTemplate {
   /// Gets the next journal number
   Future<String> _getNextJournalNumber(dynamic txn) async {
     final result = await txn.rawQuery(
-      'SELECT MAX(CAST(number AS INTEGER)) as max_number FROM journal_entries WHERE number NOT LIKE "%-%" AND number IS NOT NULL',
+      "SELECT MAX(CAST(number AS INTEGER)) as max_number FROM journal_entries WHERE number NOT LIKE '%-%' AND number IS NOT NULL",
     );
     final maxNumber = result.first['max_number'] as int?;
     return 'OB-${((maxNumber ?? 0) + 1).toString().padLeft(6, '0')}';

@@ -5,6 +5,7 @@ import 'package:muhasib/core/helpers/formatters.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class InventoryLinesCard extends StatelessWidget {
   final List<InventoryLineEntity> inventoryLines;
@@ -69,12 +70,12 @@ class InventoryLinesCard extends StatelessWidget {
                     Icon(
                       Icons.inventory_2_outlined,
                       size: 48,
-                      color: Colors.grey[400],
+                      color: AppColors.gray400,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'لا توجد أصناف للجرد',
-                      style: TextStyle(color: Colors.grey[600]),
+                      style: TextStyle(color: AppColors.gray500),
                     ),
                     if (!isCountMode)
                       Padding(
@@ -82,7 +83,7 @@ class InventoryLinesCard extends StatelessWidget {
                         child: Text(
                           'انتقل لوضع الجرد لبدء العد',
                           style: TextStyle(
-                            color: Colors.orange[600],
+                            color: AppColors.amber600,
                             fontSize: 12,
                           ),
                         ),
@@ -189,12 +190,12 @@ class _InventoryLineItemWidgetState extends State<InventoryLineItemWidget> {
     return ListTile(
       leading: CircleAvatar(
         backgroundColor: isPositive
-            ? Colors.green.withValues(alpha: 0.1)
-            : Colors.red.withValues(alpha: 0.1),
+            ? AppColors.success.withValues(alpha: 0.1)
+            : AppColors.error.withValues(alpha: 0.1),
         child: Text(
           '${widget.index + 1}',
           style: TextStyle(
-            color: isPositive ? Colors.green : Colors.red,
+            color: isPositive ? AppColors.success : AppColors.error,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -215,7 +216,7 @@ class _InventoryLineItemWidgetState extends State<InventoryLineItemWidget> {
             'الفرق: $formattedDiff',
             style: TextStyle(
               fontSize: 12,
-              color: isPositive ? Colors.green : Colors.red,
+              color: isPositive ? AppColors.success : AppColors.error,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -252,7 +253,7 @@ class _InventoryLineItemWidgetState extends State<InventoryLineItemWidget> {
               ),
             )
           : IconButton(
-              icon: const Icon(Icons.delete_outline, color: Colors.red),
+              icon: const Icon(Icons.delete_outline, color: AppColors.error),
               onPressed: widget.onDelete,
             ),
     );

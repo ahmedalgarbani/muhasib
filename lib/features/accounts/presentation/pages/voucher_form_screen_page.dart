@@ -746,7 +746,7 @@ class VoucherAmountFieldWidget extends StatelessWidget {
           textEditingController: amountController,
           inputType: TextInputType.number,
           suffixIcon: Container(
-            margin: const EdgeInsets.all(6),
+            margin: const EdgeInsets.all(8),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: AppColors.blue600,
@@ -764,7 +764,7 @@ class VoucherAmountFieldWidget extends StatelessWidget {
           Text(
             'الرصيد الحالي: ${NumberFormatter.formatNumber(account!.balance)}',
             style: AppTextStyles.body.copyWith(
-              color: account!.balance >= 0 ? Colors.green : Colors.red,
+              color: account!.balance >= 0 ? AppColors.success : AppColors.error,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -822,7 +822,7 @@ class VoucherCommissionSectionWidget extends StatelessWidget {
             borderColor: AppColors.darkSecondary,
             focusBorderColor: AppColors.darkSecondary,
             suffixIcon: Container(
-              margin: const EdgeInsets.all(6),
+              margin: const EdgeInsets.all(8),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: AppColors.darkSecondary,

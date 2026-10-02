@@ -7,6 +7,7 @@ import 'package:muhasib/features/reports/presentation/widgets/report_base_page.d
 import 'package:muhasib/core/theme/app_radius.dart';
 
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class GenericReportPage extends StatelessWidget {
   final ReportItem report;
@@ -64,7 +65,7 @@ class _GenericReportContent extends StatelessWidget {
               report.descriptionAr,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey[600],
+                color: AppColors.gray500,
               ),
               textAlign: TextAlign.center,
             ),
@@ -72,19 +73,19 @@ class _GenericReportContent extends StatelessWidget {
             Container(
               padding: AppConstant.defaultPadding,
               decoration: BoxDecoration(
-                color: Colors.amber.withOpacity(0.1),
+                color: AppColors.warning.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.lg),
-                border: Border.all(color: Colors.amber.withOpacity(0.3)),
+                border: Border.all(color: AppColors.warning.withOpacity(0.3)),
               ),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.engineering, color: Colors.amber, size: 24),
+                  Icon(Icons.engineering, color: AppColors.warning, size: 24),
                   SizedBox(width: 12),
                   Text(
                     'هذا التقرير قيد التطوير',
                     style: TextStyle(
-                      color: Colors.amber,
+                      color: AppColors.warning,
                       fontWeight: FontWeight.bold,
                     ),
                   ),

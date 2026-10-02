@@ -79,7 +79,7 @@ class ReturnCardWidget extends StatelessWidget {
                           _formatDate(returnInvoice.date),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.gray500,
                           ),
                         ),
                       ],
@@ -137,12 +137,12 @@ class ReturnCardWidget extends StatelessWidget {
                   Icon(
                     Icons.person_outline,
                     size: 16,
-                    color: Colors.grey.shade600,
+                    color: AppColors.gray500,
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'عميل #${returnInvoice.customerId}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade700),
+                    style: TextStyle(fontSize: 14, color: AppColors.gray600),
                   ),
                 ],
               ),
@@ -157,7 +157,7 @@ class ReturnCardWidget extends StatelessWidget {
                         'مبلغ المرتجع',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: AppColors.gray500,
                         ),
                       ),
                       const SizedBox(height: 4),

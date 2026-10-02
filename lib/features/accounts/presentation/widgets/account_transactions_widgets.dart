@@ -85,7 +85,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                             'رقم: ${transaction['entry_number']}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey[600],
+                              color: AppColors.gray500,
                             ),
                           ),
                       ],
@@ -95,7 +95,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                     child: Text(
                       debit > 0 ? NumberFormatter.formatNumber(debit) : '-',
                       style: TextStyle(
-                        color: debit > 0 ? Colors.red : Colors.grey,
+                        color: debit > 0 ? AppColors.error : AppColors.gray400,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -106,7 +106,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                           ? NumberFormatter.formatNumber(credit)
                           : '-',
                       style: TextStyle(
-                        color: credit > 0 ? Colors.green : Colors.grey,
+                        color: credit > 0 ? AppColors.success : AppColors.gray400,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -116,7 +116,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                       NumberFormatter.formatNumber(balance),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        color: balance >= 0 ? Colors.blue : Colors.orange,
+                        color: balance >= 0 ? AppColors.info : AppColors.warning,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -124,7 +124,7 @@ class AccountTransactionItemWidget extends StatelessWidget {
                   Expanded(
                     child: Text(
                       DateFormatter.formatDate(date),
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -136,20 +136,20 @@ class AccountTransactionItemWidget extends StatelessWidget {
                   margin: const EdgeInsets.only(top: 8),
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.amber[50],
+                    color: AppColors.amber50,
                     borderRadius: BorderRadius.circular(AppRadius.sm),
-                    border: Border.all(color: Colors.amber[200]!),
+                    border: Border.all(color: AppColors.amber200),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.note, size: 16, color: Colors.amber[700]),
+                      Icon(Icons.note, size: 16, color: AppColors.amber700),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           transaction['notes'],
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[700],
+                            color: AppColors.gray600,
                           ),
                         ),
                       ),
@@ -187,7 +187,7 @@ class AccountDetailRowWidget extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: TextStyle(color: AppColors.gray500, fontSize: 14),
             ),
           ),
           Expanded(

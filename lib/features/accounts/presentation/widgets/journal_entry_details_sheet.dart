@@ -44,7 +44,7 @@ class JournalEntryDetailsSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.xxs),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
@@ -120,7 +120,7 @@ class JournalEntryInfoGrid extends StatelessWidget {
         label: 'الحالة',
         value: entry.isPosted ? 'مرحل ومحمي' : 'مسودة',
         icon: entry.isPosted ? Icons.lock : Icons.edit,
-        color: entry.isPosted ? Colors.green : Colors.orange,
+        color: entry.isPosted ? AppColors.success : AppColors.warning,
       ),
       if (entry.description != null)
         _InfoItem(
@@ -182,7 +182,7 @@ class JournalEntryLineCard extends StatelessWidget {
                   ),
                   Text(
                     line.accountCode ?? '',
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 12),
+                    style: TextStyle(color: AppColors.gray400, fontSize: 12),
                   ),
                 ],
               ),
@@ -248,19 +248,19 @@ class JournalEntryDetailedSummary extends StatelessWidget {
         _SummaryRow(
           label: 'إجمالي ${SettingsCache.debitLabel}',
           value: numberFormat.format(entry.totalDebit),
-          color: Colors.green,
+          color: AppColors.success,
         ),
         const SizedBox(height: 12),
         _SummaryRow(
           label: 'إجمالي ${SettingsCache.creditLabel}',
           value: numberFormat.format(entry.totalCredit),
-          color: Colors.red,
+          color: AppColors.error,
         ),
         const Divider(height: 24),
         _SummaryRow(
           label: 'الفرق (التوازن)',
           value: numberFormat.format(entry.difference),
-          color: entry.difference == 0 ? Colors.green : Colors.red,
+          color: entry.difference == 0 ? AppColors.success : AppColors.error,
           isBold: true,
         ),
       ],
@@ -288,12 +288,12 @@ class _LineAmount extends StatelessWidget {
       children: [
         Text(
           label,
-          style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+          style: TextStyle(color: AppColors.gray500, fontSize: 11),
         ),
         Text(
           amount,
           style: TextStyle(
-            color: isDebit ? Colors.green : Colors.red,
+            color: isDebit ? AppColors.success : AppColors.error,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -361,7 +361,7 @@ class _InfoItem extends StatelessWidget {
       width: width ?? (MediaQuery.of(context).size.width / 2) - 40,
       child: Row(
         children: [
-          Icon(icon, size: 16, color: Colors.grey),
+          Icon(icon, size: 16, color: AppColors.gray400),
           const SizedBox(width: 8),
           Expanded(
             child: Column(
@@ -370,7 +370,7 @@ class _InfoItem extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   label,
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 11),
+                  style: TextStyle(color: AppColors.gray500, fontSize: 11),
                 ),
                 Text(
                   value,

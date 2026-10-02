@@ -150,12 +150,12 @@ class _BanksViewState extends State<_BanksView> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
               child: const Icon(
                 Icons.warning_rounded,
-                color: Colors.red,
+                color: AppColors.error,
                 size: 28,
               ),
             ),

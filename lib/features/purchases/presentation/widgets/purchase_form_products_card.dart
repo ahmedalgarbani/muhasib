@@ -25,7 +25,7 @@ class PurchaseFormProductsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -66,17 +66,17 @@ class PurchaseFormProductsCard extends StatelessWidget {
                     Icon(
                       Icons.inventory_2_outlined,
                       size: 48,
-                      color: Colors.grey[400],
+                      color: AppColors.gray400,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'لا توجد منتجات',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 13, color: AppColors.gray500),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'اضغط على "إضافة منتج" للبدء',
-                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                      style: TextStyle(fontSize: 11, color: AppColors.gray400),
                     ),
                   ],
                 ),
@@ -111,12 +111,12 @@ class PurchaseFormProductsCard extends StatelessWidget {
                         IconButton(
                           icon: const Icon(Icons.edit, size: 18),
                           onPressed: () => onEditLine(index),
-                          color: Colors.blue,
+                          color: AppColors.info,
                         ),
                         IconButton(
                           icon: const Icon(Icons.delete, size: 18),
                           onPressed: () => onDeleteLine(index),
-                          color: Colors.red,
+                          color: AppColors.error,
                         ),
                       ],
                     ),

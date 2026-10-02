@@ -164,7 +164,7 @@ class PosReceiptPrintService {
                     ),
                   ],
                 ),
-                pw.SizedBox(height: 3),
+                pw.SizedBox(height: 4),
               ],
               pw.Divider(thickness: 0.6, borderStyle: pw.BorderStyle.dashed),
               _row(ttf, 'الإجمالي قبل الخصم', _num(subtotal)),
@@ -179,7 +179,7 @@ class PosReceiptPrintService {
                   customerBalance != null &&
                   customerBalance.abs() > 0.001)
                 _row(ttf, 'رصيد العميل', _num(customerBalance)),
-              pw.SizedBox(height: 6),
+              pw.SizedBox(height: 8),
               pw.Center(
                 child: pw.Text(
                   'شكراً لتعاملكم معنا',

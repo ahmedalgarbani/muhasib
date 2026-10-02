@@ -71,9 +71,11 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
     final accCode = accRows.isNotEmpty
         ? (accRows.first['code'] as String? ?? '')
         : '';
+    // AccountType: 0=assets, 1=liabilities, 2=equity, 3=revenue, 4=expenses.
     final isCreditNormal =
+        accType == 1 ||
         accType == 2 ||
-        accType == 4 ||
+        accType == 3 ||
         accCode.startsWith('2') ||
         accCode.startsWith('4');
 
@@ -125,9 +127,11 @@ class AccountStatementDataSourceImpl implements AccountStatementDataSource {
     final account = accountResult.first;
     final accType = (account['type'] as int?) ?? 1;
     final accCode = (account['code'] as String?) ?? '';
+    // AccountType: 0=assets, 1=liabilities, 2=equity, 3=revenue, 4=expenses.
     final isCreditNormal =
+        accType == 1 ||
         accType == 2 ||
-        accType == 4 ||
+        accType == 3 ||
         accCode.startsWith('2') ||
         accCode.startsWith('4');
 

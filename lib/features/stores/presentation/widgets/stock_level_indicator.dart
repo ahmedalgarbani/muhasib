@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 enum StockLevel { high, medium, low, out }
 
@@ -30,13 +31,13 @@ class StockLevelIndicator extends StatelessWidget {
   Color get _color {
     switch (_stockLevel) {
       case StockLevel.high:
-        return Colors.green;
+        return AppColors.success;
       case StockLevel.medium:
-        return Colors.orange;
+        return AppColors.warning;
       case StockLevel.low:
-        return Colors.red;
+        return AppColors.error;
       case StockLevel.out:
-        return Colors.grey;
+        return AppColors.gray400;
     }
   }
 
@@ -109,7 +110,7 @@ class StockLevelIndicator extends StatelessWidget {
                 Text(
                   '${currentStock.toStringAsFixed(0)} وحدة',
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: AppColors.gray500,
                     fontSize: 11,
                   ),
                 ),
@@ -140,10 +141,10 @@ class StockLevelBar extends StatelessWidget {
   double get _percentage => (currentStock / maxStock).clamp(0.0, 1.0);
 
   Color get _color {
-    if (currentStock <= 0) return Colors.grey;
-    if (minStock != null && currentStock <= minStock!) return Colors.red;
-    if (currentStock >= maxStock * 0.8) return Colors.green;
-    return Colors.orange;
+    if (currentStock <= 0) return AppColors.gray400;
+    if (minStock != null && currentStock <= minStock!) return AppColors.error;
+    if (currentStock >= maxStock * 0.8) return AppColors.success;
+    return AppColors.warning;
   }
 
   @override
@@ -156,7 +157,7 @@ class StockLevelBar extends StatelessWidget {
             Container(
               height: height,
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: AppColors.gray200,
                 borderRadius: BorderRadius.circular(height / 2),
               ),
             ),
@@ -179,7 +180,7 @@ class StockLevelBar extends StatelessWidget {
                 bottom: 0,
                 child: Container(
                   width: 2,
-                  color: Colors.red.withOpacity(0.5),
+                  color: AppColors.error.withOpacity(0.5),
                 ),
               ),
           ],
