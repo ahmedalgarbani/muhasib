@@ -165,8 +165,8 @@ class _Step1CustomerState extends State<Step1Customer> {
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: widget.invoice.customer!.balance > 0
-                                  ? Colors.red
-                                  : Colors.green,
+                                  ? AppColors.error
+                                  : AppColors.success,
                             ),
                           ),
                         ],

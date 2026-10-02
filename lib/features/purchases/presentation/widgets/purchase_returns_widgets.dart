@@ -28,10 +28,10 @@ class PurchaseReturnsHeaderWidget extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        border: Border(bottom: BorderSide(color: AppColors.gray200)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: AppColors.gray400.withOpacity(0.05),
             spreadRadius: 0,
             blurRadius: 1,
             offset: const Offset(0, 1),
@@ -45,14 +45,14 @@ class PurchaseReturnsHeaderWidget extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.red.withOpacity(0.1),
+                  color: AppColors.error.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: const Icon(
                   Icons.assignment_return,
-                  color: Colors.red,
+                  color: AppColors.error,
                   size: 24,
                 ),
               ),
@@ -81,7 +81,7 @@ class PurchaseReturnsHeaderWidget extends StatelessWidget {
                 onPressed: onRefresh,
                 icon: const Icon(Icons.refresh),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.grey.shade100,
+                  backgroundColor: AppColors.gray100,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
@@ -97,7 +97,7 @@ class PurchaseReturnsHeaderWidget extends StatelessWidget {
               hintStyle: const TextStyle(fontSize: 13),
               prefixIcon: const Icon(
                 Icons.search,
-                color: Colors.grey,
+                color: AppColors.gray400,
                 size: 20,
               ),
               filled: true,
@@ -112,7 +112,7 @@ class PurchaseReturnsHeaderWidget extends StatelessWidget {
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: const BorderSide(color: Colors.red, width: 1),
+                borderSide: const BorderSide(color: AppColors.error, width: 1),
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
@@ -144,9 +144,9 @@ class PurchaseReturnsTabBarWidget extends StatelessWidget {
       color: Colors.white,
       child: TabBar(
         controller: controller,
-        labelColor: Colors.red,
-        unselectedLabelColor: Colors.grey,
-        indicatorColor: Colors.red,
+        labelColor: AppColors.error,
+        unselectedLabelColor: AppColors.gray400,
+        indicatorColor: AppColors.error,
         indicatorWeight: 3,
         labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(fontSize: 13),
@@ -208,7 +208,7 @@ class PurchaseReturnCardWidget extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.red.shade100),
+        side: BorderSide(color: AppColors.red100),
       ),
       child: InkWell(
         onTap: () {},
@@ -227,13 +227,13 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: Colors.red.withOpacity(0.1),
+                            color: AppColors.error.withOpacity(0.1),
                             borderRadius: BorderRadius.circular(AppRadius.sm6),
                           ),
                           child: const Icon(
                             Icons.assignment_return,
                             size: 18,
-                            color: Colors.red,
+                            color: AppColors.error,
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -255,14 +255,14 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                                   Icon(
                                     Icons.calendar_today,
                                     size: 12,
-                                    color: Colors.grey[600],
+                                    color: AppColors.gray500,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
                                     _formatDate(returnInvoice.date),
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: Colors.grey[600],
+                                      color: AppColors.gray500,
                                     ),
                                   ),
                                 ],
@@ -275,11 +275,11 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
+                      horizontal: 12,
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.1),
+                      color: AppColors.error.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(AppRadius.md),
                     ),
                     child: const Text(
@@ -287,7 +287,7 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: Colors.red,
+                        color: AppColors.error,
                       ),
                     ),
                   ),
@@ -298,18 +298,18 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: AppColors.blue50,
                     borderRadius: BorderRadius.circular(AppRadius.sm6),
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.link, size: 14, color: Colors.blue[700]),
-                      const SizedBox(width: 6),
+                      Icon(Icons.link, size: 14, color: AppColors.blue700),
+                      const SizedBox(width: 8),
                       Text(
                         'مرتبط بالفاتورة #${returnInvoice.parentInvoiceNumber}',
                         style: TextStyle(
                           fontSize: 11,
-                          color: Colors.blue[700],
+                          color: AppColors.blue700,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -322,18 +322,18 @@ class PurchaseReturnCardWidget extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(Icons.business, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
+                  Icon(Icons.business, size: 14, color: AppColors.gray500),
+                  const SizedBox(width: 8),
                   Text(
                     'المورد #${returnInvoice.customerId}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    style: TextStyle(fontSize: 12, color: AppColors.gray600),
                   ),
                   const SizedBox(width: 16),
-                  Icon(Icons.inventory_2, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 6),
+                  Icon(Icons.inventory_2, size: 14, color: AppColors.gray500),
+                  const SizedBox(width: 8),
                   Text(
                     '${returnInvoice.lines.length} منتج',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    style: TextStyle(fontSize: 12, color: AppColors.gray600),
                   ),
                 ],
               ),
@@ -346,7 +346,7 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                     children: [
                       Text(
                         'قيمة المردود',
-                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 11, color: AppColors.gray500),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -356,7 +356,7 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.red,
+                          color: AppColors.error,
                         ),
                       ),
                     ],
@@ -366,13 +366,13 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                       IconButton(
                         onPressed: () {},
                         icon: const Icon(Icons.visibility, size: 18),
-                        color: Colors.blue,
+                        color: AppColors.info,
                         tooltip: 'عرض التفاصيل',
                       ),
                       IconButton(
                         onPressed: () {},
                         icon: const Icon(Icons.print, size: 18),
-                        color: Colors.green,
+                        color: AppColors.success,
                         tooltip: 'طباعة',
                       ),
                     ],
@@ -385,20 +385,20 @@ class PurchaseReturnCardWidget extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.grey[50],
+                    color: AppColors.gray50,
                     borderRadius: BorderRadius.circular(AppRadius.sm6),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.note, size: 14, color: Colors.grey[600]),
-                      const SizedBox(width: 6),
+                      Icon(Icons.note, size: 14, color: AppColors.gray500),
+                      const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           returnInvoice.statement!,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey[700],
+                            color: AppColors.gray600,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -441,35 +441,35 @@ class PurchaseReturnsStatisticsTabWidget extends StatelessWidget {
             title: 'إجمالي المردودات',
             value: '$totalCount',
             icon: Icons.assignment_return,
-            color: Colors.red,
+            color: AppColors.error,
           ),
           const SizedBox(height: 12),
           PurchaseReturnStatCardWidget(
             title: 'قيمة المردودات',
             value: fmt(totalValue),
             icon: Icons.attach_money,
-            color: Colors.orange,
+            color: AppColors.warning,
           ),
           const SizedBox(height: 12),
           PurchaseReturnStatCardWidget(
             title: 'متوسط قيمة المردود',
             value: fmt(avgValue),
             icon: Icons.analytics,
-            color: Colors.blue,
+            color: AppColors.info,
           ),
           const SizedBox(height: 12),
           PurchaseReturnStatCardWidget(
             title: 'المردودات هذا الشهر',
             value: '$thisMonthCount',
             icon: Icons.calendar_month,
-            color: Colors.green,
+            color: AppColors.success,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           CustomCardContainer(
             elevation: 0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
-              side: BorderSide(color: Colors.grey.shade200),
+              side: BorderSide(color: AppColors.gray200),
             ),
             child: const Padding(
               padding: AppConstant.defaultPadding,
@@ -488,25 +488,25 @@ class PurchaseReturnsStatisticsTabWidget extends StatelessWidget {
                   PurchaseReturnReasonRowWidget(
                     reason: 'عيوب في المنتج',
                     percentage: 45,
-                    color: Colors.red,
+                    color: AppColors.error,
                   ),
                   SizedBox(height: 12),
                   PurchaseReturnReasonRowWidget(
                     reason: 'عدم مطابقة المواصفات',
                     percentage: 30,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                   ),
                   SizedBox(height: 12),
                   PurchaseReturnReasonRowWidget(
                     reason: 'تأخر في التسليم',
                     percentage: 15,
-                    color: Colors.blue,
+                    color: AppColors.info,
                   ),
                   SizedBox(height: 12),
                   PurchaseReturnReasonRowWidget(
                     reason: 'أخرى',
                     percentage: 10,
-                    color: Colors.grey,
+                    color: AppColors.gray400,
                   ),
                 ],
               ),
@@ -559,7 +559,7 @@ class PurchaseReturnStatCardWidget extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 12, color: AppColors.gray500),
                   ),
                   const SizedBox(height: 4),
                   Text(

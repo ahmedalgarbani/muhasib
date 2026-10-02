@@ -5,6 +5,7 @@ import 'package:muhasib/core/widgets/custom_dialog.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_limit_entity.dart';
 import 'package:muhasib/features/accounts/domain/interceptors/account_limit_interceptor.dart';
 import 'package:muhasib/features/accounts/domain/services/account_limit_service.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Mixin to add account limit checking capabilities to Cubits
 mixin AccountLimitMixin {
@@ -116,7 +117,7 @@ mixin AccountLimitMixin {
       builder: (context) => CustomDialog(
         title: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.red[600], size: 28),
+            Icon(Icons.error_outline, color: AppColors.red600, size: 28),
             const SizedBox(width: 12),
             const Text('تجاوز حدود الحساب'),
           ],
@@ -148,7 +149,7 @@ mixin AccountLimitMixin {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.close, color: Colors.red, size: 16),
+                        const Icon(Icons.close, color: AppColors.error, size: 16),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -185,7 +186,7 @@ mixin AccountLimitMixin {
           children: [
             Icon(
               Icons.warning_amber_rounded,
-              color: Colors.orange[700],
+              color: AppColors.amber700,
               size: 28,
             ),
             const SizedBox(width: 12),
@@ -196,11 +197,11 @@ mixin AccountLimitMixin {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: warnings.map((warning) {
-              Color usageColor = Colors.orange;
+              Color usageColor = AppColors.warning;
               IconData icon = Icons.warning_amber_rounded;
 
               if (warning.usageLevel == UsageLevel.critical) {
-                usageColor = Colors.red;
+                usageColor = AppColors.error;
                 icon = Icons.error_outline;
               }
 
@@ -299,7 +300,7 @@ class AccountUsageRowWidget extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             'المتاح: ${available.toStringAsFixed(2)}',
-            style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 12, color: AppColors.gray500),
           ),
         ],
       ),

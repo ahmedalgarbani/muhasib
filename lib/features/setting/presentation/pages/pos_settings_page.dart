@@ -11,6 +11,7 @@ import 'package:muhasib/core/widgets/settings_text_field_tile.dart';
 import 'package:muhasib/features/customers/presentation/cubit/customers_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class PosSettingsPage extends StatefulWidget {
   const PosSettingsPage({super.key});
@@ -336,7 +337,7 @@ class _PosSettingsPageState extends State<PosSettingsPage> {
         text,
         style: const TextStyle(
           fontSize: 13,
-          color: Colors.grey,
+          color: AppColors.gray400,
           fontWeight: FontWeight.w500,
         ),
       ),

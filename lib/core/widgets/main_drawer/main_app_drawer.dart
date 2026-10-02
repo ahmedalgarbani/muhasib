@@ -38,7 +38,7 @@ class MainAppDrawer extends StatelessWidget {
           const _MainDrawerHeader(),
           Expanded(
             child: ListView(
-              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
               children: [
                 ...mainItems.map((item) => DrawerMenuItem(item: item)),
                 if (bottomItems.isNotEmpty) ...[
@@ -96,7 +96,7 @@ class _MainDrawerHeader extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.18),
                       borderRadius: BorderRadius.circular(AppRadius.sm14),

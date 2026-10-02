@@ -10,6 +10,7 @@ import 'package:muhasib/features/reports/data/report_date_utils.dart';
 import 'package:muhasib/features/reports/domain/entities/report_filter.dart';
 import 'package:muhasib/features/reports/presentation/widgets/invoice_report_components.dart';
 import 'package:muhasib/features/reports/presentation/widgets/report_base_page.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class InvoicesListReportPage extends StatefulWidget {
   final String title;
@@ -170,7 +171,7 @@ class _InvoicesListContentState extends State<_InvoicesListContent> {
           return Center(
             child: Text(
               'خطأ في البيانات: ${snapshot.error}',
-              style: const TextStyle(color: Colors.red),
+              style: const TextStyle(color: AppColors.error),
             ),
           );
         }
@@ -202,26 +203,26 @@ class _InvoicesListContentState extends State<_InvoicesListContent> {
                     title: 'عدد الفواتير',
                     value: '${data.count}',
                     icon: Icons.receipt_long,
-                    color: Colors.blue,
+                    color: AppColors.info,
                   ),
                   InvoiceReportSummaryCardWidget(
                     title: 'إجمالي القيمة',
                     value: _formatCurrency(data.total),
                     icon: Icons.payments,
-                    color: Colors.green,
+                    color: AppColors.success,
                   ),
                   InvoiceReportSummaryCardWidget(
                     title: 'مُرحّلة بقيد',
                     value: '${data.withJournalEntry}',
                     icon: Icons.account_balance,
-                    color: Colors.teal,
+                    color: AppColors.teal500,
                   ),
                   if (data.withoutJournalEntry > 0)
                     InvoiceReportSummaryCardWidget(
                       title: 'تنبيه: بدون قيد',
                       value: '${data.withoutJournalEntry}',
                       icon: Icons.error_outline,
-                      color: Colors.orange,
+                      color: AppColors.warning,
                     ),
                 ],
               ),

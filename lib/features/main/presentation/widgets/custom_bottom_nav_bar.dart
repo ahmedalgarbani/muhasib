@@ -45,7 +45,7 @@ class CustomBottomNavBar extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
             height: 68,
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
             decoration: BoxDecoration(
               color: surfaceColor.withValues(alpha: isDark ? 0.92 : 0.95),
               borderRadius: BorderRadius.circular(AppRadius.xl28),
@@ -153,7 +153,7 @@ class _NavBarItem extends StatelessWidget {
                 color: isActive ? primaryColor : inactiveColor,
                 size: 23,
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 4),
               Text(
                 label,
                 style: TextStyle(

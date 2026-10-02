@@ -299,7 +299,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
+                    horizontal: 12,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
@@ -317,7 +317,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             ClipRRect(
               borderRadius: BorderRadius.circular(AppRadius.md),
               child: LinearProgressIndicator(
@@ -448,7 +448,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
                       ),
                       if (index < _stepMeta.length - 1)
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 250),
                             width: 16,
@@ -604,11 +604,11 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
                     prefixIcon: const Icon(Icons.monetization_on_rounded),
                   ),
                   if (_selectedCurrency != null) ...[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.08),
@@ -684,15 +684,15 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
                     children: [
                       const Icon(
                         Icons.warning_amber_rounded,
-                        color: Colors.amber,
+                        color: AppColors.warning,
                         size: 40,
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 12),
                       const Text(
                         'لا يوجد مستودعات مسجلة في النظام حالياً.',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Text(
                         'سيتم اعتماد المستودع الافتراضي تلقائياً عند حفظ الإعدادات.',
                         style: TextStyle(
@@ -726,11 +726,11 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
                     prefixIcon: const Icon(Icons.warehouse_rounded),
                   ),
                   if (_selectedWarehouse != null) ...[
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 16),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.08),
@@ -796,7 +796,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
               if (_taxEnabled) ...[
                 const SizedBox(height: 16),
                 const Divider(),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 TextInputField(
                   label: 'نسبة الضريبة الافتراضية %',
                   hint: '15',
@@ -811,17 +811,17 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.08),
+                    color: AppColors.info.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(AppRadius.md),
                     border: Border.all(
-                      color: Colors.blue.withValues(alpha: 0.2),
+                      color: AppColors.info.withValues(alpha: 0.2),
                     ),
                   ),
                   child: Row(
                     children: [
                       const Icon(
                         Icons.info_outline_rounded,
-                        color: Colors.blue,
+                        color: AppColors.info,
                         size: 20,
                       ),
                       const SizedBox(width: 8),
@@ -861,14 +861,14 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: AppColors.primary,
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Icon(icon, color: Colors.white, size: 24),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -942,7 +942,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
                 variant: HasibButtonVariant.secondary,
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
           ],
           Expanded(
             flex: currentStep > 0 ? (isSmall ? 3 : 2) : 1,
@@ -951,7 +951,7 @@ class _InitialSetupPageState extends State<InitialSetupPage> {
               icon: isLast
                   ? Icons.check_circle_rounded
                   : Icons.arrow_back_rounded,
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
               fontSize: 14,
               onPressed: _isSaving ? null : _nextStep,
               loading: _isSaving,

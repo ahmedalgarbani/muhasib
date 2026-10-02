@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Reusable header widget for account cards showing icon, name, code, and badge
 class AccountCardHeader extends StatelessWidget {
@@ -49,7 +50,7 @@ class AccountCardHeader extends StatelessWidget {
               Text(
                 account.name,
                 style: TextStyle(
-                  color: Colors.grey[800],
+                  color: AppColors.gray700,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
@@ -58,7 +59,7 @@ class AccountCardHeader extends StatelessWidget {
               const SizedBox(height: 2),
               Text(
                 account.code,
-                style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                style: TextStyle(color: AppColors.gray500, fontSize: 13),
               ),
             ],
           ),
@@ -66,7 +67,7 @@ class AccountCardHeader extends StatelessWidget {
 
         // Badge
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: backgroundColor,
             border: Border.all(color: borderColor),
@@ -109,9 +110,9 @@ class AccountCardHeader extends StatelessWidget {
                   value: 'delete',
                   child: Row(
                     children: [
-                      Icon(Icons.delete, size: 18, color: Colors.red),
+                      Icon(Icons.delete, size: 18, color: AppColors.error),
                       SizedBox(width: 8),
-                      Text('حذف', style: TextStyle(color: Colors.red)),
+                      Text('حذف', style: TextStyle(color: AppColors.error)),
                     ],
                   ),
                 ),

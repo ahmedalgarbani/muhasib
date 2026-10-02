@@ -185,8 +185,8 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                           NumberFormatter.formatCurrency(total, symbol: 'ر.س'),
                       icon: Icons.monetization_on,
                       color: widget.customerType == 1
-                          ? Colors.green[700]!
-                          : Colors.blue[700]!,
+                          ? AppColors.emerald700
+                          : AppColors.blue700,
                       subtitle: 'إجمالي الذمم المطلوبة',
                     ),
                   ),
@@ -196,13 +196,13 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                       title: 'عدد المسجلين',
                       value: '${rows.length} ${widget.titleLabel}',
                       icon: Icons.people,
-                      color: Colors.purple[700]!,
+                      color: AppColors.purple700,
                       subtitle: 'إجمالي السجلات الحالية',
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               ReportDataTable<_PartyBalanceRow>(
                 columns: [
                   ReportTableColumn(title: 'اسم ${widget.titleLabel}', flex: 3),
@@ -240,8 +240,8 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                           ),
                           decoration: BoxDecoration(
                             color: r.balance >= 0
-                                ? Colors.green[50]
-                                : Colors.red[50],
+                                ? AppColors.emerald50
+                                : AppColors.red50,
                             borderRadius: BorderRadius.circular(AppRadius.xs),
                           ),
                           child: Text(
@@ -250,8 +250,8 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
                               color: r.balance >= 0
-                                  ? Colors.green[800]
-                                  : Colors.red[800],
+                                  ? AppColors.emerald800
+                                  : AppColors.red800,
                             ),
                           ),
                         ),
@@ -266,8 +266,8 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: r.balance >= 0
-                              ? Colors.green[800]
-                              : Colors.red[800],
+                              ? AppColors.emerald800
+                              : AppColors.red800,
                         ),
                       ),
                     ),
@@ -295,8 +295,8 @@ class _PartyBalancesContentState extends State<_PartyBalancesContent> {
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
                           color: widget.customerType == 1
-                              ? Colors.green[800]
-                              : Colors.blue[800],
+                              ? AppColors.emerald800
+                              : AppColors.blue800,
                         ),
                       ),
                     ),

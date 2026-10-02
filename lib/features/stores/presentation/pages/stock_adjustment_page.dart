@@ -179,7 +179,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                         ),
                                       ),
                                       filled: true,
-                                      fillColor: Colors.grey[50],
+                                      fillColor: AppColors.gray50,
                                     ),
                                     child: Text(
                                       '${_selectedDate.year}/${_selectedDate.month}/${_selectedDate.day}',
@@ -229,7 +229,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   onChanged: (value) {
                                     setState(() => _adjustmentType = value!);
                                   },
-                                  activeColor: Colors.red,
+                                  activeColor: AppColors.error,
                                   contentPadding: EdgeInsets.zero,
                                 ),
                               ),
@@ -242,7 +242,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   onChanged: (value) {
                                     setState(() => _adjustmentType = value!);
                                   },
-                                  activeColor: Colors.green,
+                                  activeColor: AppColors.success,
                                   contentPadding: EdgeInsets.zero,
                                 ),
                               ),
@@ -270,7 +270,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                           return Text(
                                               'خطأ في تحميل المخازن: ${state.message}',
                                               style: TextStyle(
-                                                  color: Colors.red[700]));
+                                                  color: AppColors.red700));
                                         }
                                         List<WarehouseEntity> warehouses = [];
                                         if (state is WarehousesLoaded) {
@@ -280,7 +280,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                           return const Text(
                                               'لا توجد مخازن نشطة',
                                               style: TextStyle(
-                                                  color: Colors.grey));
+                                                  color: AppColors.gray400));
                                         }
 
                                         return CustomDropdownField<
@@ -385,12 +385,12 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   Icon(
                                     Icons.inbox,
                                     size: 48,
-                                    color: Colors.grey[400],
+                                    color: AppColors.gray400,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(
                                     'لا توجد أصناف',
-                                    style: TextStyle(color: Colors.grey[600]),
+                                    style: TextStyle(color: AppColors.gray500),
                                   ),
                                 ],
                               ),
@@ -408,15 +408,15 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   leading: CircleAvatar(
                                     backgroundColor:
                                         _adjustmentType == 'increase'
-                                        ? Colors.green.withOpacity(0.1)
-                                        : Colors.red.withOpacity(0.1),
+                                        ? AppColors.success.withOpacity(0.1)
+                                        : AppColors.error.withOpacity(0.1),
                                     child: Icon(
                                       _adjustmentType == 'increase'
                                           ? Icons.add
                                           : Icons.remove,
                                       color: _adjustmentType == 'increase'
-                                          ? Colors.green
-                                          : Colors.red,
+                                          ? AppColors.success
+                                          : AppColors.error,
                                     ),
                                   ),
                                   title: Text(
@@ -430,7 +430,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                                   trailing: IconButton(
                                     icon: const Icon(
                                       Icons.delete_outline,
-                                      color: Colors.red,
+                                      color: AppColors.error,
                                     ),
                                     onPressed: () {
                                       setState(() {
@@ -494,7 +494,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                               : () => _saveAdjustment('draft'),
                           leading: const Icon(Icons.save),
                           variant: HasibButtonVariant.secondary,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -506,7 +506,7 @@ class _StockAdjustmentPageState extends State<StockAdjustmentPage> {
                               : () => _postAdjustment(),
                           leading: const Icon(Icons.check),
                           variant: HasibButtonVariant.primary,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
                     ],

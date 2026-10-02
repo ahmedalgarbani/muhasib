@@ -57,7 +57,7 @@ class VoucherPrintService {
         theme: pw.ThemeData.withFont(base: ttf),
         build: (context) => [
           _buildHeader(ttf, date, number, logo),
-          pw.SizedBox(height: 10),
+          pw.SizedBox(height: 12),
           pw.Center(
             child: pw.Text(
               isReceipt ? 'سند قبض' : 'سند صرف',
@@ -192,7 +192,7 @@ class VoucherPrintService {
       children: [
         for (final line in lines)
           pw.Padding(
-            padding: const pw.EdgeInsets.only(bottom: 6),
+            padding: const pw.EdgeInsets.only(bottom: 8),
             child: pw.Text(
               line,
               style: pw.TextStyle(font: ttf, fontSize: 14),
@@ -244,7 +244,7 @@ class VoucherPrintService {
               pw.Expanded(
                 child: pw.Container(
                   margin: const pw.EdgeInsets.symmetric(horizontal: 8),
-                  padding: const pw.EdgeInsets.only(top: 10),
+                  padding: const pw.EdgeInsets.only(top: 12),
                   decoration: const pw.BoxDecoration(
                     border: pw.Border(
                       top: pw.BorderSide(color: PdfColors.black, width: 0.8),

@@ -49,19 +49,19 @@ class _StockTransferPageState extends State<StockTransferPage> {
       'value': 'regular',
       'label': 'تحويل عادي',
       'icon': Icons.swap_horiz,
-      'color': Colors.blue,
+      'color': AppColors.info,
     },
     {
       'value': 'return',
       'label': 'إرجاع',
       'icon': Icons.undo,
-      'color': Colors.orange,
+      'color': AppColors.warning,
     },
     {
       'value': 'adjustment',
       'label': 'تسوية',
       'icon': Icons.tune,
-      'color': Colors.purple,
+      'color': AppColors.purple500,
     },
   ];
 
@@ -234,7 +234,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                 child: Center(
                   child: Text(
                     'لا توجد أصناف مضافة',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AppColors.gray400),
                   ),
                 ),
               )
@@ -263,7 +263,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                               'التكلفة: ${line.costAmount?.toStringAsFixed(2) ?? '0.00'}',
                               style: const TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey,
+                                color: AppColors.gray400,
                               ),
                             ),
                           ],
@@ -296,7 +296,7 @@ class _StockTransferPageState extends State<StockTransferPage> {
                       IconButton(
                         icon: const Icon(
                           Icons.delete_outline,
-                          color: Colors.red,
+                          color: AppColors.error,
                         ),
                         onPressed: () {
                           setState(() => _transferLines.removeAt(index));

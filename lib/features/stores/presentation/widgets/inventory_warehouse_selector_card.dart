@@ -6,6 +6,7 @@ import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class InventoryWarehouseSelectorCard extends StatelessWidget {
   final WarehouseEntity? selectedWarehouse;
@@ -54,7 +55,7 @@ class InventoryWarehouseSelectorCard extends StatelessWidget {
                 }
                 if (state is WarehousesError) {
                   return Text('خطأ في تحميل المخازن: ${state.message}',
-                      style: TextStyle(color: Colors.red[700]));
+                      style: TextStyle(color: AppColors.red700));
                 }
                 List<WarehouseEntity> warehouses = [];
                 if (state is WarehousesLoaded) {
@@ -62,7 +63,7 @@ class InventoryWarehouseSelectorCard extends StatelessWidget {
                 }
                 if (warehouses.isEmpty) {
                   return const Text('لا توجد مخازن نشطة — قم بإنشاء مخزن أولاً',
-                      style: TextStyle(color: Colors.grey));
+                      style: TextStyle(color: AppColors.gray400));
                 }
 
                 return CustomDropdownField<WarehouseEntity>(

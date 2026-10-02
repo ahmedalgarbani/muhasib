@@ -126,14 +126,14 @@ class _AccountMovementsContent extends StatelessWidget {
                 if (state is AccountMovementsLoaded) {
                   return Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    color: Colors.blue[50],
+                    color: AppColors.blue50,
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today, size: 16, color: Colors.blue),
+                        const Icon(Icons.calendar_today, size: 16, color: AppColors.info),
                         const SizedBox(width: 8),
                         Text(
                           'من ${formatDate(state.startDate)} إلى ${formatDate(state.endDate)}',
-                          style: const TextStyle(fontSize: 12, color: Colors.blue),
+                          style: const TextStyle(fontSize: 12, color: AppColors.info),
                         ),
                         const Spacer(),
                         TextButton(
@@ -161,7 +161,7 @@ class _AccountMovementsContent extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error, size: 48, color: Colors.red),
+                          const Icon(Icons.error, size: 48, color: AppColors.error),
                           const SizedBox(height: 16),
                           Text('خطأ: ${state.message}'),
                           const SizedBox(height: 16),
@@ -234,21 +234,21 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                         _StatCard(
                           title: 'إجمالي ${SettingsCache.debitLabel}',
                           value: formatNumber(summary.totalDebit),
-                          color: Colors.green,
+                          color: AppColors.success,
                           fontSize: baseFont,
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         _StatCard(
                           title: 'إجمالي ${SettingsCache.creditLabel}',
                           value: formatNumber(summary.totalCredit),
-                          color: Colors.red,
+                          color: AppColors.error,
                           fontSize: baseFont,
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         _StatCard(
                           title: 'الرصيد',
                           value: formatNumber(summary.netBalance),
-                          color: Colors.blue,
+                          color: AppColors.info,
                           fontSize: baseFont,
                         ),
                       ],
@@ -259,7 +259,7 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                           child: _StatCard(
                             title: 'إجمالي ${SettingsCache.debitLabel}',
                             value: formatNumber(summary.totalDebit),
-                            color: Colors.green,
+                            color: AppColors.success,
                             fontSize: baseFont,
                           ),
                         ),
@@ -268,7 +268,7 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                           child: _StatCard(
                             title: 'إجمالي ${SettingsCache.creditLabel}',
                             value: formatNumber(summary.totalCredit),
-                            color: Colors.red,
+                            color: AppColors.error,
                             fontSize: baseFont,
                           ),
                         ),
@@ -277,7 +277,7 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                           child: _StatCard(
                             title: 'الرصيد',
                             value: formatNumber(summary.netBalance),
-                            color: Colors.blue,
+                            color: AppColors.info,
                             fontSize: baseFont,
                           ),
                         ),
@@ -294,12 +294,12 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
               padding: EdgeInsets.all(padding * 2),
               child: Column(
                 children: [
-                  Icon(Icons.receipt_long, size: 64, color: Colors.grey[400]),
+                  Icon(Icons.receipt_long, size: 64, color: AppColors.gray400),
                   const SizedBox(height: 16),
                   Text(
                     'لا توجد حركات في الفترة المحددة',
                     style: TextStyle(
-                      color: Colors.grey[600],
+                      color: AppColors.gray500,
                       fontSize: baseFont * 1.1,
                     ),
                   ),
@@ -352,15 +352,15 @@ class AccountMovementsLoadedContentWidget extends StatelessWidget {
                             ),
                             _TableCell(
                               m.debitAmount > 0 ? formatNumber(m.debitAmount) : '-',
-                              color: m.debitAmount > 0 ? Colors.green : Colors.grey,
+                              color: m.debitAmount > 0 ? AppColors.success : AppColors.gray400,
                             ),
                             _TableCell(
                               m.creditAmount > 0 ? formatNumber(m.creditAmount) : '-',
-                              color: m.creditAmount > 0 ? Colors.red : Colors.grey,
+                              color: m.creditAmount > 0 ? AppColors.error : AppColors.gray400,
                             ),
                             _TableCell(
                               formatNumber(m.balance),
-                              color: m.balance >= 0 ? Colors.blue : Colors.red,
+                              color: m.balance >= 0 ? AppColors.info : AppColors.error,
                             ),
                           ],
                         );
@@ -404,7 +404,7 @@ class _StatCard extends StatelessWidget {
         children: [
           Text(
             title,
-            style: TextStyle(color: Colors.grey, fontSize: fontSize),
+            style: TextStyle(color: AppColors.gray400, fontSize: fontSize),
           ),
           const SizedBox(height: 4),
           Text(

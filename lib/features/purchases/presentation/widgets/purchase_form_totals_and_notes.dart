@@ -38,7 +38,7 @@ class PurchaseFormTotalsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -105,7 +105,7 @@ class PurchaseFormTotalsCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: AppColors.gray50,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Column(
@@ -119,14 +119,14 @@ class PurchaseFormTotalsCard extends StatelessWidget {
                   InvoiceTotalRow(
                     label: 'الخصم',
                     amount: -discountAmount,
-                    color: Colors.orange,
+                    color: AppColors.warning,
                     normalFontSize: 12,
                   ),
                   const SizedBox(height: 8),
                   InvoiceTotalRow(
                     label: 'الضريبة',
                     amount: taxAmount,
-                    color: Colors.blue,
+                    color: AppColors.info,
                     normalFontSize: 12,
                   ),
                   const Divider(height: 16),
@@ -163,7 +163,7 @@ class PurchaseFormNotesCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,

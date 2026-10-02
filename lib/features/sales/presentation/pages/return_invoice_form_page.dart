@@ -647,7 +647,7 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                               'الكمية الأصلية: ${item.quantity} ${isCarton ? "(= ${baseOrig % 1 == 0 ? baseOrig.toInt() : baseOrig} حبة أساس)" : ""}',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: Colors.grey.shade600,
+                                                color: AppColors.gray500,
                                               ),
                                             ),
                                             if (isCarton)
@@ -656,14 +656,14 @@ class _ReturnInvoiceFormPageState extends State<ReturnInvoiceFormPage> {
                                                 style: TextStyle(
                                                   fontSize: 11,
                                                   color:
-                                                      Colors.blueGrey.shade600,
+                                                      AppColors.slate600,
                                                 ),
                                               ),
                                             Text(
                                               'سعر الوحدة: ${_formatCurrency(unitPrice)}',
                                               style: TextStyle(
                                                 fontSize: 12,
-                                                color: Colors.grey.shade600,
+                                                color: AppColors.gray500,
                                               ),
                                             ),
                                             if (returnQty > 0)

@@ -203,7 +203,7 @@ class _ActivationBody extends StatelessWidget {
             child: Row(
               children: [
                 Icon(suggested.icon, color: suggested.color, size: 20),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     state.plan.tier == suggested
@@ -254,7 +254,7 @@ class _ActivationBody extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               TextInputField(
                 label: 'مفتاح التفعيل',
                 hint: 'MHSB-P-20261231-XXXXXX-XXXX-XXXX-XXXX-XXXX',
@@ -265,7 +265,7 @@ class _ActivationBody extends StatelessWidget {
                   FilteringTextInputFormatter.allow(RegExp(r'[A-Za-z0-9\-]')),
                 ],
               ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               HasibButton(
                 label: 'تفعيل الآن',
                 icon: Icons.verified_outlined,
@@ -290,7 +290,7 @@ class _ActivationBody extends StatelessWidget {
                 'كيف أحصل على مفتاح التفعيل؟',
                 style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               _step('1', 'اختر الخطة المناسبة من شاشة الخطط والاشتراك.'),
               _step('2', 'انسخ معرّف هذا الجهاز الظاهر بالأعلى وأرسله للمبيعات.'),
               _step('3', 'الصق المفتاح الذي يصل إليك هنا واضغط تفعيل الآن.'),
@@ -376,7 +376,7 @@ class _DebugTools extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           const Text(
             'تظهر هذه الأدوات في نسخ التطوير فقط ولا يمكن توليد مفاتيح منها '
             'في نسخة الإنتاج.',
@@ -402,7 +402,7 @@ class _DebugTools extends StatelessWidget {
                 ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           TextButton.icon(
             onPressed: onReset,
             icon: const Icon(Icons.restart_alt, size: 18),

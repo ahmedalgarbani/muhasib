@@ -20,7 +20,7 @@ class PurchaseFormHeader extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: AppColors.gray400.withOpacity(0.1),
             spreadRadius: 1,
             blurRadius: 4,
           ),
@@ -56,7 +56,7 @@ class PurchaseFormHeader extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'أدخل تفاصيل فاتورة المشتريات',
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 12, color: AppColors.gray500),
                 ),
               ],
             ),

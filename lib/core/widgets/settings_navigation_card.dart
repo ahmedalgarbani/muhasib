@@ -73,7 +73,7 @@ class SettingsNavigationCard extends StatelessWidget {
                           ),
                         ),
                         if (badge != null) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 7,

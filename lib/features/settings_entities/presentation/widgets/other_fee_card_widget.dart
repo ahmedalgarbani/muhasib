@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/other_fee_entity.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Standalone Other Fee Card Widget for displaying other fee items.
 class OtherFeeCardWidget extends StatelessWidget {
@@ -23,7 +25,7 @@ class OtherFeeCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const typeColors = [Colors.red, Colors.green, Colors.blue];
+    const typeColors = [AppColors.error, AppColors.success, AppColors.info];
     const typeIcons = [
       Icons.trending_down,
       Icons.trending_up,
@@ -110,16 +112,16 @@ class OtherFeeCardWidget extends StatelessWidget {
                                   : Icons.cancel,
                               size: 16,
                               color: otherFee.isActive
-                                  ? Colors.green
-                                  : Colors.grey,
+                                  ? AppColors.success
+                                  : AppColors.gray400,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               otherFee.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
                                 color: otherFee.isActive
-                                    ? Colors.green
-                                    : Colors.grey,
+                                    ? AppColors.success
+                                    : AppColors.gray400,
                                 fontSize: 14,
                               ),
                             ),
@@ -144,9 +146,9 @@ class OtherFeeCardWidget extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            Icon(Icons.delete, size: 20, color: AppColors.error),
                             SizedBox(width: 8),
-                            Text('حذف', style: TextStyle(color: Colors.red)),
+                            Text('حذف', style: TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),

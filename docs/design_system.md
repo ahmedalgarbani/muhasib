@@ -42,7 +42,7 @@ Named styles rather than a numeric scale. Font family: **Tajawal** (only the Reg
 
 ## Spacing
 
-There is no dedicated spacing-constants file in code yet — padding/margins are set ad hoc per widget. To keep spacing consistent going forward, use this scale (multiples of 4, matching common values already seen in the codebase):
+Tokens live in `lib/core/theme/app_spacing.dart` (`AppSpacing`). Every `EdgeInsets` and gap `SizedBox` in `lib/` uses a value from this scale (plus `2` for hairline gaps):
 
 | Token | Value | Typical use |
 |---|---|---|
@@ -66,7 +66,7 @@ Guidelines:
 
 Applied via theme defaults: cards `lg` (16), buttons/inputs `sm14` (14), chips `xl28` (28), bottom sheets `xl` (24, top corners), dialogs `lg20` (20).
 
-There is no dedicated spacing-constant file — padding/margins are set ad hoc per widget (commonly `EdgeInsets.symmetric(horizontal: 16–20, vertical: 10–14)`).
+Common paddings: `EdgeInsets.symmetric(horizontal: 16, vertical: 8–12)` for rows, `EdgeInsets.all(12–16)` for cards.
 
 ## Theme Defaults (`light_theme.dart` / `dark_theme.dart`)
 
@@ -101,6 +101,18 @@ There is no dedicated spacing-constant file — padding/margins are set ad hoc p
 | `root_shell.dart`, `main_drawer/`, `app_drawer_controller.dart` | App-wide navigation shell/drawer |
 
 Feature-local widget sets also exist (e.g. `lib/features/accounts/presentation/widgets/README.md` documents that feature's account cards).
+
+## Material color mapping
+
+Raw Material `Colors.*` (other than `white`, `black`, `transparent`) are not used in `lib/`. Use the `AppColors` equivalent:
+
+| Instead of | Use |
+|---|---|
+| `Colors.red` / `green` / `orange`, `amber` / `blue` | `AppColors.error` / `success` / `warning` / `info` |
+| `Colors.red[N]` / `green[N]` / `orange[N]`, `amber[N]` / `blue[N]` | `AppColors.redN` / `emeraldN` / `amberN` / `blueN` |
+| `Colors.grey` | `AppColors.gray400` |
+| `Colors.grey[N]` | `gray` shade of similar lightness: 50–400 → same N, 500 → `gray400`, 600 → `gray500`, 700 → `gray600`, 800 → `gray700`, 900 → `gray800` |
+| `Colors.teal` / `purple` / `indigo` / `pink` / `cyan` / `blueGrey` / `deepPurple` | `AppColors.teal500` / `purple500` / `indigo500` / `pink500` / `cyan500` / `slate500` / `violet500` |
 
 ## Conventions
 

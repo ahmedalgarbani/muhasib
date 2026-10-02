@@ -100,10 +100,10 @@ class ReportKpiCard extends StatelessWidget {
                                   : Icons.remove),
                         size: 14,
                         color: isPositiveTrend == true
-                            ? Colors.green[700]
+                            ? AppColors.emerald700
                             : (isPositiveTrend == false
-                                  ? Colors.red[700]
-                                  : Colors.grey[600]),
+                                  ? AppColors.red700
+                                  : AppColors.gray500),
                       ),
                       const SizedBox(width: 4),
                       Text(
@@ -112,10 +112,10 @@ class ReportKpiCard extends StatelessWidget {
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: isPositiveTrend == true
-                              ? Colors.green[700]
+                              ? AppColors.emerald700
                               : (isPositiveTrend == false
-                                    ? Colors.red[700]
-                                    : Colors.grey[600]),
+                                    ? AppColors.red700
+                                    : AppColors.gray500),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -128,7 +128,7 @@ class ReportKpiCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.grey[500],
+                            color: AppColors.gray400,
                           ),
                         ),
                       ),

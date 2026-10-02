@@ -11,6 +11,7 @@ import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class StockSettingsPage extends StatefulWidget {
   const StockSettingsPage({super.key});
@@ -146,15 +147,15 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
                 Container(
                   padding: AppConstant.defaultPadding,
                   decoration: BoxDecoration(
-                    color: Colors.amber[50],
+                    color: AppColors.amber50,
                     borderRadius: BorderRadius.circular(AppRadius.md),
-                    border: Border.all(color: Colors.amber[200]!),
+                    border: Border.all(color: AppColors.amber200),
                   ),
                   child: Row(
                     children: [
                       Icon(
                         Icons.info_outline,
-                        color: Colors.amber[700],
+                        color: AppColors.amber700,
                         size: 20,
                       ),
                       const SizedBox(width: 12),
@@ -163,7 +164,7 @@ class _StockSettingsPageState extends State<StockSettingsPage> {
                           'اذا تم تعديل أو حذف كميات من فواتير أو عمليات سابقة فان نظام التكلفة الخاصة',
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.amber[900],
+                            color: AppColors.amber900,
                             height: 1.3,
                           ),
                         ),
@@ -359,7 +360,7 @@ class _SectionLabel extends StatelessWidget {
         text,
         style: const TextStyle(
           fontSize: 13,
-          color: Colors.grey,
+          color: AppColors.gray400,
           fontWeight: FontWeight.w500,
         ),
       ),

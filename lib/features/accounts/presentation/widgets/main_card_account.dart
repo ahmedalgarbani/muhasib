@@ -4,7 +4,9 @@ import 'package:muhasib/features/accounts/presentation/widgets/account_balance_r
 import 'package:muhasib/features/accounts/presentation/widgets/account_card_divider.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/account_card_header.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Card widget for master accounts with sub-accounts indicator
 class MainCardAccount extends StatelessWidget {
@@ -71,11 +73,11 @@ class MainCardAccount extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.chevron_left, size: 16, color: Colors.grey),
+                  const Icon(Icons.chevron_left, size: 16, color: AppColors.gray400),
                   const SizedBox(width: 4),
                   Text(
                     'اضغط لعرض الحسابات الفرعية',
-                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                    style: TextStyle(color: AppColors.gray500, fontSize: 13),
                   ),
                 ],
               ),

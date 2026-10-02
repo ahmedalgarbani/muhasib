@@ -124,9 +124,9 @@ class _TransactionsReportContentState extends State<_TransactionsReportContent> 
           return Column(
             children: [
               ReportSummaryRow(cards: [
-                ReportSummaryCard(title: 'إجمالي مدين', value: '${d.toStringAsFixed(0)} ر.س', icon: Icons.arrow_upward, color: Colors.green),
-                ReportSummaryCard(title: 'إجمالي دائن', value: '${c.toStringAsFixed(0)} ر.س', icon: Icons.arrow_downward, color: Colors.red),
-                ReportSummaryCard(title: 'العدد', value: t.length.toString(), icon: Icons.sync, color: Colors.blue),
+                ReportSummaryCard(title: 'إجمالي مدين', value: '${d.toStringAsFixed(0)} ر.س', icon: Icons.arrow_upward, color: AppColors.success),
+                ReportSummaryCard(title: 'إجمالي دائن', value: '${c.toStringAsFixed(0)} ر.س', icon: Icons.arrow_downward, color: AppColors.error),
+                ReportSummaryCard(title: 'العدد', value: t.length.toString(), icon: Icons.sync, color: AppColors.info),
               ]),
               const SizedBox(height: 16),
               Expanded(

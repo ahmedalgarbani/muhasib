@@ -33,7 +33,7 @@ class ReturnHeaderWidget extends StatelessWidget {
               controller: searchController,
               hint: 'ابحث برقم المرتجع أو الفاتورة الأصلية...',
               decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
                 filled: true,
                 fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(

@@ -18,7 +18,7 @@ class PurchaseDetailNotesCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -27,7 +27,7 @@ class PurchaseDetailNotesCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.note, size: 18, color: Colors.grey[600]),
+                Icon(Icons.note, size: 18, color: AppColors.gray500),
                 const SizedBox(width: 8),
                 const Text(
                   'ملاحظات',
@@ -43,7 +43,7 @@ class PurchaseDetailNotesCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.grey[50],
+                color: AppColors.gray50,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: Text(

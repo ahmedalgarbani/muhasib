@@ -34,7 +34,7 @@ class RecentActionItem extends StatelessWidget {
               : AppColors.errorLight);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
           Container(
@@ -62,7 +62,7 @@ class RecentActionItem extends StatelessWidget {
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 Row(
                   children: [
                     Icon(
@@ -92,7 +92,7 @@ class RecentActionItem extends StatelessWidget {
           Directionality(
             textDirection: TextDirection.ltr,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
                 color: bgColor.withValues(alpha: isDark ? 0.7 : 1),
                 borderRadius: BorderRadius.circular(AppRadius.md),

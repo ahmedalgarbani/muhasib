@@ -139,7 +139,7 @@ class _DrawerMenuItemState extends State<DrawerMenuItem>
               top: 2,
               bottom: 4,
             ),
-            padding: const EdgeInsets.only(right: 10),
+            padding: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
               border: Border(
                 right: BorderSide(

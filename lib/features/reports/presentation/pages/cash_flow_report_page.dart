@@ -141,7 +141,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                         value:
                             NumberFormatter.formatCurrency(data.totalOperating, symbol: 'ر.س'),
                         icon: Icons.business,
-                        color: Colors.blue[700]!,
+                        color: AppColors.blue700,
                         subtitle: 'حركة المبيعات والمشتريات',
                         isPositiveTrend: data.totalOperating >= 0,
                       ),
@@ -154,7 +154,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                         value:
                             NumberFormatter.formatCurrency(data.totalInvesting + data.totalFinancing, symbol: 'ر.س'),
                         icon: Icons.account_balance,
-                        color: Colors.purple[700]!,
+                        color: AppColors.purple700,
                         subtitle: 'الأصول الثابتة والتمويل',
                       ),
                     ),
@@ -169,8 +169,8 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                             ? Icons.water_drop
                             : Icons.warning,
                         color: data.netCashFlow >= 0
-                            ? Colors.teal[700]!
-                            : Colors.deepOrange[700]!,
+                            ? AppColors.teal700
+                            : AppColors.materialDeepOrange700,
                         subtitle:
                             'بداية: ${NumberFormatter.formatNumber(data.openingBalance)} | نهاية: ${NumberFormatter.formatNumber(data.closingBalance)}',
                         isPositiveTrend: data.netCashFlow >= 0,
@@ -179,12 +179,12 @@ class _CashFlowContentState extends State<_CashFlowContent> {
                   ],
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
               CashFlowSectionCardWidget(
                 title: 'الأنشطة التشغيلية (المبيعات، المشتريات، المصروفات)',
                 value: data.totalOperating,
-                color: Colors.blue[800]!,
+                color: AppColors.blue800,
                 icon: Icons.business,
                 formatCurrency: NumberFormatter.formatNumber,
               ),
@@ -192,7 +192,7 @@ class _CashFlowContentState extends State<_CashFlowContent> {
               CashFlowSectionCardWidget(
                 title: 'الأنشطة الاستثمارية (الأصول الثابتة والاستثمارات)',
                 value: data.totalInvesting,
-                color: Colors.orange[800]!,
+                color: AppColors.amber800,
                 icon: Icons.trending_up,
                 formatCurrency: NumberFormatter.formatNumber,
               ),
@@ -200,11 +200,11 @@ class _CashFlowContentState extends State<_CashFlowContent> {
               CashFlowSectionCardWidget(
                 title: 'الأنشطة التمويلية (القروض، رأس المال، وسحوبات الشركاء)',
                 value: data.totalFinancing,
-                color: Colors.purple[800]!,
+                color: AppColors.purple800,
                 icon: Icons.account_balance,
                 formatCurrency: NumberFormatter.formatNumber,
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               CashFlowFinalSummaryWidget(result: data),
             ],
           ),

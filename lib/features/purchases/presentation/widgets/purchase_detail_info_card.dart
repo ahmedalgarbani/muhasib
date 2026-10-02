@@ -25,7 +25,7 @@ class PurchaseDetailInfoCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -64,7 +64,7 @@ class PurchaseDetailInfoCard extends StatelessWidget {
                 label: 'تاريخ الاستحقاق',
                 value: _formatDate(invoice.dueDate!),
                 icon: Icons.event,
-                color: Colors.orange,
+                color: AppColors.warning,
               ),
             ],
           ],
@@ -92,11 +92,11 @@ class PurchaseInfoRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: color ?? Colors.grey[600]),
+        Icon(icon, size: 18, color: color ?? AppColors.gray500),
         const SizedBox(width: 8),
         Text(
           '$label:',
-          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+          style: TextStyle(fontSize: 12, color: AppColors.gray500),
         ),
         const SizedBox(width: 8),
         Expanded(

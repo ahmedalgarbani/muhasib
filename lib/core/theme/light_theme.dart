@@ -66,7 +66,7 @@ final ThemeData appLightTheme = ThemeData(
       backgroundColor: AppColors.primary,
       foregroundColor: Colors.white,
       elevation: 0,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm14),
       ),
@@ -81,7 +81,7 @@ final ThemeData appLightTheme = ThemeData(
     style: OutlinedButton.styleFrom(
       foregroundColor: AppColors.primary,
       side: const BorderSide(color: AppColors.borderLight, width: 1.5),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.sm14),
       ),
@@ -95,7 +95,7 @@ final ThemeData appLightTheme = ThemeData(
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
       foregroundColor: AppColors.primary,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
       ),
@@ -109,7 +109,7 @@ final ThemeData appLightTheme = ThemeData(
   inputDecorationTheme: InputDecorationTheme(
     filled: true,
     fillColor: AppColors.surfaceLight,
-    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     hintStyle: const TextStyle(
       fontFamily: 'Tajawal',
       color: AppColors.textSecondaryLight,
@@ -156,7 +156,7 @@ final ThemeData appLightTheme = ThemeData(
       fontWeight: FontWeight.w500,
       color: AppColors.textPrimaryLight,
     ),
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
   ),
   bottomSheetTheme: const BottomSheetThemeData(
     backgroundColor: AppColors.surfaceLight,

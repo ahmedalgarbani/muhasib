@@ -175,22 +175,22 @@ class _JournalReportContentState extends State<_JournalReportContent> {
                   TinySummaryWidget(
                     title: 'العدد',
                     value: '${data.entries.length}',
-                    color: Colors.blue,
+                    color: AppColors.info,
                   ),
                   TinySummaryWidget(
                     title: 'إجمالي مدين',
                     value: _formatCurrency(data.totalDebit),
-                    color: Colors.teal,
+                    color: AppColors.teal500,
                   ),
                   TinySummaryWidget(
                     title: 'إجمالي دائن',
                     value: _formatCurrency(data.totalCredit),
-                    color: Colors.green,
+                    color: AppColors.success,
                   ),
                   TinySummaryWidget(
                     title: 'المرحلة',
                     value: '${data.postedCount}',
-                    color: Colors.indigo,
+                    color: AppColors.indigo500,
                   ),
                 ],
               ),

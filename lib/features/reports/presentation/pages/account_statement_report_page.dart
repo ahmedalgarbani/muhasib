@@ -181,7 +181,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
           return Center(
             child: Text(
               'خطأ: ${state.message}',
-              style: const TextStyle(color: Colors.red),
+              style: const TextStyle(color: AppColors.error),
             ),
           );
         }
@@ -201,11 +201,11 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.receipt_long, size: 48, color: Colors.grey[300]),
+                  Icon(Icons.receipt_long, size: 48, color: AppColors.gray300),
                   const SizedBox(height: 16),
                   const Text(
                     'لا توجد حركات مسجلة للحساب أو البحث المختار',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: AppColors.gray400),
                   ),
                 ],
               ),
@@ -227,7 +227,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                         value:
                             NumberFormatter.formatCurrency(summary.openingBalance, symbol: 'ر.س'),
                         icon: Icons.history,
-                        color: Colors.blue[700]!,
+                        color: AppColors.blue700,
                         subtitle: 'الافتتاحي المنقول',
                       ),
                     ),
@@ -239,7 +239,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                         value:
                             NumberFormatter.formatCurrency(summary.totalDebits, symbol: 'ر.س'),
                         icon: Icons.arrow_upward,
-                        color: Colors.green[700]!,
+                        color: AppColors.emerald700,
                         subtitle: 'مقبوضات / مدين',
                       ),
                     ),
@@ -251,7 +251,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                         value:
                             NumberFormatter.formatCurrency(summary.totalCredits, symbol: 'ر.س'),
                         icon: Icons.arrow_downward,
-                        color: Colors.red[700]!,
+                        color: AppColors.red700,
                         subtitle: 'مدفوعات / دائن',
                       ),
                     ),
@@ -263,7 +263,7 @@ class _AccountStatementContentState extends State<_AccountStatementContent> {
                         value:
                             NumberFormatter.formatCurrency(summary.closingBalance, symbol: 'ر.س'),
                         icon: Icons.account_balance_wallet,
-                        color: Colors.purple[700]!,
+                        color: AppColors.purple700,
                         subtitle: 'الرصيد المستحق الحالي',
                       ),
                     ),

@@ -117,15 +117,15 @@ class QuotationDetailPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: AppColors.blue50,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(color: AppColors.blue200),
               ),
               child: Row(
                 children: [
                   Icon(
                     Icons.info_outline,
-                    color: Colors.blue.shade700,
+                    color: AppColors.blue700,
                     size: 20,
                   ),
                   const SizedBox(width: 8),

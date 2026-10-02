@@ -107,16 +107,16 @@ class WarehouseCardWidget extends StatelessWidget {
                                   : Icons.cancel,
                               size: 16,
                               color: warehouse.isActive
-                                  ? Colors.green
-                                  : Colors.grey,
+                                  ? AppColors.success
+                                  : AppColors.gray400,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               warehouse.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
                                 color: warehouse.isActive
-                                    ? Colors.green
-                                    : Colors.grey,
+                                    ? AppColors.success
+                                    : AppColors.gray400,
                                 fontSize: 14,
                               ),
                             ),
@@ -152,9 +152,9 @@ class WarehouseCardWidget extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            Icon(Icons.delete, size: 20, color: AppColors.error),
                             SizedBox(width: 8),
-                            Text('حذف', style: TextStyle(color: Colors.red)),
+                            Text('حذف', style: TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),
@@ -174,12 +174,12 @@ class WarehouseCardWidget extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                  const Icon(Icons.location_on, size: 16, color: AppColors.gray400),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       warehouse.address,
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      style: const TextStyle(color: AppColors.gray400, fontSize: 14),
                     ),
                   ),
                 ],
@@ -189,13 +189,13 @@ class WarehouseCardWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.person, size: 16, color: Colors.grey),
+                    const Icon(Icons.person, size: 16, color: AppColors.gray400),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
                         'المدير: ${warehouse.managerName}',
                         style: const TextStyle(
-                          color: Colors.grey,
+                          color: AppColors.gray400,
                           fontSize: 14,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -208,11 +208,11 @@ class WarehouseCardWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.storage, size: 16, color: Colors.grey),
+                    const Icon(Icons.storage, size: 16, color: AppColors.gray400),
                     const SizedBox(width: 4),
                     Text(
                       'السعة: ${warehouse.capacity} م³',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      style: const TextStyle(color: AppColors.gray400, fontSize: 14),
                     ),
                   ],
                 ),

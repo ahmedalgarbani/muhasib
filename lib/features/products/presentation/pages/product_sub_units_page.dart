@@ -73,7 +73,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                         return Center(
                           child: Text(
                             state.message,
-                            style: const TextStyle(color: Colors.red),
+                            style: const TextStyle(color: AppColors.error),
                           ),
                         );
                       } else if (state is ProductSubUnitsLoaded) {
@@ -277,7 +277,7 @@ class _ProductSubUnitsPageState extends State<ProductSubUnitsPage> {
                 }
                 Navigator.pop(dialogContext);
               },
-              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              style: TextButton.styleFrom(foregroundColor: AppColors.error),
               child: const Text('حذف'),
             ),
           ],

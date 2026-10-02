@@ -4,6 +4,7 @@ import 'package:muhasib/core/widgets/custom_dropdown_field.dart';
 import 'package:muhasib/features/stores/domain/entities/warehouse_entity.dart';
 import 'package:muhasib/features/stores/presentation/cubit/warehouses_cubit.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class WarehouseSelectorDropdown extends StatefulWidget {
   final WarehouseEntity? selectedWarehouse;
@@ -101,7 +102,7 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
               child: Row(
                 children: [
                   if (warehouse.isMainStock)
-                    const Icon(Icons.star, size: 16, color: Colors.amber),
+                    const Icon(Icons.star, size: 16, color: AppColors.warning),
                   if (warehouse.isMainStock) const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -113,11 +114,11 @@ class _WarehouseSelectorDropdownState extends State<WarehouseSelectorDropdown> {
                     Container(
                       margin: const EdgeInsets.only(left: 8),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
+                        horizontal: 8,
                         vertical: 2,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: AppColors.gray300,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
                       ),
                       child: const Text(
@@ -235,7 +236,7 @@ class _WarehouseSearchableDropdownState
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(AppRadius.md),
-              border: Border.all(color: Colors.grey[300]!),
+              border: Border.all(color: AppColors.gray300),
             ),
             child: ListView.builder(
               padding: EdgeInsets.zero,
@@ -247,7 +248,7 @@ class _WarehouseSearchableDropdownState
                   leading: Icon(
                     warehouse.isMainStock ? Icons.star : Icons.warehouse,
                     color: warehouse.isMainStock
-                        ? Colors.amber
+                        ? AppColors.warning
                         : Theme.of(context).colorScheme.primary,
                   ),
                   title: Text(warehouse.name),
@@ -263,7 +264,7 @@ class _WarehouseSearchableDropdownState
                             'غير نشط',
                             style: TextStyle(fontSize: 10),
                           ),
-                          backgroundColor: Colors.grey,
+                          backgroundColor: AppColors.gray400,
                           padding: EdgeInsets.zero,
                         )
                       : null,
@@ -320,7 +321,7 @@ class _WarehouseSearchableDropdownState
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             filled: true,
-            fillColor: Colors.grey[50],
+            fillColor: AppColors.gray50,
           ),
           onChanged: _filterWarehouses,
           validator: widget.validator != null

@@ -140,7 +140,7 @@ class _StockReportContentState extends State<_StockReportContent> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: Colors.grey[200]!),
+            border: Border.all(color: AppColors.gray200),
           ),
           child: Row(
             children: [
@@ -187,17 +187,17 @@ class _StockReportContentState extends State<_StockReportContent> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: AppColors.gray100,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: const [
-                        Icon(Icons.clear, size: 14, color: Colors.grey),
+                        Icon(Icons.clear, size: 14, color: AppColors.gray400),
                         SizedBox(width: 4),
                         Text('مسح',
                             style:
-                                TextStyle(fontSize: 11, color: Colors.grey)),
+                                TextStyle(fontSize: 11, color: AppColors.gray400)),
                       ],
                     ),
                   ),
@@ -246,7 +246,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                           symbol: 'ر.س',
                         ),
                         icon: Icons.monetization_on,
-                        color: Colors.green[700]!,
+                        color: AppColors.emerald700,
                         subtitle: 'بالتكلفة الفعلية',
                       ),
                     ),
@@ -256,7 +256,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                         title: 'إجمالي كمية الأصناف',
                         value: '${s.totalQuantity.toInt()} قطعة',
                         icon: Icons.inventory,
-                        color: Colors.blue[700]!,
+                        color: AppColors.blue700,
                         subtitle: 'عدد الأنواع: ${stocks.length}',
                       ),
                     ),
@@ -267,8 +267,8 @@ class _StockReportContentState extends State<_StockReportContent> {
                         value: '${s.lowStockCount} صنف',
                         icon: Icons.warning,
                         color: s.lowStockCount > 0
-                            ? Colors.orange[700]!
-                            : Colors.grey[700]!,
+                            ? AppColors.amber700
+                            : AppColors.gray600,
                         subtitle: s.lowStockCount > 0
                             ? 'يحتاج إلى إعادة طلب'
                             : 'المخزون آمن',
@@ -277,7 +277,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 ReportDataTable<dynamic>(
                   columns: const [
                     ReportTableColumn(title: 'رمز الصنف / اسم المنتج', flex: 3),
@@ -320,18 +320,18 @@ class _StockReportContentState extends State<_StockReportContent> {
                                     item.productCode,
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: Colors.grey[600],
+                                      color: AppColors.gray500,
                                     ),
                                   ),
                                   if (isLow) ...[
-                                    const SizedBox(width: 6),
+                                    const SizedBox(width: 8),
                                     Container(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
+                                        horizontal: 8,
                                         vertical: 2,
                                       ),
                                       decoration: BoxDecoration(
-                                        color: Colors.orange[100],
+                                        color: AppColors.amber100,
                                         borderRadius: BorderRadius.circular(
                                           AppRadius.xs,
                                         ),
@@ -340,7 +340,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                                         'حد النقص',
                                         style: TextStyle(
                                           fontSize: 9,
-                                          color: Colors.orange[900],
+                                          color: AppColors.amber900,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -360,8 +360,8 @@ class _StockReportContentState extends State<_StockReportContent> {
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
                               color: isLow
-                                  ? Colors.orange[800]
-                                  : Colors.grey[900],
+                                  ? AppColors.amber800
+                                  : AppColors.gray800,
                             ),
                           ),
                         ),
@@ -387,7 +387,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: Colors.green[800],
+                              color: AppColors.emerald800,
                             ),
                           ),
                         ),
@@ -429,7 +429,7 @@ class _StockReportContentState extends State<_StockReportContent> {
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: Colors.green[800],
+                            color: AppColors.emerald800,
                           ),
                         ),
                       ),

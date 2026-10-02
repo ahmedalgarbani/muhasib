@@ -152,7 +152,7 @@ class _SummaryCard extends StatelessWidget {
               ),
               child: Icon(icon, color: Colors.white, size: 22),
             ),
-            const SizedBox(height: 14),
+            const SizedBox(height: 16),
             // Title
             Text(
               title,

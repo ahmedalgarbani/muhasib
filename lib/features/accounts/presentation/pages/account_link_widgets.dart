@@ -67,13 +67,13 @@ class AccountStateCheckerWidget extends StatelessWidget {
         margin: const EdgeInsets.only(bottom: 12),
         padding: AppConstant.defaultPadding,
         decoration: BoxDecoration(
-          color: Colors.red[50],
+          color: AppColors.red50,
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          border: Border.all(color: Colors.red[200]!),
+          border: Border.all(color: AppColors.red200),
         ),
         child: Text(
           'خطأ: ${(state as AccountConnectError).message}',
-          style: TextStyle(color: Colors.red[700]),
+          style: TextStyle(color: AppColors.red700),
         ),
       );
     } else {
@@ -98,7 +98,7 @@ class AccountLinkStatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
         borderRadius: BorderRadius.circular(AppRadius.lg20),
@@ -149,7 +149,7 @@ class AccountCard extends StatelessWidget {
               children: [
                 Flexible(
                   child: Container(
-                    padding: const EdgeInsets.all(14),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
                       color: account.color,
                       borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -200,7 +200,7 @@ class AccountCard extends StatelessWidget {
                               account.category,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey[700],
+                                color: AppColors.gray600,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -242,7 +242,7 @@ class LinkedAccountStatus extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.check_circle, color: AppColors.success, size: 16),
-        SizedBox(width: 6),
+        SizedBox(width: 8),
         Flexible(
           child: Text(
             'مرتبط بـ: $linkedTo',
@@ -274,7 +274,7 @@ class UnlinkedAccountStatus extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(Icons.link_off, color: AppColors.warning, size: 16),
-        SizedBox(width: 6),
+        SizedBox(width: 8),
         Flexible(
           child: Text(
             'غير مرتبط - يحتاج إلى ربط',
@@ -303,7 +303,7 @@ class AccountLinkActionIcon extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.md),
       boxShadow: [
         BoxShadow(
-          color: Colors.blue.withOpacity(0.3),
+          color: AppColors.info.withOpacity(0.3),
           blurRadius: 8,
           offset: const Offset(0, 4),
         ),
@@ -362,7 +362,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
               borderRadius: BorderRadius.circular(AppRadius.sm10),
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: Column(
@@ -395,7 +395,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                 const SizedBox(height: 8),
                 Text(
                   'اختر الحساب من دليل الحسابات لربط العمليات المالية',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: AppColors.gray500),
                 ),
               ],
             ),
@@ -418,7 +418,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[600],
+                  color: AppColors.gray500,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -461,7 +461,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                   child: OutlinedButton(
                     onPressed: () => Navigator.pop(context),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
@@ -487,7 +487,7 @@ class _LinkAccountBottomSheetState extends State<LinkAccountBottomSheet> {
                           },
                     leading: const Icon(Icons.link),
                     variant: HasibButtonVariant.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
                     fontSize: 16,
                   ),
                 ),
@@ -520,7 +520,7 @@ class AccountLinkSelectionItem extends StatelessWidget {
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
         color: isSelected
-            ? Colors.blue[50]
+            ? AppColors.blue50
             : Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.lg),
         border: Border.all(
@@ -542,19 +542,19 @@ class AccountLinkSelectionItem extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 8),
                 Row(
                   children: [
                     Text(
                       account.code,
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 14, color: AppColors.gray500),
                     ),
-                    Text(' • ', style: TextStyle(color: Colors.grey[400])),
+                    Text(' • ', style: TextStyle(color: AppColors.gray400)),
                     Text(
                       account.type.toString(),
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey[700],
+                        color: AppColors.gray600,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -570,7 +570,7 @@ class AccountLinkSelectionItem extends StatelessWidget {
               color: isSelected ? AppColors.primary : Colors.transparent,
               shape: BoxShape.circle,
               border: Border.all(
-                color: isSelected ? AppColors.primary : Colors.grey[400]!,
+                color: isSelected ? AppColors.primary : AppColors.gray400,
                 width: 2,
               ),
             ),

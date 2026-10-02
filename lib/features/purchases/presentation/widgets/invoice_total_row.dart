@@ -32,7 +32,7 @@ class InvoiceTotalRow extends StatelessWidget {
             style: TextStyle(
               fontSize: isTotal ? 14 : 12,
               fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-              color: color ?? (isTotal ? AppColors.gray900 : Colors.grey[700]),
+              color: color ?? (isTotal ? AppColors.gray900 : AppColors.gray600),
             ),
           ),
         ),
@@ -42,7 +42,7 @@ class InvoiceTotalRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isTotal ? totalFontSize : normalFontSize,
             fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-            color: color ?? (isTotal ? AppColors.success : Colors.grey[700]),
+            color: color ?? (isTotal ? AppColors.success : AppColors.gray600),
           ),
         ),
       ],

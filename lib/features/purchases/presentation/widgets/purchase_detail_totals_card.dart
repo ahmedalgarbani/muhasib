@@ -20,7 +20,7 @@ class PurchaseDetailTotalsCard extends StatelessWidget {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.md),
-        side: BorderSide(color: Colors.grey.shade200),
+        side: BorderSide(color: AppColors.gray200),
       ),
       child: Padding(
         padding: AppConstant.defaultPadding,
@@ -45,7 +45,7 @@ class PurchaseDetailTotalsCard extends StatelessWidget {
               InvoiceTotalRow(
                 label: 'الخصم',
                 amount: -invoice.discountAmt!,
-                color: Colors.orange,
+                color: AppColors.warning,
               ),
             ],
             if (invoice.taxAmt != null && invoice.taxAmt! > 0) ...[
@@ -53,7 +53,7 @@ class PurchaseDetailTotalsCard extends StatelessWidget {
               InvoiceTotalRow(
                 label: 'الضريبة (${invoice.taxRatio ?? 0}%)',
                 amount: invoice.taxAmt!,
-                color: Colors.blue,
+                color: AppColors.info,
               ),
             ],
             const Divider(height: 24),

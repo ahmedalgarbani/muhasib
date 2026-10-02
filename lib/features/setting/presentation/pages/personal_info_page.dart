@@ -13,6 +13,7 @@ import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   const PersonalInfoPage({super.key});
@@ -147,7 +148,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       'الاسم - العنوان',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey,
+                        color: AppColors.gray400,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -190,7 +191,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       'بيانات التواصل',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey,
+                        color: AppColors.gray400,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -220,7 +221,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       'بيانات الضرائب',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey,
+                        color: AppColors.gray400,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -242,7 +243,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       'بيانات اخرى',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey,
+                        color: AppColors.gray400,
                         fontWeight: FontWeight.w500,
                       ),
                     ),

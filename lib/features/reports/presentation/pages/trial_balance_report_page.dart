@@ -150,7 +150,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
           return Center(
             child: Text(
               'خطأ: ${state.message}',
-              style: const TextStyle(color: Colors.red),
+              style: const TextStyle(color: AppColors.error),
             ),
           );
         }
@@ -183,7 +183,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                           value:
                               '${state.summary.openingDebit.toStringAsFixed(0)} ر.س',
                           icon: Icons.account_balance_wallet,
-                          color: Colors.blue[700]!,
+                          color: AppColors.blue700,
                           subtitle: state.summary.openingDifference.abs() < 0.01
                               ? 'متوازن ✓'
                               : 'فرق: ${state.summary.openingDifference.abs().toStringAsFixed(1)}',
@@ -199,7 +199,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                           value:
                               '${state.summary.periodDebit.toStringAsFixed(0)} ر.س',
                           icon: Icons.swap_vert,
-                          color: Colors.purple[700]!,
+                          color: AppColors.purple700,
                           subtitle: 'إجمالي مدين/دائن',
                         ),
                       ),
@@ -214,8 +214,8 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                               ? Icons.check_circle
                               : Icons.warning,
                           color: isClosingBalanced
-                              ? Colors.green[700]!
-                              : Colors.red[700]!,
+                              ? AppColors.emerald700
+                              : AppColors.red700,
                           subtitle: isClosingBalanced
                               ? 'ميزان متوازن ✓'
                               : 'فرق: ${state.summary.closingDifference.abs().toStringAsFixed(1)} ⚠',
@@ -225,7 +225,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 ReportDataTable<TrialBalanceEntity>(
                   columns: const [
                     ReportTableColumn(title: 'رمز الحساب / الاسم', flex: 3),
@@ -264,7 +264,7 @@ class _TrialBalanceContentState extends State<_TrialBalanceContent> {
                               a.accountCode,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey[600],
+                                color: AppColors.gray500,
                               ),
                             ),
                           ],
@@ -365,14 +365,14 @@ class DualValueDisplayWidget extends StatelessWidget {
           formatter(debit),
           style: TextStyle(
             fontSize: 11,
-            color: debit > 0 ? Colors.blue : Colors.grey,
+            color: debit > 0 ? AppColors.info : AppColors.gray400,
           ),
         ),
         Text(
           formatter(credit),
           style: TextStyle(
             fontSize: 11,
-            color: credit > 0 ? Colors.green : Colors.grey,
+            color: credit > 0 ? AppColors.success : AppColors.gray400,
           ),
         ),
       ],

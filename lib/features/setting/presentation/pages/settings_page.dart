@@ -58,7 +58,7 @@ class _SettingsMenu extends StatelessWidget {
             icon: Icons.person_outline,
             onTap: () => context.push(AppRoutes.settingsPersonal),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SettingsNavigationCard(
             title: 'إعدادات الطباعة',
             subtitle: 'حجم الطباعة - خيارات ظهور البيانات الشخصية',
@@ -72,14 +72,14 @@ class _SettingsMenu extends StatelessWidget {
             icon: Icons.receipt_long_outlined,
             onTap: () => context.push(AppRoutes.settingsVoucher),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SettingsNavigationCard(
             title: 'إعدادات المخزون والفواتير',
             subtitle: 'نوع العملة - التكلفة - خيارات العرض',
             icon: Icons.inventory_2_outlined,
             onTap: () => context.push(AppRoutes.settingsStock),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SettingsNavigationCard(
             title: 'إعدادات نقاط البيع',
             subtitle: 'الدفع - الخصومات - الباركود - ائتمان العملاء',
@@ -93,21 +93,21 @@ class _SettingsMenu extends StatelessWidget {
             icon: Icons.security_outlined,
             onTap: () => context.push(AppRoutes.settingsSecurity),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SettingsNavigationCard(
             title: 'النسخ الاحتياطي',
             subtitle: 'إنشاء نسخة احتياطية - الاستعادة - الجدولة',
             icon: Icons.backup_outlined,
             onTap: () => context.push(AppRoutes.settingsBackup),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SettingsNavigationCard(
             title: 'إعدادات أخرى',
             subtitle: 'إعدادات التاريخ والوقت - تكوينات النظام',
             icon: Icons.settings_outlined,
             onTap: () => context.push(AppRoutes.settingsOther),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SettingsNavigationCard(
             title: 'صيانة النظام',
             subtitle: 'فحص العمليات وإصلاحها ان وجدت مشكلة',
@@ -122,7 +122,7 @@ class _SettingsMenu extends StatelessWidget {
             icon: Icons.auto_fix_high_outlined,
             onTap: () => context.push(AppRoutes.initialSetup),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           BlocBuilder<PlansCubit, PlansState>(
             builder: (context, state) {
               final loaded = state is PlansLoaded ? state : null;
@@ -135,7 +135,7 @@ class _SettingsMenu extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           SettingsNavigationCard(
             title: 'الخطط والترقية',
             subtitle: 'قارن بين الخطط واختر الأنسب لنشاطك',
@@ -163,7 +163,7 @@ class _SettingsMenu extends StatelessWidget {
   Widget _sectionLabel(BuildContext context, String text) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(top: 18, bottom: 8),
+      padding: const EdgeInsets.only(top: 20, bottom: 8),
       child: Text(
         text,
         style: TextStyle(

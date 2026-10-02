@@ -6,6 +6,7 @@ import 'package:muhasib/core/widgets/empty_state_widget.dart';
 import 'package:muhasib/features/products/presentation/cubit/item_movements_cubit.dart';
 import 'package:muhasib/features/products/presentation/cubit/products_cubit.dart';
 import 'package:muhasib/features/products/presentation/widgets/item_movements_widgets.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class ItemMovementsPage extends StatefulWidget {
   const ItemMovementsPage({super.key});
@@ -86,7 +87,7 @@ class _ItemMovementsPageState extends State<ItemMovementsPage> {
                     return Center(
                       child: Text(
                         state.message,
-                        style: const TextStyle(color: Colors.red),
+                        style: const TextStyle(color: AppColors.error),
                       ),
                     );
                   } else if (state is ItemMovementsLoaded) {

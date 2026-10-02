@@ -21,10 +21,10 @@ class PurchaseOrdersHeader extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
+        border: Border(bottom: BorderSide(color: AppColors.gray200)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.05),
+            color: AppColors.gray400.withOpacity(0.05),
             spreadRadius: 0,
             blurRadius: 1,
             offset: const Offset(0, 1),
@@ -38,7 +38,7 @@ class PurchaseOrdersHeader extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: AppColors.info.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(AppRadius.sm),
@@ -74,7 +74,7 @@ class PurchaseOrdersHeader extends StatelessWidget {
                 onPressed: onRefresh,
                 icon: const Icon(Icons.refresh),
                 style: IconButton.styleFrom(
-                  backgroundColor: Colors.grey.shade100,
+                  backgroundColor: AppColors.gray100,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(AppRadius.sm),
                   ),
@@ -90,7 +90,7 @@ class PurchaseOrdersHeader extends StatelessWidget {
               hintStyle: const TextStyle(fontSize: 13),
               prefixIcon: const Icon(
                 Icons.search,
-                color: Colors.grey,
+                color: AppColors.gray400,
                 size: 20,
               ),
               filled: true,

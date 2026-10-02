@@ -59,16 +59,16 @@ class ItemMovementsHeaderWidget extends StatelessWidget {
                   controller: searchController,
                   hint: 'ابحث في الحركات...',
                   decoration: InputDecoration(
-                    prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                    prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
                     filled: true,
                     fillColor: Theme.of(context).colorScheme.surface,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.sm),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: AppColors.gray300),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(AppRadius.sm),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: AppColors.gray300),
                     ),
                   ),
                   onChanged: onSearchChanged,
@@ -187,8 +187,8 @@ class ItemMovementsListWidget extends StatelessWidget {
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
                               color: movement.transInOut
-                                  ? Colors.green.shade50
-                                  : Colors.red.shade50,
+                                  ? AppColors.emerald50
+                                  : AppColors.red50,
                               borderRadius: BorderRadius.circular(AppRadius.sm),
                             ),
                             child: Icon(
@@ -196,8 +196,8 @@ class ItemMovementsListWidget extends StatelessWidget {
                                   ? Icons.arrow_downward
                                   : Icons.arrow_upward,
                               color: movement.transInOut
-                                  ? Colors.green
-                                  : Colors.red,
+                                  ? AppColors.success
+                                  : AppColors.error,
                               size: 20,
                             ),
                           ),
@@ -218,7 +218,7 @@ class ItemMovementsListWidget extends StatelessWidget {
                                   'رقم المستند: ${movement.docNo}',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey.shade600,
+                                    color: AppColors.gray500,
                                   ),
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -233,7 +233,7 @@ class ItemMovementsListWidget extends StatelessWidget {
                       DateFormatter.formatDate(date),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppColors.gray500,
                       ),
                     ),
                   ],
@@ -254,26 +254,26 @@ class ItemMovementsListWidget extends StatelessWidget {
                         ItemMovementQuantityChipWidget(
                           label: 'دخول',
                           quantity: movement.quantityIn,
-                          color: Colors.green,
+                          color: AppColors.success,
                         ),
                         ItemMovementQuantityChipWidget(
                           label: 'خروج',
                           quantity: movement.quantityOut,
-                          color: Colors.red,
+                          color: AppColors.error,
                         ),
                         ItemMovementQuantityChipWidget(
                           label: 'الصافي',
                           quantity: movement.netQuantity,
                           color: movement.netQuantity >= 0
-                              ? Colors.blue
-                              : Colors.orange,
+                              ? AppColors.info
+                              : AppColors.warning,
                         ),
                       ],
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 6,
+                        vertical: 8,
                       ),
                       decoration: BoxDecoration(
                         color: Theme.of(context).colorScheme.surfaceContainerHighest,
@@ -289,7 +289,7 @@ class ItemMovementsListWidget extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: balance >= 0 ? Colors.green : Colors.red,
+                              color: balance >= 0 ? AppColors.success : AppColors.error,
                             ),
                           ),
                         ],
@@ -307,7 +307,7 @@ class ItemMovementsListWidget extends StatelessWidget {
                         'السعر: ${movement.sellAmount?.toStringAsFixed(2) ?? '0'} ${movement.currencyCode ?? 'ر.س'}',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade700,
+                          color: AppColors.gray600,
                         ),
                       ),
                       if (movement.costAmount != null) ...[
@@ -315,7 +315,7 @@ class ItemMovementsListWidget extends StatelessWidget {
                           'التكلفة: ${movement.costAmount?.toStringAsFixed(2)} ${movement.currencyCode ?? 'ر.س'}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade700,
+                            color: AppColors.gray600,
                           ),
                         ),
                       ],

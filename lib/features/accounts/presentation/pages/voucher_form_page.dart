@@ -138,13 +138,13 @@ class _VoucherFormPageState extends State<VoucherFormPage> {
                       }
                     },
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   VoucherFormAccountAndAmountWidget(
                     accountName: _accountName,
                     amountController: _amountController,
                     onPickAccount: () => _pickAccount(isLine: false),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   VoucherFormStatementFieldWidget(
                     typeLabel: _type.label,
                     statementController: _statementController,
@@ -303,18 +303,18 @@ class VoucherFormTopSectionWidget extends StatelessWidget {
                   children: [
                     const Text(
                       'تاريخ السند',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray400),
                     ),
                     const SizedBox(height: 4),
                     InkWell(
                       onTap: onPickDate,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                          vertical: 10,
+                          vertical: 12,
                           horizontal: 16,
                         ),
                         decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey.shade400),
+                          border: Border.all(color: AppColors.gray400),
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         child: Row(
@@ -411,11 +411,11 @@ class VoucherFormToggleButtonWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = currentType == targetType;
-    final color = targetType == VoucherType.receipt ? Colors.green : Colors.red;
+    final color = targetType == VoucherType.receipt ? AppColors.success : AppColors.error;
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: isSelected
               ? Theme.of(context).colorScheme.surface
@@ -433,13 +433,13 @@ class VoucherFormToggleButtonWidget extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: isSelected ? color : Colors.grey),
+            Icon(icon, size: 16, color: isSelected ? color : AppColors.gray400),
             const SizedBox(width: 8),
             Text(
               label,
               style: TextStyle(
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? color : Colors.grey,
+                color: isSelected ? color : AppColors.gray400,
               ),
             ),
           ],
@@ -475,7 +475,7 @@ class VoucherFormAccountAndAmountWidget extends StatelessWidget {
         children: [
           const Text(
             'الحساب الرئيسي (أمين الصندوق/الحساب)',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: AppColors.gray400),
           ),
           const SizedBox(height: 8),
           _AccountPickerField(
@@ -485,7 +485,7 @@ class VoucherFormAccountAndAmountWidget extends StatelessWidget {
           const SizedBox(height: 16),
           const Text(
             'المبلغ الإجمالي',
-            style: TextStyle(fontSize: 12, color: Colors.grey),
+            style: TextStyle(fontSize: 12, color: AppColors.gray400),
           ),
           const SizedBox(height: 4),
           TextInputField(
@@ -575,11 +575,11 @@ class VoucherFormLinesSectionWidget extends StatelessWidget {
         if (lines.isEmpty)
           const Text(
             'في حال عدم إضافة سطور، سيتم توجيه المبلغ بالكامل للحساب الرئيسي المختار أعلاه.',
-            style: TextStyle(color: Colors.grey, fontSize: 13),
+            style: TextStyle(color: AppColors.gray400, fontSize: 13),
           )
         else ...[
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isMatched ? AppColors.emerald50 : AppColors.amber50,
               border: Border.all(
@@ -694,7 +694,7 @@ class VoucherFormLineCardWidget extends StatelessWidget {
               ),
               IconButton(
                 onPressed: onRemove,
-                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                icon: const Icon(Icons.delete_outline, color: AppColors.error),
               ),
             ],
           ),

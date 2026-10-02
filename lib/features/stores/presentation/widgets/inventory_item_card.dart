@@ -3,6 +3,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class InventoryItemCard extends StatelessWidget {
   final InventoryLineEntity item;
@@ -36,8 +37,8 @@ class InventoryItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.md),
         side: BorderSide(
           color: isPositive
-              ? Colors.green.withValues(alpha: 0.3)
-              : Colors.red.withValues(alpha: 0.3),
+              ? AppColors.success.withValues(alpha: 0.3)
+              : AppColors.error.withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -52,12 +53,12 @@ class InventoryItemCard extends StatelessWidget {
                 CircleAvatar(
                   radius: 20,
                   backgroundColor: isPositive
-                      ? Colors.green.withValues(alpha: 0.1)
-                      : Colors.red.withValues(alpha: 0.1),
+                      ? AppColors.success.withValues(alpha: 0.1)
+                      : AppColors.error.withValues(alpha: 0.1),
                   child: Text(
                     '${index + 1}',
                     style: TextStyle(
-                      color: isPositive ? Colors.green : Colors.red,
+                      color: isPositive ? AppColors.success : AppColors.error,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -79,7 +80,7 @@ class InventoryItemCard extends StatelessWidget {
                 ),
                 if (!isCountMode && onDelete != null)
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    icon: const Icon(Icons.delete_outline, color: AppColors.error),
                     onPressed: onDelete,
                   ),
               ],
@@ -93,7 +94,7 @@ class InventoryItemCard extends StatelessWidget {
                   child: QuantityColumnWidget(
                     label: 'الكمية المتوقعة',
                     quantity: item.quantity,
-                    color: Colors.blue,
+                    color: AppColors.info,
                     icon: Icons.inventory_2,
                   ),
                 ),
@@ -107,7 +108,7 @@ class InventoryItemCard extends StatelessWidget {
                       : QuantityColumnWidget(
                           label: 'الكمية الفعلية',
                           quantity: item.actualQuantity,
-                          color: Colors.orange,
+                          color: AppColors.warning,
                           icon: Icons.fact_check,
                         ),
                 ),
@@ -132,12 +133,12 @@ class InventoryItemCard extends StatelessWidget {
                       Icon(
                         Icons.attach_money,
                         size: 16,
-                        color: Colors.grey[600],
+                        color: AppColors.gray500,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         'التكلفة الإجمالية',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 12, color: AppColors.gray500),
                       ),
                     ],
                   ),
@@ -158,17 +159,17 @@ class InventoryItemCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: AppColors.gray100,
                   borderRadius: BorderRadius.circular(AppRadius.sm),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.note, size: 16, color: Colors.grey[600]),
+                    Icon(Icons.note, size: 16, color: AppColors.gray500),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         item.statement,
-                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                        style: TextStyle(fontSize: 12, color: AppColors.gray600),
                       ),
                     ),
                   ],
@@ -211,7 +212,7 @@ class QuantityColumnWidget extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             label,
-            style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+            style: TextStyle(fontSize: 10, color: AppColors.gray500),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -271,17 +272,17 @@ class _EditableQuantityWidgetState extends State<EditableQuantityWidget> {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.orange.withValues(alpha: 0.05),
+        color: AppColors.warning.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(AppRadius.sm),
-        border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
+        border: Border.all(color: AppColors.warning.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
-          const Icon(Icons.edit, size: 20, color: Colors.orange),
+          const Icon(Icons.edit, size: 20, color: AppColors.warning),
           const SizedBox(height: 4),
           const Text(
             'الكمية الفعلية',
-            style: TextStyle(fontSize: 10, color: Colors.grey),
+            style: TextStyle(fontSize: 10, color: AppColors.gray400),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),
@@ -325,7 +326,7 @@ class DifferenceColumnWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isPositive = difference >= 0;
-    final color = isPositive ? Colors.green : Colors.red;
+    final color = isPositive ? AppColors.success : AppColors.error;
 
     return Container(
       padding: const EdgeInsets.all(8),
@@ -344,7 +345,7 @@ class DifferenceColumnWidget extends StatelessWidget {
           const SizedBox(height: 4),
           const Text(
             'الفرق',
-            style: TextStyle(fontSize: 10, color: Colors.grey),
+            style: TextStyle(fontSize: 10, color: AppColors.gray400),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 4),

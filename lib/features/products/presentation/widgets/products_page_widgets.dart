@@ -94,16 +94,16 @@ class ProductsHeaderWidget extends StatelessWidget {
             controller: searchController,
             hint: 'ابحث بالاسم أو الباركود...',
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
               filled: true,
               fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: AppColors.gray300),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: AppColors.gray300),
               ),
             ),
             onChanged: onSearchChanged,
@@ -160,7 +160,7 @@ class ProductsGridWidget extends StatelessWidget {
                     child: Icon(
                       Icons.inventory,
                       size: 48,
-                      color: Colors.grey.shade400,
+                      color: AppColors.gray400,
                     ),
                   ),
                 ),
@@ -184,7 +184,7 @@ class ProductsGridWidget extends StatelessWidget {
                           product.barcodeNo,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: AppColors.gray500,
                           ),
                         ),
                         Row(
@@ -199,13 +199,13 @@ class ProductsGridWidget extends StatelessWidget {
                             ),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
+                                horizontal: 8,
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
                                 color: product.quantity > 0
-                                    ? Colors.green.shade50
-                                    : Colors.red.shade50,
+                                    ? AppColors.emerald50
+                                    : AppColors.red50,
                                 borderRadius: BorderRadius.circular(
                                   AppRadius.xs,
                                 ),
@@ -215,8 +215,8 @@ class ProductsGridWidget extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: product.quantity > 0
-                                      ? Colors.green
-                                      : Colors.red,
+                                      ? AppColors.success
+                                      : AppColors.error,
                                 ),
                               ),
                             ),
@@ -271,7 +271,7 @@ class ProductsListWidget extends StatelessWidget {
                 color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
-              child: Icon(Icons.inventory, color: Colors.grey.shade400),
+              child: Icon(Icons.inventory, color: AppColors.gray400),
             ),
             title: Text(
               product.name,
@@ -296,15 +296,15 @@ class ProductsListWidget extends StatelessWidget {
                   ),
                   decoration: BoxDecoration(
                     color: product.quantity > 0
-                        ? Colors.green.shade50
-                        : Colors.red.shade50,
+                        ? AppColors.emerald50
+                        : AppColors.red50,
                     borderRadius: BorderRadius.circular(AppRadius.xs),
                   ),
                   child: Text(
                     'المخزون: ${product.quantity.toStringAsFixed(0)}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: product.quantity > 0 ? Colors.green : Colors.red,
+                      color: product.quantity > 0 ? AppColors.success : AppColors.error,
                     ),
                   ),
                 ),
@@ -325,9 +325,9 @@ class ProductsListWidget extends StatelessWidget {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          Icon(Icons.delete, size: 20, color: AppColors.error),
                           SizedBox(width: 8),
-                          Text('حذف', style: TextStyle(color: Colors.red)),
+                          Text('حذف', style: TextStyle(color: AppColors.error)),
                         ],
                       ),
                     ),

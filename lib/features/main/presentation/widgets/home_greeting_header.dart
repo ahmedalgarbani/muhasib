@@ -14,7 +14,7 @@ class HomeGreetingHeader extends StatelessWidget {
     final dateText = DateFormat('EEEE، d MMMM', 'ar').format(now);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
       child: Row(
         children: [
           Container(
@@ -70,7 +70,7 @@ class HomeGreetingHeader extends StatelessWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.06)
@@ -91,7 +91,7 @@ class HomeGreetingHeader extends StatelessWidget {
                   size: 13,
                   color: isDark ? AppColors.primaryLight : AppColors.primary,
                 ),
-                const SizedBox(width: 5),
+                const SizedBox(width: 4),
                 Text(
                   dateText,
                   style: TextStyle(

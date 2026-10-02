@@ -6,6 +6,7 @@ import 'package:muhasib/features/accounts/domain/services/account_connect_valida
 import 'package:muhasib/core/helpers/buildsnackbar.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 /// Mixin to add account connection validation to Cubits
 mixin AccountConnectValidationMixin {
@@ -103,7 +104,7 @@ mixin AccountConnectValidationMixin {
       builder: (context) => CustomDialog(
         title: Row(
           children: [
-            Icon(Icons.link_off, color: Colors.red[600], size: 28),
+            Icon(Icons.link_off, color: AppColors.red600, size: 28),
             const SizedBox(width: 12),
             const Expanded(
               child: Text('حسابات غير مرتبطة', style: TextStyle(fontSize: 18)),
@@ -134,7 +135,7 @@ mixin AccountConnectValidationMixin {
                       children: [
                         const Icon(
                           Icons.error_outline,
-                          color: Colors.orange,
+                          color: AppColors.warning,
                           size: 16,
                         ),
                         const SizedBox(width: 8),
@@ -153,13 +154,13 @@ mixin AccountConnectValidationMixin {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: AppColors.blue50,
                   borderRadius: BorderRadius.circular(AppRadius.sm),
-                  border: Border.all(color: Colors.blue[200]!),
+                  border: Border.all(color: AppColors.blue200),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+                    Icon(Icons.info_outline, color: AppColors.blue700, size: 20),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
@@ -204,7 +205,7 @@ mixin AccountConnectValidationMixin {
           children: [
             Icon(
               Icons.warning_amber_rounded,
-              color: Colors.orange[700],
+              color: AppColors.amber700,
               size: 28,
             ),
             const SizedBox(width: 12),
@@ -242,16 +243,16 @@ mixin AccountConnectValidationMixin {
                           .surfaceContainerHighest,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         validation.completionPercentage >= 80
-                            ? Colors.green
+                            ? AppColors.success
                             : validation.completionPercentage >= 50
-                            ? Colors.orange
-                            : Colors.red,
+                            ? AppColors.warning
+                            : AppColors.error,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
                       '${validation.connectedCount} من ${validation.totalRequired} حساب مرتبط',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 12, color: AppColors.gray500),
                     ),
                   ],
                 ),
@@ -274,15 +275,15 @@ mixin AccountConnectValidationMixin {
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.orange[50],
+                      color: AppColors.amber50,
                       borderRadius: BorderRadius.circular(AppRadius.sm),
-                      border: Border.all(color: Colors.orange[200]!),
+                      border: Border.all(color: AppColors.amber200),
                     ),
                     child: Row(
                       children: [
                         Icon(
                           Icons.link_off,
-                          color: Colors.orange[700],
+                          color: AppColors.amber700,
                           size: 16,
                         ),
                         const SizedBox(width: 8),

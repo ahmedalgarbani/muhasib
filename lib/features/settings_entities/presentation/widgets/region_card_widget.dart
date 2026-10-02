@@ -3,7 +3,8 @@ import 'package:muhasib/core/theme/app_color.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/settings_entities/domain/entities/region_entity.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 /// Standalone Region Card Widget for displaying region entity details.
 class RegionCardWidget extends StatelessWidget {
@@ -75,16 +76,16 @@ class RegionCardWidget extends StatelessWidget {
                                   : Icons.cancel,
                               size: 16,
                               color: region.isActive
-                                  ? Colors.green
-                                  : Colors.grey,
+                                  ? AppColors.success
+                                  : AppColors.gray400,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               region.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
                                 color: region.isActive
-                                    ? Colors.green
-                                    : Colors.grey,
+                                    ? AppColors.success
+                                    : AppColors.gray400,
                                 fontSize: 14,
                               ),
                             ),
@@ -109,9 +110,9 @@ class RegionCardWidget extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            Icon(Icons.delete, size: 20, color: AppColors.error),
                             SizedBox(width: 8),
-                            Text('حذف', style: TextStyle(color: Colors.red)),
+                            Text('حذف', style: TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),
@@ -130,11 +131,11 @@ class RegionCardWidget extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.flag, size: 16, color: Colors.grey),
+                    const Icon(Icons.flag, size: 16, color: AppColors.gray400),
                     const SizedBox(width: 4),
                     Text(
                       'الدولة: ${region.country}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      style: const TextStyle(color: AppColors.gray400, fontSize: 14),
                     ),
                   ],
                 ),

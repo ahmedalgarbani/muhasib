@@ -155,8 +155,8 @@ class PartyBalanceInfo {
     if (absAmount < 0.001) {
       return PartyBalanceInfo(
         label: 'متوازن',
-        color: Colors.grey.shade700,
-        backgroundColor: Colors.grey.shade200,
+        color: AppColors.gray600,
+        backgroundColor: AppColors.gray200,
         formattedAmount: '0.00 ر.س',
         isZero: true,
       );
@@ -169,16 +169,16 @@ class PartyBalanceInfo {
       if (balance > 0) {
         return PartyBalanceInfo(
           label: 'عليه (مدين)',
-          color: Colors.red.shade700,
-          backgroundColor: Colors.red.shade50,
+          color: AppColors.red700,
+          backgroundColor: AppColors.red50,
           formattedAmount: formattedAmount,
           isZero: false,
         );
       } else {
         return PartyBalanceInfo(
           label: 'له (دائن)',
-          color: Colors.green.shade700,
-          backgroundColor: Colors.green.shade50,
+          color: AppColors.emerald700,
+          backgroundColor: AppColors.emerald50,
           formattedAmount: formattedAmount,
           isZero: false,
         );
@@ -190,16 +190,16 @@ class PartyBalanceInfo {
       if (balance < 0) {
         return PartyBalanceInfo(
           label: 'له (دائن)',
-          color: Colors.orange.shade900,
-          backgroundColor: Colors.orange.shade50,
+          color: AppColors.amber900,
+          backgroundColor: AppColors.amber50,
           formattedAmount: formattedAmount,
           isZero: false,
         );
       } else {
         return PartyBalanceInfo(
           label: 'عليه (مدين)',
-          color: Colors.green.shade700,
-          backgroundColor: Colors.green.shade50,
+          color: AppColors.emerald700,
+          backgroundColor: AppColors.emerald50,
           formattedAmount: formattedAmount,
           isZero: false,
         );
@@ -407,7 +407,7 @@ class _CreditLimitSummary extends StatelessWidget {
               value: usageRatio,
               backgroundColor: colorScheme.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation(
-                isOverLimit ? Colors.red : colorScheme.primary,
+                isOverLimit ? AppColors.error : colorScheme.primary,
               ),
               minHeight: 6,
             ),
@@ -425,7 +425,7 @@ class _CreditLimitSummary extends StatelessWidget {
                   'تجاوز الحد',
                   style: TextStyle(
                     fontSize: 11,
-                    color: Colors.red,
+                    color: AppColors.error,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -529,13 +529,13 @@ class PartyDetailsSheet extends StatelessWidget {
                   onPressed: () => _openEditDialog(sheetContext),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
+                  icon: const Icon(Icons.delete_outline, color: AppColors.error),
                   tooltip: 'حذف',
                   onPressed: () => _confirmDelete(sheetContext),
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -708,7 +708,7 @@ class PartyAccountNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isSupplier ? Colors.orange : Colors.blue;
+    final color = isSupplier ? AppColors.warning : AppColors.info;
     final label = isSupplier ? 'المورد' : 'العميل';
 
     return Container(

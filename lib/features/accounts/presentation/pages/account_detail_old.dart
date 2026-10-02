@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class AccountTransactionPage extends StatefulWidget {
   const AccountTransactionPage({super.key});
@@ -51,7 +52,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -81,7 +82,7 @@ class _AccountTransactionPageState extends State<AccountTransactionPage> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 10),
+                        const SizedBox(height: 12),
                         Row(
                           children: [
                             Expanded(
@@ -210,7 +211,7 @@ class AccountPeriodOptionRadioWidget extends StatelessWidget {
               onChanged(value);
             }
           },
-          activeColor: Colors.blue,
+          activeColor: AppColors.info,
         ),
         Text(label),
       ],
@@ -231,7 +232,7 @@ class AccountDateFieldWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
       decoration: BoxDecoration(
         border: Border.all(color: Theme.of(context).dividerColor),
         borderRadius: BorderRadius.circular(AppRadius.xs),
@@ -240,7 +241,7 @@ class AccountDateFieldWidget extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Icon(Icons.calendar_today, size: 18, color: Colors.grey),
+          const Icon(Icons.calendar_today, size: 18, color: AppColors.gray400),
           Text(
             '$label ${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}',
             style: const TextStyle(fontSize: 13),
@@ -282,13 +283,13 @@ class AccountOldTransactionItemWidget extends StatelessWidget {
               Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.edit, color: Colors.blue, size: 20),
+                    icon: const Icon(Icons.edit, color: AppColors.info, size: 20),
                     onPressed: () {},
                   ),
                   IconButton(
                     icon: const Icon(
                       Icons.picture_as_pdf,
-                      color: Colors.red,
+                      color: AppColors.error,
                       size: 20,
                     ),
                     onPressed: () {},
@@ -308,10 +309,10 @@ class AccountOldTransactionItemWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black12),
-              color: Colors.amber[100],
+              color: AppColors.amber100,
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
             child: Row(
@@ -319,13 +320,13 @@ class AccountOldTransactionItemWidget extends StatelessWidget {
               children: [
                 Text(
                   balance,
-                  style: const TextStyle(color: Colors.red, fontSize: 16),
+                  style: const TextStyle(color: AppColors.error, fontSize: 16),
                 ),
                 Text(credit, style: const TextStyle(fontSize: 16)),
                 Text(debit, style: const TextStyle(fontSize: 16)),
                 Text(
                   date,
-                  style: const TextStyle(color: Colors.blue, fontSize: 14),
+                  style: const TextStyle(color: AppColors.info, fontSize: 14),
                 ),
               ],
             ),
@@ -343,7 +344,7 @@ class BottomCollectionDataCalculator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       color: Theme.of(context).colorScheme.surface,
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(12),
       child: Column(
         children: [
           Row(
@@ -399,7 +400,7 @@ class CustomAppBarAccountDetail extends StatelessWidget
           onPressed: () {},
         ),
         IconButton(
-          icon: const Icon(Icons.picture_as_pdf, color: Colors.red, size: 20),
+          icon: const Icon(Icons.picture_as_pdf, color: AppColors.error, size: 20),
           onPressed: () {},
         ),
       ],

@@ -445,24 +445,24 @@ class _ProductFormPageState extends State<ProductFormPage> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: Colors.blue.shade50,
+                              color: AppColors.blue50,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.blue.shade200),
+                              border: Border.all(color: AppColors.blue200),
                             ),
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.info_outline,
                                   size: 16,
-                                  color: Colors.blue.shade700,
+                                  color: AppColors.blue700,
                                 ),
-                                const SizedBox(width: 6),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Text(
                                     'المخزون يُدار دائماً بالوحدة الأساسية. الكميات المحولة تُحسب تلقائياً.',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: Colors.blue.shade700,
+                                      color: AppColors.blue700,
                                     ),
                                   ),
                                 ),
@@ -529,7 +529,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
       children: [
         Text(
           'أضف وحدات التعبئة للصنف (مثال: درزن 12 حبة، كرتون 24). يُحسب السعر تلقائياً إن ترك فارغاً.',
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+          style: TextStyle(fontSize: 12, color: AppColors.gray500),
         ),
         const SizedBox(height: 12),
         if (_loadingSubUnits) const LinearProgressIndicator(),
@@ -539,7 +539,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
             child: Center(
               child: Text(
                 'لا توجد وحدات إضافية — اضغط أدناه للإضافة',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                style: TextStyle(fontSize: 12, color: AppColors.gray400),
               ),
             ),
           ),
@@ -792,7 +792,7 @@ class _ExtraUnitCardState extends State<_ExtraUnitCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -813,7 +813,7 @@ class _ExtraUnitCardState extends State<_ExtraUnitCard> {
               IconButton(
                 icon: const Icon(
                   Icons.delete_outline,
-                  color: Colors.red,
+                  color: AppColors.error,
                   size: 20,
                 ),
                 onPressed: widget.onRemove,
@@ -842,7 +842,7 @@ class _ExtraUnitCardState extends State<_ExtraUnitCard> {
               return const LinearProgressIndicator();
             },
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -870,9 +870,9 @@ class _ExtraUnitCardState extends State<_ExtraUnitCard> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           _buildAutoPriceHint(),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -896,7 +896,7 @@ class _ExtraUnitCardState extends State<_ExtraUnitCard> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -919,7 +919,7 @@ class _ExtraUnitCardState extends State<_ExtraUnitCard> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -971,20 +971,20 @@ class _ExtraUnitCardState extends State<_ExtraUnitCard> {
       conversionRate: conv,
     );
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: AppColors.gray50,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: AppColors.gray200),
       ),
       child: Row(
         children: [
-          const Icon(Icons.calculate_outlined, size: 14, color: Colors.grey),
-          const SizedBox(width: 6),
+          const Icon(Icons.calculate_outlined, size: 14, color: AppColors.gray400),
+          const SizedBox(width: 8),
           Expanded(
             child: Text(
               'معامل إجمالي: x$factor → سعر تلقائي: بيع ${autoSell.toStringAsFixed(2)} / تكلفة ${autoCost.toStringAsFixed(2)} (اترك الحقل فارغاً لاستخدام التلقائي)',
-              style: TextStyle(fontSize: 10, color: Colors.grey.shade700),
+              style: TextStyle(fontSize: 10, color: AppColors.gray600),
             ),
           ),
         ],

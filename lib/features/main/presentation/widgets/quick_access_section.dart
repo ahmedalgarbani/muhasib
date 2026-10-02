@@ -132,7 +132,7 @@ class QuickAccessSection extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
-                    vertical: 3,
+                    vertical: 4,
                   ),
                   decoration: BoxDecoration(
                     color: AppColors.saudiMint,

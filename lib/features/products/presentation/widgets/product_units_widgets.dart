@@ -42,16 +42,16 @@ class ProductUnitsHeaderWidget extends StatelessWidget {
             controller: searchController,
             hint: 'ابحث في الوحدات...',
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
               filled: true,
               fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: AppColors.gray300),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: AppColors.gray300),
               ),
             ),
             onChanged: onSearchChanged,
@@ -118,7 +118,7 @@ class ProductUnitsListWidget extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
-                      color: Colors.grey.shade700,
+                      color: AppColors.gray600,
                     ),
                   ),
                 ),
@@ -126,7 +126,7 @@ class ProductUnitsListWidget extends StatelessWidget {
             ),
             subtitle: Text(
               'معامل التحويل: ${unit.conversionFactor}',
-              style: TextStyle(color: Colors.grey.shade600),
+              style: TextStyle(color: AppColors.gray500),
             ),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -138,12 +138,12 @@ class ProductUnitsListWidget extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.red.shade50,
+                      color: AppColors.red50,
                       borderRadius: BorderRadius.circular(AppRadius.xs),
                     ),
                     child: const Text(
                       'غير نشط',
-                      style: TextStyle(fontSize: 12, color: Colors.red),
+                      style: TextStyle(fontSize: 12, color: AppColors.error),
                     ),
                   ),
                 const SizedBox(width: 8),
@@ -163,9 +163,9 @@ class ProductUnitsListWidget extends StatelessWidget {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          Icon(Icons.delete, size: 20, color: AppColors.error),
                           SizedBox(width: 8),
-                          Text('حذف', style: TextStyle(color: Colors.red)),
+                          Text('حذف', style: TextStyle(color: AppColors.error)),
                         ],
                       ),
                     ),

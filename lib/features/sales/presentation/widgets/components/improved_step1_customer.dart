@@ -175,8 +175,8 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                                               .customer!
                                                               .balance >
                                                           0
-                                                      ? Colors.red
-                                                      : Colors.green,
+                                                      ? AppColors.error
+                                                      : AppColors.success,
                                                 ),
                                               ),
                                             ],
@@ -293,8 +293,8 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                                                       fontSize: 11,
                                                       color:
                                                           customer.balance > 0
-                                                          ? Colors.red
-                                                          : Colors.green,
+                                                          ? AppColors.error
+                                                          : AppColors.success,
                                                     ),
                                                   ),
                                                   if (customer.creditLimit >
@@ -345,7 +345,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       return Center(
                         child: Text(
                           state.message,
-                          style: const TextStyle(color: Colors.red),
+                          style: const TextStyle(color: AppColors.error),
                         ),
                       );
                     }
@@ -558,7 +558,7 @@ class _ImprovedStep1CustomerState extends State<ImprovedStep1Customer> {
                       'سيتم خصم/إضافة المخزون لهذا المستودع',
                       style: TextStyle(
                         fontSize: 11,
-                        color: Colors.grey.shade600,
+                        color: AppColors.gray500,
                       ),
                     ),
                     const SizedBox(height: 12),

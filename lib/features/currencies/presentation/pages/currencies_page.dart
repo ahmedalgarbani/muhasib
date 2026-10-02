@@ -68,7 +68,7 @@ class _CurrenciesView extends StatelessWidget {
                   children: [
                     Text(
                       'خطأ: ${state.message}',
-                      style: const TextStyle(color: Colors.red),
+                      style: const TextStyle(color: AppColors.error),
                     ),
                     const SizedBox(height: 16),
                     HasibButton(

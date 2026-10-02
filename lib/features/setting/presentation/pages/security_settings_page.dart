@@ -11,6 +11,7 @@ import 'package:muhasib/features/setting/presentation/cubit/settings_cubit.dart'
 import 'package:muhasib/features/setting/presentation/cubit/settings_state.dart';
 
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class SecuritySettingsPage extends StatefulWidget {
   const SecuritySettingsPage({super.key});
@@ -101,7 +102,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                     'التفعيل - كلمة المرور',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -153,7 +154,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                 ),
                 if (isPasswordEnabled)
                   Padding(
-                    padding: const EdgeInsets.only(top: 10),
+                    padding: const EdgeInsets.only(top: 12),
                     child: Row(
                       children: [
                         Icon(
@@ -161,7 +162,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                           size: 16,
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             'سيُطلب إدخال كلمة المرور عند فتح التطبيق وعند العودة إليه من الخلفية.',

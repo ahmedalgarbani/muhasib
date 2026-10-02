@@ -116,7 +116,7 @@ class _ReturnsPageState extends State<ReturnsPage> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade400,
+                      color: AppColors.gray400,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),

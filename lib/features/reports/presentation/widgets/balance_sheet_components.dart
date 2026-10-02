@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class BalanceSheetEquationWidget extends StatelessWidget {
   final dynamic result;
@@ -14,15 +15,15 @@ class BalanceSheetEquationWidget extends StatelessWidget {
     return Container(
       padding: AppConstant.defaultPadding,
       decoration: BoxDecoration(
-        color: ok ? Colors.green[50] : Colors.red[50],
+        color: ok ? AppColors.emerald50 : AppColors.red50,
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        border: Border.all(color: ok ? Colors.green : Colors.red, width: 0.5),
+        border: Border.all(color: ok ? AppColors.success : AppColors.error, width: 0.5),
       ),
       child: Row(
         children: [
           Icon(
             ok ? Icons.check_circle : Icons.warning,
-            color: ok ? Colors.green : Colors.red,
+            color: ok ? AppColors.success : AppColors.error,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -33,7 +34,7 @@ class BalanceSheetEquationWidget extends StatelessWidget {
                   : 'فرق الميزانية: ${result.difference.abs().toStringAsFixed(2)} ⚠',
               style: TextStyle(
                 fontWeight: FontWeight.bold,
-                color: ok ? Colors.green[800] : Colors.red[800],
+                color: ok ? AppColors.emerald800 : AppColors.red800,
                 fontSize: 13,
               ),
             ),
@@ -111,7 +112,7 @@ class BalanceSheetSectionWidget extends StatelessWidget {
               padding: AppConstant.defaultPadding,
               child: Text(
                 'لا توجد حسابات مسجلة في هذا البند',
-                style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                style: TextStyle(fontSize: 12, color: AppColors.gray400),
               ),
             )
           else
@@ -127,7 +128,7 @@ class BalanceSheetSectionWidget extends StatelessWidget {
                 ),
                 subtitle: Text(
                   r.code,
-                  style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 11, color: AppColors.gray500),
                 ),
                 trailing: Text(
                   formatCurrency(r.displayAmount),

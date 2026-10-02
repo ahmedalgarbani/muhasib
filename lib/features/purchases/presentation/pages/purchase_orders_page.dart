@@ -61,13 +61,13 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
                             Icon(
                               Icons.error_outline,
                               size: 64,
-                              color: Colors.red[300],
+                              color: AppColors.red300,
                             ),
                             const SizedBox(height: 16),
                             Text(
                               state.message,
                               style: const TextStyle(
-                                color: Colors.red,
+                                color: AppColors.error,
                                 fontSize: 14,
                               ),
                               textAlign: TextAlign.center,
@@ -171,17 +171,17 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: AppColors.blue50,
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.info_outline, size: 18, color: Colors.blue),
+                  Icon(Icons.info_outline, size: 18, color: AppColors.info),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'سيتم إنشاء فاتورة مشتريات جديدة بنفس البيانات',
-                      style: TextStyle(fontSize: 12, color: Colors.blue),
+                      style: TextStyle(fontSize: 12, color: AppColors.info),
                     ),
                   ),
                 ],
@@ -192,7 +192,7 @@ class _PurchaseOrdersPageState extends State<PurchaseOrdersPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('إلغاء', style: TextStyle(color: Colors.grey)),
+            child: const Text('إلغاء', style: TextStyle(color: AppColors.gray400)),
           ),
           HasibButton(
             label: 'تحويل',

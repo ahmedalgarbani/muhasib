@@ -47,7 +47,7 @@ class ReturnDetailHeaderCard extends StatelessWidget {
                       'فاتورة مرتجع',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppColors.gray500,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -278,7 +278,7 @@ class _ReturnProductLineWidget extends StatelessWidget {
               const SizedBox(height: 4),
               Text(
                 'الكمية المرتجعة: ${line.quantity} × ${_formatCurrency(line.amount)}',
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                style: TextStyle(fontSize: 12, color: AppColors.gray500),
               ),
             ],
           ),
@@ -451,7 +451,7 @@ class ReturnDetailAccountingCard extends StatelessWidget {
                                       : 'إلى ح/ $accountName',
                                   style: TextStyle(
                                     fontSize: 13,
-                                    color: Colors.grey.shade700,
+                                    color: AppColors.gray600,
                                   ),
                                 ),
                               ),
@@ -517,14 +517,14 @@ class _ReturnInfoItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 18, color: Colors.grey.shade600),
+        Icon(icon, size: 18, color: AppColors.gray500),
         const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              style: TextStyle(fontSize: 11, color: AppColors.gray500),
             ),
             const SizedBox(height: 2),
             Text(
@@ -563,7 +563,7 @@ class _ReturnTotalRow extends StatelessWidget {
           style: TextStyle(
             fontSize: isFinal ? 16 : 14,
             fontWeight: isFinal ? FontWeight.bold : FontWeight.w500,
-            color: isFinal ? AppColors.gray900 : Colors.grey.shade700,
+            color: isFinal ? AppColors.gray900 : AppColors.gray600,
           ),
         ),
         Text(

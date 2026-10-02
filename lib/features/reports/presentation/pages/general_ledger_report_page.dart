@@ -161,7 +161,7 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                         symbol: 'ر.س',
                       ),
                       icon: Icons.arrow_upward,
-                      color: Colors.blue[700]!,
+                      color: AppColors.blue700,
                       subtitle: 'جميع القيود المدينة',
                     ),
                   ),
@@ -175,7 +175,7 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                         symbol: 'ر.س',
                       ),
                       icon: Icons.arrow_downward,
-                      color: Colors.green[700]!,
+                      color: AppColors.emerald700,
                       subtitle: 'جميع القيود الدائنة',
                     ),
                   ),
@@ -190,8 +190,8 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                       ),
                       icon: Icons.balance,
                       color: (data.totalDebit - data.totalCredit).abs() < 0.01
-                          ? Colors.teal[700]!
-                          : Colors.red[700]!,
+                          ? AppColors.teal700
+                          : AppColors.red700,
                       subtitle:
                           (data.totalDebit - data.totalCredit).abs() < 0.01
                           ? 'متوازن ✓'
@@ -239,7 +239,7 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
                       subtitle: Text(
                         'الرصيد: ${NumberFormatter.formatCurrency(a.balance, symbol: 'ر.س')}',
                         style: TextStyle(
-                          color: a.balance >= 0 ? Colors.blue : Colors.red,
+                          color: a.balance >= 0 ? AppColors.info : AppColors.error,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
@@ -267,15 +267,15 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
   Color _getAccountTypeColor(int t) {
     switch (t) {
       case 1:
-        return Colors.blue;
+        return AppColors.info;
       case 2:
-        return Colors.deepOrange;
+        return AppColors.materialDeepOrange500;
       case 3:
-        return Colors.teal;
+        return AppColors.teal500;
       case 4:
-        return Colors.green;
+        return AppColors.success;
       default:
-        return Colors.grey;
+        return AppColors.gray400;
     }
   }
 
@@ -286,9 +286,11 @@ class _GeneralLedgerContentState extends State<_GeneralLedgerContent> {
     final list = rows.map((m) {
       final code = (m['code'] as String?) ?? '';
       final rawType = (m['type'] as int?) ?? 1;
+      // AccountType: 0=assets, 1=liabilities, 2=equity, 3=revenue, 4=expenses.
       final isCreditNormal =
+          rawType == 1 ||
           rawType == 2 ||
-          rawType == 4 ||
+          rawType == 3 ||
           code.startsWith('2') ||
           code.startsWith('4');
       final td = (m['td'] as num).toDouble();
@@ -366,7 +368,7 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
             padding: AppConstant.defaultPadding,
             child: Text(
               'لا توجد حركات تفصيلية في هذه الفترة',
-              style: TextStyle(fontSize: 11, color: Colors.grey),
+              style: TextStyle(fontSize: 11, color: AppColors.gray400),
             ),
           );
         }
@@ -386,7 +388,7 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
                     ),
                     subtitle: Text(
                       t.dateLabel,
-                      style: const TextStyle(fontSize: 10, color: Colors.grey),
+                      style: const TextStyle(fontSize: 10, color: AppColors.gray400),
                     ),
                     trailing: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -399,8 +401,8 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
                           style: TextStyle(
                             fontSize: 11,
                             color: t.debit > 0
-                                ? Colors.blue[700]
-                                : Colors.green[700],
+                                ? AppColors.blue700
+                                : AppColors.emerald700,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
@@ -408,7 +410,7 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
                           'الرصيد التراكمي: ${t.runningBalance.toStringAsFixed(2)} ر.س',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.grey[700],
+                            color: AppColors.gray600,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -426,8 +428,9 @@ class _AccountTransactionsViewState extends State<_AccountTransactionsView> {
   Future<List<_LedgerTransaction>> _loadTxns() async {
     final ds = getIt<ReportsLocalDataSource>();
     final isCreditNormal =
+        widget.accountType == 1 ||
         widget.accountType == 2 ||
-        widget.accountType == 4 ||
+        widget.accountType == 3 ||
         widget.accountCode.startsWith('2') ||
         widget.accountCode.startsWith('4');
 

@@ -128,7 +128,7 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(AppRadius.md),
                       ),
-                      fillColor: Colors.grey[50],
+                      fillColor: AppColors.gray50,
                       filled: true,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
@@ -145,7 +145,7 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
               // Table header
               Container(
                 color: AppColors.materialBlue700,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: const Row(
                     children: [
                       Expanded(flex: 3, child: Text('الصنف', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12))),
@@ -168,7 +168,7 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                              Icon(Icons.error_outline, size: 48, color: AppColors.red300),
                               const SizedBox(height: 8),
                               Text(state.message, textAlign: TextAlign.center),
                               const SizedBox(height: 12),
@@ -186,10 +186,10 @@ class _ItemMovementReportPageState extends State<ItemMovementReportPage> {
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.swap_horiz, size: 64, color: Colors.grey),
+                              Icon(Icons.swap_horiz, size: 64, color: AppColors.gray400),
                               SizedBox(height: 12),
-                              Text('لا توجد حركات', style: TextStyle(color: Colors.grey)),
-                              Text('لا توجد حركات مخزنية مطابقة للفلتر الحالي', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                              Text('لا توجد حركات', style: TextStyle(color: AppColors.gray400)),
+                              Text('لا توجد حركات مخزنية مطابقة للفلتر الحالي', style: TextStyle(color: AppColors.gray400, fontSize: 12)),
                             ],
                           ),
                         );
@@ -257,7 +257,7 @@ class _WarehouseChips extends StatelessWidget {
                       label: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          if (isMain) const Icon(Icons.star, size: 14, color: Colors.amber),
+                          if (isMain) const Icon(Icons.star, size: 14, color: AppColors.warning),
                           if (isMain) const SizedBox(width: 4),
                           Text(w.name),
                         ],
@@ -288,7 +288,7 @@ class _MovementCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: Border.all(color: Colors.grey[200]!),
+        border: Border.all(color: AppColors.gray200),
         boxShadow: [
           BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 2)),
         ],
@@ -298,36 +298,36 @@ class _MovementCard extends StatelessWidget {
         children: [
           // Document header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.grey[50],
+              color: AppColors.gray50,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-              border: Border(bottom: BorderSide(color: Colors.grey[200]!)),
+              border: Border(bottom: BorderSide(color: AppColors.gray200)),
             ),
             child: Row(
               children: [
                 Icon(
                   isIn ? Icons.call_received : Icons.call_made,
                   size: 14,
-                  color: isIn ? Colors.green : Colors.orange,
+                  color: isIn ? AppColors.success : AppColors.warning,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     movement.documentLabel,
-                    style: TextStyle(fontSize: 11, color: Colors.grey[700], fontWeight: FontWeight.w600),
+                    style: TextStyle(fontSize: 11, color: AppColors.gray600, fontWeight: FontWeight.w600),
                   ),
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: isIn ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
+                    color: isIn ? AppColors.success.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: isIn ? Colors.green.withValues(alpha: 0.3) : Colors.red.withValues(alpha: 0.3)),
+                    border: Border.all(color: isIn ? AppColors.success.withValues(alpha: 0.3) : AppColors.error.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     movement.directionLabel,
-                    style: TextStyle(fontSize: 11, color: isIn ? Colors.green[700] : Colors.red[700], fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 11, color: isIn ? AppColors.emerald700 : AppColors.red700, fontWeight: FontWeight.bold),
                   ),
                 ),
               ],
@@ -350,12 +350,12 @@ class _MovementCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.warehouse, size: 12, color: Colors.grey[600]),
+                          Icon(Icons.warehouse, size: 12, color: AppColors.gray500),
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
                               movement.warehouseName,
-                              style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                              style: TextStyle(fontSize: 11, color: AppColors.gray500),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -364,11 +364,11 @@ class _MovementCard extends StatelessWidget {
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Icon(Icons.access_time, size: 12, color: Colors.grey[500]),
+                          Icon(Icons.access_time, size: 12, color: AppColors.gray400),
                           const SizedBox(width: 4),
                           Text(
                             movement.formattedDate,
-                            style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                            style: TextStyle(fontSize: 11, color: AppColors.gray400),
                           ),
                         ],
                       ),
@@ -385,15 +385,15 @@ class _MovementCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: isIn ? Colors.green[700] : Colors.red[700],
+                          color: isIn ? AppColors.emerald700 : AppColors.red700,
                         ),
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 4),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                         decoration: BoxDecoration(
-                          color: isIn ? Colors.green : Colors.orange,
+                          color: isIn ? AppColors.success : AppColors.warning,
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
@@ -412,12 +412,12 @@ class _MovementCard extends StatelessWidget {
                     children: [
                       Text(
                         'التكلفة',
-                        style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                        style: TextStyle(fontSize: 10, color: AppColors.gray400),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         movement.unitCost.toStringAsFixed(0),
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blueGrey[700]),
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.slate700),
                       ),
                     ],
                   ),

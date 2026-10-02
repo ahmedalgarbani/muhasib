@@ -18,7 +18,7 @@ class _VoucherListItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isReceipt = voucher.type == VoucherType.receipt;
-    final color = isReceipt ? Colors.green : Colors.red;
+    final color = isReceipt ? AppColors.success : AppColors.error;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -43,7 +43,7 @@ class _VoucherListItem extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: color.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(AppRadius.md),
@@ -93,14 +93,14 @@ class _VoucherListItem extends StatelessWidget {
                   Icon(
                     Icons.person_outline,
                     size: 14,
-                    color: Colors.grey.shade500,
+                    color: AppColors.gray400,
                   ),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       voucher.accountName ?? 'حساب غير معروف',
                       style: TextStyle(
-                        color: Colors.grey.shade700,
+                        color: AppColors.gray600,
                         fontSize: 13,
                       ),
                       maxLines: 1,
@@ -111,12 +111,12 @@ class _VoucherListItem extends StatelessWidget {
                   Icon(
                     Icons.calendar_today_outlined,
                     size: 14,
-                    color: Colors.grey.shade500,
+                    color: AppColors.gray400,
                   ),
                   const SizedBox(width: 4),
                   Text(
                     DateFormatter.formatDate(voucher.date),
-                    style: TextStyle(color: Colors.grey.shade500, fontSize: 11),
+                    style: TextStyle(color: AppColors.gray400, fontSize: 11),
                   ),
                 ],
               ),
@@ -129,7 +129,7 @@ class _VoucherListItem extends StatelessWidget {
                     icon: const Icon(
                       Icons.print_outlined,
                       size: 18,
-                      color: Colors.grey,
+                      color: AppColors.gray400,
                     ),
                   ),
                   IconButton(
@@ -137,7 +137,7 @@ class _VoucherListItem extends StatelessWidget {
                     icon: const Icon(
                       Icons.edit_outlined,
                       size: 18,
-                      color: Colors.blue,
+                      color: AppColors.info,
                     ),
                   ),
                   IconButton(
@@ -145,14 +145,14 @@ class _VoucherListItem extends StatelessWidget {
                     icon: const Icon(
                       Icons.delete_outline,
                       size: 18,
-                      color: Colors.red,
+                      color: AppColors.error,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Icon(
                     Icons.arrow_forward_ios,
                     size: 12,
-                    color: Colors.grey.shade300,
+                    color: AppColors.gray300,
                   ),
                 ],
               ),
@@ -174,7 +174,7 @@ class _VoucherDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isReceipt = voucher.type == VoucherType.receipt;
-    final color = isReceipt ? Colors.green : Colors.red;
+    final color = isReceipt ? AppColors.success : AppColors.error;
 
     return Directionality(
       textDirection: ui.TextDirection.rtl,
@@ -198,7 +198,7 @@ class _VoucherDetailsSheet extends StatelessWidget {
                   borderRadius: BorderRadius.circular(AppRadius.xxs),
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Row(
@@ -336,8 +336,8 @@ class VoucherLineItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(AppRadius.md),
@@ -359,7 +359,7 @@ class VoucherLineItemWidget extends StatelessWidget {
                 if (line.statement.isNotEmpty)
                   Text(
                     line.statement,
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                    style: TextStyle(fontSize: 12, color: AppColors.gray500),
                   ),
               ],
             ),
@@ -387,7 +387,7 @@ class VoucherSingleLineItemWidget extends StatelessWidget {
       ),
       child: const Text(
         'هذا السند لا يحتوي على أسطر تفصيلية، تم تسجيل المبلغ بالكامل على الحساب الرئيسي.',
-        style: TextStyle(fontSize: 13, color: Colors.grey),
+        style: TextStyle(fontSize: 13, color: AppColors.gray400),
       ),
     );
   }
@@ -412,9 +412,9 @@ class VoucherStatementCardWidget extends StatelessWidget {
           width: double.infinity,
           padding: AppConstant.defaultPadding,
           decoration: BoxDecoration(
-            color: Colors.amber.shade50.withOpacity(0.3),
+            color: AppColors.amber50.withOpacity(0.3),
             borderRadius: BorderRadius.circular(AppRadius.md),
-            border: Border.all(color: Colors.amber.shade100),
+            border: Border.all(color: AppColors.amber100),
           ),
           child: Text(
             statement.isEmpty ? 'لا يوجد بيان مسجل لهذا السند.' : statement,
@@ -443,9 +443,9 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.grey),
+        Icon(icon, size: 16, color: AppColors.gray400),
         const SizedBox(width: 8),
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 13)),
+        Text(label, style: const TextStyle(color: AppColors.gray400, fontSize: 13)),
         const Spacer(),
         Text(
           value,

@@ -135,7 +135,7 @@ class JournalEntriesCardWidget extends StatelessWidget {
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
+                    horizontal: 12,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
@@ -228,7 +228,7 @@ class JournalEntriesCardWidget extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppTheme.primaryColor,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
@@ -346,7 +346,7 @@ class JournalSummaryCardWidget extends StatelessWidget {
                   : AppTheme.redColor,
               icon: Icons.balance,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             StatusCard(balanced: totals.isBalanced),
             const SizedBox(height: 12),
             Row(
@@ -361,7 +361,7 @@ class JournalSummaryCardWidget extends StatelessWidget {
                     leading: const Icon(Icons.check_circle_outline, size: 20),
                   ),
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 HasibButton(
                   label: 'مسح الكل',
                   onPressed: isSaving ? null : onClearAll,
@@ -434,7 +434,7 @@ class SummaryCard extends StatelessWidget {
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               Expanded(
                 child: Text(
                   label,
@@ -447,7 +447,7 @@ class SummaryCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Text(
             value,
             style: TextStyle(
@@ -752,7 +752,7 @@ class _DirectionChip extends StatelessWidget {
       borderRadius: BorderRadius.circular(AppRadius.lg),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadius.lg),
           border: Border.all(
@@ -834,7 +834,7 @@ class _EntryTile extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: softAccentColor,
                   shape: BoxShape.circle,
@@ -870,7 +870,7 @@ class _EntryTile extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
+                            horizontal: 8,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
@@ -953,7 +953,7 @@ class _EntryTile extends StatelessWidget {
                   PopupMenuItem(value: 'duplicate', child: Text('نسخ')),
                   PopupMenuItem(
                     value: 'delete',
-                    child: Text('حذف', style: TextStyle(color: Colors.red)),
+                    child: Text('حذف', style: TextStyle(color: AppColors.error)),
                   ),
                 ],
               ),

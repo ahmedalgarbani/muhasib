@@ -13,7 +13,8 @@ import 'package:muhasib/features/accounts/domain/entities/journal_entry_entity.d
 import 'package:muhasib/features/accounts/presentation/cubit/journal_entry_cubit.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/journal_entry_card_widget.dart';
 import 'package:muhasib/features/accounts/presentation/widgets/journal_entry_details_sheet.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 
 class JournalEntriesListPage extends StatefulWidget {
   const JournalEntriesListPage({super.key});
@@ -126,7 +127,7 @@ class _JournalEntriesListBody extends StatelessWidget {
                 child: Text('طباعة وتصدير قيود اليومية', style: AppTextStyles.titleMedium),
               ),
               ListTile(
-                leading: const Icon(Icons.picture_as_pdf, color: Colors.red),
+                leading: const Icon(Icons.picture_as_pdf, color: AppColors.error),
                 title: const Text('طباعة السجل (PDF)'),
                 onTap: () {
                   Navigator.pop(context);
@@ -138,7 +139,7 @@ class _JournalEntriesListBody extends StatelessWidget {
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.table_view, color: Colors.green),
+                leading: const Icon(Icons.table_view, color: AppColors.success),
                 title: const Text('تصدير إلى Excel'),
                 onTap: () {
                   Navigator.pop(context);

@@ -57,9 +57,9 @@ class _HomeSkeletonLoaderState extends State<HomeSkeletonLoader>
             child: Column(
               children: [
                 _bone(width: 120, height: 14),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 _bone(width: double.infinity, height: 28),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
                 Align(
                   alignment: AlignmentDirectional.centerEnd,
                   child: _bone(width: 80, height: 16),
@@ -83,7 +83,7 @@ class _HomeSkeletonLoaderState extends State<HomeSkeletonLoader>
                     for (var i = 0; i < 4; i++) _tile(),
                   ],
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 16),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
@@ -107,9 +107,9 @@ class _HomeSkeletonLoaderState extends State<HomeSkeletonLoader>
                       child: Row(
                         children: [
                           _bone(width: 40, height: 40, radius: AppRadius.md),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 12),
                           Expanded(child: _bone(width: double.infinity, height: 12)),
-                          const SizedBox(width: 10),
+                          const SizedBox(width: 12),
                           _bone(width: 60, height: 12),
                         ],
                       ),
@@ -139,7 +139,7 @@ class _HomeSkeletonLoaderState extends State<HomeSkeletonLoader>
     return Column(
       children: [
         _bone(width: 48, height: 48, radius: AppRadius.lg),
-        const SizedBox(height: 6),
+        const SizedBox(height: 8),
         _bone(width: 36, height: 9),
       ],
     );

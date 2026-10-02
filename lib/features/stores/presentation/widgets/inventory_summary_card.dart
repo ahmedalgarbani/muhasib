@@ -3,6 +3,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/features/stores/domain/entities/inventory_line_entity.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class InventorySummaryCard extends StatelessWidget {
   final List<InventoryLineEntity> inventoryLines;
@@ -42,17 +43,17 @@ class InventorySummaryCard extends StatelessWidget {
                 InventorySummaryItemWidget(
                   label: 'المتوقع',
                   value: totalExpected.toString(),
-                  color: Colors.blue,
+                  color: AppColors.info,
                 ),
                 InventorySummaryItemWidget(
                   label: 'الفعلي',
                   value: totalActual.toString(),
-                  color: Colors.green,
+                  color: AppColors.success,
                 ),
                 InventorySummaryItemWidget(
                   label: 'الفرق',
                   value: '${totalDifference > 0 ? '+' : ''}$totalDifference',
-                  color: totalDifference >= 0 ? Colors.green : Colors.red,
+                  color: totalDifference >= 0 ? AppColors.success : AppColors.error,
                 ),
               ],
             ),
@@ -79,7 +80,7 @@ class InventorySummaryItemWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+        Text(label, style: TextStyle(fontSize: 12, color: AppColors.gray500)),
         const SizedBox(height: 4),
         Text(
           value,

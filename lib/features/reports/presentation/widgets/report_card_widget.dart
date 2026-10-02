@@ -15,8 +15,8 @@ class ReportCardWidget extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return CustomCardContainer(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       onTap: () => context.push(report.route),
       child: Row(
         children: [
@@ -37,7 +37,7 @@ class ReportCardWidget extends StatelessWidget {
             ),
             child: Icon(report.icon, color: report.color, size: 24),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -50,7 +50,7 @@ class ReportCardWidget extends StatelessWidget {
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 3),
+                const SizedBox(height: 4),
                 Text(
                   report.descriptionAr,
                   style: TextStyle(

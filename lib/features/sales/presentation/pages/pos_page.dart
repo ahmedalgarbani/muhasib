@@ -1245,7 +1245,7 @@ class _PosPageState extends State<PosPage> {
                       ],
                     ),
                     if (_paymentMethod == PaymentMethod.cash && change > 0) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -1447,7 +1447,7 @@ class _PosPageState extends State<PosPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
               color: isDark
                   ? AppColors.primaryDark.withValues(alpha: 0.4)
@@ -1461,7 +1461,7 @@ class _PosPageState extends State<PosPage> {
                   size: 18,
                   color: AppColors.saudiEmerald,
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Text(
                   'نقطة البيع (POS)',
                   style: TextStyle(
@@ -1602,7 +1602,7 @@ class _PosPageState extends State<PosPage> {
                               ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 8),
                     Flexible(
                       child: Text(
                         steps[index]['title'] as String,
@@ -1715,7 +1715,7 @@ class _PosPageState extends State<PosPage> {
                   : filtered.isEmpty
                   ? _buildEmptyProductsState(theme)
                   : GridView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 6, 16, 16),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                       gridDelegate:
                           const SliverGridDelegateWithMaxCrossAxisExtent(
                             maxCrossAxisExtent: 200,
@@ -1755,7 +1755,7 @@ class _PosPageState extends State<PosPage> {
     List<ProductEntity> products,
   ) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Row(
         children: [
           Expanded(
@@ -1830,7 +1830,7 @@ class _PosPageState extends State<PosPage> {
 
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: Row(
             children: [
               _buildCategoryChip('الكل', _selectedGroupId == null, () {
@@ -1856,7 +1856,7 @@ class _PosPageState extends State<PosPage> {
     bool isDark,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(left: 6),
+      padding: const EdgeInsets.only(left: 8),
       child: ChoiceChip(
         label: Text(title),
         selected: isSelected,
@@ -1937,7 +1937,7 @@ class _PosPageState extends State<PosPage> {
         },
         borderRadius: BorderRadius.circular(AppRadius.lg),
         child: Padding(
-          padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.all(12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -2025,7 +2025,7 @@ class _PosPageState extends State<PosPage> {
                             color: product.quantity <= 0
                                 ? AppColors.error
                                 : (product.quantity <= SettingsCache.lowStockAlert
-                                      ? Colors.orange.shade700
+                                      ? AppColors.amber700
                                       : theme.colorScheme.onSurfaceVariant),
                           ),
                         ),
@@ -2107,7 +2107,7 @@ class _PosPageState extends State<PosPage> {
             onPressed: () => setState(() => _currentStep = 1),
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.saudiEmerald,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(AppRadius.md),
               ),
@@ -2212,7 +2212,7 @@ class _PosPageState extends State<PosPage> {
 
   Widget _buildCustomerSection(ThemeData theme, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -2259,7 +2259,7 @@ class _PosPageState extends State<PosPage> {
           ),
           const SizedBox(height: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
               color: isDark ? AppColors.cardSurfaceDark : AppColors.slate50,
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -2274,7 +2274,7 @@ class _PosPageState extends State<PosPage> {
                   color: AppColors.saudiEmerald,
                   size: 24,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2329,7 +2329,7 @@ class _PosPageState extends State<PosPage> {
 
   Widget _buildCartItemsList(ThemeData theme, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -2358,12 +2358,12 @@ class _PosPageState extends State<PosPage> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           ..._cart.values.map((line) {
             final id = line.product.id!;
             return Container(
               margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: isDark ? AppColors.cardSurfaceDark : AppColors.slate50,
                 borderRadius: BorderRadius.circular(AppRadius.md),
@@ -2431,7 +2431,7 @@ class _PosPageState extends State<PosPage> {
                             'الأساس: ${PrecisionHelper.roundQuantity(line.baseQuantity).toStringAsFixed(line.baseQuantity % 1 == 0 ? 0 : 2)} حبة',
                             style: TextStyle(
                               fontSize: 10,
-                              color: Colors.blueGrey.shade600,
+                              color: AppColors.slate600,
                             ),
                           ),
                         if (line.discount > 0)
@@ -2460,7 +2460,7 @@ class _PosPageState extends State<PosPage> {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
+                          horizontal: 12,
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
@@ -2525,7 +2525,7 @@ class _PosPageState extends State<PosPage> {
 
   Widget _buildDiscountAndNotesSection(ThemeData theme, bool isDark) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -2538,7 +2538,7 @@ class _PosPageState extends State<PosPage> {
             'الخصم والملاحظات',
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           Row(
             children: [
               Expanded(
@@ -2561,12 +2561,12 @@ class _PosPageState extends State<PosPage> {
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12,
-                      vertical: 10,
+                      vertical: 12,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 12),
               SegmentedButton<DiscountType>(
                 segments: const [
                   ButtonSegment(
@@ -2582,7 +2582,7 @@ class _PosPageState extends State<PosPage> {
               ),
             ],
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           TextField(
             controller: _statementController,
             decoration: InputDecoration(
@@ -2596,7 +2596,7 @@ class _PosPageState extends State<PosPage> {
               ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
-                vertical: 10,
+                vertical: 12,
               ),
             ),
           ),
@@ -2689,7 +2689,7 @@ class _PosPageState extends State<PosPage> {
             theme,
           ),
           if (_discountAmount > 0) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             _buildSummaryRow(
               'الخصم:',
               '- ${NumberFormatter.formatNumber(_discountAmount)} ${_getCurrencySymbol()}',
@@ -2698,7 +2698,7 @@ class _PosPageState extends State<PosPage> {
             ),
           ],
           if (SettingsCache.taxEnabled) ...[
-            const SizedBox(height: 6),
+            const SizedBox(height: 8),
             _buildSummaryRow(
               'ضريبة القيمة المضافة ($_taxRate%):',
               '+ ${NumberFormatter.formatNumber(_taxAmount)} ${_getCurrencySymbol()}',
@@ -2795,7 +2795,7 @@ class _PosPageState extends State<PosPage> {
                   isDark: isDark,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildPaymentTile(
                   isSplit: false,
@@ -2806,7 +2806,7 @@ class _PosPageState extends State<PosPage> {
                   isDark: isDark,
                 ),
               ),
-              const SizedBox(width: 6),
+              const SizedBox(width: 8),
               Expanded(
                 child: _buildPaymentTile(
                   isSplit: false,
@@ -2818,7 +2818,7 @@ class _PosPageState extends State<PosPage> {
                 ),
               ),
               if (SettingsCache.posAllowSplitPayment) ...[
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 Expanded(
                   child: _buildPaymentTile(
                     isSplit: true,
@@ -2832,7 +2832,7 @@ class _PosPageState extends State<PosPage> {
               ],
             ],
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           // Dynamic fields depending on payment mode
           if (_isSplitPayment) ...[
@@ -2887,7 +2887,7 @@ class _PosPageState extends State<PosPage> {
       },
       borderRadius: BorderRadius.circular(AppRadius.md),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
         decoration: BoxDecoration(
           color: isSelected
               ? (isDark
@@ -2970,7 +2970,7 @@ class _PosPageState extends State<PosPage> {
               });
             },
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
         ],
         Row(
           children: [
@@ -2989,7 +2989,7 @@ class _PosPageState extends State<PosPage> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 10,
+                    vertical: 12,
                   ),
                 ),
               ),
@@ -3010,14 +3010,14 @@ class _PosPageState extends State<PosPage> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 10,
+                    vertical: 12,
                   ),
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
         TextField(
           controller: _senderNameController,
           decoration: InputDecoration(
@@ -3030,7 +3030,7 @@ class _PosPageState extends State<PosPage> {
             ),
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 12,
-              vertical: 10,
+              vertical: 12,
             ),
           ),
         ),
@@ -3093,7 +3093,7 @@ class _PosPageState extends State<PosPage> {
           },
           borderRadius: BorderRadius.circular(AppRadius.md),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isDark ? AppColors.cardSurfaceDark : AppColors.slate50,
               borderRadius: BorderRadius.circular(AppRadius.md),
@@ -3106,7 +3106,7 @@ class _PosPageState extends State<PosPage> {
                   color: AppColors.saudiEmerald,
                   size: 20,
                 ),
-                const SizedBox(width: 10),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -3147,7 +3147,7 @@ class _PosPageState extends State<PosPage> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 6),
+                const SizedBox(width: 8),
                 const Icon(Icons.edit_calendar_outlined, size: 18),
               ],
             ),
@@ -3183,7 +3183,7 @@ class _PosPageState extends State<PosPage> {
                     size: 18,
                     color: AppColors.saudiEmerald,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   const Text(
                     'الدفعة النقدية',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -3240,7 +3240,7 @@ class _PosPageState extends State<PosPage> {
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
 
         // Bank portion
         Container(
@@ -3260,7 +3260,7 @@ class _PosPageState extends State<PosPage> {
                     size: 18,
                     color: AppColors.saudiEmerald,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   const Text(
                     'الدفعة البنكية / شبكة',
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
@@ -3334,7 +3334,7 @@ class _PosPageState extends State<PosPage> {
             ],
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 12),
 
         // Split Summary & Deferred Breakdown
         Container(
@@ -3482,14 +3482,14 @@ class _PosPageState extends State<PosPage> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 10,
+                    vertical: 12,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: isDark
                     ? AppColors.primaryDark.withValues(alpha: 0.3)
@@ -3529,7 +3529,7 @@ class _PosPageState extends State<PosPage> {
             children: quickAmounts.map((amt) {
               final isExact = (amt - _grandTotal).abs() < 0.01;
               return Padding(
-                padding: const EdgeInsets.only(left: 6),
+                padding: const EdgeInsets.only(left: 8),
                 child: ActionChip(
                   label: Text(
                     isExact
@@ -3548,7 +3548,7 @@ class _PosPageState extends State<PosPage> {
                     borderRadius: BorderRadius.circular(AppRadius.md),
                   ),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
+                    horizontal: 8,
                     vertical: 2,
                   ),
                 ),
@@ -3646,7 +3646,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
         child: Column(
           children: [
             Container(
-              margin: const EdgeInsets.only(top: 10, bottom: 6),
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
               width: 40,
               height: 4,
               decoration: BoxDecoration(
@@ -3672,7 +3672,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                       ),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
-                        vertical: 6,
+                        vertical: 8,
                       ),
                     ),
                     icon: const Icon(Icons.add, size: 16),
@@ -3702,7 +3702,7 @@ class _CustomerPickerSheetState extends State<_CustomerPickerSheet> {
                   ),
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 10,
+                    vertical: 12,
                   ),
                 ),
               ),

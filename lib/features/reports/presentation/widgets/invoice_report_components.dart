@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
 import 'package:muhasib/core/enums/approval_status.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class InvoiceReportSummaryCardWidget extends StatelessWidget {
   final String title;
@@ -49,7 +50,7 @@ class InvoiceReportSummaryCardWidget extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    color: Colors.grey[600],
+                    color: AppColors.gray500,
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
                   ),
@@ -90,20 +91,20 @@ class InvoiceReportStatusSummaryWidget extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: isClean
-            ? Colors.green.withOpacity(0.05)
-            : Colors.orange.withOpacity(0.05),
+            ? AppColors.success.withOpacity(0.05)
+            : AppColors.warning.withOpacity(0.05),
         borderRadius: BorderRadius.circular(AppRadius.md),
         border: Border.all(
           color: isClean
-              ? Colors.green.withOpacity(0.2)
-              : Colors.orange.withOpacity(0.2),
+              ? AppColors.success.withOpacity(0.2)
+              : AppColors.warning.withOpacity(0.2),
         ),
       ),
       child: Row(
         children: [
           Icon(
             isClean ? Icons.check_circle : Icons.info,
-            color: isClean ? Colors.green : Colors.orange,
+            color: isClean ? AppColors.success : AppColors.warning,
             size: 18,
           ),
           const SizedBox(width: 12),
@@ -115,7 +116,7 @@ class InvoiceReportStatusSummaryWidget extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: isClean ? Colors.green[800] : Colors.orange[800],
+                color: isClean ? AppColors.emerald800 : AppColors.amber800,
               ),
             ),
           ),
@@ -168,13 +169,13 @@ class InvoiceReportCardWidget extends StatelessWidget {
   Color _getStatusColor(int status) {
     final s = ApprovalStatus.tryFromValue(status);
     return switch (s) {
-      ApprovalStatus.approved => Colors.green,
-      ApprovalStatus.pendingApproval => Colors.orange,
-      ApprovalStatus.rejected => Colors.red,
-      ApprovalStatus.converted => Colors.purple,
-      ApprovalStatus.expired => Colors.grey,
-      ApprovalStatus.draft => Colors.blueGrey,
-      _ => Colors.grey,
+      ApprovalStatus.approved => AppColors.success,
+      ApprovalStatus.pendingApproval => AppColors.warning,
+      ApprovalStatus.rejected => AppColors.error,
+      ApprovalStatus.converted => AppColors.purple500,
+      ApprovalStatus.expired => AppColors.gray400,
+      ApprovalStatus.draft => AppColors.slate500,
+      _ => AppColors.gray400,
     };
   }
 
@@ -241,7 +242,7 @@ class InvoiceReportCardWidget extends StatelessWidget {
               formattedCurrency,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
-                color: Colors.blueGrey,
+                color: AppColors.slate500,
               ),
             ),
           ],
@@ -252,7 +253,7 @@ class InvoiceReportCardWidget extends StatelessWidget {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.person_outline, size: 14, color: Colors.grey),
+                const Icon(Icons.person_outline, size: 14, color: AppColors.gray400),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -266,7 +267,7 @@ class InvoiceReportCardWidget extends StatelessWidget {
                 const Icon(
                   Icons.calendar_today_outlined,
                   size: 14,
-                  color: Colors.grey,
+                  color: AppColors.gray400,
                 ),
                 const SizedBox(width: 4),
                 Text(r.dateLabel, style: const TextStyle(fontSize: 12)),
@@ -282,7 +283,7 @@ class InvoiceReportCardWidget extends StatelessWidget {
                 const SizedBox(width: 8),
                 InvoiceReportBadgeWidget(
                   label: r.hasJournalEntry ? 'مقيّدة' : 'بدون قيد',
-                  color: r.hasJournalEntry ? Colors.teal : Colors.orange,
+                  color: r.hasJournalEntry ? AppColors.teal500 : AppColors.warning,
                 ),
               ],
             ),

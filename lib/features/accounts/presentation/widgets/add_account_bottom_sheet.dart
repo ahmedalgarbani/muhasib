@@ -138,7 +138,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
       listener: (context, state) {
         if (state is AccountCreated) {
           Navigator.pop(context, true);
-          buildSnackbar(context, 'تم إضافة الحساب بنجاح', color: Colors.green);
+          buildSnackbar(context, 'تم إضافة الحساب بنجاح', color: AppColors.success);
           context.read<AccountsCubit>().loadAllAccounts();
         } else if (state is AccountsError) {
           buildSnackbar(context, state.message);
@@ -156,7 +156,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(14.0),
+            padding: const EdgeInsets.all(16.0),
             child: Form(
               key: _formKey,
               child: Column(
@@ -175,7 +175,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
 
                   Row(
                     children: [
@@ -242,15 +242,15 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                       margin: const EdgeInsets.only(top: 8),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue[50],
+                        color: AppColors.blue50,
                         borderRadius: BorderRadius.circular(AppRadius.sm),
-                        border: Border.all(color: Colors.blue[200]!),
+                        border: Border.all(color: AppColors.blue200),
                       ),
                       child: Row(
                         children: [
                           Icon(
                             Icons.info_outline,
-                            color: Colors.blue[700],
+                            color: AppColors.blue700,
                             size: 20,
                           ),
                           const SizedBox(width: 8),
@@ -260,7 +260,7 @@ class _AddAccountBottomSheetState extends State<AddAccountBottomSheet> {
                                   ? 'سيتم إضافة هذا الحساب كحساب رئيسي فرعي تحت "${widget.masterAccount!.name}"'
                                   : 'سيتم إضافة هذا الحساب كحساب نهائي تحت "${widget.masterAccount!.name}"',
                               style: TextStyle(
-                                color: Colors.blue[900],
+                                color: AppColors.blue900,
                                 fontSize: 12,
                               ),
                             ),

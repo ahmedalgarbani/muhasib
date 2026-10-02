@@ -6,6 +6,7 @@ import 'package:muhasib/core/widgets/hasib_button.dart';
 import 'package:muhasib/core/widgets/text_input_field.dart';
 import 'package:muhasib/features/accounts/domain/entities/account_entity.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class OpeningBalancesHeaderWidget extends StatelessWidget {
   final DateTime selectedDate;
@@ -127,7 +128,7 @@ class OpeningBalancesAccountsListWidget extends StatelessWidget {
                           account.statement!,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: AppColors.gray500,
                           ),
                         ),
                     ],
@@ -219,7 +220,7 @@ class OpeningBalancesFooterWidget extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: Colors.green,
+                      color: AppColors.success,
                     ),
                   ),
                 ],
@@ -232,7 +233,7 @@ class OpeningBalancesFooterWidget extends StatelessWidget {
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: Colors.red,
+                      color: AppColors.error,
                     ),
                   ),
                 ],
@@ -247,7 +248,7 @@ class OpeningBalancesFooterWidget extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,
-                      color: isBalanced ? Colors.green : Colors.orange,
+                      color: isBalanced ? AppColors.success : AppColors.warning,
                     ),
                   ),
                 ],
@@ -259,17 +260,17 @@ class OpeningBalancesFooterWidget extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.orange.withOpacity(0.1),
+                color: AppColors.warning.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(AppRadius.sm),
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.warning, color: Colors.orange),
+                  Icon(Icons.warning, color: AppColors.warning),
                   SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'تحذير: المجاميع غير متوازنة! يجب أن يكون إجمالي المدين مساوياً لإجمالي الدائن',
-                      style: TextStyle(color: Colors.orange),
+                      style: TextStyle(color: AppColors.warning),
                     ),
                   ),
                 ],

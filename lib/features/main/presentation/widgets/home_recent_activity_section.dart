@@ -8,7 +8,8 @@ import 'package:intl/intl.dart' as intl;
 import 'package:muhasib/features/sales/domain/entities/invoice_entity.dart';
 import 'package:muhasib/features/sales/presentation/cubit/sales_cubit.dart';
 import 'package:muhasib/features/purchases/presentation/cubit/purchases_cubit.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
 import 'package:muhasib/core/theme/app_spacing.dart';
 
 /// ─────────────────────────────────────────────
@@ -153,7 +154,7 @@ class _ActivityItem extends StatelessWidget {
     final dateStr = intl.DateFormat('yyyy-MM-dd HH:mm', 'ar').format(date);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
           // Icon Box
@@ -166,7 +167,7 @@ class _ActivityItem extends StatelessWidget {
             ),
             child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 16),
           // Info
           Expanded(
             child: Column(

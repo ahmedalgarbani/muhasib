@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/features/accounts/presentation/pages/accounts_tree_view.dart';
-import 'package:muhasib/core/constant/app_constant.dart';
+
+import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class CurrentAccountCard extends StatelessWidget {
   const CurrentAccountCard({super.key});
@@ -30,7 +32,7 @@ class CurrentAccountCard extends StatelessWidget {
           ),
           child: Row(
             children: const [
-              Icon(Icons.edit, color: Colors.blue, size: 20),
+              Icon(Icons.edit, color: AppColors.info, size: 20),
               SizedBox(width: 12),
               Text(
                 'الصندوق الرئيسي',

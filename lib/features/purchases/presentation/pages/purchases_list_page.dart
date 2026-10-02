@@ -60,7 +60,7 @@ class _PurchasesListPageState extends State<PurchasesListPage> {
                       return Center(
                         child: Text(
                           state.message,
-                          style: const TextStyle(color: Colors.red),
+                          style: const TextStyle(color: AppColors.error),
                         ),
                       );
                     } else if (state is PurchaseInvoicesLoaded) {

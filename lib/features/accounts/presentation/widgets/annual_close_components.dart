@@ -161,7 +161,7 @@ class AnnualCloseSummaryCard extends StatelessWidget {
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 12),
-          Text(title, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+          Text(title, style: TextStyle(fontSize: 12, color: AppColors.gray500)),
           const SizedBox(height: 4),
           Text(
             value,
@@ -203,7 +203,7 @@ class AnnualCloseStepsCard extends StatelessWidget {
               color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
           ...steps.asMap().entries.map(
             (entry) => AnnualCloseStepItem(
               step: entry.value,
@@ -232,7 +232,7 @@ class AnnualCloseStepItem extends StatelessWidget {
       StepStatus.completed => (AppColors.success, Icons.check_circle),
       StepStatus.inProgress => (AppColors.indigo500, Icons.sync),
       StepStatus.error => (AppColors.error, Icons.error),
-      StepStatus.pending => (Colors.grey, Icons.circle_outlined),
+      StepStatus.pending => (AppColors.gray400, Icons.circle_outlined),
     };
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -281,7 +281,7 @@ class AnnualCloseStepItem extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   step.description,
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 12, color: AppColors.gray500),
                 ),
               ],
             ),
@@ -313,7 +313,7 @@ class AnnualCloseActionButtons extends StatelessWidget {
           icon: const Icon(Icons.preview),
           label: const Text('معاينة'),
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(AppRadius.md),
             ),
@@ -330,7 +330,7 @@ class AnnualCloseActionButtons extends StatelessWidget {
           leading: const Icon(Icons.play_arrow),
           loading: processing,
           variant: HasibButtonVariant.primary,
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
     ],

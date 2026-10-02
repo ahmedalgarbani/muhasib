@@ -28,7 +28,7 @@ class CustomConfirmDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final themeColor = isDanger ? Colors.red : AppColors.primary;
+    final themeColor = isDanger ? AppColors.error : AppColors.primary;
 
     return Directionality(
       textDirection: TextDirection.rtl,

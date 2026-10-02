@@ -42,16 +42,16 @@ class ProductGroupsHeaderWidget extends StatelessWidget {
             controller: searchController,
             hint: 'ابحث في المجموعات...',
             decoration: InputDecoration(
-              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+              prefixIcon: const Icon(Icons.search, color: AppColors.gray400),
               filled: true,
               fillColor: Theme.of(context).colorScheme.surface,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: AppColors.gray300),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(AppRadius.sm),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(color: AppColors.gray300),
               ),
             ),
             onChanged: onSearchChanged,
@@ -105,7 +105,7 @@ class ProductGroupsListWidget extends StatelessWidget {
             subtitle: group.statement != null
                 ? Text(
                     group.statement!,
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: TextStyle(color: AppColors.gray500),
                   )
                 : null,
             trailing: Row(
@@ -118,12 +118,12 @@ class ProductGroupsListWidget extends StatelessWidget {
                       vertical: 4,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
+                      color: AppColors.blue50,
                       borderRadius: BorderRadius.circular(AppRadius.xs),
                     ),
                     child: const Text(
                       'فرعية',
-                      style: TextStyle(fontSize: 12, color: Colors.blue),
+                      style: TextStyle(fontSize: 12, color: AppColors.info),
                     ),
                   ),
                 const SizedBox(width: 8),
@@ -143,9 +143,9 @@ class ProductGroupsListWidget extends StatelessWidget {
                       value: 'delete',
                       child: Row(
                         children: [
-                          Icon(Icons.delete, size: 20, color: Colors.red),
+                          Icon(Icons.delete, size: 20, color: AppColors.error),
                           SizedBox(width: 8),
-                          Text('حذف', style: TextStyle(color: Colors.red)),
+                          Text('حذف', style: TextStyle(color: AppColors.error)),
                         ],
                       ),
                     ),

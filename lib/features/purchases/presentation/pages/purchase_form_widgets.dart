@@ -279,7 +279,7 @@ class _PurchaseFormPageState extends State<PurchaseFormPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   PurchaseFormHeader(isEdit: widget.invoice != null),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   PurchaseFormInfoCard(
                     numberController: _numberController,
                     dateController: _dateController,

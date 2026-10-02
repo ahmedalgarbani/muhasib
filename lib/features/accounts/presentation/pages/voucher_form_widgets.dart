@@ -11,7 +11,7 @@ class _AccountPickerField extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(AppRadius.md),
@@ -19,7 +19,7 @@ class _AccountPickerField extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Icon(Icons.search, size: 20, color: Colors.grey),
+            const Icon(Icons.search, size: 20, color: AppColors.gray400),
             const SizedBox(width: 12),
             Expanded(
               child: Text(
@@ -27,14 +27,14 @@ class _AccountPickerField extends StatelessWidget {
                 style: TextStyle(
                   color: selectedAccountName != null
                       ? Theme.of(context).colorScheme.onSurface
-                      : Colors.grey,
+                      : AppColors.gray400,
                   fontWeight: selectedAccountName != null
                       ? FontWeight.bold
                       : FontWeight.normal,
                 ),
               ),
             ),
-            const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            const Icon(Icons.arrow_drop_down, color: AppColors.gray400),
           ],
         ),
       ),
@@ -221,13 +221,13 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                 TabBar(
                   controller: _tabController,
                   isScrollable: true,
-                  labelPadding: const EdgeInsets.symmetric(horizontal: 14),
+                  labelPadding: const EdgeInsets.symmetric(horizontal: 16),
                   tabs: [
                     Tab(
                       child: Row(
                         children: [
                           const Icon(Icons.list_alt, size: 16),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text('الكل (${accounts.length})'),
                         ],
                       ),
@@ -238,9 +238,9 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                           const Icon(
                             Icons.point_of_sale,
                             size: 16,
-                            color: Colors.teal,
+                            color: AppColors.teal500,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text(
                             'الصناديق (${accounts.where((a) => AccountCategoryFilter.cashboxes.matches(a)).length})',
                           ),
@@ -253,9 +253,9 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                           const Icon(
                             Icons.account_balance,
                             size: 16,
-                            color: Colors.blue,
+                            color: AppColors.info,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text(
                             'البنوك (${accounts.where((a) => AccountCategoryFilter.banks.matches(a)).length})',
                           ),
@@ -268,9 +268,9 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                           const Icon(
                             Icons.people,
                             size: 16,
-                            color: Colors.indigo,
+                            color: AppColors.indigo500,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text(
                             'العملاء (${accounts.where((a) => AccountCategoryFilter.customers.matches(a)).length})',
                           ),
@@ -283,9 +283,9 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                           const Icon(
                             Icons.local_shipping,
                             size: 16,
-                            color: Colors.deepPurple,
+                            color: AppColors.violet500,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text(
                             'الموردين (${accounts.where((a) => AccountCategoryFilter.suppliers.matches(a)).length})',
                           ),
@@ -298,9 +298,9 @@ class _AccountSelectorSheetState extends State<_AccountSelectorSheet>
                           const Icon(
                             Icons.category,
                             size: 16,
-                            color: Colors.amber,
+                            color: AppColors.warning,
                           ),
-                          const SizedBox(width: 6),
+                          const SizedBox(width: 8),
                           Text(
                             'أخرى (${accounts.where((a) => AccountCategoryFilter.other.matches(a)).length})',
                           ),
@@ -435,19 +435,19 @@ class VoucherAccountListWidget extends StatelessWidget {
         IconData avatarIcon;
 
         if (isBank) {
-          avatarColor = Colors.blue;
+          avatarColor = AppColors.info;
           avatarIcon = Icons.account_balance;
         } else if (isCash) {
-          avatarColor = Colors.teal;
+          avatarColor = AppColors.teal500;
           avatarIcon = Icons.point_of_sale;
         } else if (isCustomer) {
-          avatarColor = Colors.indigo;
+          avatarColor = AppColors.indigo500;
           avatarIcon = Icons.person;
         } else if (isSupplier) {
-          avatarColor = Colors.deepPurple;
+          avatarColor = AppColors.violet500;
           avatarIcon = Icons.local_shipping;
         } else {
-          avatarColor = Colors.amber.shade800;
+          avatarColor = AppColors.amber800;
           avatarIcon = Icons.receipt_long;
         }
 
@@ -479,8 +479,8 @@ class VoucherAccountListWidget extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: a.balance > 0
-                        ? Colors.green.shade700
-                        : Colors.red.shade700,
+                        ? AppColors.emerald700
+                        : AppColors.red700,
                   ),
                 ),
             ],
@@ -488,7 +488,7 @@ class VoucherAccountListWidget extends StatelessWidget {
           subtitle: Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),

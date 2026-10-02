@@ -263,11 +263,11 @@ class RevaluationDifferenceCard extends StatelessWidget {
     final isProfit = difference > 0;
     return CustomCardContainer(
       elevation: 0,
-      color: (isProfit ? Colors.green : Colors.red).withOpacity(0.05),
+      color: (isProfit ? AppColors.success : AppColors.error).withOpacity(0.05),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(
-          color: (isProfit ? Colors.green : Colors.red).withOpacity(0.3),
+          color: (isProfit ? AppColors.success : AppColors.error).withOpacity(0.3),
         ),
       ),
       child: Padding(
@@ -278,7 +278,7 @@ class RevaluationDifferenceCard extends StatelessWidget {
               children: [
                 Icon(
                   isProfit ? Icons.trending_up : Icons.trending_down,
-                  color: isProfit ? Colors.green : Colors.red,
+                  color: isProfit ? AppColors.success : AppColors.error,
                   size: 32,
                 ),
                 const SizedBox(width: 16),
@@ -290,7 +290,7 @@ class RevaluationDifferenceCard extends StatelessWidget {
                         isProfit ? 'أرباح فروق الصرف' : 'خسائر فروق الصرف',
                         style: TextStyle(
                           fontSize: 14,
-                          color: isProfit ? Colors.green[700] : Colors.red[700],
+                          color: isProfit ? AppColors.emerald700 : AppColors.red700,
                         ),
                       ),
                       Text(
@@ -298,7 +298,7 @@ class RevaluationDifferenceCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: isProfit ? Colors.green : Colors.red,
+                          color: isProfit ? AppColors.success : AppColors.error,
                         ),
                       ),
                     ],
@@ -311,7 +311,7 @@ class RevaluationDifferenceCard extends StatelessWidget {
               isProfit
                   ? 'سيتم تسجيل قيد محاسبي بزيادة قيمة الأصول وتسجيل أرباح فروق الصرف'
                   : 'سيتم تسجيل قيد محاسبي بتخفيض قيمة الأصول وتسجيل خسائر فروق الصرف',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 12, color: AppColors.gray500),
               textAlign: TextAlign.center,
             ),
           ],
@@ -340,7 +340,7 @@ class RevaluationActionButtons extends StatelessWidget {
           icon: const Icon(Icons.clear),
           label: const Text('مسح'),
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(vertical: 10),
+            padding: const EdgeInsets.symmetric(vertical: 12),
           ),
         ),
       ),
@@ -353,7 +353,7 @@ class RevaluationActionButtons extends StatelessWidget {
           leading: const Icon(Icons.save),
           loading: isLoading,
           variant: HasibButtonVariant.primary,
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
       ),
     ],

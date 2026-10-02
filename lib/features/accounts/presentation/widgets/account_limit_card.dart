@@ -1,3 +1,4 @@
+import 'package:muhasib/core/theme/app_color.dart';
 // import 'package:flutter/material.dart';
 // import '../../../domain/entities/account_entity.dart';
 
@@ -51,7 +52,7 @@
 //                           'كود: ${account.code}',
 //                           style: TextStyle(
 //                             fontSize: 12,
-//                             color: Colors.grey[600],
+//                             color: AppColors.gray500,
 //                           ),
 //                         ),
 //                       ],
@@ -60,7 +61,7 @@
 //                   Container(
 //                     padding: const EdgeInsets.symmetric(
 //                       horizontal: 12,
-//                       vertical: 6,
+//                       vertical: 8,
 //                     ),
 //                     decoration: BoxDecoration(
 //                       color: _getStatusColor(usagePercentage).withOpacity(0.1),
@@ -92,7 +93,7 @@
 //                           'الحد الائتماني',
 //                           style: TextStyle(
 //                             fontSize: 12,
-//                             color: Colors.grey[600],
+//                             color: AppColors.gray500,
 //                           ),
 //                         ),
 //                         const SizedBox(height: 4),
@@ -114,7 +115,7 @@
 //                           'المستخدم',
 //                           style: TextStyle(
 //                             fontSize: 12,
-//                             color: Colors.grey[600],
+//                             color: AppColors.gray500,
 //                           ),
 //                         ),
 //                         const SizedBox(height: 4),
@@ -137,7 +138,7 @@
 //                           'المتاح',
 //                           style: TextStyle(
 //                             fontSize: 12,
-//                             color: Colors.grey[600],
+//                             color: AppColors.gray500,
 //                           ),
 //                         ),
 //                         const SizedBox(height: 4),
@@ -146,7 +147,7 @@
 //                           style: const TextStyle(
 //                             fontSize: 14,
 //                             fontWeight: FontWeight.bold,
-//                             color: Colors.green,
+//                             color: AppColors.success,
 //                           ),
 //                         ),
 //                       ],
@@ -159,7 +160,7 @@
 //                 borderRadius: BorderRadius.circular(AppRadius.xs),
 //                 child: LinearProgressIndicator(
 //                   value: usagePercentage.clamp(0.0, 1.0),
-//                   backgroundColor: Colors.grey[300],
+//                   backgroundColor: AppColors.gray300,
 //                   valueColor: AlwaysStoppedAnimation<Color>(
 //                     _getStatusColor(usagePercentage),
 //                   ),
@@ -175,13 +176,13 @@
 
 //   Color _getStatusColor(double percentage) {
 //     if (percentage >= 0.9) {
-//       return Colors.red;
+//       return AppColors.error;
 //     } else if (percentage >= 0.7) {
-//       return Colors.orange;
+//       return AppColors.warning;
 //     } else if (percentage >= 0.5) {
-//       return Colors.amber;
+//       return AppColors.warning;
 //     } else {
-//       return Colors.green;
+//       return AppColors.success;
 //     }
 //   }
 

@@ -53,7 +53,7 @@ class ErrorStateCard extends StatelessWidget {
             ),
             child: Icon(Icons.cloud_off_rounded, size: 28, color: errorColor),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
           Text(
             'تعذّر تحميل البيانات',
             style: TextStyle(
@@ -62,7 +62,7 @@ class ErrorStateCard extends StatelessWidget {
               color: theme.colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 8),
           Text(
             message,
             textAlign: TextAlign.center,
@@ -90,7 +90,7 @@ class ErrorStateCard extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.refresh_rounded, size: 18, color: Colors.white),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Text(
                     retryLabel,
                     style: const TextStyle(

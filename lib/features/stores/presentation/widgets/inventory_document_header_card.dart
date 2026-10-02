@@ -3,6 +3,7 @@ import 'package:muhasib/core/theme/app_radius.dart';
 import 'package:muhasib/core/widgets/custom_card_container.dart';
 import 'package:muhasib/core/widgets/custom_text_field.dart';
 import 'package:muhasib/core/constant/app_constant.dart';
+import 'package:muhasib/core/theme/app_color.dart';
 
 class InventoryDocumentHeaderCard extends StatelessWidget {
   final TextEditingController inventoryNumberController;
@@ -66,7 +67,7 @@ class InventoryDocumentHeaderCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(AppRadius.md),
                         ),
                         filled: true,
-                        fillColor: Colors.grey[50],
+                        fillColor: AppColors.gray50,
                       ),
                       child: Text(
                         '${selectedDate.year}/${selectedDate.month}/${selectedDate.day}',

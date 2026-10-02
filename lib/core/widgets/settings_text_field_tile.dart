@@ -33,7 +33,7 @@ class SettingsTextFieldTile extends StatelessWidget {
           : null,
       title: Text(
         title,
-        style: const TextStyle(fontSize: 12, color: Colors.grey),
+        style: const TextStyle(fontSize: 12, color: AppColors.gray400),
       ),
       subtitle: TextInputField(
         controller: controller,

@@ -69,15 +69,15 @@ class BankCardWidget extends StatelessWidget {
                             Icon(
                               bank.isActive ? Icons.check_circle : Icons.cancel,
                               size: 16,
-                              color: bank.isActive ? Colors.green : Colors.grey,
+                              color: bank.isActive ? AppColors.success : AppColors.gray400,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               bank.isActive ? 'نشط' : 'غير نشط',
                               style: TextStyle(
                                 color: bank.isActive
-                                    ? Colors.green
-                                    : Colors.grey,
+                                    ? AppColors.success
+                                    : AppColors.gray400,
                                 fontSize: 14,
                               ),
                             ),
@@ -102,9 +102,9 @@ class BankCardWidget extends StatelessWidget {
                         value: 'delete',
                         child: Row(
                           children: [
-                            Icon(Icons.delete, size: 20, color: Colors.red),
+                            Icon(Icons.delete, size: 20, color: AppColors.error),
                             SizedBox(width: 8),
-                            Text('حذف', style: TextStyle(color: Colors.red)),
+                            Text('حذف', style: TextStyle(color: AppColors.error)),
                           ],
                         ),
                       ),
@@ -123,11 +123,11 @@ class BankCardWidget extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                    const Icon(Icons.location_on, size: 16, color: AppColors.gray400),
                     const SizedBox(width: 4),
                     Text(
                       'الفرع: ${bank.branchName}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      style: const TextStyle(color: AppColors.gray400, fontSize: 14),
                     ),
                   ],
                 ),
@@ -137,11 +137,11 @@ class BankCardWidget extends StatelessWidget {
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.numbers, size: 16, color: Colors.grey),
+                    const Icon(Icons.numbers, size: 16, color: AppColors.gray400),
                     const SizedBox(width: 4),
                     Text(
                       'رقم الحساب: ${bank.accountNumber}',
-                      style: const TextStyle(color: Colors.grey, fontSize: 14),
+                      style: const TextStyle(color: AppColors.gray400, fontSize: 14),
                     ),
                   ],
                 ),

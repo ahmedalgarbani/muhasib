@@ -193,20 +193,20 @@ class ProductSubUnitItemWidget extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: subUnit.isMainUnit
-                ? Colors.blue.shade50
+                ? AppColors.blue50
                 : Theme.of(context).colorScheme.surfaceContainerHighest,
             borderRadius: BorderRadius.circular(AppRadius.sm),
             border: Border.all(
               color: subUnit.isMainUnit
-                  ? Colors.blue.shade200
-                  : Colors.grey.shade300,
+                  ? AppColors.blue200
+                  : AppColors.gray300,
             ),
           ),
           child: Row(
             children: [
               Icon(
                 Icons.inventory_2,
-                color: subUnit.isMainUnit ? Colors.blue : Colors.grey,
+                color: subUnit.isMainUnit ? AppColors.info : AppColors.gray400,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -227,7 +227,7 @@ class ProductSubUnitItemWidget extends StatelessWidget {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.blue,
+                              color: AppColors.info,
                               borderRadius: BorderRadius.circular(AppRadius.xs),
                             ),
                             child: const Text(
@@ -245,7 +245,7 @@ class ProductSubUnitItemWidget extends StatelessWidget {
                       'معامل التحويل: ${subUnit.conversionRate}',
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: AppColors.gray500,
                       ),
                     ),
                   ],
@@ -278,9 +278,9 @@ class ProductSubUnitItemWidget extends StatelessWidget {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete, size: 20, color: Colors.red),
+                        Icon(Icons.delete, size: 20, color: AppColors.error),
                         SizedBox(width: 8),
-                        Text('حذف', style: TextStyle(color: Colors.red)),
+                        Text('حذف', style: TextStyle(color: AppColors.error)),
                       ],
                     ),
                   ),
